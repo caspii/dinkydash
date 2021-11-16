@@ -10,11 +10,8 @@
   <meta property="og:type" content="">
   <meta property="og:url" content="">
   <meta property="og:image" content="">
-
   <meta http-equiv="refresh" content="5" > <!-- Reload every 5 minutes -->
-
   <link rel="apple-touch-icon" href="icon.png">
-
   <link rel="stylesheet" href="https://bootswatch.com/5/quartz/bootstrap.min.css">
 
   <style>
@@ -29,10 +26,7 @@
     .card-body {
       font-size: 40px;
     }
-
   </style>
-
-
 </head>
 
 <body>
@@ -40,7 +34,8 @@
 <!--  <h4 class="display-5 fw-bold">DinkyDash: the emoji dashboard</h4>-->
 <!--</div>-->
 
-<div class="p-1 container text-center">
+<div id="app" class="p-1 container text-center">
+  {{ message }}
   <div class="row row-cols-4">
     <div class="col">
       <div class="card mb-3">
@@ -123,5 +118,7 @@
   </div>
 </div>
 </body>
+<script src="https://unpkg.com/vue@next"></script>
+<script src="app.js"></script>
 
 </html>
