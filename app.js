@@ -5,7 +5,7 @@ console.log("Hello World")
 const dinkyApp = {
     data() {
         return {
-            message: "Hello world",
+            message: "DinkyDash",
             countdowns: [
                 {image: "caspar.jpg", title: "🎂", date: "03/09/2022"},
                 {image: "josephine.jpg", title: "🎂", date: "03/21/2022"},
@@ -13,6 +13,7 @@ const dinkyApp = {
                 {image: "natasha.jpg", title: "🎂", date: "02/19/2022"},
                 {image: "estelle.jpg", title: "🎂", date: "03/04/2022"},
                 {image: "", title: "🎄", date: "12/24/2021"},
+                {image: "", title: "🎅", date: "12/06/2021"},
             ]
         }
     },

@@ -52,7 +52,7 @@
     <div v-for="(countdown, index) in get_sorted_countdowns()" class="col">
       <div class="card mb-3">
         <div class="card-header">
-          <img :src="countdown.image" class="img-thumbnail" width="100">
+          <img v-if="countdown.image" :src="countdown.image" class="img-thumbnail" width="100">
           <span class="big-emoji">{{countdown.title}}</span>
         </div>
         <div class="card-body">
