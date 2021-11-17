@@ -51,7 +51,7 @@
           <img v-if="countdown.image" :src="countdown.image" class="img-thumbnail" width="120">
           <span class="big-emoji">{{countdown.title}}</span>
         </div>
-        <div class="card-body">
+        <div class="card-body d-flex align-items-center justify-content-center">
           🛏 {{ calculate_days_remaining(countdown.date) }}
         </div>
       </div>
