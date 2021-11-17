@@ -3,14 +3,14 @@
 
 <head>
   <meta charset="utf-8">
-  <title></title>
+  <title>DinkyDash</title>
   <meta name="description" content="">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta property="og:title" content="">
   <meta property="og:type" content="">
   <meta property="og:url" content="">
   <meta property="og:image" content="">
-  <meta http-equiv="refresh" content="5" > <!-- Reload every 5 minutes -->
+  <meta http-equiv="refresh" content="120" > <!-- Refresh every 2 minutes -->
   <link rel="apple-touch-icon" href="icon.png">
   <link rel="stylesheet" href="https://bootswatch.com/5/quartz/bootstrap.min.css">
 
@@ -44,74 +44,19 @@
           <!-- Wer ist heute mit allem dran?-->
         </div>
         <div class="card-body text-primary">
-          <img src="josephine.jpeg" class="img-thumbnail winner" width="100">
-          <img src="estelle.jpeg" class="img-thumbnail" width="100">
+          <img src="josephine.jpg" class="img-thumbnail winner" width="100">
+          <img src="estelle.jpg" class="img-thumbnail" width="100">
         </div>
       </div>
     </div>
-    <div class="col">
+    <div v-for="(countdown, index) in get_sorted_countdowns()" class="col">
       <div class="card mb-3">
         <div class="card-header">
-          <div class="big-emoji">🌙</div>
-          <!-- Was machen wir vor dem schlafen gehen?-->
+          <img :src="countdown.image" class="img-thumbnail" width="100">
+          <span class="big-emoji">{{countdown.title}}</span>
         </div>
         <div class="card-body">
-          <span class="winner">📺</span>
-          <span class="">📖</span>
-        </div>
-      </div>
-    </div>
-    <div class="col">
-      <div class="card mb-3">
-        <div class="card-header">
-          <img src="estelle.jpeg" class="img-thumbnail" width="100">
-          <span class="big-emoji">🎂</span>
-        </div>
-        <div class="card-body">
-          🛏 7
-        </div>
-      </div>
-    </div><div class="col">
-      <div class="card mb-3">
-        <div class="card-header">
-          <div class="big-emoji">🎄🎅</div>
-        </div>
-        <div class="card-body">
-          🛏 18
-        </div>
-      </div>
-    </div>
-    <div class="col">
-      <div class="card mb-3">
-        <div class="card-header">
-          <img src="jessica.jpeg" class="img-thumbnail" width="100">
-          <span class="big-emoji">🎂</span>
-          <br>
-        </div>
-        <div class="card-body">
-          🛏 120
-        </div>
-      </div>
-    </div>
-    <div class="col">
-      <div class="card mb-3">
-        <div class="card-header">
-          <img src="natasha.jpeg" class="img-thumbnail" width="100">
-          <span class="big-emoji">🎂</span>
-        </div>
-        <div class="card-body">
-          🛏 234
-        </div>
-      </div>
-    </div>
-    <div class="col">
-      <div class="card mb-3">
-        <div class="card-header">
-          <img src="caspar.jpg" class="img-thumbnail" width="100">
-          <span class="big-emoji">🎂</span>
-        </div>
-        <div class="card-body">
-          🛏 334
+          🛏 {{ calculate_days_remaining(countdown.date) }}
         </div>
       </div>
     </div>
@@ -120,5 +65,4 @@
 </body>
 <script src="https://unpkg.com/vue@next"></script>
 <script src="app.js"></script>
-
 </html>
