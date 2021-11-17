@@ -15,9 +15,6 @@
   <link rel="stylesheet" href="https://bootswatch.com/5/quartz/bootstrap.min.css">
 
   <style>
-    .winner {
-      border: 5px solid #37ff53;
-    }
 
     .big-emoji {
       font-size: 60px;
@@ -37,18 +34,18 @@
 <div id="app" class="p-1 container text-center">
   {{ message }}
   <div class="row row-cols-4">
-    <div class="col">
+    <! -- Begin recurring -->
+    <div v-for="item in this.recurring" class="col">
       <div class="card mb-3">
         <div class="card-header">
-          <div class="big-emoji">👑</div>
-          <!-- Wer ist heute mit allem dran?-->
+          <div class="big-emoji">{{ item.title }}</div>
         </div>
         <div class="card-body text-primary">
-          <img src="josephine.jpg" class="img-thumbnail winner" width="100">
-          <img src="estelle.jpg" class="img-thumbnail" width="100">
+          <img :src="get_recurring(item.slots)" class="img-thumbnail" width="100">
         </div>
       </div>
     </div>
+    <!-- Begin countdowns -->
     <div v-for="(countdown, index) in get_sorted_countdowns()" class="col">
       <div class="card mb-3">
         <div class="card-header">
