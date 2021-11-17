@@ -1,7 +1,5 @@
 console.log("Hello World")
 
-
-
 const dinkyApp = {
     data() {
         return {
@@ -51,8 +49,6 @@ const dinkyApp = {
             console.debug("Today's index = " + todays_index)
             return slots[todays_index]
         }
-
-
     }
 }
 
