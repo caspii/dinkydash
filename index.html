@@ -13,8 +13,15 @@
   <meta http-equiv="refresh" content="120" > <!-- Refresh every 2 minutes -->
   <link rel="apple-touch-icon" href="icon.png">
   <link rel="stylesheet" href="https://bootswatch.com/5/quartz/bootstrap.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap" rel="stylesheet">
 
   <style>
+
+    .card-body {
+      font-family: 'Luckiest Guy', cursive;
+    }
 
     .big-emoji {
       font-size: 80px;
@@ -23,6 +30,8 @@
     .card-body {
       font-size: 40px;
     }
+
+    [v-cloak] { display: none }
   </style>
 </head>
 
@@ -31,7 +40,7 @@
 <!--  <h4 class="display-5 fw-bold">DinkyDash: the emoji dashboard</h4>-->
 <!--</div>-->
 
-<div id="app" class="p-1 container text-center">
+<div id="app" class="p-1 container text-center" v-cloak>
   <div class="row row-cols-4">
     <! -- Begin recurring -->
     <div v-for="item in this.recurring" class="col">

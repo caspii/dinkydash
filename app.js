@@ -12,11 +12,11 @@ const dinkyApp = {
                     slots:
                         [ "josephine.jpg", "estelle.jpg" ]
                 },
-                // {
-                //     title: "🐩",
-                //     slots:
-                //         [ "caspar.jpg", "jessica.jpg", "josephine.jpg", "estelle.jpg",  ]
-                // },
+                {
+                    title: "🛏",
+                    slots:
+                        [ "caspar.jpg", "jessica.jpg"  ]
+                },
             ],
             countdowns: [
                 {image: "caspar.jpg", title: "🎂", date: "03/09/2022"},
