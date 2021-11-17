@@ -17,7 +17,7 @@
   <style>
 
     .big-emoji {
-      font-size: 60px;
+      font-size: 80px;
     }
 
     .card-body {
@@ -32,7 +32,6 @@
 <!--</div>-->
 
 <div id="app" class="p-1 container text-center">
-  {{ message }}
   <div class="row row-cols-4">
     <! -- Begin recurring -->
     <div v-for="item in this.recurring" class="col">
@@ -41,15 +40,15 @@
           <div class="big-emoji">{{ item.title }}</div>
         </div>
         <div class="card-body text-primary">
-          <img :src="get_recurring(item.slots)" class="img-thumbnail" width="100">
+          <img :src="get_recurring(item.slots)" class="img-thumbnail" width="120">
         </div>
       </div>
     </div>
     <!-- Begin countdowns -->
     <div v-for="(countdown, index) in get_sorted_countdowns()" class="col">
       <div class="card mb-3">
-        <div class="card-header">
-          <img v-if="countdown.image" :src="countdown.image" class="img-thumbnail" width="100">
+        <div class="card-header d-flex align-items-center justify-content-center">
+          <img v-if="countdown.image" :src="countdown.image" class="img-thumbnail" width="120">
           <span class="big-emoji">{{countdown.title}}</span>
         </div>
         <div class="card-body">

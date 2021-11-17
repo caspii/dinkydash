@@ -11,7 +11,12 @@ const dinkyApp = {
                     title: "👑",
                     slots:
                         [ "josephine.jpg", "estelle.jpg" ]
-                }
+                },
+                // {
+                //     title: "🐩",
+                //     slots:
+                //         [ "caspar.jpg", "jessica.jpg", "josephine.jpg", "estelle.jpg",  ]
+                // },
             ],
             countdowns: [
                 {image: "caspar.jpg", title: "🎂", date: "03/09/2022"},
@@ -21,6 +26,7 @@ const dinkyApp = {
                 {image: "estelle.jpg", title: "🎂", date: "03/04/2022"},
                 {image: "", title: "🎄", date: "12/24/2021"},
                 {image: "", title: "🎅", date: "12/06/2021"},
+                {image: "", title: "🍰", date: "12/04/2021"},
             ]
         }
     },
@@ -37,8 +43,13 @@ const dinkyApp = {
             return this.countdowns.sort(sort_by_dates)
         },
         get_recurring: function(slots) {
-            console.log(slots.length + " slots found")
-            return slots[1]
+            var slots_count = slots.length
+            var days_into_year = daysIntoYear(new Date())
+            todays_index = days_into_year % slots_count
+            console.log(slots_count + " slots found")
+            console.log("Days into year " + days_into_year)
+            console.debug("Today's index = " + todays_index)
+            return slots[todays_index]
         }
 
 
@@ -55,6 +66,11 @@ function sort_by_dates(a, b) {
         return -1
     }
     return 0
+}
+
+function daysIntoYear(date){
+    return (Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) - Date.UTC(date.getFullYear(), 0, 0))
+        / 24 / 60 / 60 / 1000;
 }
     
 Vue.createApp(dinkyApp).mount('#app')
