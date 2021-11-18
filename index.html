@@ -1,5 +1,5 @@
 <!doctype html>
-<html class="no-js" lang="">
+<html class="no-js" lang="en">
 
 <head>
   <meta charset="utf-8">
@@ -26,7 +26,9 @@
     }
 
     .card-body {
-      font-size: 40px;
+      font-family: 'Luckiest Guy', cursive;
+      font-size: 60px;
+      min-height: 200px;
     }
 
     [v-cloak] { display: none }
@@ -34,7 +36,7 @@
 </head>
 
 <body>
-<div id="app" class="p-1 container text-center" v-cloak>
+<div id="app" class="p-2 my-5 container text-center" v-cloak>
   <div class="row row-cols-4">
     <! -- Begin recurring -->
     <div v-for="item in this.recurring" class="col">
