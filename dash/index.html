@@ -22,14 +22,14 @@
     }
 
     .big-emoji {
-      font-size: 70px;
+      font-size: 3rem;
     }
 
     .card {
       font-family: 'Luckiest Guy', cursive;
-      font-size: 60px;
+      font-size: 3rem;
       min-height: 290px;
-      min-width: 250px;
+      min-width: 220px;
     }
 
     [v-cloak] { display: none }
@@ -38,7 +38,7 @@
 
 <body>
 <div id="app" class="p-2 p-sm-1 container text-center" v-cloak>
-  <div class="row row-cols-auto">
+  <div class="row row-cols-auto justify-content-center">
     <! -- Begin recurring -->
     <div v-for="item in this.recurring" class="col">
       <div class="card mb-1">
