@@ -25,10 +25,11 @@
       font-size: 70px;
     }
 
-    .card-body {
+    .card {
       font-family: 'Luckiest Guy', cursive;
       font-size: 60px;
-      min-height: 177px;
+      min-height: 290px;
+      min-width: 250px;
     }
 
     [v-cloak] { display: none }
@@ -37,7 +38,7 @@
 
 <body>
 <div id="app" class="p-2 p-sm-1 container text-center" v-cloak>
-  <div class="row row-cols-4">
+  <div class="row row-cols-auto">
     <! -- Begin recurring -->
     <div v-for="item in this.recurring" class="col">
       <div class="card mb-1">
@@ -45,7 +46,7 @@
           <div class="big-emoji">{{ item.title }}</div>
         </div>
         <div class="card-body text-primary">
-          <img :src="get_recurring(item.slots)" class="img-thumbnail" width="110">
+          <img :src="get_recurring(item.slots)" class="img-thumbnail" width="100">
         </div>
       </div>
     </div>
