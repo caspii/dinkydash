@@ -6,64 +6,97 @@
   <title>DinkyDash</title>
   <meta name="description" content="">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta property="og:title" content="">
+  <meta property="og:title" content="Dinky Dash: the emoji dashboard for kids">
   <meta property="og:type" content="">
   <meta property="og:url" content="">
-  <meta property="og:image" content="">
-  <meta http-equiv="refresh" content="120" > <!-- Refresh every 2 minutes -->
-  <link rel="apple-touch-icon" href="icon.png">
+  <meta property="og:image" content="mockup.png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <link rel="stylesheet" href="https://bootswatch.com/5/quartz/bootstrap.min.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap" rel="stylesheet">
   <style>
-    .card-body {
+    h1,h2,h3,h4,h5 {
       font-family: 'Luckiest Guy', cursive;
     }
-
-    .big-emoji {
-      font-size: 70px;
-    }
-
-    .card-body {
-      font-family: 'Luckiest Guy', cursive;
-      font-size: 60px;
-      min-height: 177px;
-    }
-
-    [v-cloak] { display: none }
   </style>
+  <!-- MailerLite Universal -->
+  <script>
+    (function(m,a,i,l,e,r){ m['MailerLiteObject']=e;function f(){
+      var c={ a:arguments,q:[]};var r=this.push(c);return "number"!=typeof r?r:f.bind(c.q);}
+      f.q=f.q||[];m[e]=m[e]||f.bind(f.q);m[e].q=m[e].q||f.q;r=a.createElement(i);
+      var _=a.getElementsByTagName(i)[0];r.async=1;r.src=l+'?v'+(~~(new Date().getTime()/1000000));
+      _.parentNode.insertBefore(r,_);})(window, document, 'script', 'https://static.mailerlite.com/js/universal.js', 'ml');
+
+    var ml_account = ml('accounts', '3588947', 'u8u6g6p5s8', 'load');
+  </script>
+  <!-- End MailerLite Universal -->
 </head>
 
 <body>
-<div id="app" class="p-2 p-sm-1 container text-center" v-cloak>
-  <div class="row row-cols-4">
-    <! -- Begin recurring -->
-    <div v-for="item in this.recurring" class="col">
-      <div class="card mb-1">
-        <div class="card-header">
-          <div class="big-emoji">{{ item.title }}</div>
-        </div>
-        <div class="card-body text-primary">
-          <img :src="get_recurring(item.slots)" class="img-thumbnail" width="110">
-        </div>
-      </div>
-    </div>
-    <!-- Begin countdowns -->
-    <div v-for="(countdown, index) in get_sorted_countdowns()" class="col">
-      <div class="card mb-2">
-        <div class="card-header d-flex align-items-center justify-content-center">
-          <img v-if="countdown.image" :src="countdown.image" class="img-thumbnail" width="100">
-          <span class="big-emoji">{{countdown.title}}</span>
-        </div>
-        <div class="card-body d-flex align-items-center justify-content-center">
-          🛏 {{ calculate_days_remaining(countdown.date) }}
+<div class="pt-5">
+  <div class="container text-center">
+    <img class="d-block mx-auto mb-4" src="icon-192.png" alt="" width="72" height="72">
+    <h1 class="display-1 fw-bold">Dinky Dash</h1>
+    <div class="row justify-content-center">
+      <p class="lead mb-4 fs-2 fw-bold col-lg-6">Create simple <span class="text-danger">emoji-based dashboards</span>. Display then on any internet-capable device.</p>
+      <div class="overflow-hidden">
+        <div class="container px-5" style="max-width: 800px">
+          <img src="mockup.png" class="mb-4 img-fluid" alt="Example image" width="1200" height="" loading="lazy">
         </div>
       </div>
     </div>
   </div>
+  <div class="container-fluid bg-danger my-5 border shadow-lg">
+    <div class="container">
+      <div class="row py-3 align-items-center justify-content-center">
+        <div class="col-sm-10 col-lg-8">
+          <h2 class="display-4 lh-1">Perfect for families with kids</h2>
+          <p class="lead fs-3">DinkyDash is great for quickly answering those questions that kids like to ask again and
+            again and again and again.</p>
+          <ul>
+            <li class="fs-3 lead">"How many days till Christmas?"</li>
+            <li class="fs-3 lead">"Who's turn is it to do the washing up?"</li>
+            <li class="fs-3 lead">"When is my birthday party?"</li>
+          </ul>
+          <button class="btn btn-primary btn-lg mt-2 fs-3" type="button">See an example</button>
+        </div>
+
+      </div>
+    </div>  </div>
+  <div class="container px-4 mb-4">
+    <div class="row g-4 row-cols-1 row-cols-lg-3">
+      <div class="col d-flex align-items-start">
+        <div>
+          <h2 class="display-4">Great for a Raspberry Pi</h2>
+          <p class="fs-3 lead">This is an ideal project for the famous mini computer. Create your own custom dashboard and mount it in your
+          hall or kitchen.</p>
+        </div>
+      </div>
+      <div class="col d-flex align-items-start">
+        <div>
+          <h2 class="display-4">Very easy to setup</h2>
+          <p class="fs-3 lead">Creating your own dashboard takes less than 5 minuted. If you don't believe us, give it a try.</p>
+        </div>
+      </div>
+      <div class="col d-flex align-items-start">
+        <div>
+          <h2 class="display-4">BETA Release coming soon</h2>
+          <p class="fs-3 lead">This project is currently under development. Signup below to be informed when we launch.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="container-fluid bg-info py-4 border shadow-lg">
+    <div class="ml-form-embed"
+         data-account="3588947:u8u6g6p5s8"
+         data-form="5027564:j0c1n7">
+    </div>
+  </div>
+  <div class="text-center m-2 fs-5">
+
+    Created by <a href="https://casparwre.de">Caspar</a>
+  </div>
 </div>
 </body>
-<script src="https://unpkg.com/vue@next"></script>
-<script src="app.js"></script>
 </html>

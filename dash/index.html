@@ -1,0 +1,69 @@
+<!doctype html>
+<html class="no-js" lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>DinkyDash</title>
+  <meta name="description" content="">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta property="og:title" content="">
+  <meta property="og:type" content="">
+  <meta property="og:url" content="">
+  <meta property="og:image" content="">
+  <meta http-equiv="refresh" content="120" > <!-- Refresh every 2 minutes -->
+  <link rel="apple-touch-icon" href="icon.png">
+  <link rel="stylesheet" href="https://bootswatch.com/5/quartz/bootstrap.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap" rel="stylesheet">
+  <style>
+    .card-body {
+      font-family: 'Luckiest Guy', cursive;
+    }
+
+    .big-emoji {
+      font-size: 70px;
+    }
+
+    .card-body {
+      font-family: 'Luckiest Guy', cursive;
+      font-size: 60px;
+      min-height: 177px;
+    }
+
+    [v-cloak] { display: none }
+  </style>
+</head>
+
+<body>
+<div id="app" class="p-2 p-sm-1 container text-center" v-cloak>
+  <div class="row row-cols-4">
+    <! -- Begin recurring -->
+    <div v-for="item in this.recurring" class="col">
+      <div class="card mb-1">
+        <div class="card-header">
+          <div class="big-emoji">{{ item.title }}</div>
+        </div>
+        <div class="card-body text-primary">
+          <img :src="get_recurring(item.slots)" class="img-thumbnail" width="110">
+        </div>
+      </div>
+    </div>
+    <!-- Begin countdowns -->
+    <div v-for="(countdown, index) in get_sorted_countdowns()" class="col">
+      <div class="card mb-2">
+        <div class="card-header d-flex align-items-center justify-content-center">
+          <img v-if="countdown.image" :src="countdown.image" class="img-thumbnail" width="100">
+          <span class="big-emoji">{{countdown.title}}</span>
+        </div>
+        <div class="card-body d-flex align-items-center justify-content-center">
+          🛏 {{ calculate_days_remaining(countdown.date) }}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+<script src="https://unpkg.com/vue@next"></script>
+<script src="app.js"></script>
+</html>
