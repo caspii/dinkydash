@@ -1,0 +1,78 @@
+<!doctype html>
+<html class="no-js" lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>DinkyDash</title>
+  <meta name="description" content="">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta property="og:title" content="Dinky Dash: the emoji dashboard for kids">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://dinkydash.co/">
+  <meta property="og:image" content="https://dinkydash.co/mockup.png">
+  <meta http-equiv="refresh" content="120" > <!-- Refresh every 2 minutes -->
+  <link rel="apple-touch-icon" href="icon.png">
+  <link rel="stylesheet" href="https://bootswatch.com/5/quartz/bootstrap.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap" rel="stylesheet">
+  <style>
+
+    .card {
+      font-family: 'Luckiest Guy', cursive;
+      font-size: 3rem;
+      min-height: 300px;
+      min-width: 250px;
+    }
+
+    .tooltip {
+      font-size: 1.5rem;
+      font-family: 'Luckiest Guy', cursive;
+    }
+
+    [v-cloak] { display: none }
+  </style>
+</head>
+
+<body>
+<div id="app" class="p-4 container text-center" v-cloak>
+  <div class="alert alert-primary fs-2" role="alert">
+    This is an example dashboard made using DinkyDash
+  </div>
+
+  <div class="row row-cols-auto justify-content-center">
+    <! -- Begin recurring -->
+    <div v-for="item in this.recurring" class="col">
+      <div class="card mb-1"
+           data-bs-toggle="tooltip" data-bs-placement="bottom" :title="item.tooltip">
+        <div class="card-header ">
+          <div class="big-emoji">{{ item.title }}</div>
+        </div>
+        <div class="card-body text-primary">
+          <img :src="get_recurring(item.slots)" class="img-thumbnail" width="130">
+        </div>
+      </div>
+    </div>
+    <!-- Begin countdowns -->
+    <div v-for="(countdown, index) in get_sorted_countdowns()" class="col">
+      <div class="card mb-1"
+           data-bs-toggle="tooltip" data-bs-placement="bottom" :title="countdown.tooltip">
+        <div class="card-header d-flex align-items-center justify-content-center">
+          <img v-if="countdown.image" :src="countdown.image" class="img-thumbnail" width="130">
+          <span class="big-emoji">{{countdown.title}}</span>
+        </div>
+        <div class="card-body d-flex align-items-center justify-content-center">
+          🛏 {{ calculate_days_remaining(countdown.date) }}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+<script src="https://unpkg.com/vue@next"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+<script src="app.js"></script>
+<!-- Fathom - beautiful, simple website analytics -->
+<script src="https://cdn.usefathom.com/script.js" data-site="HLVHPKAZ" defer></script>
+<!-- / Fathom -->
+</html>
