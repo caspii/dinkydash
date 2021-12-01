@@ -24,7 +24,8 @@ const dinkyApp = {
                 {image: "estelle.jpg", title: "🎂", date: "03/04/2022"},
                 {image: "", title: "🎄", date: "12/24/2021"},
                 {image: "", title: "🎅", date: "12/06/2021"},
-                {image: "", title: "🍰", date: "12/04/2021"},
+                {image: "estelle.jpg", title: "🎈", date: "12/04/2021"},
+                {image: "josephine.jpg", title: "🎈", date: "12/10/2021"},
                 {image: "", title: "🏊‍♀️", date: "12/08/2021"},
                 {image: "", title: "👯‍♀️", date: "12/02/2021"},
             ]
