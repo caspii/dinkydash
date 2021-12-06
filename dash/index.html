@@ -45,7 +45,7 @@
     </div>
     <!-- Begin countdowns -->
     <div v-for="(countdown, index) in get_sorted_countdowns()" class="col">
-      <div class="card mb-2">
+      <div v-if="calculate_days_remaining(countdown.date) > 0" class="card mb-2">
         <div class="card-header d-flex align-items-center justify-content-center">
           <img v-if="countdown.image" :src="countdown.image" class="img-thumbnail" width="70">
           <span class="big-emoji">{{countdown.title}}</span>
