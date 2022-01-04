@@ -20,12 +20,12 @@ const dinkyApp = {
                 {image: "jessica.jpg", title: "🎂", date: "01/22/2022"},
                 {image: "natasha.jpg", title: "🎂", date: "02/19/2022"},
                 {image: "estelle.jpg", title: "🎂", date: "03/04/2022"},
-                {image: "", title: "🎄", date: "12/24/2021"},
-                {image: "estelle.jpg", title: "🎈", date: "12/19/2021"},
-                {image: "", title: "🍬️", date: "12/19/2021"},
-                {image: "", title: "🤿", date: "12/20/2021"},
-                {image: "", title: "🧸🪁", date: "12/18/2021"},
-                {image: "", title: "👯‍♀️", date: "12/09/2021"},
+                {image: "", title: "🎄", date: "12/24/2022"},
+                {image: "", title: "🤿", date: "1/8/2022"},
+                {image: "", title: "📚", date: "1/13/2022"},
+                {image: "", title: "⛷", date: "1/29/2022"},
+                {image: "", title: "🌼", date: "3/20/2022"},
+                {image: "", title: "🐇", date: "4/17/2022"},
             ]
         }
     },
@@ -39,7 +39,10 @@ const dinkyApp = {
             return difference_in_days
         },
         get_sorted_countdowns: function() {
-            return this.countdowns.sort(sort_by_dates)
+            let countdowns = this.countdowns.filter(c => {
+                return this.calculate_days_remaining(c.date) >= 0
+            })
+            return countdowns.sort(sort_by_dates)
         },
         get_recurring: function(slots) {
             var slots_count = slots.length
