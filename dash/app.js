@@ -5,13 +5,15 @@ const dinkyApp = {
             recurring: [
                 {
                     title: "👑",
+                    repeat: 1,
                     slots:
                         [ "josephine.jpg", "estelle.jpg" ]
                 },
                 {
                     title: "🛏",
+                    repeat: 1,
                     slots:
-                        [ "caspar.jpg", "jessica.jpg"  ]
+                        [ "caspar.jpg", "jessica.jpg" ]
                 },
             ],
             countdowns: [
@@ -21,9 +23,9 @@ const dinkyApp = {
                 {image: "natasha.jpg", title: "🎂", date: "02/19/2022"},
                 {image: "estelle.jpg", title: "🎂", date: "03/04/2022"},
                 {image: "", title: "🎄", date: "12/24/2022"},
-                {image: "", title: "🤿", date: "1/8/2022"},
-                {image: "", title: "📚", date: "1/13/2022"},
-                {image: "", title: "⛷", date: "1/29/2022"},
+                {image: "", title: "👙", date: "1/14/2022"},
+                {image: "", title: "🍦", date: "1/13/2022"},
+                {image: "", title: "📚", date: "1/11/2022"},
                 {image: "", title: "🌼", date: "3/20/2022"},
                 {image: "", title: "🐇", date: "4/17/2022"},
             ]
