@@ -19,13 +19,13 @@ const dinkyApp = {
             countdowns: [
                 {image: "caspar.jpg", title: "🎂", date: "03/09/2022"},
                 {image: "josephine.jpg", title: "🎂", date: "03/21/2022"},
-                {image: "jessica.jpg", title: "🎂", date: "01/22/2022"},
+                {image: "jessica.jpg", title: "🎂", date: "01/31/2022"},
                 {image: "natasha.jpg", title: "🎂", date: "02/19/2022"},
                 {image: "estelle.jpg", title: "🎂", date: "03/04/2022"},
                 {image: "", title: "🎄", date: "12/24/2022"},
-                {image: "", title: "👙", date: "1/14/2022"},
-                {image: "", title: "🍦", date: "1/13/2022"},
-                {image: "", title: "📚", date: "1/11/2022"},
+                {image: "", title: "👙", date: "1/28/2022"},
+                {image: "", title: "🍦", date: "1/21/2022"},
+                {image: "", title: "🎁", date: "1/22/2022"},
                 {image: "", title: "🌼", date: "3/20/2022"},
                 {image: "", title: "🐇", date: "4/17/2022"},
             ]
