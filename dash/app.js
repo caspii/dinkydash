@@ -1,13 +1,12 @@
 const dinkyApp = {
     data() {
         return {
-            message: "DinkyDash",
             recurring: [
                 {
                     title: "👑",
                     repeat: 1,
                     slots:
-                        [ "josephine.jpg", "estelle.jpg" ]
+                        [ "estelle.jpg", "josephine.jpg" ]
                 },
                 {
                     title: "🛏",
@@ -23,9 +22,14 @@ const dinkyApp = {
                 {image: "natasha.jpg", title: "🎂", date: "02/19/2022"},
                 {image: "estelle.jpg", title: "🎂", date: "03/04/2022"},
                 {image: "", title: "🎄", date: "12/24/2022"},
-                {image: "", title: "👙", date: "1/28/2022"},
-                {image: "", title: "🍦", date: "1/21/2022"},
+                {image: "", title: "👙", date: "2/4/2022"},
+                {image: "", title: "👙", date: "2/11/2022"},
+                {image: "", title: "👙", date: "2/18/2022"},
+                {image: "", title: "👙", date: "2/25/2022"},
+                {image: "", title: "🧸", date: "2/5/2022"},
+                {image: "", title: "👨‍👩‍👦‍👦", date: "2/17/2022"},
                 {image: "", title: "🎁", date: "1/22/2022"},
+                {image: "", title: "🎳", date: "2/26/2022"},
                 {image: "", title: "🌼", date: "3/20/2022"},
                 {image: "", title: "🐇", date: "4/17/2022"},
             ]
