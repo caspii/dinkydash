@@ -6,10 +6,6 @@
   <title>DinkyDash</title>
   <meta name="description" content="">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-  <meta property="og:title" content="">
-  <meta property="og:type" content="">
-  <meta property="og:url" content="">
-  <meta property="og:image" content="">
   <meta http-equiv="refresh" content="60" > <!-- Refresh every 2 minutes -->
   <link rel="apple-touch-icon" href="icon.png">
   <link rel="stylesheet" href="https://bootswatch.com/5/quartz/bootstrap.min.css">
@@ -21,8 +17,8 @@
     .card {
       font-family: 'Luckiest Guy', cursive;
       font-size: 2.5rem;
-      min-height: 215px;
-      min-width: 150px;
+      /*min-height: 215px;*/
+      /*min-width: 150px;*/
     }
 
     [v-cloak] { display: none }
@@ -32,35 +28,36 @@
 <body>
 <div id="app" class="p-sm-1 container text-center" v-cloak>
   <div class="row row-cols-auto justify-content-center">
-    <! -- Begin recurring -->
+
+    <!-- Begin recurring -->
     <div v-for="item in this.recurring" class="col">
       <div class="card mb-1">
-        <div class="card-header ">
-          <div class="big-emoji">{{ item.title }}</div>
-        </div>
-        <div class="card-body text-primary">
+        <div class="card-body">
+          <span class="mx-3">{{ item.title }}</span>
           <img :src="get_recurring(item.slots)" class="img-thumbnail" width="70">
         </div>
       </div>
     </div>
+
     <!-- Begin countdowns -->
     <div v-for="(countdown, index) in get_sorted_countdowns()" class="col">
       <div class="card mb-2">
-        <div class="card-header d-flex align-items-center justify-content-center">
+        <div class="card-body">
           <img v-if="countdown.image" :src="countdown.image" class="img-thumbnail" width="70">
-          <span class="big-emoji">{{countdown.title}}</span>
-        </div>
-        <div class="card-body d-flex align-items-center justify-content-center">
-          🛏 {{ calculate_days_remaining(countdown.date) }}
+          <span class="mx-3">{{countdown.title}}</span>
+          {{ calculate_days_remaining(countdown.date) }}
         </div>
       </div>
     </div>
+
   </div>
 </div>
 </body>
 <script src="https://unpkg.com/vue@next"></script>
 <script src="app.js"></script>
+
 <!-- Fathom - beautiful, simple website analytics -->
 <script src="https://cdn.usefathom.com/script.js" data-site="HLVHPKAZ" defer></script>
 <!-- / Fathom -->
+
 </html>
