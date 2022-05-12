@@ -5,14 +5,20 @@ const dinkyApp = {
                 {
                     title: "👑",
                     repeat: 1,
-                    slots:
-                        [ "estelle.jpg", "josephine.jpg" ]
+                    people:
+                        [
+                            ["estelle.jpg"],
+                            ["josephine.jpg"]
+                        ]
                 },
                 {
-                    title: "🛏",
+                    title: "🍽",
                     repeat: 1,
-                    slots:
-                        [ "caspar.jpg", "jessica.jpg" ]
+                    people:
+                        [
+                            ["dasha.jpg", "estelle.jpg"],
+                            ["josephine.jpg", "nastia.jpg"]
+                        ]
                 },
             ],
             countdowns: [
@@ -21,19 +27,10 @@ const dinkyApp = {
                 {image: "jessica.jpg", title: "🎂", date: "01/31/2023"},
                 {image: "natasha.jpg", title: "🎂", date: "02/19/2023"},
                 {image: "estelle.jpg", title: "🎂", date: "03/04/2023"},
-                {image: "nastia.jpg", title: "🎂", date: "12/02/2023"},
-                {image: "dasha.jpg", title: "🎂", date: "13/07/2023"},
+                {image: "nastia.jpg", title: "🎂", date: "02/12/2023"},
+                {image: "dasha.jpg", title: "🎂", date: "07/13/2022"},
                 {image: "", title: "🎄", date: "12/24/2022"},
-                {image: "", title: "👙", date: "2/4/2022"},
-                {image: "", title: "👙", date: "2/11/2022"},
-                {image: "", title: "👙", date: "2/18/2022"},
-                {image: "", title: "👙", date: "2/25/2022"},
-                {image: "", title: "🧸", date: "2/5/2022"},
-                {image: "", title: "👨‍👩‍👦‍👦", date: "2/17/2022"},
-                {image: "", title: "🎁", date: "1/22/2022"},
                 {image: "", title: "🎳", date: "2/26/2022"},
-                {image: "", title: "🌼", date: "3/20/2022"},
-                {image: "", title: "🐇", date: "4/17/2022"},
             ]
         }
     },
@@ -52,14 +49,14 @@ const dinkyApp = {
             })
             return countdowns.sort(sort_by_dates)
         },
-        get_recurring: function(slots) {
-            var slots_count = slots.length
+        get_recurring: function(people) {
+            var people_count = people.length
             var days_into_year = daysIntoYear(new Date())
-            todays_index = days_into_year % slots_count
-            console.log(slots_count + " slots found")
+            todays_index = days_into_year % people_count
+            console.log(people_count + " people found")
             console.log("Days into year " + days_into_year)
             console.debug("Today's index = " + todays_index)
-            return slots[todays_index]
+            return people[todays_index]
         }
     }
 }
