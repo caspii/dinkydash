@@ -16,8 +16,8 @@ const dinkyApp = {
                     repeat: 1,
                     people:
                         [
-                            ["nastia.jpg", "estelle.jpg"],
-                            ["josephine.jpg", "dasha.jpg"]
+                            ["josephine.jpg", "dasha.jpg"],
+                            ["nastia.jpg", "estelle.jpg"]
                         ]
                 },
             ],

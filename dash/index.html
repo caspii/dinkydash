@@ -16,8 +16,8 @@
 
     .card {
       font-family: 'Luckiest Guy', cursive;
-      font-size: 2.5rem;
-      min-height: 130px;
+      font-size: 3.5rem;
+      min-height: 110px;
       /*min-width: 150px;*/
     }
 
@@ -32,10 +32,10 @@
     <!-- Begin recurring -->
     <div v-for="item in this.recurring" class="col">
       <div class="card mb-1">
-        <div class="card-body">
-          <span class="mx-3">{{ item.title }}</span>
+        <div class="card-body p-1">
+          <span class="mx-1">{{ item.title }}</span>
           <span v-for="person in get_recurring(item.people)">
-            <img :src="person" class="img-thumbnail" width="70">
+            <img :src="person" class="img-thumbnail" width="90">
           </span>
         </div>
       </div>
@@ -44,9 +44,9 @@
     <!-- Begin countdowns -->
     <div v-for="(countdown, index) in get_sorted_countdowns()" class="col">
       <div class="card mb-2">
-        <div class="card-body">
+        <div class="card-body p-1">
           <span class="ml-3">{{countdown.title}}</span>
-          <img v-if="countdown.image" :src="countdown.image" class="img-thumbnail mx-3" width="70">
+          <img v-if="countdown.image" :src="countdown.image" class="img-thumbnail mx-1" width="90">
           {{ calculate_days_remaining(countdown.date) }}
         </div>
       </div>
