@@ -19,11 +19,11 @@ const dinkyApp = {
                 },
             ],
             countdowns: [
-                {image: "caspar.jpg", title: "🎂", date: "03/09/2022", tooltip: "How many days till Caspar's birthday?"},
-                {image: "jessica.jpg", title: "🎂", date: "01/22/2022", tooltip: "How many days till Jessica's birthday?"},
-                {image: "estelle.jpg", title: "🎂", date: "03/04/2022", tooltip: "How many days till Estelle's birthday?"},
-                {image: "", title: "🎄", date: "12/25/2021", tooltip: "How many days till Christmas?"},
-                {image: "", title: "🎃", date: "10/30/2022", tooltip: "How many days till Halloween?"},
+                {image: "caspar.jpg", title: "🎂", date: "03/09/2023", tooltip: "How many days till Caspar's birthday?"},
+                {image: "jessica.jpg", title: "🎂", date: "01/22/2023", tooltip: "How many days till Jessica's birthday?"},
+                {image: "estelle.jpg", title: "🎂", date: "03/04/2023", tooltip: "How many days till Estelle's birthday?"},
+                {image: "", title: "🎄", date: "12/25/2023", tooltip: "How many days till Christmas?"},
+                {image: "", title: "🎃", date: "10/30/2023", tooltip: "How many days till Halloween?"},
             ]
         }
     },
