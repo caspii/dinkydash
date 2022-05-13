@@ -20,8 +20,6 @@
     .card {
       font-family: 'Luckiest Guy', cursive;
       font-size: 3rem;
-      min-height: 300px;
-      min-width: 250px;
     }
 
     .tooltip {
@@ -35,7 +33,7 @@
 
 <body>
 <div id="app" class="p-4 container text-center" v-cloak>
-  <div class="alert alert-primary fs-2" role="alert">
+  <div class="alert alert-primary fs-5" role="alert">
     This is an example dashboard made using <a href="/" >DinkyDash</a>
   </div>
 
@@ -44,24 +42,19 @@
     <div v-for="item in this.recurring" class="col">
       <div class="card mb-1"
            data-bs-toggle="tooltip" data-bs-placement="bottom" :title="item.tooltip">
-        <div class="card-header ">
-          <div class="big-emoji">{{ item.title }}</div>
-        </div>
-        <div class="card-body text-primary">
+        <div class="card-body">
+          <span class="mx-3">{{ item.title }}</span>
           <img :src="get_recurring(item.slots)" class="img-thumbnail" width="80">
         </div>
       </div>
     </div>
     <!-- Begin countdowns -->
     <div v-for="(countdown, index) in get_sorted_countdowns()" class="col">
-      <div class="card mb-1"
-           data-bs-toggle="tooltip" data-bs-placement="bottom" :title="countdown.tooltip">
-        <div class="card-header d-flex align-items-center justify-content-center">
-          <img v-if="countdown.image" :src="countdown.image" class="img-thumbnail" width="80">
-          <span class="big-emoji">{{countdown.title}}</span>
-        </div>
+      <div class="card mb-1" data-bs-toggle="tooltip" data-bs-placement="bottom" :title="countdown.tooltip">
         <div class="card-body d-flex align-items-center justify-content-center">
-          🛏 {{ calculate_days_remaining(countdown.date) }}
+          <span class="mx-2">{{countdown.title}}</span>
+          <img v-if="countdown.image" :src="countdown.image" class="img-thumbnail me-2" width="80">
+          {{ calculate_days_remaining(countdown.date) }}
         </div>
       </div>
     </div>
