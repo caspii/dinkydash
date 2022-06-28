@@ -32,7 +32,7 @@ const dinkyApp = {
 
                 {image: "", title: "🇸🇪", date: "7/30/2022"},
                 {image: "", title: "🎈", date: "7/03/2022"},
-                {image: "", title: "🇪🇸", date: "7/13/2022"},
+                {image: "", title: "🇪🇸", date: "7/12/2022"},
 
                 // Seasons
                 {image: "", title: "🍁", date: "9/23/2022"},
