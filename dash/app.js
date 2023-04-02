@@ -12,6 +12,17 @@ const dinkyApp = {
                         ]
                 },
                 {
+                    title: "🐠",
+                    repeat: 1,
+                    people:
+                        [
+                            ["josephine.jpg"],
+                            ["estelle.jpg"],
+                            ["nastia.jpg"],
+                            ["dasha.jpg"],
+                        ]
+                },
+                {
                     title: "🍽",
                     repeat: 1,
                     people:
@@ -22,16 +33,17 @@ const dinkyApp = {
                 },
             ],
             countdowns: [
-                {image: "caspar.jpg", title: "🎂", date: "03/09/2023"},
-                {image: "josephine.jpg", title: "🎂", date: "03/21/2023"},
-                {image: "jessica.jpg", title: "🎂", date: "01/31/2023"},
-                {image: "natasha.jpg", title: "🎂", date: "02/19/2023"},
-                {image: "estelle.jpg", title: "🎂", date: "03/04/2023"},
-                {image: "nastia.jpg", title: "🎂", date: "02/12/2023"},
-                {image: "dasha.jpg", title: "🎂", date: "07/13/2022"},
+                {image: "caspar.jpg", title: "🎂", date: "03/09/2024"},
+                {image: "josephine.jpg", title: "🎂", date: "03/21/2024"},
+                {image: "jessica.jpg", title: "🎂", date: "01/31/2024"},
+                {image: "madina.jpg", title: "🎂", date: "04/20/2023"},
+                {image: "estelle.jpg", title: "🎂", date: "03/04/2024"},
+                {image: "nastia.jpg", title: "🎂", date: "02/12/2024"},
+                {image: "dasha.jpg", title: "🎂", date: "07/13/2024"},
 
-                {image: "", title: "🇸🇪", date: "7/30/2022"},
-                {image: "", title: "🎈", date: "7/03/2022"},
+                {image: "", title: "🐇🥙", date: "04/09/2023"},
+                {image: "", title: "🐕‍🦺", date: "04/22/2023"},
+                {image: "", title: "⛵️", date: "08/12/2023"},
                 {image: "", title: "🇪🇸", date: "7/12/2022"},
                 {image: "", title: "👩🏾‍🏫", date: "8/22/2022"},
 
@@ -70,6 +82,16 @@ const dinkyApp = {
             console.log("Days into year " + days_into_year)
             console.debug("Today's index = " + todays_index)
             return people[todays_index]
+        },
+
+    },
+    computed: {
+        today() {
+            // Return today's date as string
+            const date = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            const dateString = date.toLocaleDateString('de-DE', options);
+            return dateString
         }
     }
 }

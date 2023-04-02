@@ -29,6 +29,15 @@
 <div id="app" class="p-sm-1 container text-center" v-cloak>
   <div class="row row-cols-auto justify-content-center">
 
+
+    <!-- Date -->
+      <div class="card mb-1">
+        <div class="card-body p-1 fs-2 d-flex flex-column justify-content-around">
+          {{ today }}
+        </div>
+      </div>
+
+
     <!-- Begin recurring -->
     <div v-for="item in this.recurring" class="col">
       <div class="card mb-1">
