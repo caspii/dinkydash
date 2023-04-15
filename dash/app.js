@@ -44,13 +44,15 @@ const dinkyApp = {
                 {image: "", title: "🐇🥙", date: "04/09/2023"},
                 {image: "", title: "🐕‍", date: "04/22/2023"},
                 {image: "", title: "⛵️", date: "08/12/2023"},
-                {image: "", title: "🇪🇸", date: "7/12/2022"},
+                {image: "", title: "🇸🇪⛴️", date: "7/21/2023"},
                 {image: "", title: "🏫", date: "8/22/2022"},
 
                 // Seasons
                 {image: "", title: "🍁", date: "9/23/2022"},
+                {image: "", title: "🍁", date: "9/23/2022"},
                 {image: "", title: "❄️", date: "12/21/2022"},
                 {image: "", title: "🌸️", date: "3/20/2023"},
+                // {image: "", title: "️🌞", date: "3/20/2023"},
 
                 // Public holidays
                 {image: "", title: "🎄", date: "12/24/2022"},
