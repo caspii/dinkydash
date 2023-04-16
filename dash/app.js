@@ -11,17 +11,17 @@ const dinkyApp = {
                             ["josephine.jpg"]
                         ]
                 },
-                {
-                    title: "🐠",
-                    repeat: 1,
-                    people:
-                        [
-                            ["josephine.jpg"],
-                            ["estelle.jpg"],
-                            ["nastia.jpg"],
-                            ["dasha.jpg"],
-                        ]
-                },
+                // {
+                //     title: "🐠",
+                //     repeat: 1,
+                //     people:
+                //         [
+                //             ["josephine.jpg"],
+                //             ["estelle.jpg"],
+                //             ["nastia.jpg"],
+                //             ["dasha.jpg"],
+                //         ]
+                // },
                 {
                     title: "🍽",
                     repeat: 1,
