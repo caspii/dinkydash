@@ -1,0 +1,45 @@
+recurring:
+  - title: "👑"
+    repeat: 1
+    people:
+      - ["estelle.jpg"]
+      - ["josephine.jpg"]
+  - title: "🍽"
+    repeat: 1
+    people:
+      - ["josephine.jpg"]
+      - ["estelle.jpg"]
+  - title: "🐶"
+    repeat: 1
+    people:
+      - ["estelle.jpg"]
+      - ["josephine.jpg"]
+
+countdowns:
+  - image: "jessica.jpg"
+    title: "🎂"
+    date: "01/31"
+  - image: "estelle.jpg"
+    title: "🎂"
+    date: "03/04"
+  - image: "caspar.jpg"
+    title: "🎂"
+    date: "03/09"
+  - image: "josephine.jpg"
+    title: "🎂"
+    date: "03/21"
+  - image: ""
+    title: "🇸🇪⛴️"
+    date: "7/21"
+  - image: ""
+    title: "🍁"
+    date: "9/23"
+  - image: ""
+    title: "❄️"
+    date: "12/21"
+  - image: ""
+    title: "🌸️"
+    date: "3/20"
+  - image: ""
+    title: "🎄"
+    date: "12/24"
