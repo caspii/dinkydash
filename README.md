@@ -2,17 +2,34 @@
 
 ![mockup.png](mockup.png)
 
+## Introduction
 
-This webapp allows you to display a simple emoji-based dashboard. You can display: 
+DinkyDash is a simple, customizable dashboard designed to display family-oriented information such as recurring tasks, countdowns to special events, and daily rotations. It's perfect for mounting on a Raspberry Pi with a display in a common area of your home, providing at-a-glance information for all family members.
 
-* One or more countdowns
-* A picture of a person who's turn it is
+The dashboard shows:
+- Today's date
+- Recurring tasks or roles (e.g., who's turn it is to do the dishes)
+- Countdowns to important dates (birthdays, holidays, events)
 
+DinkyDash is built with Flask and can be easily configured using a YAML file, making it simple to update and maintain without diving into the code.
 
+## Technical Details
 
-## Demo Version
-Here is what the current dashboard looks like: [https://dinkydash.co/dash/](https://dinkydash.co/dash/)
+### Stack
+- Backend: Python 3 with Flask
+- Frontend: HTML5, CSS (Bootstrap 5), Vanilla JavaScript
+- Configuration: YAML
 
+### Key Components
+1. `app.py`: The main Flask application that serves the dashboard.
+2. `config.yaml`: Configuration file for customizing dashboard content.
+3. `index.html`: The single-page template for the dashboard display.
+4. `run_app.sh`: Bash script to start the Flask application.
+5. `dinkydash.service`: Systemd service file for autostarting on boot.
+
+### Setup
+1. Clone the repository to your Raspberry Pi.
+2. Create a Python virtual environment and install dependencies:
 
 ## Setting up the pi
 Install emoji fonts: `sudo apt install fonts-noto-color-emoji`
