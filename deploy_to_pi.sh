@@ -20,6 +20,7 @@ rsync -avz --exclude='venv' \
            --exclude='*.pyd' \
            --exclude='*.log' \
            --exclude='*.swp' \
+           --exclude='*.idea' \
            "$LOCAL_DIR/" "$REMOTE_USER@$REMOTE_HOST:$REMOTE_DIR/"
 
 # If successful, print a success message
