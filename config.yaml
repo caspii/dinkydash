@@ -9,13 +9,16 @@ recurring:
     people:
       - ["josephine.jpg"]
       - ["estelle.jpg"]
-  - title: "🐶"
+  - title: "🐕"
     repeat: 1
     people:
       - ["estelle.jpg"]
       - ["josephine.jpg"]
 
 countdowns:
+  - image: "snae.jpg"
+    title: "🎂"
+    date: "05/29"
   - image: "jessica.jpg"
     title: "🎂"
     date: "01/31"
@@ -45,7 +48,7 @@ countdowns:
     date: "12/24"
   - image: ""
     title: "🏖️"
-    date: "07/17"
+    date: "07/18"
   - image: ""
-    title: "🧑🏻‍🏫️"
+    title: "‍🏫️"
     date: "09/02"
