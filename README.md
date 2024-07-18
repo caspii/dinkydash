@@ -23,15 +23,17 @@ DinkyDash is built with Flask and can be easily configured using a YAML file, ma
 ### Key Components
 1. `app.py`: The main Flask application that serves the dashboard.
 2. `config.yaml`: Configuration file for customizing dashboard content.
-3. `index.html`: The single-page template for the dashboard display.
+3. `templates/index.html`: The single-page template for the dashboard display.
 4. `run_app.sh`: Bash script to start the Flask application.
-5. `dinkydash.service`: Systemd service file for autostarting on boot.
 
 ### Setup
 1. Clone the repository to your Raspberry Pi.
 2. Create a Python virtual environment and install dependencies:
 
 ## Setting up the pi
+
+**TODO: Complete this section**
+
 Install emoji fonts: `sudo apt install fonts-noto-color-emoji`
 
 Install unclutter to hide mouse: `sudo apt-get install unclutter -y`

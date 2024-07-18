@@ -41,7 +41,7 @@ def get_recurring(people):
 @app.route('/')
 def index():
     config = load_config()
-    today = datetime.now().strftime("%A, %B %d, %Y")
+    today = datetime.now().strftime("%A, %B %d")
 
     for item in config['recurring']:
         item['today'] = get_recurring(item['people'])
