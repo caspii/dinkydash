@@ -6,6 +6,12 @@
 
 DinkyDash is a simple, customizable dashboard designed to display family-oriented information such as recurring tasks, countdowns to special events, and daily rotations. It's perfect for mounting on a Raspberry Pi with a display in a common area of your home, providing at-a-glance information for all family members.
 
+DinkyDash is great for quickly answering those questions that kids like to ask again and again and again and again.
+
+- "How many days till Christmas?"
+- "Who's turn is it to take the trash out?"
+- "When is my birthday party?"
+
 The dashboard shows:
 - Today's date
 - Recurring tasks or roles (e.g., who's turn it is to do the dishes)
@@ -17,7 +23,7 @@ DinkyDash is built with Flask and can be easily configured using a YAML file, ma
 
 ### Stack
 - Backend: Python 3 with Flask
-- Frontend: HTML5, CSS (Bootstrap 5), Vanilla JavaScript
+- Frontend: HTML5 and CSS (Bootstrap 5)
 - Configuration: YAML
 
 ### Key Components
@@ -27,6 +33,9 @@ DinkyDash is built with Flask and can be easily configured using a YAML file, ma
 4. `run_app.sh`: Bash script to start the Flask application.
 
 ### Setup
+
+**TODO: Complete this section**
+
 1. Clone the repository to your Raspberry Pi.
 2. Create a Python virtual environment and install dependencies:
 
