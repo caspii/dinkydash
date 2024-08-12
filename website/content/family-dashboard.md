@@ -62,9 +62,9 @@ By showing chores and tasks with fun emojis, DinkyDash makes it easy for kids to
 
 ## Real Families, Real Stories
 
-"We love that DinkyDash runs on our own Raspberry Pi. It was a fun project to set up with the kids, and now we have our very own family hub!" - Emma, mom of two
+> "We love that DinkyDash runs on our own Raspberry Pi. It was a fun project to set up with the kids, and now we have our very own family hub!" - Emma, mom of two
 
-"As a software developer, I appreciate that DinkyDash is open-source. I've already added a few custom features for our family." - Tom, dad of three
+> "As a software developer, I appreciate that DinkyDash is open-source. I've already added a few custom features for our family." - Tom, dad of three
 
 ## Fun Ideas for Your DinkyDash
 
