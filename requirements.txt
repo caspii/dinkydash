@@ -1,2 +1,4 @@
 flask
 pyyaml
+jinja2
+markdown
