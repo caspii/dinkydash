@@ -3,8 +3,6 @@ title: "Streamlining Office Communication with DinkyDash: A Simple Solution for 
 template: page.html
 ---
 
-# Streamlining Office Communication with DinkyDash: A Simple Solution for Busy Teams
-
 In today's fast-paced office environments, clear communication is key. But with overflowing inboxes and endless chat notifications, important information can easily get lost in the noise. Enter DinkyDash: a simple, customizable, and open-source solution that can transform how your team stays informed and organized.
 
 ## What is DinkyDash?
@@ -62,7 +60,7 @@ Getting DinkyDash up and running in your office is simpler than you might think:
 
 ## Real Office, Real Results
 
-"We installed DinkyDash in our startup's office last month. The deadline countdown has been a game-changer for our project timelines, and the rotating task list has finally solved our 'who's turning off the AC?' debates!" - Sarah, Tech Startup Founder
+> "We installed DinkyDash in our startup's office last month. The deadline countdown has been a game-changer for our project timelines, and the rotating task list has finally solved our 'who's turning off the AC?' debates!" - Sarah, Tech Startup Founder
 
 ## Conclusion: Simple Solution, Big Impact
 
