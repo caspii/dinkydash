@@ -3,9 +3,9 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>DinkyDash</title>
-    <meta name="description" content="">
-    <meta property="og:title" content="Dinky Dash: the emoji dashboard for families">
+    <title>{% block title %}DinkyDash{% endblock %}</title>
+    <meta name="description" content="{% block description %}{% endblock %}">
+    <meta property="og:title" content="{% block og_title %}Dinky Dash: the emoji dashboard for families{% endblock %}">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://dinkydash.co/">
     <meta property="og:image" content="https://dinkydash.co/images/mockup.png">
@@ -19,7 +19,7 @@
         }
     </style>
     <meta name="ahrefs-site-verification" content="a8ca6c4be1693ade895aae0713569f3f7dee982f13d6b03738e55cdb81826992">
-    
+    {% block extra_head %}{% endblock %}
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
@@ -42,40 +42,7 @@
     </nav>
 
     <main>
-        
-<div class="pt-5">
-    <div class="container text-center">
-        <h1 class="display-3 fw-bold">DinkyDash</h1>
-        <div class="row justify-content-center">
-            <p class="lead mb-4 fs-2 fw-bold col-lg-6">Create simple <span class="text-danger">emoji-based dashboards</span>. Display then on a Raspberry Pi.</p>
-            <div class="overflow-hidden">
-                <div class="container" style="max-width: 800px">
-                    <img src="/images/mockup.png" class="mb-4 img-fluid" alt="Example image" width="1200" height="" loading="lazy">
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="container-fluid bg-danger mt-5 border shadow-lg">
-        <div class="container">
-            <div class="row py-3 align-items-center justify-content-center">
-                <div class="col-sm-10 col-lg-8">
-                    <h2 class="display-4 lh-1">Perfect for families with kids</h2>
-                    <p class="lead fs-3">DinkyDash is great for quickly answering those questions that kids like to ask again and again and again and again.</p>
-                    <ul>
-                        <li class="fs-3 lead">"How many days till Christmas?"</li>
-                        <li class="fs-3 lead">"Who's turn is it to take the trash out?"</li>
-                        <li class="fs-3 lead">"When is my birthday party?"</li>
-                    </ul>
-                    <!-- Main button -->
-                    <a href="https://github.com/caspii/dinkydash" class="btn btn-primary btn-lg mt-2 fs-3" role="button">
-                        Get the code on GitHub
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
+        {% block content %}{% endblock %}
     </main>
 
     <footer class="text-bg-light py-3">
@@ -95,6 +62,6 @@
     <!-- Fathom - beautiful, simple analytics -->
     <script src="https://cdn.usefathom.com/script.js" data-site="HLVHPKAZ" defer></script>
     <!-- / Fathom -->
-    
+    {% block extra_js %}{% endblock %}
 </body>
 </html>
