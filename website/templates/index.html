@@ -3,7 +3,7 @@
 {% block content %}
 <div class="pt-5">
     <div class="container text-center">
-        <h1 class="display-3 fw-bold">DinkyDash</h1>
+        <h1 class="display-1 fw-bold">DinkyDash</h1>
         <div class="row justify-content-center">
             <p class="lead mb-4 fs-2 fw-bold col-lg-6">Create simple <span class="text-danger">emoji-based dashboards</span>. Display then on a Raspberry Pi.</p>
             <div class="overflow-hidden">
@@ -33,4 +33,15 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_head %}
+<style>
+    body {
+        color: #ffffff; /* White text for the homepage */
+    }
+    .display-1, .lead {
+        color: #ffffff !important; /* Ensure white text for these elements */
+    }
+</style>
 {% endblock %}

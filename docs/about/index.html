@@ -3,9 +3,9 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>About Page</title>
+    <title>About DinkyDash</title>
     <meta name="description" content="">
-    <meta property="og:title" content="Dinky Dash: the emoji dashboard for families">
+    <meta property="og:title" content="Dinky Dash: the emoji dashboard for kids">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://dinkydash.co/">
     <meta property="og:image" content="https://dinkydash.co/images/mockup.png">
@@ -14,57 +14,105 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap" rel="stylesheet">
     <style>
+        body {
+            color: #212529; /* Dark gray, almost black */
+        }
+
         h1, h2, h3, h4, h5 {
             font-family: 'Luckiest Guy', cursive;
         }
+
+        .content-wrapper {
+            background-color: #FFFFFF;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            margin-top: 2rem;
+            margin-bottom: 2rem;
+        }
     </style>
-    <meta name="ahrefs-site-verification" content="a8ca6c4be1693ade895aae0713569f3f7dee982f13d6b03738e55cdb81826992">
     
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="/">DinkyDash</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav">
-                    <li class="nav-item">
-                        <a class="nav-link" href="/">Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="https://github.com/caspii/dinkydash">GitHub</a>
-                    </li>
-                </ul>
-            </div>
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/">DinkyDash</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" href="/">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/about/">About</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="https://github.com/caspii/dinkydash">GitHub</a>
+                </li>
+            </ul>
         </div>
-    </nav>
+    </div>
+</nav>
 
-    <main>
-        
-<h1>This is the about page</h1>
-<p>This is the content of my home page.</p>
-
-    </main>
-
-    <footer class="text-bg-light py-3">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-6 text-center text-md-start">
-                    <p>&copy; 2024 DinkyDash. All rights reserved.</p>
-                </div>
-                <div class="col-md-6 text-center text-md-end">
-                    <a href="https://casparwre.de" class="text-bg-light">Created by Caspar</a>
-                </div>
-            </div>
-        </div>
-    </footer>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Fathom - beautiful, simple analytics -->
-    <script src="https://cdn.usefathom.com/script.js" data-site="HLVHPKAZ" defer></script>
-    <!-- / Fathom -->
+<main>
     
+<div class="container">
+    <div class="content-wrapper">
+        <h1 class="mb-4">About DinkyDash</h1>
+        <p>DinkyDash is a simple, customizable dashboard designed to display family-oriented information such as recurring tasks, countdowns to special events, and daily rotations. It's perfect for mounting on a Raspberry Pi with a display in a common area of your home, providing at-a-glance information for all family members.</p>
+<h2>Why DinkyDash?</h2>
+<p>DinkyDash is great for quickly answering those questions that kids like to ask again and again and again and again:</p>
+<ul>
+<li>"How many days till Christmas?"</li>
+<li>"Who's turn is it to take the trash out?"</li>
+<li>"When is my birthday party?"</li>
+</ul>
+<h2>Features</h2>
+<p>The dashboard shows:
+- Today's date
+- Recurring tasks or roles (e.g., who's turn it is to do the dishes)
+- Countdowns to important dates (birthdays, holidays, events)</p>
+<h2>Technical Details</h2>
+<p>DinkyDash is built with Flask and can be easily configured using a YAML file, making it simple to update and maintain without diving into the code.</p>
+<h3>Stack</h3>
+<ul>
+<li>Backend: Python 3 with Flask</li>
+<li>Frontend: HTML5 and CSS (Bootstrap 5)</li>
+<li>Configuration: YAML</li>
+</ul>
+<h3>Key Components</h3>
+<ol>
+<li><code>app.py</code>: The main Flask application that serves the dashboard.</li>
+<li><code>config.yaml</code>: Configuration file for customizing dashboard content.</li>
+<li><code>templates/index.html</code>: The single-page template for the dashboard display.</li>
+<li><code>run_app.sh</code>: Bash script to start the Flask application.</li>
+</ol>
+<p>For more detailed setup instructions and technical information, please visit our <a href="https://github.com/caspii/dinkydash">GitHub repository</a>.</p>
+    </div>
+</div>
+
+</main>
+
+<footer class="text-bg-light py-3">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6 text-center text-md-start">
+                <p>&copy; 2024 DinkyDash. All rights reserved.</p>
+            </div>
+            <div class="col-md-6 text-center text-md-end">
+                <a href="https://casparwre.de" class="text-bg-light">Created by Caspar</a>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Fathom - beautiful, simple analytics -->
+<script src="https://cdn.usefathom.com/script.js" data-site="HLVHPKAZ" defer></script>
+<!-- / Fathom -->
+
 </body>
 </html>
