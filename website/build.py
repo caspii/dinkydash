@@ -65,11 +65,34 @@ def generate_pages():
                     f.write(output)
 
 
+def preserve_cname():
+    cname_path = os.path.join(OUTPUT_DIR, 'CNAME')
+    if os.path.exists(cname_path):
+        with open(cname_path, 'r') as f:
+            cname_content = f.read()
+        return cname_content
+    return None
+
+
+def restore_cname(cname_content):
+    if cname_content:
+        cname_path = os.path.join(OUTPUT_DIR, 'CNAME')
+        with open(cname_path, 'w') as f:
+            f.write(cname_content)
+
+
 if __name__ == '__main__':
+    # Preserve CNAME content
+    cname_content = preserve_cname()
+
     # Clear the output directory if it exists
     if os.path.exists(OUTPUT_DIR):
         shutil.rmtree(OUTPUT_DIR)
 
     generate_pages()
     copy_images()
+
+    # Restore CNAME file
+    restore_cname(cname_content)
+
     print(f"Site generated in {OUTPUT_DIR}")
