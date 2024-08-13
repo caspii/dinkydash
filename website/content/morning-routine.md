@@ -3,8 +3,6 @@ title: "5 Ways DinkyDash Can Revolutionize Your Family's Morning Routine"
 template: page.html
 ---
 
-# 5 Ways DinkyDash Can Revolutionize Your Family's Morning Routine
-
 Mornings with kids can feel like herding cats in a thunderstorm. But what if there was a simple, fun way to bring order to the chaos? Enter DinkyDash, your family's personal, Raspberry Pi-powered information hub. Let's explore how this open-source wonder can transform your mornings from frantic to fantastic!
 
 ## 1. Wake Up to Your Family's Daily Schedule 📅
