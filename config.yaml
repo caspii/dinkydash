@@ -1,19 +1,26 @@
 recurring:
   - title: "👑"
     repeat: 1
-    people:
+    choices:
       - ["estelle.jpg"]
       - ["josephine.jpg"]
   - title: "🍽"
     repeat: 1
-    people:
+    choices:
       - ["josephine.jpg"]
       - ["estelle.jpg"]
   - title: "🐕"
     repeat: 1
-    people:
+    choices:
       - ["estelle.jpg"]
       - ["josephine.jpg"]
+  - title: "🍿"
+    repeat: 1
+    choices:
+      - ["🇩🇪"]
+      - ["🇬🇧"]
+
+
 
 countdowns:
   - image: "snae.jpg"
@@ -32,29 +39,11 @@ countdowns:
     title: "🎂"
     date: "03/21"
   - image: ""
-    title: "🇸🇪"
-    date: "7/25"
-  - image: ""
-    title: "🍁"
-    date: "9/23"
-  - image: ""
-    title: "❄️"
-    date: "12/21"
-  - image: ""
-    title: "🌸️"
-    date: "3/20"
-  - image: ""
     title: "🎄"
     date: "12/24"
   - image: ""
-    title: "🏖️"
-    date: "07/18"
+    title: "🎅"
+    date: "12/24"
   - image: ""
-    title: "‍🏫️"
-    date: "09/02"
-  - image: ""
-    title: "❤️💛"
-    date: "09/14"
-  - image: ""
-    title: "🇬🇧"
-    date: "10/20"
+    title: "🇺🇦"
+    date: "01/15"

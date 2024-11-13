@@ -31,11 +31,14 @@ def get_sorted_countdowns(countdowns):
     )
 
 
-def get_recurring(people):
-    people_count = len(people)
-    days_into_year = datetime.now().timetuple().tm_yday
-    todays_index = days_into_year % people_count
-    return people[todays_index]
+def get_recurring(item):
+    if 'choices' in item:
+        choices = item['choices']
+        count = len(choices)
+        days_into_year = datetime.now().timetuple().tm_yday
+        todays_index = days_into_year % count
+        return choices[todays_index]
+    return None
 
 
 @app.route('/')
@@ -44,7 +47,7 @@ def index():
     today = datetime.now().strftime("%A, %B %d")
 
     for item in config['recurring']:
-        item['today'] = get_recurring(item['people'])
+        item['today'] = get_recurring(item)
 
     sorted_countdowns = get_sorted_countdowns(config['countdowns'])
     for countdown in sorted_countdowns:

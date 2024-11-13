@@ -15,15 +15,18 @@
         body {
             font-family: 'Luckiest Guy', cursive;
         }
+
         .card {
             font-size: 2.6rem; /* Reduced from 3.5rem */
         }
+
         .card-content {
             display: flex;
             align-items: center;
             justify-content: center;
             height: 100%;
         }
+
         /* Add these new styles */
         .card-body {
             padding: 0.3rem !important; /* Reduce padding */
@@ -36,51 +39,56 @@
     </style>
 </head>
 <body>
-    <div id="app" class="container-fluid p-2">
-        <div class="row row-cols-auto g-2 justify-content-center">
-            <!-- Date -->
-            <div class="col">
-                <div class="card h-100">
-                    <div class="card-body d-flex align-items-center justify-content-center p-2">
-                        <span class="fs-2">{{ today }}</span>
-                    </div>
+<div id="app" class="container-fluid p-2">
+    <div class="row row-cols-auto g-2 justify-content-center">
+        <!-- Date -->
+        <div class="col">
+            <div class="card h-100">
+                <div class="card-body d-flex align-items-center justify-content-center p-2">
+                    <span class="fs-2">{{ today }}</span>
                 </div>
             </div>
-
-            <!-- Begin recurring -->
-            {% for item in recurring %}
-            <div class="col">
-                <div class="card h-100">
-                    <div class="card-body p-2">
-                        <div class="card-content">
-                            <span class="me-1">{{ item.title }}</span>
-                            {% for person in item.today %}
-                            <img src="{{ url_for('static', filename=person) }}" class="img-thumbnail mx-1">
-                            {% endfor %}
-                        </div>
-                    </div>
-                </div>
-            </div>
-            {% endfor %}
-
-            <!-- Begin countdowns -->
-            {% for countdown in countdowns %}
-            <div class="col">
-                <div class="card h-100">
-                    <div class="card-body p-2">
-                        <div class="card-content">
-                            <span class="me-1">{{ countdown.title }}</span>
-                            {% if countdown.image %}
-                            <img src="{{ url_for('static', filename=countdown.image) }}" class="img-thumbnail mx-1" width="90">
-                            {% endif %}
-                            <span>{{ countdown.days_remaining }}</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            {% endfor %}
         </div>
+
+        <!-- Begin recurring -->
+        {% for item in recurring %}
+        <div class="col">
+            <div class="card h-100">
+                <div class="card-body p-2">
+                    <div class="card-content">
+                        <span class="me-1">{{ item.title }}</span>
+                        {% for choice in item.today %}
+                        {% if '.jpg' in choice or '.png' in choice %}
+                        <img src="{{ url_for('static', filename=choice) }}" class="img-thumbnail mx-1">
+                        {% else %}
+                        <span class="mx-1">{{ choice  }}</span>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+
+        <!-- Begin countdowns -->
+        {% for countdown in countdowns %}
+        <div class="col">
+            <div class="card h-100">
+                <div class="card-body p-2">
+                    <div class="card-content">
+                        <span class="me-1">{{ countdown.title }}</span>
+                        {% if countdown.image %}
+                        <img src="{{ url_for('static', filename=countdown.image) }}" class="img-thumbnail mx-1"
+                             width="90">
+                        {% endif %}
+                        <span>{{ countdown.days_remaining }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
     </div>
+</div>
 
 
 </body>
