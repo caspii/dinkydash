@@ -9,6 +9,11 @@ recurring:
     choices:
       - ["josephine.jpg"]
       - ["estelle.jpg"]
+  - title: "🛀"
+    repeat: 1
+    choices:
+      - ["estelle.jpg"]
+      - ["josephine.jpg"]
   - title: "🐕"
     repeat: 1
     choices:
