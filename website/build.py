@@ -1,3 +1,22 @@
+"""
+DinkyDash Static Site Generator
+
+This script builds the DinkyDash website by converting Markdown files to HTML
+using Jinja2 templates. It processes content from the 'content/' directory
+and outputs static HTML files to the '../docs/' directory for GitHub Pages.
+
+Usage:
+    python build.py
+
+The build process:
+1. Reads Markdown files from content/ directory
+2. Extracts YAML front matter (title, description, template)
+3. Converts Markdown to HTML
+4. Renders content using Jinja2 templates
+5. Outputs static HTML with clean URLs (e.g., about.md → about/index.html)
+6. Copies images and preserves CNAME file
+"""
+
 import os
 import shutil
 from jinja2 import Environment, FileSystemLoader
