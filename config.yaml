@@ -19,18 +19,15 @@ recurring:
     choices:
       - ["estelle.jpg"]
       - ["josephine.jpg"]
-  - title: "🍿"
-    repeat: 1
-    choices:
-      - ["🇩🇪"]
-      - ["🇬🇧"]
+#  - title: "🍿"
+#    repeat: 1
+#    choices:
+#      - ["🇩🇪"]
+#      - ["🇬🇧"]
 
 
 
 countdowns:
-  - image: "snae.jpg"
-    title: "🎂"
-    date: "05/29"
   - image: "jessica.jpg"
     title: "🎂"
     date: "01/31"
@@ -50,5 +47,8 @@ countdowns:
     title: "🎅"
     date: "12/06"
   - image: ""
-    title: "🇺🇦"
-    date: "01/15"
+    title: "🇺🇸"
+    date: "07/24"
+  - image: ""
+    title: "🍾🎩"
+    date: "07/12"
