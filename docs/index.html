@@ -12,14 +12,17 @@
     <link rel="stylesheet" href="https://bootswatch.com/5/quartz/bootstrap.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         body {
-            color: #212529; /* Dark gray, almost black */
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            color: #212529;
+            line-height: 1.6;
         }
 
         h1, h2, h3, h4, h5 {
-            font-family: 'Luckiest Guy', cursive;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            font-weight: 800;
         }
 
         .content-wrapper {
@@ -75,33 +78,66 @@
 
 <main>
     
-<div class="pt-5">
+<div class="pt-5 pb-5">
     <div class="container text-center">
-        <h1 class="display-1 fw-bold">DinkyDash</h1>
+        <h1 class="display-2 fw-bold mb-4">DinkyDash</h1>
         <div class="row justify-content-center">
-            <p class="lead mb-4 fs-2 fw-bold col-lg-6">Create simple <span class="text-danger">emoji-based dashboards</span>. Display then on a Raspberry Pi.</p>
-            <div class="overflow-hidden">
-                <div class="container" style="max-width: 800px">
-                    <img src="/images/mockup.png" class="mb-4 img-fluid" alt="Example image" width="1200" height="" loading="lazy">
+            <div class="col-lg-8">
+                <p class="lead mb-4 fs-4">Create simple <span class="text-danger fw-bold">emoji-based dashboards</span> and display them on a Raspberry Pi.</p>
+            </div>
+        </div>
+        <div class="overflow-hidden mb-5">
+            <div class="container" style="max-width: 800px">
+                <img src="/images/mockup.png" class="mb-4 img-fluid shadow-lg rounded" alt="DinkyDash dashboard example" width="1200" loading="lazy">
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid bg-danger py-5 border shadow-lg">
+        <div class="container">
+            <div class="row py-3 align-items-center justify-content-center">
+                <div class="col-sm-10 col-lg-8">
+                    <h2 class="display-5 mb-4">Perfect for families with kids</h2>
+                    <p class="fs-5 mb-4">DinkyDash is great for quickly answering those questions that kids like to ask again and again and again and again.</p>
+                    <ul class="list-unstyled fs-5 mb-4">
+                        <li class="mb-2">✨ "How many days till Christmas?"</li>
+                        <li class="mb-2">✨ "Who's turn is it to take the trash out?"</li>
+                        <li class="mb-2">✨ "When is my birthday party?"</li>
+                    </ul>
+                    <a href="https://github.com/caspii/dinkydash" class="btn btn-light btn-lg mt-3 px-4 py-3 fw-bold" role="button">
+                        Get the code on GitHub →
+                    </a>
                 </div>
             </div>
         </div>
     </div>
-    <div class="container-fluid bg-danger mt-5 border shadow-lg">
-        <div class="container">
-            <div class="row py-3 align-items-center justify-content-center">
-                <div class="col-sm-10 col-lg-8">
-                    <h2 class="display-4 lh-1">Perfect for families with kids</h2>
-                    <p class="lead fs-3">DinkyDash is great for quickly answering those questions that kids like to ask again and again and again and again.</p>
-                    <ul>
-                        <li class="fs-3 lead">"How many days till Christmas?"</li>
-                        <li class="fs-3 lead">"Who's turn is it to take the trash out?"</li>
-                        <li class="fs-3 lead">"When is my birthday party?"</li>
-                    </ul>
-                    <!-- Main button -->
-                    <a href="https://github.com/caspii/dinkydash" class="btn btn-primary btn-lg mt-2 fs-3" role="button">
-                        Get the code on GitHub
-                    </a>
+
+    <div class="container mt-5 pt-5 pb-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <h2 class="display-5 text-center mb-5">How it works</h2>
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <div class="text-center p-4">
+                            <div class="fs-1 mb-3">⚙️</div>
+                            <h3 class="h4 mb-3">Configure with YAML</h3>
+                            <p class="text-muted">Simple configuration file to customize your dashboard with countdowns and rotating tasks.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center p-4">
+                            <div class="fs-1 mb-3">🖼️</div>
+                            <h3 class="h4 mb-3">Add your photos</h3>
+                            <p class="text-muted">Upload family photos to personalize your dashboard and make it feel like home.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center p-4">
+                            <div class="fs-1 mb-3">🎯</div>
+                            <h3 class="h4 mb-3">Display on Pi</h3>
+                            <p class="text-muted">Deploy to your Raspberry Pi and mount it in a common area for the whole family to see.</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
