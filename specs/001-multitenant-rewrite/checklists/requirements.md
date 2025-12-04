@@ -31,9 +31,9 @@
 
 ## Validation Results
 
-**Status**: ✅ PASSED (Updated 2025-12-04 - Multiple Dashboards Added)
+**Status**: ✅ PASSED (Updated 2025-12-04 - Image Upload UX Clarified)
 
-All checklist items passed validation after adding layout customization, HTMX polling, and multiple dashboards features:
+All checklist items passed validation after adding layout customization, HTMX polling, multiple dashboards, and clarifying image upload UX:
 
 ### Content Quality - PASSED
 - Specification avoids implementation details (no mention of specific Flask routes, database schemas, specific libraries)
@@ -43,21 +43,21 @@ All checklist items passed validation after adding layout customization, HTMX po
 
 ### Requirement Completeness - PASSED
 - No [NEEDS CLARIFICATION] markers present in specification
-- All 40 functional requirements are testable (can verify each with concrete tests)
+- All 43 functional requirements are testable (can verify each with concrete tests)
 - All requirements are unambiguous (clear MUST statements with specific behaviors)
-- All 18 success criteria are measurable with specific metrics
-- Success criteria avoid technology-specific language (e.g., "changes appear within 30 seconds" not "HTMX polling interval")
-- Each user story has 4-7 acceptance scenarios defined in Given/When/Then format
-- 17 edge cases identified with expected behaviors (including layout, polling, and dashboard management edge cases)
-- Scope is bounded (family dashboard with recurring tasks, countdowns, multiple dashboards, layout customization, and auto-refresh; excludes advanced features)
-- Assumptions section documents dependencies (2-10 family members, storage requirements, default layout size, HTMX polling approach, dashboard usage patterns, etc.)
+- All 20 success criteria are measurable with specific metrics
+- Success criteria avoid technology-specific language (e.g., "changes appear within 30 seconds" not "HTMX polling interval", "image upload in 5 seconds" not "Flask file handling")
+- Each user story has 5-7 acceptance scenarios defined in Given/When/Then format
+- 22 edge cases identified with expected behaviors (including layout, polling, dashboard management, and image upload edge cases)
+- Scope is bounded (family dashboard with recurring tasks, countdowns, multiple dashboards, layout customization, auto-refresh, and image/emoji icons; excludes advanced features like shared image library)
+- Assumptions section documents dependencies (2-10 family members, storage requirements, default layout size, HTMX polling approach, dashboard usage patterns, direct image upload pattern, etc.)
 
 ### Feature Readiness - PASSED
-- Each of 40 functional requirements maps to acceptance scenarios in user stories
-- 7 user stories prioritized (P1-P7) covering dashboard viewing with auto-refresh, authentication, task management, countdown management, multiple dashboards, layout customization, and tenant isolation
+- Each of 43 functional requirements maps to acceptance scenarios in user stories
+- 7 user stories prioritized (P1-P7) covering dashboard viewing with auto-refresh, authentication, task management with icons, countdown management with icons, multiple dashboards, layout customization, and tenant isolation
 - Each user story has independent test criteria showing how to verify in isolation
-- Success criteria focus on user outcomes (completion time, accuracy, satisfaction, layout persistence, update propagation, dashboard creation, data insights) not implementation
-- No implementation leakage detected (HTMX mentioned as implementation detail but requirements focus on behavior: "auto-refresh within 30 seconds")
+- Success criteria focus on user outcomes (completion time, accuracy, satisfaction, layout persistence, update propagation, dashboard creation, data insights, image upload speed) not implementation
+- No implementation leakage detected (HTMX, file paths mentioned as implementation details but requirements focus on behavior: "auto-refresh within 30 seconds", "emoji or image upload")
 
 ## Changes
 
@@ -101,6 +101,18 @@ All checklist items passed validation after adding layout customization, HTMX po
 **Priority Renumbering**:
 - Previous P5 (Layout Customization) → now P6
 - Previous P6 (Tenant Isolation) → now P7
+
+**Update 4 - Clarified**: Image Upload UX (Direct Upload Pattern)
+- User Story 3 (Tasks) and User Story 4 (Countdowns) updated with explicit image upload acceptance scenarios
+- Clarified emoji vs image distinction: emoji = text input, image = file picker upload
+- Added 3 new functional requirements (FR-022a, FR-022b, FR-032a) for icon handling and validation
+- Updated FR-031 and FR-032 to specify direct upload pattern with file validation (JPG/PNG/GIF, 5MB max)
+- Updated Key Entities (Recurring Task, Countdown Event) to specify icon as "emoji text or image file path"
+- 5 new edge cases for image upload scenarios (oversized files, invalid types, duplicate uploads, orphaned files, emoji vs image choice)
+- 2 new success criteria (SC-019, SC-020) for image upload performance and validation accuracy
+- 7 new assumptions about direct upload pattern, file storage paths, emoji storage, orphaned file cleanup, and acceptable file duplication
+
+**Key Decision**: Direct upload per item (not shared image library) for MVP simplicity, aligns with Principle IV (Simplicity Over Features)
 
 ## Notes
 

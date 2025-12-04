@@ -46,7 +46,7 @@ A family administrator creates an account for their family by registering with e
 
 ### User Story 3 - Manage Recurring Tasks (Priority: P3)
 
-A family administrator logs into the management interface and adds, edits, or removes recurring task assignments (like dishes, trash, pet care). They define the task name, who is in the rotation, and optionally add images/emojis. Changes appear immediately on the family dashboard.
+A family administrator logs into the management interface and adds, edits, or removes recurring task assignments (like dishes, trash, pet care). They define the task name, who is in the rotation, and optionally add a display icon (emoji text or uploaded image). Changes appear immediately on the family dashboard.
 
 **Why this priority**: This replaces the config.yaml editing workflow with a user-friendly web interface. Requires authentication (P2) but is independently testable as a CRUD interface for task management.
 
@@ -57,14 +57,16 @@ A family administrator logs into the management interface and adds, edits, or re
 1. **Given** an authenticated family admin, **When** they create a new recurring task "Take out trash" with rotation [Alice, Bob], **Then** the task appears on the dashboard with today's assigned person
 2. **Given** an existing recurring task, **When** the admin edits the rotation to add another family member, **Then** the updated rotation sequence applies immediately
 3. **Given** an existing recurring task, **When** the admin deletes it, **Then** it no longer appears on the family dashboard
-4. **Given** a recurring task with image/emoji assigned, **When** viewing the dashboard, **Then** the image/emoji displays alongside the task
-5. **Given** multiple recurring tasks exist, **When** the admin views the management interface, **Then** all tasks are listed with edit/delete options
+4. **Given** an admin is creating a task, **When** they enter an emoji "🍽" in the icon field, **Then** the emoji appears alongside the task on the dashboard
+5. **Given** an admin is creating a task, **When** they upload an image file (JPG/PNG) via file picker, **Then** the uploaded image appears alongside the task on the dashboard after upload completes
+6. **Given** an admin uploads an invalid file type (e.g., .exe), **When** attempting to save, **Then** validation error prevents upload with message about accepted formats
+7. **Given** multiple recurring tasks exist, **When** the admin views the management interface, **Then** all tasks are listed with their icons and edit/delete options
 
 ---
 
 ### User Story 4 - Manage Countdown Events (Priority: P4)
 
-A family administrator logs into the management interface and adds, edits, or removes countdown events (birthdays, holidays, special occasions). They define the event name, date, and optionally add images/emojis. The dashboard automatically calculates and displays days remaining until each event.
+A family administrator logs into the management interface and adds, edits, or removes countdown events (birthdays, holidays, special occasions). They define the event name, date, and optionally add a display icon (emoji text or uploaded image). The dashboard automatically calculates and displays days remaining until each event.
 
 **Why this priority**: Completes the management interface by enabling families to maintain their countdown events without editing configuration files. Requires authentication (P2) and builds on the task management patterns from P3.
 
@@ -75,9 +77,10 @@ A family administrator logs into the management interface and adds, edits, or re
 1. **Given** an authenticated family admin, **When** they create a new countdown "Mom's Birthday - 03/15", **Then** the countdown appears on the dashboard showing correct days remaining from today
 2. **Given** an existing countdown event, **When** the admin edits the date or name, **Then** the dashboard reflects the updated information immediately
 3. **Given** an existing countdown, **When** the admin deletes it, **Then** it no longer appears on the family dashboard
-4. **Given** a countdown with image/emoji assigned, **When** viewing the dashboard, **Then** the image/emoji displays alongside the countdown
-5. **Given** multiple countdowns exist, **When** the admin views the management interface, **Then** all countdowns are listed sorted by proximity with edit/delete options
-6. **Given** a countdown date passes, **When** viewing the dashboard the next day, **Then** the countdown automatically calculates for next year's occurrence
+4. **Given** an admin is creating a countdown, **When** they enter an emoji "🎂" in the icon field, **Then** the emoji appears alongside the countdown on the dashboard
+5. **Given** an admin is creating a countdown, **When** they upload a person's photo via file picker, **Then** the uploaded image appears alongside the countdown on the dashboard after upload completes
+6. **Given** multiple countdowns exist, **When** the admin views the management interface, **Then** all countdowns are listed sorted by proximity with their icons and edit/delete options
+7. **Given** a countdown date passes, **When** viewing the dashboard the next day, **Then** the countdown automatically calculates for next year's occurrence
 
 ---
 
@@ -156,6 +159,11 @@ Multiple families use the same DinkyDash deployment. Each family sees only their
 - What happens when a family only has one dashboard and tries to delete it? (Deletion prevented with error message requiring at least one dashboard)
 - What happens when an admin creates a dashboard with a duplicate name? (Allowed - dashboard names don't need to be unique within a family)
 - What happens when navigating between dashboards while admin is making changes? (Each dashboard polls independently; changes appear within 30 seconds on the respective dashboard)
+- What happens when an admin uploads an image larger than 5MB? (Validation error prevents upload with message about size limit)
+- What happens when an admin uploads a PDF or other non-image file? (Validation error prevents upload with message about accepted formats: JPG, PNG, GIF)
+- What happens when a task or countdown has both an emoji and an uploaded image? (Only one icon type allowed - UI presents choice between emoji or image, not both)
+- What happens when an admin deletes a task that has an uploaded image? (Image file is deleted from storage to prevent orphaned files)
+- What happens when the same family photo is used for multiple countdowns? (Image is uploaded separately for each countdown - file duplication acceptable for MVP simplicity)
 
 ## Requirements *(mandatory)*
 
@@ -178,12 +186,14 @@ Multiple families use the same DinkyDash deployment. Each family sees only their
 - **FR-014**: Authenticated family administrators MUST be able to delete dashboards (except when only one remains)
 - **FR-015**: System MUST prevent deletion of the last remaining dashboard for a family
 - **FR-016**: System MUST provide navigation UI to switch between multiple dashboards
-- **FR-017**: Authenticated family administrators MUST be able to create new recurring tasks with task name, rotation list (people), optional image/emoji, and dashboard assignment
-- **FR-018**: Authenticated family administrators MUST be able to edit existing recurring tasks (name, rotation, image, dashboard assignment)
+- **FR-017**: Authenticated family administrators MUST be able to create new recurring tasks with task name, rotation list (people), optional display icon (emoji or uploaded image), and dashboard assignment
+- **FR-018**: Authenticated family administrators MUST be able to edit existing recurring tasks (name, rotation, icon, dashboard assignment)
 - **FR-019**: Authenticated family administrators MUST be able to delete recurring tasks
-- **FR-020**: Authenticated family administrators MUST be able to create new countdown events with event name, date (MM/DD format), optional image/emoji, and dashboard assignment
-- **FR-021**: Authenticated family administrators MUST be able to edit existing countdown events (name, date, image, dashboard assignment)
+- **FR-020**: Authenticated family administrators MUST be able to create new countdown events with event name, date (MM/DD format), optional display icon (emoji or uploaded image), and dashboard assignment
+- **FR-021**: Authenticated family administrators MUST be able to edit existing countdown events (name, date, icon, dashboard assignment)
 - **FR-022**: Authenticated family administrators MUST be able to delete countdown events
+- **FR-022a**: System MUST provide separate input mechanisms for emoji (text field) and image upload (file picker) when adding icons to tasks or countdowns
+- **FR-022b**: System MUST display preview of uploaded image or entered emoji before saving task or countdown
 - **FR-023**: System MUST enforce tenant isolation - families can only access their own data
 - **FR-024**: System MUST prevent cross-tenant data leakage through database queries (all queries filtered by tenant_id)
 - **FR-025**: System MUST prevent unauthorized access to dashboard - redirect unauthenticated users to login page
@@ -192,8 +202,9 @@ Multiple families use the same DinkyDash deployment. Each family sees only their
 - **FR-028**: System MAY use lightweight JavaScript library (HTMX) for enhanced user experience (polling, partial updates) while maintaining full functionality without JavaScript
 - **FR-029**: System MUST hash all passwords using bcrypt or argon2 (never store plain text)
 - **FR-030**: System MUST validate all user input to prevent SQL injection attacks
-- **FR-031**: System MUST support image uploads for recurring tasks and countdowns with validation (file type, size limits)
-- **FR-032**: Uploaded images MUST be tenant-isolated (Family A cannot access Family B's images)
+- **FR-031**: System MUST support direct image uploads via file picker for recurring tasks and countdowns with validation (file type: JPG/PNG/GIF only, size limit: 5MB maximum)
+- **FR-032**: Uploaded images MUST be stored with tenant-isolated file paths (Family A cannot access Family B's images via URL manipulation or direct access)
+- **FR-032a**: System MUST validate image file type and size on upload and reject invalid files with clear error messages
 - **FR-033**: System MUST use database migrations for schema version control
 - **FR-034**: Countdown dates MUST automatically roll over to next year after the event passes
 - **FR-035**: System MUST display appropriate error messages for failed operations (login errors, validation errors, etc.)
@@ -208,8 +219,8 @@ Multiple families use the same DinkyDash deployment. Each family sees only their
 - **Family/Tenant**: Represents a family unit using the system. Attributes: unique tenant_id, family name, registration date. Relationships: has many users, has many dashboards
 - **User**: Represents an individual with login credentials. Attributes: user_id, email, hashed password, associated tenant_id. Relationships: belongs to one family/tenant
 - **Dashboard**: Represents a named view/organization of tasks and countdowns. Attributes: dashboard_id, tenant_id, dashboard name, layout preferences (size setting: small/medium/large), creation date, is_default (boolean for first dashboard). Relationships: belongs to one family/tenant, has many recurring tasks, has many countdowns
-- **Recurring Task**: Represents a daily rotating chore/responsibility. Attributes: task_id, dashboard_id, task name, rotation order (ordered list of people), optional image/emoji, creation date. Relationships: belongs to one dashboard
-- **Countdown Event**: Represents an important date to track. Attributes: countdown_id, dashboard_id, event name, event date (MM/DD), optional image/emoji, creation date. Relationships: belongs to one dashboard. Behavior: calculates days remaining from current date, auto-advances to next year after date passes
+- **Recurring Task**: Represents a daily rotating chore/responsibility. Attributes: task_id, dashboard_id, task name, rotation order (ordered list of people), optional icon (either emoji text or image file path), creation date. Relationships: belongs to one dashboard
+- **Countdown Event**: Represents an important date to track. Attributes: countdown_id, dashboard_id, event name, event date (MM/DD), optional icon (either emoji text or image file path), creation date. Relationships: belongs to one dashboard. Behavior: calculates days remaining from current date, auto-advances to next year after date passes
 
 ## Success Criteria *(mandatory)*
 
@@ -233,6 +244,8 @@ Multiple families use the same DinkyDash deployment. Each family sees only their
 - **SC-016**: Default dashboard is automatically created within 1 second of family registration completing
 - **SC-017**: Families successfully create additional dashboards with custom names in under 30 seconds
 - **SC-018**: Dashboard names collected from users provide actionable insights into room-based usage patterns (measured via data analysis)
+- **SC-019**: Image uploads complete and display preview within 5 seconds for files under 5MB on standard broadband connection
+- **SC-020**: Image validation correctly rejects 100% of invalid file types and oversized files before storage
 
 ## Assumptions
 
@@ -242,7 +255,13 @@ Multiple families use the same DinkyDash deployment. Each family sees only their
 - Raspberry Pi deployments will have sufficient storage for SQLite database growth (multi-year usage)
 - Email-based password reset follows standard time-limited token pattern (30-minute expiration)
 - Session timeout will be set to industry standard (30 minutes of inactivity)
+- Image uploads use direct upload pattern (upload per item, not shared library) for MVP simplicity
 - Image uploads limited to 5MB per file, common formats (JPG, PNG, GIF)
+- Image file duplication (same photo uploaded multiple times) is acceptable trade-off for simpler implementation
+- Emoji icons are stored as text (Unicode characters), not as image files
+- Each task or countdown can have either emoji OR image, not both (UI enforces single icon type choice)
+- Uploaded images are stored with tenant-scoped file paths (e.g., uploads/{tenant_id}/{item_id}_icon.jpg) for security
+- Orphaned image files are deleted when associated task/countdown is deleted to prevent storage bloat
 - Mobile access will be via responsive web design (no native mobile apps in initial version)
 - Admin role is assigned to the account creator; future versions may support multiple admins or role management
 - Dashboard uses progressive enhancement: HTMX for 30-second polling when JavaScript enabled, meta refresh (60 seconds) as fallback
