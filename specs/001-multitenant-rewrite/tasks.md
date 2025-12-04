@@ -19,15 +19,15 @@
 
 **Purpose**: Project initialization and basic structure
 
-- [ ] T001 Create Flask application package structure dinkydash/ with __init__.py, models/, routes/, forms/, templates/, static/, utils/, migrations/
-- [ ] T002 Initialize Python project with requirements.txt (Flask 3.0+, SQLAlchemy 2.0+, Flask-Login, Flask-WTF, Flask-Migrate, Werkzeug, Pillow, pytest, pytest-flask)
-- [ ] T003 [P] Create development requirements-dev.txt (pytest-cov, black, flake8)
-- [ ] T004 [P] Create configuration classes in dinkydash/config.py (DevelopmentConfig, ProductionConfig, TestConfig)
-- [ ] T005 [P] Create environment variable template .env.example with SECRET_KEY, DATABASE_URL, UPLOAD_FOLDER
-- [ ] T006 [P] Create Flask CLI config .flaskenv with FLASK_APP=app.py
-- [ ] T007 Create application entry point app.py with Flask app factory pattern
-- [ ] T008 [P] Create static CSS directory structure dinkydash/static/css/style.css
-- [ ] T009 [P] Create uploads directory structure dinkydash/static/uploads/ with .gitkeep
+- [X] T001 Create Flask application package structure dinkydash/ with __init__.py, models/, routes/, forms/, templates/, static/, utils/, migrations/
+- [X] T002 Initialize Python project with requirements.txt (Flask 3.0+, SQLAlchemy 2.0+, Flask-Login, Flask-WTF, Flask-Migrate, Werkzeug, Pillow, pytest, pytest-flask)
+- [X] T003 [P] Create development requirements-dev.txt (pytest-cov, black, flake8)
+- [X] T004 [P] Create configuration classes in dinkydash/config.py (DevelopmentConfig, ProductionConfig, TestConfig)
+- [X] T005 [P] Create environment variable template .env.example with SECRET_KEY, DATABASE_URL, UPLOAD_FOLDER
+- [X] T006 [P] Create Flask CLI config .flaskenv with FLASK_APP=app.py
+- [X] T007 Create application entry point app.py with Flask app factory pattern
+- [X] T008 [P] Create static CSS directory structure dinkydash/static/css/style.css
+- [X] T009 [P] Create uploads directory structure dinkydash/static/uploads/ with .gitkeep
 
 ---
 
