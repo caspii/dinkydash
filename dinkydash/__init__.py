@@ -51,6 +51,31 @@ def create_app(config_class=None):
             g.current_tenant_id = user.tenant_id
         return user
 
+    # Temporary welcome route for testing
+    @app.route('/')
+    def index():
+        from flask import jsonify
+        return jsonify({
+            'status': 'DinkyDash v2.0.0-dev',
+            'message': 'Multi-tenant family dashboard (in development)',
+            'database': {
+                'connected': True,
+                'models': ['Family', 'User', 'Dashboard', 'Task', 'Countdown'],
+                'tables_created': True
+            },
+            'completed': [
+                'Project structure',
+                'Database models',
+                'Migrations setup'
+            ],
+            'next_steps': [
+                'Authentication routes & forms',
+                'Dashboard viewing',
+                'HTMX auto-refresh'
+            ],
+            'progress': '21/42 MVP tasks (50%)'
+        }), 200
+
     # Register blueprints (will be created in user story phases)
     try:
         from dinkydash.routes.auth import auth_bp
@@ -64,18 +89,21 @@ def create_app(config_class=None):
         # Blueprints not yet created
         pass
 
-    # Register error handlers
+    # Register error handlers (temporary JSON responses until templates created)
     @app.errorhandler(403)
     def forbidden_error(error):
-        return app.send_static_file('templates/errors/403.html'), 403
+        from flask import jsonify
+        return jsonify({'error': 'Forbidden', 'status': 403}), 403
 
     @app.errorhandler(404)
     def not_found_error(error):
-        return app.send_static_file('templates/errors/404.html'), 404
+        from flask import jsonify
+        return jsonify({'error': 'Not Found', 'status': 404}), 404
 
     @app.errorhandler(500)
     def internal_error(error):
+        from flask import jsonify
         db.session.rollback()
-        return app.send_static_file('templates/errors/500.html'), 500
+        return jsonify({'error': 'Internal Server Error', 'status': 500}), 500
 
     return app

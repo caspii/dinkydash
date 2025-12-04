@@ -1,4 +1,28 @@
-flask
-pyyaml
-jinja2
-markdown
+# Web Framework
+Flask==3.0.0
+Werkzeug==3.0.1
+
+# Database & ORM
+SQLAlchemy==2.0.23
+Flask-SQLAlchemy==3.1.1
+Flask-Migrate==4.0.5
+
+# Authentication
+Flask-Login==0.6.3
+
+# Forms & CSRF
+Flask-WTF==1.2.1
+WTForms==3.1.1
+
+# Image Processing
+Pillow==10.1.0
+
+# Environment Variables
+python-dotenv==1.0.0
+
+# Testing
+pytest==7.4.3
+pytest-flask==1.3.0
+
+# Database Drivers
+psycopg2-binary==2.9.9  # PostgreSQL support
