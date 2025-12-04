@@ -1,0 +1,55 @@
+<!-- Partial template for HTMX auto-refresh -->
+{% if tasks or countdowns %}
+    <!-- Tasks Section -->
+    {% if tasks %}
+        <section class="tasks-section">
+            <h2>Today's Tasks</h2>
+            <div class="task-grid">
+                {% for task in tasks %}
+                    <div class="task-card">
+                        <div class="task-icon">
+                            {% if task.icon_type == 'emoji' %}
+                                <span class="emoji">{{ task.icon_value }}</span>
+                            {% else %}
+                                <img src="{{ url_for('static', filename=task.icon_value) }}"
+                                     alt="{{ task.name }}">
+                            {% endif %}
+                        </div>
+                        <h3>{{ task.name }}</h3>
+                        <p class="task-person">{{ task.current_person }}</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+    {% endif %}
+
+    <!-- Countdowns Section -->
+    {% if countdowns %}
+        <section class="countdowns-section">
+            <h2>Upcoming Events</h2>
+            <div class="countdown-grid">
+                {% for countdown in countdowns %}
+                    <div class="countdown-card">
+                        <div class="countdown-icon">
+                            {% if countdown.icon_type == 'emoji' %}
+                                <span class="emoji">{{ countdown.icon_value }}</span>
+                            {% else %}
+                                <img src="{{ url_for('static', filename=countdown.icon_value) }}"
+                                     alt="{{ countdown.name }}">
+                            {% endif %}
+                        </div>
+                        <h3>{{ countdown.name }}</h3>
+                        <p class="countdown-days">{{ countdown.days_text }}</p>
+                        <p class="countdown-date">{{ countdown.date_text }}</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+    {% endif %}
+{% else %}
+    <!-- Empty State -->
+    <div class="empty-state">
+        <p>This dashboard has no tasks or countdowns yet.</p>
+        <p>Add some items to get started!</p>
+    </div>
+{% endif %}

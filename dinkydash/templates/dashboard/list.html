@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block title %}My Dashboards - DinkyDash{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="dashboard-header">
+        <h1>My Dashboards</h1>
+        <div class="dashboard-actions">
+            <!-- Future: Add "Create Dashboard" button when admin features are implemented -->
+        </div>
+    </div>
+
+    {% if message %}
+        <div class="alert alert-info">
+            {{ message }}
+        </div>
+    {% endif %}
+
+    {% if dashboards %}
+        <div class="dashboard-grid">
+            {% for dashboard in dashboards %}
+                <div class="dashboard-card">
+                    <h3>{{ dashboard.name }}</h3>
+
+                    {% if dashboard.is_default %}
+                        <span class="badge badge-primary">Default</span>
+                    {% endif %}
+
+                    <p class="dashboard-info">
+                        <strong>Layout:</strong> {{ dashboard.layout_size|title }}
+                    </p>
+
+                    <p class="dashboard-info">
+                        <strong>Created:</strong> {{ dashboard.created_at.strftime('%B %d, %Y') }}
+                    </p>
+
+                    <div class="dashboard-card-actions">
+                        <a href="{{ url_for('dashboard.view_dashboard', dashboard_id=dashboard.id) }}"
+                           class="btn btn-primary btn-sm">
+                            View Dashboard
+                        </a>
+                        <!-- Future: Add Edit and Delete buttons when admin features are implemented -->
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <h2>No Dashboards Yet</h2>
+            <p>You don't have any dashboards yet.</p>
+            <p>Contact your family admin to create one!</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid #e5e7eb;
+    }
+
+    .dashboard-header h1 {
+        margin: 0;
+        color: #2c3e50;
+    }
+
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 2rem;
+        margin-top: 2rem;
+    }
+
+    .dashboard-card {
+        background: white;
+        padding: 2rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .dashboard-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .dashboard-card h3 {
+        margin: 0 0 1rem 0;
+        color: #2c3e50;
+        font-size: 1.5rem;
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 4px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+
+    .badge-primary {
+        background-color: #3498db;
+        color: white;
+    }
+
+    .dashboard-info {
+        color: #7f8c8d;
+        font-size: 0.9rem;
+        margin: 0.5rem 0;
+    }
+
+    .dashboard-card-actions {
+        margin-top: 1.5rem;
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .btn-sm {
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+    }
+</style>
+{% endblock %}

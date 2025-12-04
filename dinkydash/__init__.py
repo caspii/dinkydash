@@ -51,30 +51,48 @@ def create_app(config_class=None):
             g.current_tenant_id = user.tenant_id
         return user
 
-    # Temporary welcome route for testing
+    # Welcome route
     @app.route('/')
     def index():
-        from flask import jsonify
-        return jsonify({
-            'status': 'DinkyDash v2.0.0-dev',
-            'message': 'Multi-tenant family dashboard (in development)',
-            'database': {
-                'connected': True,
-                'models': ['Family', 'User', 'Dashboard', 'Task', 'Countdown'],
-                'tables_created': True
-            },
-            'completed': [
-                'Project structure',
-                'Database models',
-                'Migrations setup'
-            ],
-            'next_steps': [
-                'Authentication routes & forms',
-                'Dashboard viewing',
-                'HTMX auto-refresh'
-            ],
-            'progress': '21/42 MVP tasks (50%)'
-        }), 200
+        from flask import redirect, url_for, render_template
+        from flask_login import current_user
+
+        # If logged in, redirect to dashboard
+        if current_user.is_authenticated:
+            return redirect(url_for('dashboard.view'))
+
+        # Otherwise, show welcome page
+        return render_template('welcome.html')
+
+    # Temporary test login route for development
+    @app.route('/test-login')
+    def test_login():
+        from flask import redirect, url_for, flash, g
+        from flask_login import login_user
+
+        # Find test user
+        user = User.query.filter_by(email='john@smith.family').first()
+
+        if user:
+            login_user(user)
+            g.current_tenant_id = user.tenant_id
+            flash('Logged in successfully as test user!', 'success')
+            return redirect(url_for('dashboard.view'))
+        else:
+            flash('Test user not found. Please run test_manual.py first.', 'error')
+            return redirect(url_for('index'))
+
+    # Temporary logout route for development
+    @app.route('/logout')
+    def logout():
+        from flask import redirect, url_for, flash
+        from flask_login import logout_user, current_user
+
+        if current_user.is_authenticated:
+            logout_user()
+            flash('Logged out successfully.', 'info')
+
+        return redirect(url_for('index'))
 
     # Register blueprints (will be created in user story phases)
     try:
@@ -89,21 +107,24 @@ def create_app(config_class=None):
         # Blueprints not yet created
         pass
 
-    # Register error handlers (temporary JSON responses until templates created)
+    # Register error handlers
     @app.errorhandler(403)
     def forbidden_error(error):
-        from flask import jsonify
-        return jsonify({'error': 'Forbidden', 'status': 403}), 403
+        from flask import render_template
+        error_description = getattr(error, 'description', None)
+        return render_template('errors/403.html', error_description=error_description), 403
 
     @app.errorhandler(404)
     def not_found_error(error):
-        from flask import jsonify
-        return jsonify({'error': 'Not Found', 'status': 404}), 404
+        from flask import render_template
+        error_description = getattr(error, 'description', None)
+        return render_template('errors/404.html', error_description=error_description), 404
 
     @app.errorhandler(500)
     def internal_error(error):
-        from flask import jsonify
+        from flask import render_template
         db.session.rollback()
-        return jsonify({'error': 'Internal Server Error', 'status': 500}), 500
+        error_description = getattr(error, 'description', None)
+        return render_template('errors/500.html', error_description=error_description), 500
 
     return app

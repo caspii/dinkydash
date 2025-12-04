@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block title %}{{ dashboard.name }} - DinkyDash{% endblock %}
+
+{% block content %}
+<div class="container layout-{{ dashboard.layout_size }}">
+    <div class="dashboard-header">
+        <h1>{{ dashboard.name }}</h1>
+        <div class="dashboard-actions">
+            <a href="{{ url_for('dashboard.list') }}" class="btn btn-secondary">All Dashboards</a>
+        </div>
+    </div>
+
+    <!-- Dashboard content that auto-refreshes -->
+    <div id="dashboard-content"
+         hx-get="{{ url_for('dashboard.view', dashboard_id=dashboard.id) }}"
+         hx-trigger="every 30s"
+         hx-swap="innerHTML">
+
+        {% if tasks or countdowns %}
+            <!-- Tasks Section -->
+            {% if tasks %}
+                <section class="tasks-section">
+                    <h2>Today's Tasks</h2>
+                    <div class="task-grid">
+                        {% for task in tasks %}
+                            <div class="task-card">
+                                <div class="task-icon">
+                                    {% if task.icon_type == 'emoji' %}
+                                        <span class="emoji">{{ task.icon_value }}</span>
+                                    {% else %}
+                                        <img src="{{ url_for('static', filename=task.icon_value) }}"
+                                             alt="{{ task.name }}">
+                                    {% endif %}
+                                </div>
+                                <h3>{{ task.name }}</h3>
+                                <p class="task-person">{{ task.current_person }}</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </section>
+            {% endif %}
+
+            <!-- Countdowns Section -->
+            {% if countdowns %}
+                <section class="countdowns-section">
+                    <h2>Upcoming Events</h2>
+                    <div class="countdown-grid">
+                        {% for countdown in countdowns %}
+                            <div class="countdown-card">
+                                <div class="countdown-icon">
+                                    {% if countdown.icon_type == 'emoji' %}
+                                        <span class="emoji">{{ countdown.icon_value }}</span>
+                                    {% else %}
+                                        <img src="{{ url_for('static', filename=countdown.icon_value) }}"
+                                             alt="{{ countdown.name }}">
+                                    {% endif %}
+                                </div>
+                                <h3>{{ countdown.name }}</h3>
+                                <p class="countdown-days">{{ countdown.days_text }}</p>
+                                <p class="countdown-date">{{ countdown.date_text }}</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </section>
+            {% endif %}
+        {% else %}
+            <!-- Empty State -->
+            <div class="empty-state">
+                <p>This dashboard has no tasks or countdowns yet.</p>
+                <p>Add some items to get started!</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid #e5e7eb;
+    }
+
+    .dashboard-header h1 {
+        margin: 0;
+        color: #2c3e50;
+    }
+
+    .dashboard-actions {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .tasks-section,
+    .countdowns-section {
+        margin-bottom: 3rem;
+    }
+
+    .tasks-section h2,
+    .countdowns-section h2 {
+        color: #2c3e50;
+        margin-bottom: 1.5rem;
+        font-size: 1.5rem;
+    }
+
+    .task-person {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #3498db;
+        margin-top: 0.5rem;
+    }
+
+    .countdown-days {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #e74c3c;
+        margin: 0.5rem 0;
+    }
+
+    .countdown-date {
+        font-size: 0.9rem;
+        color: #7f8c8d;
+        margin: 0;
+    }
+
+    /* HTMX loading indicator */
+    .htmx-request .task-grid,
+    .htmx-request .countdown-grid {
+        opacity: 0.6;
+        transition: opacity 0.3s;
+    }
+</style>
+{% endblock %}

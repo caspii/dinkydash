@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DinkyDash - Family Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .welcome-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .welcome-box {
+            background: white;
+            color: #333;
+            padding: 3rem;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 600px;
+        }
+        .welcome-box h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #2c3e50;
+        }
+        .welcome-box p {
+            font-size: 1.1rem;
+            color: #7f8c8d;
+            margin-bottom: 2rem;
+        }
+        .feature-list {
+            text-align: left;
+            margin: 2rem 0;
+        }
+        .feature-list li {
+            padding: 0.5rem 0;
+            font-size: 1rem;
+        }
+        .test-login-box {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-top: 2rem;
+        }
+        .test-login-box h3 {
+            color: #856404;
+            margin-bottom: 1rem;
+        }
+        .test-login-box p {
+            color: #856404;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="welcome-container">
+        <div class="welcome-box">
+            <h1>🏠 DinkyDash</h1>
+            <p>Your family's command center</p>
+
+            <div class="feature-list">
+                <ul>
+                    <li>✅ Daily task rotation</li>
+                    <li>✅ Event countdowns</li>
+                    <li>✅ Auto-refreshing displays</li>
+                    <li>✅ Multi-dashboard support</li>
+                    <li>✅ Family-specific isolation</li>
+                </ul>
+            </div>
+
+            <div class="test-login-box">
+                <h3>⚠️ Testing Mode</h3>
+                <p>Authentication UI not yet implemented.</p>
+                <p style="margin-top: 1rem;">Click below to log in as test user:</p>
+                <a href="{{ url_for('test_login') }}" class="btn btn-primary" style="margin-top: 1rem; display: inline-block;">
+                    Test Login (john@smith.family)
+                </a>
+            </div>
+
+            <p style="margin-top: 2rem; font-size: 0.9rem;">
+                MVP Progress: <strong>42/42 tasks (100%)</strong>
+            </p>
+        </div>
+    </div>
+</body>
+</html>
