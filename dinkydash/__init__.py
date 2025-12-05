@@ -64,9 +64,9 @@ def create_app(config_class=None):
         from flask import redirect, url_for, render_template
         from flask_login import current_user
 
-        # If logged in, redirect to dashboard
+        # If logged in, redirect to dashboard list
         if current_user.is_authenticated:
-            return redirect(url_for('dashboard.view'))
+            return redirect(url_for('dashboard.list'))
 
         # Otherwise, show welcome page
         is_dev = app.config.get('DEBUG', False)

@@ -1,4 +1,8 @@
 <!-- Partial template for HTMX auto-refresh -->
+<div id="dashboard-content"
+     hx-get="{{ url_for('dashboard.dashboard_content', dashboard_id=dashboard.id) }}"
+     hx-trigger="every 30s"
+     hx-swap="outerHTML">
 {% if tasks or countdowns %}
     <!-- Tasks Section -->
     {% if tasks %}
@@ -53,3 +57,4 @@
         <p>Add some items to get started!</p>
     </div>
 {% endif %}
+</div>

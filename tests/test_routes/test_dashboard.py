@@ -129,16 +129,19 @@ class TestDashboardRoutes:
             'password': 'testpass123'
         })
         
-        response = client.get('/')
+        response = client.get('/dashboards')
         assert response.status_code == 302
-        assert '/dashboard/1' in response.location
+        # Should redirect to the specific dashboard
+        with dashboard_app.app_context():
+            dashboard = Dashboard.query.filter_by(name="Main Dashboard").first()
+            assert f'/dashboard/{dashboard.id}' in response.location
     
     def test_dashboard_list_multiple_dashboards(self, dashboard_client):
         """Test dashboard list when multiple dashboards exist."""
-        response = dashboard_client.get('/', follow_redirects=True)
+        response = dashboard_client.get('/dashboards')
         
         assert response.status_code == 200
-        assert b'My Dashboards' in response.data or b'Your Dashboards' in response.data
+        assert b'My Dashboards' in response.data
         assert b'Main Dashboard' in response.data
         assert b'Kitchen Dashboard' in response.data
     
@@ -225,7 +228,7 @@ class TestDashboardRoutes:
         protected_routes = [
             '/dashboard/1',
             '/dashboard/1/content',
-            '/',  # Dashboard list
+            '/dashboards',  # Dashboard list
         ]
         
         for route in protected_routes:

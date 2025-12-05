@@ -1,7 +1,7 @@
 """
 Dashboard routes for viewing family dashboards.
 """
-from flask import Blueprint, render_template, abort, request, g
+from flask import Blueprint, render_template, abort, request, g, redirect, url_for
 from flask_login import login_required
 from dinkydash.models import db, Dashboard, Task, Countdown
 from dinkydash.utils.rotation import get_current_person
@@ -16,6 +16,33 @@ dashboard_bp = Blueprint('dashboard', __name__)
 def require_login():
     """Ensure user is logged in for all dashboard routes."""
     require_tenant()
+
+
+@dashboard_bp.route('/dashboards')
+def list():
+    """Dashboard list - auto-redirect if only one dashboard."""
+    tenant_id = g.current_tenant_id
+    
+    # Get all dashboards for this family
+    dashboards = Dashboard.query.filter_by(tenant_id=tenant_id).all()
+    
+    # If only one dashboard, redirect directly to it
+    if len(dashboards) == 1:
+        return redirect(url_for('dashboard.view_dashboard', dashboard_id=dashboards[0].id))
+    
+    # If no dashboards (shouldn't happen), show empty state
+    if not dashboards:
+        return render_template(
+            'dashboard/list.html',
+            dashboards=[],
+            message="You don't have any dashboards yet."
+        )
+    
+    # Show dashboard list
+    return render_template(
+        'dashboard/list.html',
+        dashboards=dashboards
+    )
 
 
 @dashboard_bp.route('/dashboard')
@@ -36,13 +63,10 @@ def view():
 
     if not dashboard:
         # No dashboards at all, redirect to dashboard list
-        return render_template(
-            'dashboard/list.html',
-            dashboards=[],
-            message="You don't have any dashboards yet. Create one to get started!"
-        )
+        return redirect(url_for('dashboard.list'))
 
-    return view_dashboard(dashboard.id)
+    # Redirect to the specific dashboard URL
+    return redirect(url_for('dashboard.view_dashboard', dashboard_id=dashboard.id))
 
 
 @dashboard_bp.route('/dashboard/<int:dashboard_id>')
@@ -108,15 +132,54 @@ def view_dashboard(dashboard_id):
     )
 
 
-@dashboard_bp.route('/dashboards')
-def list():
-    """List all dashboards for the family."""
+
+
+@dashboard_bp.route('/dashboard/<int:dashboard_id>/content')
+def dashboard_content(dashboard_id):
+    """HTMX endpoint for dashboard content auto-refresh."""
     tenant_id = g.current_tenant_id
 
-    # Get all dashboards for this family
-    dashboards = Dashboard.query.filter_by(tenant_id=tenant_id).all()
+    # Get dashboard (tenant filtering happens automatically)
+    dashboard = Dashboard.query.filter_by(
+        id=dashboard_id,
+        tenant_id=tenant_id
+    ).first_or_404()
 
+    # Get tasks for this dashboard
+    tasks = Task.query.filter_by(dashboard_id=dashboard.id).all()
+
+    # Calculate current person for each task
+    for task in tasks:
+        try:
+            task.current_person = get_current_person(task.rotation_json)
+        except (ValueError, Exception) as e:
+            task.current_person = "Error"
+
+    # Get countdowns for this dashboard
+    countdowns = Countdown.query.filter_by(dashboard_id=dashboard.id).all()
+
+    # Calculate days remaining for each countdown
+    for countdown in countdowns:
+        try:
+            days = calculate_days_remaining(countdown.date_month, countdown.date_day)
+            countdown.days_remaining = days
+            countdown.days_text = format_countdown(days)
+
+            # Get target date for display
+            target = get_target_date(countdown.date_month, countdown.date_day)
+            countdown.date_text = target.strftime("%B %d")
+        except (ValueError, Exception) as e:
+            countdown.days_remaining = -1
+            countdown.days_text = "Invalid date"
+            countdown.date_text = ""
+
+    # Sort countdowns by days remaining (soonest first)
+    countdowns.sort(key=lambda c: c.days_remaining if c.days_remaining >= 0 else 999)
+
+    # Always return partial content for HTMX polling
     return render_template(
-        'dashboard/list.html',
-        dashboards=dashboards
+        'dashboard/_content.html',
+        dashboard=dashboard,
+        tasks=tasks,
+        countdowns=countdowns
     )

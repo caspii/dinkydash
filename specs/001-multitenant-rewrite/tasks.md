@@ -39,15 +39,15 @@
 
 ### Database & Models (ALL user stories depend on these)
 
-- [ ] T010 [P] Create Family model in dinkydash/models/family.py with id, name, created_at
-- [ ] T011 [P] Create User model in dinkydash/models/user.py with id, email, password_hash, tenant_id, created_at, Flask-Login integration
-- [ ] T012 [P] Create Dashboard model in dinkydash/models/dashboard.py with id, tenant_id, name, layout_size, is_default, created_at
-- [ ] T013 [P] Create Task model in dinkydash/models/task.py with id, dashboard_id, name, rotation_json, icon_type, icon_value, created_at
-- [ ] T014 [P] Create Countdown model in dinkydash/models/countdown.py with id, dashboard_id, name, date_month, date_day, icon_type, icon_value, created_at
-- [ ] T015 Initialize database models in dinkydash/models/__init__.py with SQLAlchemy and Flask-Migrate setup
-- [ ] T016 Generate initial migration with flask db migrate -m "Create initial schema"
-- [ ] T017 Test migration on SQLite database (verify all tables, constraints, indexes created)
-- [ ] T018 Test migration on PostgreSQL database (verify compatibility)
+- [X] T010 [P] Create Family model in dinkydash/models/family.py with id, name, created_at
+- [X] T011 [P] Create User model in dinkydash/models/user.py with id, email, password_hash, tenant_id, created_at, Flask-Login integration
+- [X] T012 [P] Create Dashboard model in dinkydash/models/dashboard.py with id, tenant_id, name, layout_size, is_default, created_at
+- [X] T013 [P] Create Task model in dinkydash/models/task.py with id, dashboard_id, name, rotation_json, icon_type, icon_value, created_at
+- [X] T014 [P] Create Countdown model in dinkydash/models/countdown.py with id, dashboard_id, name, date_month, date_day, icon_type, icon_value, created_at
+- [X] T015 Initialize database models in dinkydash/models/__init__.py with SQLAlchemy and Flask-Migrate setup
+- [X] T016 Generate initial migration with flask db migrate -m "Create initial schema"
+- [X] T017 Test migration on SQLite database (verify all tables, constraints, indexes created)
+- [X] T018 Test migration on PostgreSQL database (verify compatibility)
 
 ### Authentication & Tenant Isolation (ALL user stories need this)
 
