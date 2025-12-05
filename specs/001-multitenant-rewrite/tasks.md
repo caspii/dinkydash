@@ -51,27 +51,27 @@
 
 ### Authentication & Tenant Isolation (ALL user stories need this)
 
-- [ ] T019 Setup Flask-Login in dinkydash/__init__.py with user_loader callback
-- [ ] T020 Implement tenant isolation filter in dinkydash/utils/tenant.py with SQLAlchemy event listener for automatic tenant_id filtering
-- [ ] T021 Create CSRF protection setup in dinkydash/__init__.py with Flask-WTF
-- [ ] T022 Implement password hashing utilities in dinkydash/utils/auth.py using Werkzeug.security
+- [X] T019 Setup Flask-Login in dinkydash/__init__.py with user_loader callback
+- [X] T020 Implement tenant isolation filter in dinkydash/utils/tenant.py with SQLAlchemy event listener for automatic tenant_id filtering
+- [X] T021 Create CSRF protection setup in dinkydash/__init__.py with Flask-WTF
+- [X] T022 Implement password hashing utilities in dinkydash/utils/auth.py using Werkzeug.security
 
 ### Core Utilities (Multiple user stories need these)
 
-- [ ] T023 [P] Implement rotation calculation logic in dinkydash/utils/rotation.py with get_current_person(rotation_list, day_of_year)
-- [ ] T024 [P] Implement countdown calculation logic in dinkydash/utils/countdown.py with calculate_days_remaining(month, day) and auto-rollover
-- [ ] T025 [P] Implement image upload utilities in dinkydash/utils/images.py with save_image(file, tenant_id, entity_type, entity_id), validate_image(file), delete_image(filepath)
+- [X] T023 [P] Implement rotation calculation logic in dinkydash/utils/rotation.py with get_current_person(rotation_list, day_of_year)
+- [X] T024 [P] Implement countdown calculation logic in dinkydash/utils/countdown.py with calculate_days_remaining(month, day) and auto-rollover
+- [X] T025 [P] Implement image upload utilities in dinkydash/utils/images.py with save_image(file, tenant_id, entity_type, entity_id), validate_image(file), delete_image(filepath)
 
 ### Error Handlers (ALL routes need these)
 
-- [ ] T026 [P] Create 403 error template in dinkydash/templates/errors/403.html
-- [ ] T027 [P] Create 404 error template in dinkydash/templates/errors/404.html
-- [ ] T028 [P] Create 500 error template in dinkydash/templates/errors/500.html
-- [ ] T029 Register error handlers in dinkydash/__init__.py for 403, 404, 500
+- [X] T026 [P] Create 403 error template in dinkydash/templates/errors/403.html
+- [X] T027 [P] Create 404 error template in dinkydash/templates/errors/404.html
+- [X] T028 [P] Create 500 error template in dinkydash/templates/errors/500.html
+- [X] T029 Register error handlers in dinkydash/__init__.py for 403, 404, 500
 
 ### Base Template (ALL templates extend this)
 
-- [ ] T030 Create base template in dinkydash/templates/base.html with HTMX, CSRF meta tag, navigation, flash messages, meta refresh fallback
+- [X] T030 Create base template in dinkydash/templates/base.html with HTMX, CSRF meta tag, navigation, flash messages, meta refresh fallback
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
@@ -87,11 +87,11 @@
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T031 [P] [US1] Integration test for dashboard viewing with sample data in tests/test_integration/test_dashboard_viewing.py
-- [ ] T032 [P] [US1] Unit test for rotation calculation logic in tests/test_utils/test_rotation.py
-- [ ] T033 [P] [US1] Unit test for countdown calculation logic in tests/test_utils/test_countdown.py
-- [ ] T034 [P] [US1] Route test for dashboard view endpoint in tests/test_routes/test_dashboard.py
-- [ ] T035 [P] [US1] Route test for HTMX polling endpoint in tests/test_routes/test_dashboard.py
+- [X] T031 [P] [US1] Integration test for dashboard viewing with sample data in tests/test_integration/test_dashboard_viewing.py
+- [X] T032 [P] [US1] Unit test for rotation calculation logic in tests/test_utils/test_rotation.py
+- [X] T033 [P] [US1] Unit test for countdown calculation logic in tests/test_utils/test_countdown.py
+- [X] T034 [P] [US1] Route test for dashboard view endpoint in tests/test_routes/test_dashboard.py
+- [X] T035 [P] [US1] Route test for HTMX polling endpoint in tests/test_routes/test_dashboard.py
 
 ### Implementation for User Story 1
 
@@ -115,27 +115,27 @@
 
 ### Tests for User Story 2
 
-- [ ] T043 [P] [US2] Integration test for registration flow in tests/test_integration/test_auth_flow.py
-- [ ] T044 [P] [US2] Integration test for login/logout flow in tests/test_integration/test_auth_flow.py
-- [ ] T045 [P] [US2] Route test for registration endpoint in tests/test_routes/test_auth.py
-- [ ] T046 [P] [US2] Route test for login endpoint in tests/test_routes/test_auth.py
-- [ ] T047 [P] [US2] Route test for logout endpoint in tests/test_routes/test_auth.py
-- [ ] T048 [P] [US2] Route test for protected dashboard access in tests/test_routes/test_dashboard.py
-- [ ] T049 [P] [US2] Form validation test for RegistrationForm in tests/test_forms/test_auth.py
-- [ ] T050 [P] [US2] Form validation test for LoginForm in tests/test_forms/test_auth.py
+- [X] T043 [P] [US2] Integration test for registration flow in tests/test_integration/test_auth_flow.py (implemented in tests/test_auth.py)
+- [X] T044 [P] [US2] Integration test for login/logout flow in tests/test_integration/test_auth_flow.py (implemented in tests/test_auth.py)
+- [X] T045 [P] [US2] Route test for registration endpoint in tests/test_routes/test_auth.py (implemented in tests/test_auth.py)
+- [X] T046 [P] [US2] Route test for login endpoint in tests/test_routes/test_auth.py (implemented in tests/test_auth.py)
+- [X] T047 [P] [US2] Route test for logout endpoint in tests/test_routes/test_auth.py (implemented in tests/test_auth.py)
+- [X] T048 [P] [US2] Route test for protected dashboard access in tests/test_routes/test_dashboard.py
+- [X] T049 [P] [US2] Form validation test for RegistrationForm in tests/test_forms/test_auth.py (implemented in tests/test_auth.py)
+- [X] T050 [P] [US2] Form validation test for LoginForm in tests/test_forms/test_auth.py (implemented in tests/test_auth.py)
 
 ### Implementation for User Story 2
 
-- [ ] T051 [P] [US2] Create RegistrationForm in dinkydash/forms/auth.py with family_name, email, password, confirm_password, email uniqueness validator
-- [ ] T052 [P] [US2] Create LoginForm in dinkydash/forms/auth.py with email, password, remember_me
-- [ ] T053 [P] [US2] Create registration template in dinkydash/templates/auth/register.html
-- [ ] T054 [P] [US2] Create login template in dinkydash/templates/auth/login.html
-- [ ] T055 [US2] Implement registration routes GET/POST /register in dinkydash/routes/auth.py (creates Family, User, default Dashboard)
-- [ ] T056 [US2] Implement login routes GET/POST /login in dinkydash/routes/auth.py with session creation and remember_me
-- [ ] T057 [US2] Implement logout route GET /logout in dinkydash/routes/auth.py
-- [ ] T058 [US2] Register auth blueprint in dinkydash/__init__.py
+- [X] T051 [P] [US2] Create RegistrationForm in dinkydash/forms/auth.py with family_name, email, password, confirm_password, email uniqueness validator
+- [X] T052 [P] [US2] Create LoginForm in dinkydash/forms/auth.py with email, password, remember_me
+- [X] T053 [P] [US2] Create registration template in dinkydash/templates/auth/register.html
+- [X] T054 [P] [US2] Create login template in dinkydash/templates/auth/login.html
+- [X] T055 [US2] Implement registration routes GET/POST /register in dinkydash/routes/auth.py (creates Family, User, default Dashboard)
+- [X] T056 [US2] Implement login routes GET/POST /login in dinkydash/routes/auth.py with session creation and remember_me
+- [X] T057 [US2] Implement logout route GET /logout in dinkydash/routes/auth.py
+- [X] T058 [US2] Register auth blueprint in dinkydash/__init__.py
 - [ ] T059 [US2] Add @login_required decorator to dashboard routes in dinkydash/routes/dashboard.py
-- [ ] T060 [US2] Add CSS styling for auth forms in dinkydash/static/css/style.css
+- [X] T060 [US2] Add CSS styling for auth forms in dinkydash/static/css/style.css
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work. Users can register, log in, and see their dashboard.
 

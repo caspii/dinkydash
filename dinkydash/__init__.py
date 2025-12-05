@@ -10,6 +10,7 @@ from flask_wtf.csrf import CSRFProtect
 
 from dinkydash.models import db
 from dinkydash.config import config_map
+from dinkydash.utils.tenant import init_tenant_filter, register_tenant_models
 
 
 # Initialize extensions
@@ -34,6 +35,9 @@ def create_app(config_class=None):
     migrate.init_app(app, db)
     login_manager.init_app(app)
     csrf.init_app(app)
+    
+    # Initialize tenant filtering after db is initialized
+    init_tenant_filter(db)
 
     # Configure Flask-Login
     login_manager.login_view = 'auth.login'
@@ -41,6 +45,9 @@ def create_app(config_class=None):
 
     # Import models to ensure they're registered
     from dinkydash.models import Family, User, Dashboard, Task, Countdown
+    
+    # Register tenant models for automatic tenant_id insertion
+    register_tenant_models(db, [Dashboard, Task, Countdown])
 
     # User loader for Flask-Login
     @login_manager.user_loader

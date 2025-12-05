@@ -3,10 +3,10 @@ Task model - Recurring tasks with rotation and icons.
 Tasks rotate daily among family members.
 """
 from datetime import datetime
-from dinkydash.models import db
+from dinkydash.models import db, TenantModel
 
 
-class Task(db.Model):
+class Task(TenantModel):
     """Recurring task model"""
     __tablename__ = 'tasks'
 
@@ -21,6 +21,7 @@ class Task(db.Model):
     # Indexes
     __table_args__ = (
         db.Index('idx_tasks_dashboard_id', 'dashboard_id'),
+        db.Index('idx_tasks_tenant_id', 'tenant_id'),
     )
 
     def __repr__(self):

@@ -1,5 +1,6 @@
 # Testing
 pytest-cov==4.1.0
+freezegun==1.2.2
 
 # Code Quality
 black==23.11.0

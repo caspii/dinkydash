@@ -18,17 +18,15 @@ class TestDashboardView:
 
     def test_view_default_dashboard_logged_in(self, auth_client, family, dashboard, task, countdown):
         """Test viewing the default dashboard when logged in."""
-        # Set tenant context
-        with auth_client.application.app_context():
-            g.current_tenant_id = family.id
+        # The tenant context is set by the user loader when the request is made
+        response = auth_client.get('/dashboard')
+        assert response.status_code == 200
 
-            response = auth_client.get('/dashboard')
-            assert response.status_code == 200
-
-            # Check that dashboard content is present
-            assert b'Test Dashboard' in response.data
-            assert b'Dishes' in response.data
-            assert b"Alice's Birthday" in response.data
+        # Check that dashboard content is present
+        assert b'Test Dashboard' in response.data
+        assert b'Dishes' in response.data
+        # HTML escapes the apostrophe
+        assert b"Alice&#39;s Birthday" in response.data
 
     def test_view_specific_dashboard(self, auth_client, family, dashboard):
         """Test viewing a specific dashboard by ID."""
@@ -92,8 +90,8 @@ class TestDashboardView:
             response = auth_client.get('/dashboard')
             assert response.status_code == 200
 
-            # Should show countdown information
-            assert b"Alice's Birthday" in response.data
+            # Should show countdown information (HTML escaped)
+            assert b"Alice&#39;s Birthday" in response.data
             # Should show some indication of days (could be "Today!", "Tomorrow", or "X days")
             assert (b'Today!' in response.data or
                     b'Tomorrow' in response.data or

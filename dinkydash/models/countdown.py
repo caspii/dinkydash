@@ -3,10 +3,10 @@ Countdown model - Events with dates and icons.
 Automatically calculates days remaining until next occurrence.
 """
 from datetime import datetime
-from dinkydash.models import db
+from dinkydash.models import db, TenantModel
 
 
-class Countdown(db.Model):
+class Countdown(TenantModel):
     """Countdown event model"""
     __tablename__ = 'countdowns'
 
@@ -22,6 +22,7 @@ class Countdown(db.Model):
     # Indexes
     __table_args__ = (
         db.Index('idx_countdowns_dashboard_id', 'dashboard_id'),
+        db.Index('idx_countdowns_tenant_id', 'tenant_id'),
     )
 
     def __repr__(self):

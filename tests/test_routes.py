@@ -67,24 +67,25 @@ class TestDashboardRoutes:
         assert response.status_code == 302
         assert '/login' in response.location
 
-    def test_tenant_isolation_in_routes(self, app, auth_client):
+    def test_tenant_isolation_in_routes(self, app, auth_client, family, user):
         """Test that routes properly enforce tenant isolation."""
         with app.app_context():
+            # The authenticated user belongs to 'family' (from fixture)
             # Create another family and dashboard
             from dinkydash.models import Family, Dashboard
-            family1 = Family(name="Family 1")
+            
             family2 = Family(name="Family 2")
-            db.session.add_all([family1, family2])
+            db.session.add(family2)
             db.session.commit()
 
             dash1 = Dashboard(
-                tenant_id=family1.id,
+                tenant_id=family.id,  # User's family
                 name="Dashboard 1",
                 layout_size="medium",
                 is_default=True
             )
             dash2 = Dashboard(
-                tenant_id=family2.id,
+                tenant_id=family2.id,  # Other family
                 name="Dashboard 2",
                 layout_size="medium",
                 is_default=True
@@ -92,10 +93,7 @@ class TestDashboardRoutes:
             db.session.add_all([dash1, dash2])
             db.session.commit()
 
-            # Set tenant to family1
-            g.current_tenant_id = family1.id
-
-            # Should be able to access family1's dashboard
+            # Should be able to access own family's dashboard
             response = auth_client.get(f'/dashboard/{dash1.id}')
             assert response.status_code == 200
 
@@ -138,6 +136,7 @@ class TestIntegration:
 
             task = Task(
                 dashboard_id=dashboard.id,
+                tenant_id=family.id,
                 name="Dishes",
                 rotation_json=json.dumps(["Alice", "Bob"]),
                 icon_type="emoji",
@@ -145,6 +144,7 @@ class TestIntegration:
             )
             countdown = Countdown(
                 dashboard_id=dashboard.id,
+                tenant_id=family.id,
                 name="Christmas",
                 date_month=12,
                 date_day=25,
@@ -178,15 +178,12 @@ class TestIntegration:
                     b'Tomorrow' in response.data or
                     b'day' in response.data)
 
-    def test_multi_dashboard_workflow(self, app, auth_client):
+    def test_multi_dashboard_workflow(self, app, auth_client, family):
         """Test workflow with multiple dashboards."""
         with app.app_context():
-            from dinkydash.models import Family, Dashboard
+            from dinkydash.models import Dashboard
 
-            family = Family(name="Multi-Dashboard Family")
-            db.session.add(family)
-            db.session.commit()
-
+            # Use the family from the auth_client's user
             # Create multiple dashboards
             dash1 = Dashboard(
                 tenant_id=family.id,
@@ -202,8 +199,6 @@ class TestIntegration:
             )
             db.session.add_all([dash1, dash2])
             db.session.commit()
-
-            g.current_tenant_id = family.id
 
             # View dashboard list
             response = auth_client.get('/dashboards')

@@ -120,11 +120,12 @@ def dashboard(app, family):
 
 
 @pytest.fixture
-def task(app, dashboard):
+def task(app, dashboard, family):
     """Create a test task."""
     with app.app_context():
         task = Task(
             dashboard_id=dashboard.id,
+            tenant_id=family.id,
             name="Dishes",
             rotation_json=json.dumps(["Alice", "Bob", "Charlie"]),
             icon_type="emoji",
@@ -135,6 +136,7 @@ def task(app, dashboard):
         # Store data before session closes
         task_id = task.id
         task_dashboard_id = task.dashboard_id
+        task_tenant_id = task.tenant_id
         task_name = task.name
         task_rotation_json = task.rotation_json
         task_icon_type = task.icon_type
@@ -143,6 +145,7 @@ def task(app, dashboard):
     # Create a detached object to return
     task_obj = Task(
         dashboard_id=task_dashboard_id,
+        tenant_id=task_tenant_id,
         name=task_name,
         rotation_json=task_rotation_json,
         icon_type=task_icon_type,
@@ -153,11 +156,12 @@ def task(app, dashboard):
 
 
 @pytest.fixture
-def countdown(app, dashboard):
+def countdown(app, dashboard, family):
     """Create a test countdown."""
     with app.app_context():
         countdown = Countdown(
             dashboard_id=dashboard.id,
+            tenant_id=family.id,
             name="Alice's Birthday",
             date_month=6,
             date_day=15,
@@ -169,6 +173,7 @@ def countdown(app, dashboard):
         # Store data before session closes
         countdown_id = countdown.id
         countdown_dashboard_id = countdown.dashboard_id
+        countdown_tenant_id = countdown.tenant_id
         countdown_name = countdown.name
         countdown_date_month = countdown.date_month
         countdown_date_day = countdown.date_day
@@ -178,6 +183,7 @@ def countdown(app, dashboard):
     # Create a detached object to return
     countdown_obj = Countdown(
         dashboard_id=countdown_dashboard_id,
+        tenant_id=countdown_tenant_id,
         name=countdown_name,
         date_month=countdown_date_month,
         date_day=countdown_date_day,
