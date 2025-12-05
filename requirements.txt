@@ -13,6 +13,7 @@ Flask-Login==0.6.3
 # Forms & CSRF
 Flask-WTF==1.2.1
 WTForms==3.1.1
+email-validator==2.3.0
 
 # Image Processing
 Pillow==10.1.0

@@ -62,37 +62,98 @@ def create_app(config_class=None):
             return redirect(url_for('dashboard.view'))
 
         # Otherwise, show welcome page
-        return render_template('welcome.html')
+        is_dev = app.config.get('DEBUG', False)
+        return render_template('welcome.html', is_dev=is_dev)
 
-    # Temporary test login route for development
-    @app.route('/test-login')
-    def test_login():
+    # Development-only demo login
+    @app.route('/demo-login')
+    def demo_login():
+        """Quick demo login with pre-populated data (development only)."""
         from flask import redirect, url_for, flash, g
         from flask_login import login_user
+        import json
 
-        # Find test user
-        user = User.query.filter_by(email='john@smith.family').first()
-
-        if user:
-            login_user(user)
-            g.current_tenant_id = user.tenant_id
-            flash('Logged in successfully as test user!', 'success')
-            return redirect(url_for('dashboard.view'))
-        else:
-            flash('Test user not found. Please run test_manual.py first.', 'error')
+        # Only allow in development mode
+        if not app.config.get('DEBUG', False):
+            flash('Demo login is only available in development mode.', 'error')
             return redirect(url_for('index'))
 
-    # Temporary logout route for development
-    @app.route('/logout')
-    def logout():
-        from flask import redirect, url_for, flash
-        from flask_login import logout_user, current_user
+        # Find or create demo user
+        demo_email = 'demo@dinkydash.local'
+        user = User.query.filter_by(email=demo_email).first()
 
-        if current_user.is_authenticated:
-            logout_user()
-            flash('Logged out successfully.', 'info')
+        if not user:
+            # Create demo family
+            family = Family(name="Demo Family")
+            db.session.add(family)
+            db.session.flush()
 
-        return redirect(url_for('index'))
+            # Create demo user
+            from dinkydash.utils.auth import hash_password
+            user = User(
+                email=demo_email,
+                password_hash=hash_password('demo123'),
+                tenant_id=family.id
+            )
+            db.session.add(user)
+            db.session.flush()
+
+            # Create demo dashboard
+            dashboard = Dashboard(
+                tenant_id=family.id,
+                name="Family Dashboard",
+                layout_size="large",
+                is_default=True
+            )
+            db.session.add(dashboard)
+            db.session.flush()
+
+            # Create demo tasks
+            tasks_data = [
+                ("Dishes", ["Alice", "Bob", "Charlie"], "🍽"),
+                ("Take out trash", ["Bob", "Charlie"], "🗑"),
+                ("Feed the dog", ["Alice", "Charlie"], "🐕"),
+                ("Water plants", ["Alice", "Bob"], "🌱"),
+            ]
+
+            for name, rotation, emoji in tasks_data:
+                task = Task(
+                    dashboard_id=dashboard.id,
+                    name=name,
+                    rotation_json=json.dumps(rotation),
+                    icon_type="emoji",
+                    icon_value=emoji
+                )
+                db.session.add(task)
+
+            # Create demo countdowns
+            countdowns_data = [
+                ("Alice's Birthday", 6, 15, "🎂"),
+                ("Bob's Birthday", 9, 22, "🎂"),
+                ("Christmas", 12, 25, "🎄"),
+                ("New Year", 1, 1, "🎆"),
+                ("Summer Vacation", 7, 1, "🏖"),
+            ]
+
+            for name, month, day, emoji in countdowns_data:
+                countdown = Countdown(
+                    dashboard_id=dashboard.id,
+                    name=name,
+                    date_month=month,
+                    date_day=day,
+                    icon_type="emoji",
+                    icon_value=emoji
+                )
+                db.session.add(countdown)
+
+            db.session.commit()
+
+        # Log in the demo user
+        login_user(user)
+        g.current_tenant_id = user.tenant_id
+        flash('Logged in as Demo User! Explore the dashboard.', 'success')
+        return redirect(url_for('dashboard.view'))
+
 
     # Register blueprints (will be created in user story phases)
     try:
