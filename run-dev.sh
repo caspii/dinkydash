@@ -56,8 +56,12 @@ EOF
 fi
 
 # Check if database exists and run migrations
-if [ ! -f "dinkydash-dev.db" ]; then
+# Note: Flask creates SQLite databases in the instance folder by default
+if [ ! -f "instance/dinkydash-dev.db" ]; then
     echo -e "${YELLOW}⚠️  Database not found. Initializing...${NC}"
+    
+    # Create instance folder if it doesn't exist
+    mkdir -p instance
     
     # Check if migrations folder exists
     if [ ! -d "migrations" ]; then
@@ -66,7 +70,6 @@ if [ ! -f "dinkydash-dev.db" ]; then
     fi
     
     echo -e "${GREEN}Running database migrations...${NC}"
-    flask db migrate -m "Initial setup"
     flask db upgrade
     echo -e "${GREEN}✓ Database initialized${NC}"
 else
@@ -89,7 +92,7 @@ echo -e "🌐 Network:  ${GREEN}http://$(hostname -I | awk '{print $1}'):5111${N
 echo ""
 echo -e "📝 Debug Mode: ${GREEN}ON${NC}"
 echo -e "🔄 Auto-reload: ${GREEN}ON${NC}"
-echo -e "🗄️  Database: ${GREEN}sqlite:///dinkydash-dev.db${NC}"
+echo -e "🗄️  Database: ${GREEN}sqlite:///instance/dinkydash-dev.db${NC}"
 echo ""
 echo -e "${YELLOW}Press CTRL+C to stop the server${NC}"
 echo -e "${BLUE}=================================${NC}"
