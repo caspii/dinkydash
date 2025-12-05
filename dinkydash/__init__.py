@@ -95,6 +95,9 @@ def create_app(config_class=None):
             db.session.add(family)
             db.session.flush()
 
+            # Set tenant context for automatic tenant_id insertion
+            g.current_tenant_id = family.id
+
             # Create demo user
             from dinkydash.utils.auth import hash_password
             user = User(
