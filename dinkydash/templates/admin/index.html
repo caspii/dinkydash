@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Admin - DinkyDash{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="admin-header">
+        <h1>Admin Dashboard</h1>
+    </div>
+
+    <div class="admin-menu">
+        <div class="admin-card">
+            <h2>Dashboards</h2>
+            <p>Create and manage multiple dashboards for different rooms or purposes.</p>
+            <a href="{{ url_for('admin.dashboard_list') }}" class="btn btn-primary">
+                Manage Dashboards
+            </a>
+        </div>
+
+        <div class="admin-card">
+            <h2>Tasks</h2>
+            <p>Create recurring tasks with rotation schedules.</p>
+            <a href="#" class="btn btn-secondary disabled">
+                Manage Tasks (Coming Soon)
+            </a>
+        </div>
+
+        <div class="admin-card">
+            <h2>Countdowns</h2>
+            <p>Track important dates and events with countdown timers.</p>
+            <a href="{{ url_for('admin.countdown_list') }}" class="btn btn-primary">
+                Manage Countdowns
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .admin-menu {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin-top: 2rem;
+    }
+
+    .admin-card {
+        background: white;
+        padding: 2rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        text-align: center;
+    }
+
+    .admin-card h2 {
+        color: #2c3e50;
+        margin-bottom: 1rem;
+    }
+
+    .admin-card p {
+        color: #6c757d;
+        margin-bottom: 1.5rem;
+    }
+
+    .btn.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+</style>
+{% endblock %}

@@ -221,15 +221,15 @@
 
 ### Implementation for User Story 5
 
-- [ ] T098 [P] [US5] Create DashboardForm in dinkydash/forms/dashboard.py with name, layout_size (RadioField with small/medium/large choices)
-- [ ] T099 [P] [US5] Create dashboard management list template in dinkydash/templates/admin/dashboards.html
-- [ ] T100 [P] [US5] Create dashboard form template in dinkydash/templates/admin/dashboard_form.html
-- [ ] T101 [US5] Update registration route to auto-create "Family Dashboard" with is_default=True in dinkydash/routes/auth.py
-- [ ] T102 [US5] Implement dashboard management list route GET /admin/dashboards in dinkydash/routes/admin.py
-- [ ] T103 [US5] Implement dashboard create routes GET/POST /admin/dashboards/new in dinkydash/routes/admin.py
-- [ ] T104 [US5] Implement dashboard edit routes GET/POST /admin/dashboards/<id>/edit in dinkydash/routes/admin.py
-- [ ] T105 [US5] Implement dashboard delete route POST /admin/dashboards/<id>/delete in dinkydash/routes/admin.py with prevention of last dashboard deletion, task/countdown reassignment
-- [ ] T106 [US5] Update TaskForm and CountdownForm to populate dashboard_id choices dynamically in routes
+- [X] T098 [P] [US5] Create DashboardForm in dinkydash/forms/dashboard.py with name, layout_size (RadioField with small/medium/large choices)
+- [X] T099 [P] [US5] Create dashboard management list template in dinkydash/templates/admin/dashboards.html
+- [X] T100 [P] [US5] Create dashboard form template in dinkydash/templates/admin/dashboard_form.html
+- [X] T101 [US5] Update registration route to auto-create "Family Dashboard" with is_default=True in dinkydash/routes/auth.py
+- [X] T102 [US5] Implement dashboard management list route GET /admin/dashboards in dinkydash/routes/admin.py
+- [X] T103 [US5] Implement dashboard create routes GET/POST /admin/dashboards/new in dinkydash/routes/admin.py
+- [X] T104 [US5] Implement dashboard edit routes GET/POST /admin/dashboards/<id>/edit in dinkydash/routes/admin.py
+- [X] T105 [US5] Implement dashboard delete route POST /admin/dashboards/<id>/delete in dinkydash/routes/admin.py with prevention of last dashboard deletion, task/countdown reassignment
+- [X] T106 [US5] Update TaskForm and CountdownForm to populate dashboard_id choices dynamically in routes
 
 **Checkpoint**: Full dashboard organization working. Multiple dashboards can be created and managed.
 

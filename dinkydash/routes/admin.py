@@ -11,6 +11,7 @@ from flask_login import login_required
 from dinkydash import db
 from dinkydash.models import Dashboard, Task, Countdown
 from dinkydash.forms.countdown import CountdownForm
+from dinkydash.forms.dashboard import DashboardForm
 from dinkydash.utils.countdown import calculate_days_remaining, format_countdown, get_target_date
 import calendar
 
@@ -21,8 +22,8 @@ admin_bp = Blueprint('admin', __name__)
 @admin_bp.route('/admin')
 @login_required
 def index():
-    """Admin dashboard - redirect to countdown list for now."""
-    return redirect(url_for('admin.countdown_list'))
+    """Admin dashboard - show admin menu."""
+    return render_template('admin/index.html')
 
 
 @admin_bp.route('/admin/countdowns')
@@ -182,3 +183,108 @@ def save_countdown_image(file_obj, tenant_id, countdown_id):
     except Exception as e:
         current_app.logger.error(f"Failed to save countdown image: {e}")
         return None
+
+
+# Dashboard Management Routes
+
+@admin_bp.route('/admin/dashboards')
+@login_required
+def dashboard_list():
+    """List all dashboards for the current tenant."""
+    dashboards = Dashboard.query.filter_by(tenant_id=g.current_tenant_id).all()
+    return render_template('admin/dashboards.html', dashboards=dashboards)
+
+
+@admin_bp.route('/admin/dashboards/new', methods=['GET', 'POST'])
+@login_required
+def dashboard_create():
+    """Create a new dashboard."""
+    form = DashboardForm()
+    
+    if form.validate_on_submit():
+        # Create dashboard
+        dashboard = Dashboard(
+            tenant_id=g.current_tenant_id,
+            name=form.name.data,
+            layout_size=form.layout_size.data,
+            is_default=False  # New dashboards are not default
+        )
+        
+        db.session.add(dashboard)
+        db.session.commit()
+        
+        flash('Dashboard created successfully!', 'success')
+        return redirect(url_for('admin.dashboard_list'))
+    
+    return render_template('admin/dashboard_form.html', form=form, dashboard=None)
+
+
+@admin_bp.route('/admin/dashboards/<int:dashboard_id>/edit', methods=['GET', 'POST'])
+@login_required
+def dashboard_edit(dashboard_id):
+    """Edit an existing dashboard."""
+    dashboard = Dashboard.query.filter_by(id=dashboard_id, tenant_id=g.current_tenant_id).first_or_404()
+    
+    form = DashboardForm()
+    
+    if form.validate_on_submit():
+        # Update dashboard
+        dashboard.name = form.name.data
+        dashboard.layout_size = form.layout_size.data
+        
+        db.session.commit()
+        flash('Dashboard updated successfully!', 'success')
+        return redirect(url_for('admin.dashboard_list'))
+    
+    elif request.method == 'GET':
+        # Populate form with dashboard data
+        form.name.data = dashboard.name
+        form.layout_size.data = dashboard.layout_size
+    
+    return render_template('admin/dashboard_form.html', form=form, dashboard=dashboard)
+
+
+@admin_bp.route('/admin/dashboards/<int:dashboard_id>/delete', methods=['POST'])
+@login_required
+def dashboard_delete(dashboard_id):
+    """Delete a dashboard."""
+    dashboard = Dashboard.query.filter_by(id=dashboard_id, tenant_id=g.current_tenant_id).first_or_404()
+    
+    # Prevent deletion of default dashboard
+    if dashboard.is_default:
+        flash('Cannot delete the default dashboard.', 'error')
+        return redirect(url_for('admin.dashboard_list'))
+    
+    # Prevent deletion of last dashboard
+    dashboard_count = Dashboard.query.filter_by(tenant_id=g.current_tenant_id).count()
+    if dashboard_count <= 1:
+        flash('Cannot delete the last dashboard. Every family needs at least one dashboard.', 'error')
+        return redirect(url_for('admin.dashboard_list'))
+    
+    # Get default dashboard to reassign items
+    default_dashboard = Dashboard.query.filter_by(
+        tenant_id=g.current_tenant_id,
+        is_default=True
+    ).first()
+    
+    if not default_dashboard:
+        # If no default, get any other dashboard
+        default_dashboard = Dashboard.query.filter_by(tenant_id=g.current_tenant_id).filter(
+            Dashboard.id != dashboard_id
+        ).first()
+    
+    # Reassign all tasks to default dashboard
+    Task.query.filter_by(dashboard_id=dashboard_id).update(
+        {'dashboard_id': default_dashboard.id}
+    )
+    
+    # Reassign all countdowns to default dashboard
+    Countdown.query.filter_by(dashboard_id=dashboard_id).update(
+        {'dashboard_id': default_dashboard.id}
+    )
+    
+    db.session.delete(dashboard)
+    db.session.commit()
+    
+    flash(f'Dashboard deleted. Tasks and countdowns have been moved to {default_dashboard.name}.', 'success')
+    return redirect(url_for('admin.dashboard_list'))

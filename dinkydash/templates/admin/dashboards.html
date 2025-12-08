@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Dashboards - DinkyDash{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="admin-header">
+        <h1>Manage Dashboards</h1>
+        <a href="{{ url_for('admin.dashboard_create') }}" class="btn btn-primary">
+            <i class="icon-plus"></i> Add New Dashboard
+        </a>
+    </div>
+
+    {% if dashboards %}
+        <div class="admin-table-container">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Layout Size</th>
+                        <th>Tasks</th>
+                        <th>Countdowns</th>
+                        <th>Default</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for dashboard in dashboards %}
+                    <tr>
+                        <td>
+                            <strong>{{ dashboard.name }}</strong>
+                        </td>
+                        <td>
+                            <span class="layout-badge layout-{{ dashboard.layout_size }}">
+                                {{ dashboard.layout_size|title }}
+                            </span>
+                        </td>
+                        <td>{{ dashboard.tasks | length }}</td>
+                        <td>{{ dashboard.countdowns | length }}</td>
+                        <td>
+                            {% if dashboard.is_default %}
+                                <span class="badge badge-success">Yes</span>
+                            {% else %}
+                                <span class="badge badge-secondary">No</span>
+                            {% endif %}
+                        </td>
+                        <td class="actions">
+                            <a href="{{ url_for('dashboard.view_dashboard', dashboard_id=dashboard.id) }}" 
+                               class="btn btn-sm btn-info">View</a>
+                            <a href="{{ url_for('admin.dashboard_edit', dashboard_id=dashboard.id) }}" 
+                               class="btn btn-sm btn-secondary">Edit</a>
+                            {% if not dashboard.is_default and dashboards|length > 1 %}
+                            <form method="POST" action="{{ url_for('admin.dashboard_delete', dashboard_id=dashboard.id) }}" 
+                                  class="delete-form" style="display: inline;">
+                                {{ csrf_token() }}
+                                <button type="submit" class="btn btn-sm btn-danger" 
+                                        onclick="return confirm('Are you sure you want to delete this dashboard? All tasks and countdowns will be reassigned to the default dashboard.')">
+                                    Delete
+                                </button>
+                            </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        {% if dashboards|length == 1 %}
+        <div class="alert alert-info mt-3">
+            <strong>Note:</strong> You cannot delete your last dashboard. Every family needs at least one dashboard.
+        </div>
+        {% endif %}
+    {% else %}
+        <div class="empty-state">
+            <h2>No dashboards yet</h2>
+            <p>This shouldn't happen - a default dashboard should have been created when you registered.</p>
+            <a href="{{ url_for('admin.dashboard_create') }}" class="btn btn-primary">
+                Create Your First Dashboard
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .layout-badge {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+
+    .layout-small {
+        background-color: #e3f2fd;
+        color: #1565c0;
+    }
+
+    .layout-medium {
+        background-color: #f3e5f5;
+        color: #6a1b9a;
+    }
+
+    .layout-large {
+        background-color: #fce4ec;
+        color: #c2185b;
+    }
+
+    .badge-success {
+        background-color: #28a745;
+        color: white;
+    }
+
+    .badge-secondary {
+        background-color: #6c757d;
+        color: white;
+    }
+
+    .btn-info {
+        background-color: #17a2b8;
+        color: white;
+    }
+
+    .btn-info:hover {
+        background-color: #138496;
+    }
+</style>
+{% endblock %}

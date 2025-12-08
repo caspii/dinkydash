@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Edit' if dashboard else 'Add' }} Dashboard - DinkyDash{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="form-container">
+        <h1>{{ 'Edit' if dashboard else 'Add' }} Dashboard</h1>
+        
+        <form method="POST">
+            {{ form.hidden_tag() }}
+            
+            <div class="form-group">
+                {{ form.name.label }}
+                {{ form.name(class="form-control" + (" is-invalid" if form.name.errors else "")) }}
+                {% if form.name.errors %}
+                    <div class="invalid-feedback">
+                        {% for error in form.name.errors %}{{ error }}{% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                {{ form.layout_size.label }}
+                <div class="layout-options">
+                    {% for value, label in form.layout_size.choices %}
+                    <div class="form-check">
+                        <input type="radio" name="layout_size" id="layout_size_{{ value }}" 
+                               value="{{ value }}" class="form-check-input"
+                               {% if form.layout_size.data == value %}checked{% endif %}>
+                        <label class="form-check-label" for="layout_size_{{ value }}">
+                            {{ label }}
+                        </label>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% if form.layout_size.errors %}
+                    <div class="invalid-feedback d-block">
+                        {% for error in form.layout_size.errors %}{{ error }}{% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            {% if dashboard and dashboard.is_default %}
+            <div class="alert alert-info">
+                <strong>Note:</strong> This is your default dashboard. It will be shown when you first log in.
+            </div>
+            {% endif %}
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                    {{ 'Update' if dashboard else 'Create' }} Dashboard
+                </button>
+                <a href="{{ url_for('admin.dashboard_list') }}" class="btn btn-secondary">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 2rem 0;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .layout-options {
+        margin-top: 0.5rem;
+    }
+
+    .form-check {
+        margin-bottom: 0.75rem;
+        padding-left: 1.5rem;
+    }
+
+    .form-check-label {
+        margin-bottom: 0;
+        font-weight: normal;
+    }
+
+    .form-actions {
+        margin-top: 2rem;
+        display: flex;
+        gap: 1rem;
+    }
+
+    .invalid-feedback.d-block {
+        display: block !important;
+    }
+</style>
+{% endblock %}
