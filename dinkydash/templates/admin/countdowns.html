@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Countdowns - DinkyDash{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="admin-header">
+        <h1>Manage Countdown Events</h1>
+        <a href="{{ url_for('admin.countdown_create') }}" class="btn btn-primary">
+            <i class="icon-plus"></i> Add New Countdown
+        </a>
+    </div>
+
+    {% if countdowns %}
+        <div class="admin-table-container">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Icon</th>
+                        <th>Name</th>
+                        <th>Dashboard</th>
+                        <th>Date</th>
+                        <th>Days Remaining</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for countdown in countdowns %}
+                    <tr>
+                        <td class="icon-cell">
+                            {% if countdown.icon_type == 'emoji' %}
+                                <span class="emoji">{{ countdown.icon_value }}</span>
+                            {% elif countdown.icon_value %}
+                                <img src="{{ url_for('static', filename=countdown.icon_value) }}" 
+                                     alt="{{ countdown.name }}" class="icon-img">
+                            {% else %}
+                                <span class="no-icon">—</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ countdown.name }}</td>
+                        <td>{{ countdown.dashboard.name }}</td>
+                        <td>{{ countdown.date_text }}</td>
+                        <td>
+                            <span class="countdown-days-badge {% if countdown.days_remaining <= 7 %}urgent{% elif countdown.days_remaining <= 30 %}soon{% endif %}">
+                                {{ countdown.days_text }}
+                            </span>
+                        </td>
+                        <td class="actions">
+                            <a href="{{ url_for('admin.countdown_edit', countdown_id=countdown.id) }}" 
+                               class="btn btn-sm btn-secondary">Edit</a>
+                            <form method="POST" action="{{ url_for('admin.countdown_delete', countdown_id=countdown.id) }}" 
+                                  class="delete-form" style="display: inline;">
+                                {{ csrf_token() }}
+                                <button type="submit" class="btn btn-sm btn-danger" 
+                                        onclick="return confirm('Are you sure you want to delete this countdown?')">
+                                    Delete
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <h2>No countdown events yet</h2>
+            <p>Get started by adding your first countdown event.</p>
+            <a href="{{ url_for('admin.countdown_create') }}" class="btn btn-primary">
+                Add First Countdown
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .countdown-days-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 4px;
+        font-weight: 600;
+        background-color: #e7f3ff;
+        color: #0066cc;
+    }
+
+    .countdown-days-badge.urgent {
+        background-color: #fee;
+        color: #c00;
+    }
+
+    .countdown-days-badge.soon {
+        background-color: #fff8dc;
+        color: #806000;
+    }
+</style>
+{% endblock %}

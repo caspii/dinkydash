@@ -27,12 +27,19 @@
                         <span class="badge badge-primary">Default</span>
                     {% endif %}
 
-                    <p class="dashboard-info">
-                        <strong>Layout:</strong> {{ dashboard.layout_size|title }}
-                    </p>
+                    <div class="dashboard-stats">
+                        <div class="stat">
+                            <span class="stat-value">{{ dashboard.tasks | length }}</span>
+                            <span class="stat-label">Tasks</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-value">{{ dashboard.countdowns | length }}</span>
+                            <span class="stat-label">Countdowns</span>
+                        </div>
+                    </div>
 
                     <p class="dashboard-info">
-                        <strong>Created:</strong> {{ dashboard.created_at.strftime('%B %d, %Y') }}
+                        <strong>Layout:</strong> {{ dashboard.layout_size|title }}
                     </p>
 
                     <div class="dashboard-card-actions">
@@ -126,6 +133,35 @@
     .btn-sm {
         padding: 0.5rem 1rem;
         font-size: 0.9rem;
+    }
+
+    .dashboard-stats {
+        display: flex;
+        gap: 2rem;
+        margin: 1rem 0;
+        padding: 1rem;
+        background-color: #f9fafb;
+        border-radius: 4px;
+    }
+
+    .stat {
+        text-align: center;
+        flex: 1;
+    }
+
+    .stat-value {
+        display: block;
+        font-size: 1.75rem;
+        font-weight: bold;
+        color: #3498db;
+    }
+
+    .stat-label {
+        display: block;
+        font-size: 0.75rem;
+        color: #6b7280;
+        text-transform: uppercase;
+        margin-top: 0.25rem;
     }
 </style>
 {% endblock %}

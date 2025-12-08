@@ -95,13 +95,13 @@
 
 ### Implementation for User Story 1
 
-- [ ] T036 [US1] Create dashboard list template in dinkydash/templates/dashboard/list.html (shows all dashboards for family)
-- [ ] T037 [US1] Create dashboard view template in dinkydash/templates/dashboard/view.html with HTMX polling, task cards, countdown cards, layout size classes
-- [ ] T038 [US1] Implement dashboard list route GET / in dinkydash/routes/dashboard.py with tenant filtering, auto-redirect if single dashboard
-- [ ] T039 [US1] Implement dashboard view route GET /dashboard/<id> in dinkydash/routes/dashboard.py with task rotation calculation, countdown calculation, sorting
-- [ ] T040 [US1] Implement HTMX polling route GET /dashboard/<id>/content in dinkydash/routes/dashboard.py returning partial HTML
-- [ ] T041 [US1] Register dashboard blueprint in dinkydash/__init__.py
-- [ ] T042 [US1] Add CSS styling for dashboard cards and layout sizes (small, medium, large) in dinkydash/static/css/style.css
+- [X] T036 [US1] Create dashboard list template in dinkydash/templates/dashboard/list.html (shows all dashboards for family)
+- [X] T037 [US1] Create dashboard view template in dinkydash/templates/dashboard/view.html with HTMX polling, task cards, countdown cards, layout size classes
+- [X] T038 [US1] Implement dashboard list route GET / in dinkydash/routes/dashboard.py with tenant filtering, auto-redirect if single dashboard
+- [X] T039 [US1] Implement dashboard view route GET /dashboard/<id> in dinkydash/routes/dashboard.py with task rotation calculation, countdown calculation, sorting
+- [X] T040 [US1] Implement HTMX polling route GET /dashboard/<id>/content in dinkydash/routes/dashboard.py returning partial HTML
+- [X] T041 [US1] Register dashboard blueprint in dinkydash/__init__.py
+- [X] T042 [US1] Add CSS styling for dashboard cards and layout sizes (small, medium, large) in dinkydash/static/css/style.css
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently. Dashboard displays tasks and countdowns with auto-refresh.
 
@@ -134,7 +134,7 @@
 - [X] T056 [US2] Implement login routes GET/POST /login in dinkydash/routes/auth.py with session creation and remember_me
 - [X] T057 [US2] Implement logout route GET /logout in dinkydash/routes/auth.py
 - [X] T058 [US2] Register auth blueprint in dinkydash/__init__.py
-- [ ] T059 [US2] Add @login_required decorator to dashboard routes in dinkydash/routes/dashboard.py
+- [X] T059 [US2] Add @login_required decorator to dashboard routes in dinkydash/routes/dashboard.py
 - [X] T060 [US2] Add CSS styling for auth forms in dinkydash/static/css/style.css
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work. Users can register, log in, and see their dashboard.
@@ -191,13 +191,13 @@
 
 ### Implementation for User Story 4
 
-- [ ] T084 [P] [US4] Create CountdownForm in dinkydash/forms/countdown.py with name, dashboard_id, date_month (SelectField), date_day (IntegerField), icon_type, emoji, image, date validation
-- [ ] T085 [P] [US4] Create countdown list template in dinkydash/templates/admin/countdowns.html sorted by days remaining
-- [ ] T086 [P] [US4] Create countdown form template in dinkydash/templates/admin/countdown_form.html with icon type toggle JavaScript
-- [ ] T087 [US4] Implement countdown list route GET /admin/countdowns in dinkydash/routes/admin.py with tenant filtering, days remaining calculation
-- [ ] T088 [US4] Implement countdown create routes GET/POST /admin/countdowns/new in dinkydash/routes/admin.py with image upload handling, date validation
-- [ ] T089 [US4] Implement countdown edit routes GET/POST /admin/countdowns/<id>/edit in dinkydash/routes/admin.py with image replacement
-- [ ] T090 [US4] Implement countdown delete route POST /admin/countdowns/<id>/delete in dinkydash/routes/admin.py with image file deletion
+- [X] T084 [P] [US4] Create CountdownForm in dinkydash/forms/countdown.py with name, dashboard_id, date_month (SelectField), date_day (IntegerField), icon_type, emoji, image, date validation
+- [X] T085 [P] [US4] Create countdown list template in dinkydash/templates/admin/countdowns.html sorted by days remaining
+- [X] T086 [P] [US4] Create countdown form template in dinkydash/templates/admin/countdown_form.html with icon type toggle JavaScript
+- [X] T087 [US4] Implement countdown list route GET /admin/countdowns in dinkydash/routes/admin.py with tenant filtering, days remaining calculation
+- [X] T088 [US4] Implement countdown create routes GET/POST /admin/countdowns/new in dinkydash/routes/admin.py with image upload handling, date validation
+- [X] T089 [US4] Implement countdown edit routes GET/POST /admin/countdowns/<id>/edit in dinkydash/routes/admin.py with image replacement
+- [X] T090 [US4] Implement countdown delete route POST /admin/countdowns/<id>/delete in dinkydash/routes/admin.py with image file deletion
 
 **Checkpoint**: All core management features work. Users can manage tasks, countdowns, and view dashboard.
 

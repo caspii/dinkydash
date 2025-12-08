@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Edit' if countdown else 'Add' }} Countdown - DinkyDash{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="form-container">
+        <h1>{{ 'Edit' if countdown else 'Add' }} Countdown Event</h1>
+        
+        <form method="POST" enctype="multipart/form-data">
+            {{ form.hidden_tag() }}
+            
+            <div class="form-group">
+                {{ form.name.label }}
+                {{ form.name(class="form-control" + (" is-invalid" if form.name.errors else "")) }}
+                {% if form.name.errors %}
+                    <div class="invalid-feedback">
+                        {% for error in form.name.errors %}{{ error }}{% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                {{ form.dashboard_id.label }}
+                {{ form.dashboard_id(class="form-control" + (" is-invalid" if form.dashboard_id.errors else "")) }}
+                {% if form.dashboard_id.errors %}
+                    <div class="invalid-feedback">
+                        {% for error in form.dashboard_id.errors %}{{ error }}{% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label>Event Date</label>
+                <div class="date-input-group">
+                    <div class="month-select">
+                        {{ form.date_month.label(class="sr-only") }}
+                        {{ form.date_month(class="form-control" + (" is-invalid" if form.date_month.errors else "")) }}
+                    </div>
+                    <div class="day-input">
+                        {{ form.date_day.label(class="sr-only") }}
+                        {{ form.date_day(class="form-control" + (" is-invalid" if form.date_day.errors else ""), placeholder="Day") }}
+                    </div>
+                </div>
+                {% if form.date_month.errors %}
+                    <div class="invalid-feedback d-block">
+                        {% for error in form.date_month.errors %}{{ error }}{% endfor %}
+                    </div>
+                {% endif %}
+                {% if form.date_day.errors %}
+                    <div class="invalid-feedback d-block">
+                        {% for error in form.date_day.errors %}{{ error }}{% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label>Icon</label>
+                <div class="icon-type-selector">
+                    {% for value, label in form.icon_type.choices %}
+                    <div class="form-check form-check-inline">
+                        <input type="radio" name="icon_type" id="icon_type_{{ value }}" 
+                               value="{{ value }}" class="form-check-input"
+                               {% if form.icon_type.data == value %}checked{% endif %}>
+                        <label class="form-check-label" for="icon_type_{{ value }}">
+                            {{ label }}
+                        </label>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div id="emoji-input" class="form-group icon-input" 
+                 style="{% if form.icon_type.data != 'emoji' %}display: none;{% endif %}">
+                {{ form.emoji.label }}
+                {{ form.emoji(class="form-control" + (" is-invalid" if form.emoji.errors else "")) }}
+                {% if form.emoji.errors %}
+                    <div class="invalid-feedback">
+                        {% for error in form.emoji.errors %}{{ error }}{% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div id="image-input" class="form-group icon-input" 
+                 style="{% if form.icon_type.data != 'image' %}display: none;{% endif %}">
+                {{ form.image.label }}
+                {% if countdown and countdown.icon_type == 'image' and countdown.icon_value %}
+                    <div class="current-image mb-2">
+                        <img src="{{ url_for('static', filename=countdown.icon_value) }}" 
+                             alt="Current icon" class="current-icon-preview">
+                        <p class="text-muted">Current image (upload new to replace)</p>
+                    </div>
+                {% endif %}
+                {{ form.image(class="form-control-file" + (" is-invalid" if form.image.errors else "")) }}
+                <small class="form-text text-muted">
+                    JPG, PNG, or GIF. Max size: 5MB
+                </small>
+                {% if form.image.errors %}
+                    <div class="invalid-feedback d-block">
+                        {% for error in form.image.errors %}{{ error }}{% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                    {{ 'Update' if countdown else 'Create' }} Countdown
+                </button>
+                <a href="{{ url_for('admin.countdown_list') }}" class="btn btn-secondary">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 2rem 0;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .date-input-group {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+    }
+
+    .month-select {
+        flex: 2;
+    }
+
+    .day-input {
+        flex: 1;
+        max-width: 100px;
+    }
+
+    .icon-type-selector {
+        margin-bottom: 1rem;
+    }
+
+    .current-icon-preview {
+        max-width: 100px;
+        max-height: 100px;
+        object-fit: cover;
+        border-radius: 4px;
+        border: 1px solid #ddd;
+    }
+
+    .form-actions {
+        margin-top: 2rem;
+        display: flex;
+        gap: 1rem;
+    }
+
+    .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0,0,0,0);
+        white-space: nowrap;
+        border: 0;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Icon type toggle
+    document.querySelectorAll('input[name="icon_type"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            document.querySelectorAll('.icon-input').forEach(div => {
+                div.style.display = 'none';
+            });
+            
+            if (this.value === 'emoji') {
+                document.getElementById('emoji-input').style.display = 'block';
+            } else if (this.value === 'image') {
+                document.getElementById('image-input').style.display = 'block';
+            }
+        });
+    });
+</script>
+{% endblock %}
