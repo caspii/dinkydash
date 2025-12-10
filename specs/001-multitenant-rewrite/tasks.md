@@ -249,10 +249,10 @@
 
 ### Implementation for User Story 6
 
-- [ ] T110 [US6] Add layout size CSS classes (layout-small, layout-medium, layout-large) to dinkydash/static/css/style.css with responsive card sizing, emoji sizing, image sizing
-- [ ] T111 [US6] Update dashboard view template to use layout-{{ dashboard.layout_size }} class in dinkydash/templates/dashboard/view.html
-- [ ] T112 [US6] Verify DashboardForm includes layout_size field with correct choices (already created in Phase 7)
-- [ ] T113 [US6] Verify dashboard model saves and retrieves layout_size correctly (already created in Phase 2)
+- [X] T110 [US6] Add layout size CSS classes (layout-small, layout-medium, layout-large) to dinkydash/static/css/style.css with responsive card sizing, emoji sizing, image sizing
+- [X] T111 [US6] Update dashboard view template to use layout-{{ dashboard.layout_size }} class in dinkydash/templates/dashboard/view.html
+- [X] T112 [US6] Verify DashboardForm includes layout_size field with correct choices (already created in Phase 7)
+- [X] T113 [US6] Verify dashboard model saves and retrieves layout_size correctly (already created in Phase 2)
 
 **Checkpoint**: Layout customization complete. Each dashboard can have independent layout size.
 

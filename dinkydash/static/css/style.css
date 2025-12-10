@@ -289,10 +289,24 @@ main {
 }
 
 /* Layout Size Classes */
+
+/* Small Layout - Compact for small screens/tablets */
+.layout-small .task-grid,
+.layout-small .countdown-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 1rem;
+}
+
 .layout-small .task-card,
 .layout-small .countdown-card {
     padding: 0.75rem;
     font-size: 0.875rem;
+}
+
+.layout-small .task-card h3,
+.layout-small .countdown-card h3 {
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
 }
 
 .layout-small .emoji {
@@ -302,12 +316,34 @@ main {
 .layout-small .task-icon img,
 .layout-small .countdown-icon img {
     max-width: 64px;
+    height: 64px;
+}
+
+.layout-small .task-person {
+    font-size: 1rem;
+}
+
+.layout-small .countdown-days {
+    font-size: 1.25rem;
+}
+
+/* Medium Layout - Default for most screens */
+.layout-medium .task-grid,
+.layout-medium .countdown-grid {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1.5rem;
 }
 
 .layout-medium .task-card,
 .layout-medium .countdown-card {
-    padding: 1rem;
+    padding: 1.25rem;
     font-size: 1rem;
+}
+
+.layout-medium .task-card h3,
+.layout-medium .countdown-card h3 {
+    font-size: 1.25rem;
+    margin-bottom: 0.75rem;
 }
 
 .layout-medium .emoji {
@@ -317,21 +353,72 @@ main {
 .layout-medium .task-icon img,
 .layout-medium .countdown-icon img {
     max-width: 128px;
+    height: 128px;
+}
+
+.layout-medium .task-person {
+    font-size: 1.25rem;
+}
+
+.layout-medium .countdown-days {
+    font-size: 1.5rem;
+}
+
+/* Large Layout - For TVs and large displays */
+.layout-large .task-grid,
+.layout-large .countdown-grid {
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 2rem;
 }
 
 .layout-large .task-card,
 .layout-large .countdown-card {
-    padding: 1.5rem;
-    font-size: 1.5rem;
+    padding: 2rem;
+    font-size: 1.25rem;
+}
+
+.layout-large .task-card h3,
+.layout-large .countdown-card h3 {
+    font-size: 1.75rem;
+    margin-bottom: 1rem;
 }
 
 .layout-large .emoji {
     font-size: 5rem;
+    margin-bottom: 1rem;
 }
 
 .layout-large .task-icon img,
 .layout-large .countdown-icon img {
-    max-width: 256px;
+    max-width: 200px;
+    height: 200px;
+}
+
+.layout-large .task-person {
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+.layout-large .countdown-days {
+    font-size: 2.5rem;
+    font-weight: 700;
+}
+
+.layout-large .countdown-date {
+    font-size: 1.25rem;
+}
+
+/* Section headers adjust with layout */
+.layout-small .tasks-section h2,
+.layout-small .countdowns-section h2 {
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+}
+
+.layout-large .tasks-section h2,
+.layout-large .countdowns-section h2 {
+    font-size: 2rem;
+    margin-bottom: 2rem;
 }
 
 /* Footer */
