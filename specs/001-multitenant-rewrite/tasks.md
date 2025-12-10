@@ -181,13 +181,13 @@
 
 ### Tests for User Story 4
 
-- [ ] T077 [P] [US4] Integration test for countdown CRUD workflow in tests/test_integration/test_countdown_management.py
+- [X] T077 [P] [US4] Integration test for countdown CRUD workflow in tests/test_integration/test_countdown_management.py
 - [ ] T078 [P] [US4] Route test for countdown list endpoint in tests/test_routes/test_admin.py
 - [ ] T079 [P] [US4] Route test for countdown create endpoint in tests/test_routes/test_admin.py
 - [ ] T080 [P] [US4] Route test for countdown edit endpoint in tests/test_routes/test_admin.py
 - [ ] T081 [P] [US4] Route test for countdown delete endpoint in tests/test_routes/test_admin.py
-- [ ] T082 [P] [US4] Form validation test for CountdownForm in tests/test_forms/test_countdown.py
-- [ ] T083 [P] [US4] Test countdown date validation (prevent Feb 31) in tests/test_forms/test_countdown.py
+- [X] T082 [P] [US4] Form validation test for CountdownForm in tests/test_forms/test_countdown.py
+- [X] T083 [P] [US4] Test countdown date validation (prevent Feb 31) in tests/test_forms/test_countdown.py
 
 ### Implementation for User Story 4
 
@@ -211,13 +211,13 @@
 
 ### Tests for User Story 5
 
-- [ ] T091 [P] [US5] Integration test for dashboard CRUD workflow in tests/test_integration/test_dashboard_management.py
-- [ ] T092 [P] [US5] Integration test for default dashboard auto-creation on registration in tests/test_integration/test_auth_flow.py
+- [X] T091 [P] [US5] Integration test for dashboard CRUD workflow in tests/test_integration/test_dashboard_management.py
+- [X] T092 [P] [US5] Integration test for default dashboard auto-creation on registration in tests/test_integration/test_auth_flow.py
 - [ ] T093 [P] [US5] Route test for dashboard management list endpoint in tests/test_routes/test_admin.py
 - [ ] T094 [P] [US5] Route test for dashboard create endpoint in tests/test_routes/test_admin.py
 - [ ] T095 [P] [US5] Route test for dashboard edit endpoint in tests/test_routes/test_admin.py
 - [ ] T096 [P] [US5] Route test for dashboard delete endpoint with prevention of last dashboard deletion in tests/test_routes/test_admin.py
-- [ ] T097 [P] [US5] Form validation test for DashboardForm in tests/test_forms/test_dashboard.py
+- [X] T097 [P] [US5] Form validation test for DashboardForm in tests/test_forms/test_dashboard.py
 
 ### Implementation for User Story 5
 
