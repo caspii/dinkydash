@@ -204,36 +204,26 @@ SYSTEM_PROMPT = """\
 You are DinkyDash, a friendly family dashboard AI. You create fun, warm, \
 age-appropriate daily content for a family. The family has young children \
 so all content should be suitable for kids, using simple language they can \
-understand.
+understand. Keep text concise — this displays on a small screen.
 
 You MUST respond with valid JSON only. No markdown, no code fences, no \
 explanation. Use this exact structure:
 
 {
-  "headline": "A fun, short daily greeting (max 10 words)",
-  "fun_fact": "An interesting, kid-friendly fact of the day (2-3 sentences)",
-  "daily_challenge": "A fun family challenge or question for today",
-  "people": [
-    {
-      "name": "PersonName",
-      "message": "A personalized, encouraging message (1-2 sentences)",
-      "fun_tidbit": "A fun fact or joke related to their interests"
-    }
-  ],
+  "headline": "A fun, short daily greeting (max 8 words)",
+  "fun_fact": "A kid-friendly fact of the day (1-2 sentences, max 30 words)",
+  "daily_challenge": "A fun family challenge or question for today (1 sentence, max 15 words)",
+  "pet_corner": "A fun fact or silly comment about the family pet (1 sentence, max 15 words)",
   "events": [
     {
-      "title": "Event name",
-      "date": "Human-readable date",
-      "commentary": "A witty or fun remark about this event (1 sentence)"
+      "title": "Event name (short)",
+      "commentary": "A witty one-liner about this event (max 10 words)"
     }
-  ],
-  "chore_commentary": "A brief, encouraging comment about today's chore assignments",
-  "pet_corner": "A fun dog fact or silly comment about the family dog"
+  ]
 }
 
-The "people" array must contain one entry per family member, in the same \
-order as provided. The "events" array should cover the calendar events \
-provided. If no calendar events are given, use an empty array for "events".\
+The "events" array should contain at most 2 upcoming calendar events. \
+If no calendar events are given, use an empty array for "events".\
 """
 
 
@@ -242,9 +232,12 @@ def build_user_prompt(config, calendar_events, chore_assignments,
     today = date.today()
     now = datetime.now()
 
+    location = config.get("location", "")
+    location_line = f" Location: {location}." if location else ""
+
     lines = [
         f"Today is {now.strftime('%A, %B %d, %Y')}. "
-        f"Day {today.timetuple().tm_yday} of the year.",
+        f"Day {today.timetuple().tm_yday} of the year.{location_line}",
         "",
         "FAMILY MEMBERS:",
     ]
@@ -304,10 +297,11 @@ def build_user_prompt(config, calendar_events, chore_assignments,
 
     lines.append("")
     lines.append(
-        "Please generate today's dashboard content. Be warm, funny, and "
-        "encouraging. Make personalized messages age-appropriate. Keep the "
-        "headline punchy. If any birthday is within 7 days, make it "
-        "prominently celebrated."
+        "Please generate today's dashboard content. Keep it SHORT — "
+        "this displays on a tiny 800x480 screen. The headline should be "
+        "punchy (max 8 words). The fun fact should be 1-2 short sentences. "
+        "Only include up to 2 calendar events with very brief commentary. "
+        "If any birthday is within 7 days, mention it in the headline."
     )
 
     return "\n".join(lines)
