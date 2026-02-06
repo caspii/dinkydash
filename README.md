@@ -4,48 +4,106 @@
 
 ## Introduction
 
-DinkyDash is a simple, customizable dashboard designed to display family-oriented information such as recurring tasks, countdowns to special events, and daily rotations. It's perfect for mounting on a Raspberry Pi with a display in a common area of your home, providing at-a-glance information for all family members.
-
-DinkyDash is great for quickly answering those questions that kids like to ask again and again and again and again.
-
-- "How many days till Christmas?"
-- "Who's turn is it to take the trash out?"
-- "When is my birthday party?"
+DinkyDash is a family dashboard that runs on a Raspberry Pi. Every day it calls the Claude API to generate fresh, personalized content based on your Google Calendar and family info.
 
 The dashboard shows:
-- Today's date
-- Recurring tasks or roles (e.g., who's turn it is to do the dishes)
-- Countdowns to important dates (birthdays, holidays, events)
+- AI-generated daily greeting and fun facts
+- Personalized messages for each family member
+- Recurring chore assignments (rotating daily)
+- Countdowns to birthdays and special dates
+- Upcoming calendar events with commentary
+- A daily challenge and pet corner
 
-DinkyDash is built with Flask and can be easily configured using a YAML file, making it simple to update and maintain without diving into the code.
+## How It Works
 
-## Technical Details
+A generation script (`generate.py`) runs once per day via cron. It:
 
-### Stack
-- Backend: Python 3 with Flask
-- Frontend: HTML5 and CSS (Bootstrap 5)
-- Configuration: YAML
+1. Fetches your Google Calendar (iCal format)
+2. Filters events to only those involving specified family members
+3. Computes chore rotations, birthday countdowns, and special dates
+4. Sends all this context to the Claude API
+5. Saves the structured JSON response to `dashboard_data.json`
 
-### Key Components
-1. `app.py`: The main Flask application that serves the dashboard.
-2. `config.yaml`: Configuration file for customizing dashboard content.
-3. `templates/index.html`: The single-page template for the dashboard display.
-4. `run_app.sh`: Bash script to start the Flask application.
+The Flask app (`app.py`) simply reads and renders that JSON. If the API is down, yesterday's dashboard persists.
 
-### Setup
+## Setup
 
-**TODO: Complete this section**
+### Prerequisites
 
-1. Clone the repository to your Raspberry Pi.
-2. Create a Python virtual environment and install dependencies:
+- Python 3.11+
+- An [Anthropic API key](https://console.anthropic.com/settings/keys)
+- A public Google Calendar iCal URL (Settings > Integrate calendar > Public address in iCal format)
 
-## Setting up the pi
+### Local Development
 
-**TODO: Complete this section**
+```bash
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
 
-Install emoji fonts: `sudo apt install fonts-noto-color-emoji`
+Create a `.env` file with your API key:
 
-Install unclutter to hide mouse: `sudo apt-get install unclutter -y`
+```
+ANTHROPIC_API_KEY=sk-ant-...
+```
 
-To turn the screen orientation by 180° enter this on a new line in /boot/config.txt and the screen will turn upside-down after a reboot: `lcd_rotate=2`
+Generate the dashboard:
 
+```bash
+python generate.py
+```
+
+Run the dev server:
+
+```bash
+flask run --host=0.0.0.0
+```
+
+### Configuration
+
+Edit `config.yaml` to customize:
+
+- `calendar_url` - Your Google Calendar iCal URL
+- `calendar_filter_emails` - Only show events where these people are attendees
+- `people` - Family members (name, date of birth, sex, image, email, interests)
+- `pets` - Family pets
+- `recurring` - Daily rotating chores
+- `special_dates` - Non-birthday countdowns (holidays, trips, etc.)
+- `claude_model` - Which Claude model to use
+- `max_tokens` - Max response length
+
+### Raspberry Pi Deployment
+
+```bash
+./deploy_to_pi.sh
+```
+
+This rsyncs files to the Pi, restarts the Flask service, and installs dependencies. The `.env` file with your API key is included in the deploy.
+
+After deploying, set up the daily cron job on the Pi:
+
+```bash
+ssh pi@raspberrypi
+crontab -e
+# Add this line:
+0 6 * * * cd /home/pi/dinkydash && source venv/bin/activate && python generate.py >> generate.log 2>&1
+```
+
+### Pi-Specific Setup
+
+- Install emoji fonts: `sudo apt install fonts-noto-color-emoji`
+- Hide mouse cursor: `sudo apt-get install unclutter -y`
+- Rotate display 180: add `lcd_rotate=2` to `/boot/config.txt`
+
+## Key Files
+
+| File | Purpose |
+|------|---------|
+| `generate.py` | Daily generation script (calendar fetch, Claude API call, JSON output) |
+| `app.py` | Flask app that reads `dashboard_data.json` and renders the template |
+| `config.yaml` | All dashboard configuration (people, calendar, chores, dates) |
+| `templates/index.html` | Dashboard template (Bootstrap 5, optimized for 800x480) |
+| `deploy_to_pi.sh` | Deployment script (rsync + service restart) |
+| `.env` | API key (not committed to git) |
+| `dashboard_data.json` | Generated daily content (not committed to git) |
