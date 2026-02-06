@@ -37,26 +37,23 @@
             position: relative;
         }
 
-        .chore-photo-wrap {
-            position: relative;
-            display: inline-block;
+        .chore-icons {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
         }
 
-        .chore-photo-wrap img {
-            width: 55px;
-            height: 55px;
+        .chore-icons img {
+            width: 60px;
+            height: 60px;
             object-fit: cover;
             border-radius: 50%;
             border: 2px solid rgba(255,255,255,0.3);
         }
 
-        .chore-emoji-badge {
-            position: absolute;
-            top: -4px;
-            right: -4px;
-            font-size: 1.3rem;
+        .chore-emoji {
+            font-size: 3.2rem;
             line-height: 1;
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
         }
 
         .chore-name {
@@ -137,11 +134,11 @@
         <div class="col">
             <div class="card h-100">
                 <div class="card-body chore-card d-flex flex-column align-items-center justify-content-center py-1">
-                    <div class="chore-photo-wrap">
+                    <div class="chore-icons">
+                        <span class="chore-emoji">{{ chore.emoji }}</span>
                         {% if chore.image %}
                         <img src="{{ url_for('static', filename=chore.image) }}" alt="{{ chore.assigned_to }}">
                         {% endif %}
-                        <span class="chore-emoji-badge">{{ chore.emoji }}</span>
                     </div>
                     <div class="chore-name">{{ chore.assigned_to }}</div>
                     <div class="chore-title">{{ chore.title }}</div>
