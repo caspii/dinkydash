@@ -2,3 +2,8 @@ flask
 pyyaml
 jinja2
 markdown
+anthropic
+python-dotenv
+icalendar
+recurring-ical-events
+requests

@@ -1,1 +1,7 @@
 .idea
+venv/
+__pycache__/
+*.pyc
+.env
+dashboard_data.json
+generate.log
