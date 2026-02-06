@@ -19,98 +19,89 @@
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
             font-weight: 600;
             overflow: hidden;
-            font-size: 14px;
+            font-size: 15px;
         }
 
         .headline {
-            font-size: 1.1rem;
+            font-size: 1.4rem;
             font-weight: 700;
         }
 
         .date-display {
-            font-size: 0.9rem;
+            font-size: 1.1rem;
             opacity: 0.8;
         }
 
-        .person-card {
+        .chore-card {
             text-align: center;
+            position: relative;
         }
 
-        .person-card img {
-            width: 60px;
-            height: 60px;
+        .chore-photo-wrap {
+            position: relative;
+            display: inline-block;
+        }
+
+        .chore-photo-wrap img {
+            width: 55px;
+            height: 55px;
             object-fit: cover;
             border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.3);
         }
 
-        .person-card .name {
-            font-weight: 700;
-            font-size: 0.85rem;
+        .chore-emoji-badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            font-size: 1.3rem;
+            line-height: 1;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
         }
 
-        .person-card .message {
-            font-size: 0.7rem;
-            font-weight: 400;
-            line-height: 1.2;
-            max-height: 2.4em;
-            overflow: hidden;
-        }
-
-        .chore-badge {
+        .chore-name {
             font-size: 0.8rem;
+            margin-top: 0.15rem;
+            font-weight: 700;
+        }
+
+        .chore-title {
+            font-size: 0.7rem;
+            opacity: 0.6;
+        }
+
+        .info-text {
+            font-size: 1.05rem;
+            font-weight: 400;
+            line-height: 1.4;
+        }
+
+        .countdown-item {
+            font-size: 1.05rem;
             display: inline-flex;
             align-items: center;
-            gap: 0.25rem;
+            gap: 0.3rem;
         }
 
-        .chore-badge img {
+        .countdown-item img {
             width: 28px;
             height: 28px;
             object-fit: cover;
             border-radius: 50%;
         }
 
-        .countdown-item {
-            font-size: 0.75rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.25rem;
-        }
-
-        .countdown-item img {
-            width: 24px;
-            height: 24px;
-            object-fit: cover;
-            border-radius: 50%;
-        }
-
         .countdown-days {
             font-weight: 700;
-            font-size: 0.9rem;
         }
 
-        .section-card {
-            font-size: 0.75rem;
+        .bottom-text {
+            font-size: 1rem;
             font-weight: 400;
-            line-height: 1.3;
-        }
-
-        .section-label {
-            font-weight: 700;
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            opacity: 0.7;
-            margin-bottom: 0.15rem;
+            line-height: 1.4;
         }
 
         .card-body {
-            padding: 0.4rem !important;
-        }
-
-        .event-item {
-            font-size: 0.7rem;
-            font-weight: 400;
-            line-height: 1.2;
+            padding: 0.4rem 0.5rem !important;
         }
 
         .no-data {
@@ -125,9 +116,9 @@
 </head>
 <body>
 {% if data %}
-<div class="container-fluid p-2">
-    <!-- Row 1: Header -->
-    <div class="row g-1 mb-1">
+<div class="container-fluid p-2 d-flex flex-column justify-content-between" style="height: 100vh;">
+    <!-- Row 1: Date + headline -->
+    <div class="row g-1">
         <div class="col-12">
             <div class="card">
                 <div class="card-body d-flex align-items-center justify-content-between py-1">
@@ -140,56 +131,32 @@
         </div>
     </div>
 
-    <!-- Row 2: People -->
-    {% if data.ai_content and data.ai_content.people %}
-    <div class="row g-1 mb-1">
-        {% for person in data.ai_content.people %}
+    <!-- Row 2: CHORES — photos with emoji badge -->
+    <div class="row g-1">
+        {% for chore in data.chores %}
         <div class="col">
             <div class="card h-100">
-                <div class="card-body person-card">
-                    {% if data.people_images and data.people_images[person.name] %}
-                    <img src="{{ url_for('static', filename=data.people_images[person.name]) }}" alt="{{ person.name }}">
-                    {% endif %}
-                    <div class="name">{{ person.name }}</div>
-                    <div class="message">{{ person.message }}</div>
+                <div class="card-body chore-card d-flex flex-column align-items-center justify-content-center py-1">
+                    <div class="chore-photo-wrap">
+                        {% if chore.image %}
+                        <img src="{{ url_for('static', filename=chore.image) }}" alt="{{ chore.assigned_to }}">
+                        {% endif %}
+                        <span class="chore-emoji-badge">{{ chore.emoji }}</span>
+                    </div>
+                    <div class="chore-name">{{ chore.assigned_to }}</div>
+                    <div class="chore-title">{{ chore.title }}</div>
                 </div>
             </div>
         </div>
         {% endfor %}
     </div>
-    {% endif %}
 
-    <!-- Row 3: Chores -->
-    <div class="row g-1 mb-1">
+    <!-- Row 3: Countdowns -->
+    <div class="row g-1">
         <div class="col-12">
             <div class="card">
                 <div class="card-body d-flex align-items-center justify-content-center gap-3 py-1">
-                    {% for chore in data.chores %}
-                    <span class="chore-badge">
-                        <span>{{ chore.emoji }}</span>
-                        {% if chore.image %}
-                        <img src="{{ url_for('static', filename=chore.image) }}" alt="{{ chore.assigned_to }}">
-                        {% else %}
-                        <span>{{ chore.assigned_to }}</span>
-                        {% endif %}
-                    </span>
-                    {% endfor %}
-                    {% if data.ai_content and data.ai_content.chore_commentary %}
-                    <span class="section-card" style="margin-left: 0.5rem; font-style: italic;">
-                        {{ data.ai_content.chore_commentary }}
-                    </span>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Row 4: Countdowns -->
-    <div class="row g-1 mb-1">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body d-flex align-items-center justify-content-center gap-3 py-1 flex-wrap">
-                    {% for cd in data.countdowns[:8] %}
+                    {% for cd in data.countdowns[:6] %}
                     <span class="countdown-item">
                         <span>{{ cd.emoji }}</span>
                         {% if cd.image %}
@@ -203,64 +170,51 @@
         </div>
     </div>
 
-    <!-- Row 5: Fun content -->
+    <!-- Row 4: Fun fact + Daily challenge -->
     <div class="row g-1">
-        {% if data.ai_content %}
-        {% if data.ai_content.fun_fact %}
+        {% if data.ai_content and data.ai_content.fun_fact %}
         <div class="col">
             <div class="card h-100">
-                <div class="card-body section-card">
-                    <div class="section-label">Fun Fact</div>
+                <div class="card-body info-text py-1">
                     {{ data.ai_content.fun_fact }}
                 </div>
             </div>
         </div>
         {% endif %}
-        {% if data.ai_content.daily_challenge %}
+        {% if data.ai_content and data.ai_content.daily_challenge %}
         <div class="col">
             <div class="card h-100">
-                <div class="card-body section-card">
-                    <div class="section-label">Daily Challenge</div>
+                <div class="card-body info-text py-1">
                     {{ data.ai_content.daily_challenge }}
                 </div>
             </div>
         </div>
         {% endif %}
-        {% if data.ai_content.pet_corner %}
+    </div>
+
+    <!-- Row 5: Pet corner + Calendar events -->
+    <div class="row g-1">
+        {% if data.ai_content and data.ai_content.pet_corner %}
         <div class="col">
             <div class="card h-100">
-                <div class="card-body section-card">
-                    <div class="section-label">Pet Corner</div>
+                <div class="card-body bottom-text py-1">
                     {{ data.ai_content.pet_corner }}
                 </div>
             </div>
         </div>
         {% endif %}
-        {% endif %}
-    </div>
-
-    <!-- Calendar events (if any) -->
-    {% if data.ai_content and data.ai_content.events %}
-    <div class="row g-1 mt-1">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body py-1">
-                    <div class="d-flex align-items-start gap-3 flex-wrap">
-                        {% for event in data.ai_content.events[:4] %}
-                        <div class="event-item">
-                            <strong>{{ event.title }}</strong>
-                            <span class="opacity-75">{{ event.date }}</span>
-                            {% if event.commentary %}
-                            — <em>{{ event.commentary }}</em>
-                            {% endif %}
-                        </div>
-                        {% endfor %}
-                    </div>
+        {% if data.ai_content and data.ai_content.events %}
+        <div class="col">
+            <div class="card h-100">
+                <div class="card-body bottom-text py-1">
+                    {% for event in data.ai_content.events[:2] %}
+                    <div>{{ event.title }} — <em>{{ event.commentary }}</em></div>
+                    {% endfor %}
                 </div>
             </div>
         </div>
+        {% endif %}
     </div>
-    {% endif %}
 </div>
 {% else %}
 <div class="no-data">
