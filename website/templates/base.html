@@ -4,66 +4,228 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}DinkyDash{% endblock %}</title>
-    <meta name="description" content="{% block description %}{% endblock %}">
-    <meta property="og:title" content="{% block og_title %}Dinky Dash: the emoji dashboard for kids{% endblock %}">
+    <meta name="description" content="{% block description %}DinkyDash — an AI-powered daily dashboard for your family{% endblock %}">
+    <meta property="og:title" content="{% block og_title %}DinkyDash — AI-powered family dashboard{% endblock %}">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://dinkydash.co/">
-    <meta property="og:image" content="https://dinkydash.co/images/mockup.png">
-    <link rel="stylesheet" href="https://bootswatch.com/5/quartz/bootstrap.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
     <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #fffaf5;
+            --surface: #ffffff;
+            --surface-warm: #fff5ec;
+            --border: #f0e6da;
+            --text: #2d2319;
+            --text-mid: #5c4a3a;
+            --text-muted: #9a8677;
+            --accent: #e85d24;
+            --accent-soft: rgba(232, 93, 36, 0.08);
+            --purple: #7c5cbf;
+            --purple-soft: rgba(124, 92, 191, 0.08);
+            --blue: #3b82f6;
+            --green: #16a34a;
+            --radius: 16px;
+        }
+
+        html { scroll-behavior: smooth; }
+
         body {
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            color: #212529;
-            line-height: 1.6;
+            font-family: 'Nunito', system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.65;
+            -webkit-font-smoothing: antialiased;
         }
 
-        h1, h2, h3, h4, h5 {
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        a { color: var(--accent); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+
+        .container {
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* NAV */
+        nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(255, 250, 245, 0.9);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+        }
+        nav .container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 60px;
+        }
+        .nav-brand {
             font-weight: 800;
+            font-size: 1.2rem;
+            color: var(--accent);
+            text-decoration: none;
+            letter-spacing: -0.02em;
+        }
+        .nav-links { display: flex; gap: 24px; list-style: none; }
+        .nav-links a {
+            color: var(--text-mid);
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: color 0.15s;
+        }
+        .nav-links a:hover { color: var(--accent); text-decoration: none; }
+
+        /* FOOTER */
+        footer {
+            border-top: 1px solid var(--border);
+            padding: 32px 0;
+            margin-top: 80px;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+        footer .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        footer a { color: var(--text-muted); }
+        footer a:hover { color: var(--accent); }
+        .footer-links { display: flex; align-items: center; gap: 8px; }
+        .footer-sep { color: var(--border); }
+
+        /* CONTENT PAGES */
+        .page-content {
+            padding: 56px 0;
+            max-width: 680px;
+            margin: 0 auto;
+        }
+        .page-content h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            margin-bottom: 24px;
+            color: var(--text);
+        }
+        .page-content h2 {
+            font-size: 1.4rem;
+            font-weight: 800;
+            letter-spacing: -0.01em;
+            margin-top: 40px;
+            margin-bottom: 12px;
+            color: var(--text);
+        }
+        .page-content h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-top: 28px;
+            margin-bottom: 10px;
+        }
+        .page-content p {
+            color: var(--text-mid);
+            margin-bottom: 16px;
+        }
+        .page-content ul, .page-content ol {
+            color: var(--text-mid);
+            padding-left: 20px;
+            margin-bottom: 16px;
+        }
+        .page-content li { margin-bottom: 8px; }
+        .page-content strong { color: var(--text); }
+        .page-content code {
+            font-size: 0.88em;
+            background: var(--surface-warm);
+            padding: 2px 7px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+        }
+        .page-content blockquote {
+            border-left: 3px solid var(--accent);
+            padding: 12px 20px;
+            margin: 20px 0;
+            background: var(--accent-soft);
+            border-radius: 0 var(--radius) var(--radius) 0;
+            color: var(--text-mid);
+            font-style: italic;
         }
 
-        .content-wrapper {
-            background-color: #FFFFFF;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            padding: 2rem;
-            margin-top: 2rem;
-            margin-bottom: 2rem;
+        /* BUTTON */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 28px;
+            background: var(--accent);
+            color: #fff;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            font-family: inherit;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.1s, box-shadow 0.15s;
+            box-shadow: 0 2px 8px rgba(232, 93, 36, 0.25);
+        }
+        .btn:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(232, 93, 36, 0.3); text-decoration: none; color: #fff; }
+        .btn-outline {
+            background: transparent;
+            color: var(--text);
+            border: 2px solid var(--border);
+            box-shadow: none;
+        }
+        .btn-outline:hover { border-color: var(--accent); color: var(--accent); box-shadow: none; }
+
+        /* MOBILE */
+        .mobile-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text);
+            font-size: 1.4rem;
+            cursor: pointer;
+            padding: 4px;
+        }
+        @media (max-width: 640px) {
+            .mobile-toggle { display: block; }
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 60px;
+                left: 0;
+                right: 0;
+                background: var(--bg);
+                border-bottom: 1px solid var(--border);
+                flex-direction: column;
+                padding: 16px 24px;
+                gap: 16px;
+            }
+            .nav-links.open { display: flex; }
+            footer .container { flex-direction: column; gap: 8px; text-align: center; }
         }
     </style>
     {% block extra_head %}{% endblock %}
 </head>
 <body>
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="/">DinkyDash</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav">
-                <li class="nav-item">
-                    <a class="nav-link" href="/">Home</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/about/">About</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/family-dashboard/">Family dashboard</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/morning-routine/">Morning routine</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/office-dashboard/">Office dashboard</a>
-                </li>
-
-            </ul>
-        </div>
+<nav>
+    <div class="container">
+        <a class="nav-brand" href="/">DinkyDash</a>
+        <button class="mobile-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">&#9776;</button>
+        <ul class="nav-links">
+            <li><a href="/getting-started/">Get started</a></li>
+            <li><a href="/about/">About</a></li>
+            <li><a href="/family-dashboard/">Family dashboard</a></li>
+            <li><a href="/morning-routine/">Morning routine</a></li>
+            <li><a href="/office-dashboard/">Office dashboard</a></li>
+            <li><a href="https://github.com/caspii/dinkydash">GitHub</a></li>
+        </ul>
     </div>
 </nav>
 
@@ -71,20 +233,17 @@
     {% block content %}{% endblock %}
 </main>
 
-<footer class="text-bg-light py-3">
+<footer>
     <div class="container">
-        <div class="row">
-            <div class="col-md-6 text-center text-md-start">
-                <p>&copy; 2024 DinkyDash. All rights reserved.</p>
-            </div>
-            <div class="col-md-6 text-center text-md-end">
-                <a href="https://casparwre.de" class="text-bg-light">Created by Caspar</a>
-            </div>
-        </div>
+        <span>&copy; 2025 DinkyDash</span>
+        <span class="footer-links">
+            <a href="https://github.com/caspii/dinkydash/issues/new">Feedback</a>
+            <span class="footer-sep">&middot;</span>
+            <a href="https://casparwre.de">Built by Caspar</a>
+        </span>
     </div>
 </footer>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <!-- Fathom - beautiful, simple analytics -->
 <script src="https://cdn.usefathom.com/script.js" data-site="HLVHPKAZ" defer></script>
 <!-- / Fathom -->

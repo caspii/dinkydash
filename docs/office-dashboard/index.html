@@ -3,151 +3,278 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Streamlining Office Communication with DinkyDash: A Simple Solution for Busy Teams</title>
-    <meta name="description" content="">
-    <meta property="og:title" content="Dinky Dash: the emoji dashboard for kids">
+    <title>DinkyDash for Offices and Shared Spaces — DinkyDash</title>
+    <meta name="description" content="DinkyDash — an AI-powered daily dashboard for your family">
+    <meta property="og:title" content="DinkyDash — AI-powered family dashboard">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://dinkydash.co/">
-    <meta property="og:image" content="https://dinkydash.co/images/mockup.png">
-    <link rel="stylesheet" href="https://bootswatch.com/5/quartz/bootstrap.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
     <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #fffaf5;
+            --surface: #ffffff;
+            --surface-warm: #fff5ec;
+            --border: #f0e6da;
+            --text: #2d2319;
+            --text-mid: #5c4a3a;
+            --text-muted: #9a8677;
+            --accent: #e85d24;
+            --accent-soft: rgba(232, 93, 36, 0.08);
+            --purple: #7c5cbf;
+            --purple-soft: rgba(124, 92, 191, 0.08);
+            --blue: #3b82f6;
+            --green: #16a34a;
+            --radius: 16px;
+        }
+
+        html { scroll-behavior: smooth; }
+
         body {
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            color: #212529;
-            line-height: 1.6;
+            font-family: 'Nunito', system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.65;
+            -webkit-font-smoothing: antialiased;
         }
 
-        h1, h2, h3, h4, h5 {
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        a { color: var(--accent); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+
+        .container {
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* NAV */
+        nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(255, 250, 245, 0.9);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+        }
+        nav .container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 60px;
+        }
+        .nav-brand {
             font-weight: 800;
+            font-size: 1.2rem;
+            color: var(--accent);
+            text-decoration: none;
+            letter-spacing: -0.02em;
+        }
+        .nav-links { display: flex; gap: 24px; list-style: none; }
+        .nav-links a {
+            color: var(--text-mid);
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: color 0.15s;
+        }
+        .nav-links a:hover { color: var(--accent); text-decoration: none; }
+
+        /* FOOTER */
+        footer {
+            border-top: 1px solid var(--border);
+            padding: 32px 0;
+            margin-top: 80px;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+        footer .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        footer a { color: var(--text-muted); }
+        footer a:hover { color: var(--accent); }
+        .footer-links { display: flex; align-items: center; gap: 8px; }
+        .footer-sep { color: var(--border); }
+
+        /* CONTENT PAGES */
+        .page-content {
+            padding: 56px 0;
+            max-width: 680px;
+            margin: 0 auto;
+        }
+        .page-content h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            margin-bottom: 24px;
+            color: var(--text);
+        }
+        .page-content h2 {
+            font-size: 1.4rem;
+            font-weight: 800;
+            letter-spacing: -0.01em;
+            margin-top: 40px;
+            margin-bottom: 12px;
+            color: var(--text);
+        }
+        .page-content h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-top: 28px;
+            margin-bottom: 10px;
+        }
+        .page-content p {
+            color: var(--text-mid);
+            margin-bottom: 16px;
+        }
+        .page-content ul, .page-content ol {
+            color: var(--text-mid);
+            padding-left: 20px;
+            margin-bottom: 16px;
+        }
+        .page-content li { margin-bottom: 8px; }
+        .page-content strong { color: var(--text); }
+        .page-content code {
+            font-size: 0.88em;
+            background: var(--surface-warm);
+            padding: 2px 7px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+        }
+        .page-content blockquote {
+            border-left: 3px solid var(--accent);
+            padding: 12px 20px;
+            margin: 20px 0;
+            background: var(--accent-soft);
+            border-radius: 0 var(--radius) var(--radius) 0;
+            color: var(--text-mid);
+            font-style: italic;
         }
 
-        .content-wrapper {
-            background-color: #FFFFFF;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            padding: 2rem;
-            margin-top: 2rem;
-            margin-bottom: 2rem;
+        /* BUTTON */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 28px;
+            background: var(--accent);
+            color: #fff;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            font-family: inherit;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.1s, box-shadow 0.15s;
+            box-shadow: 0 2px 8px rgba(232, 93, 36, 0.25);
+        }
+        .btn:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(232, 93, 36, 0.3); text-decoration: none; color: #fff; }
+        .btn-outline {
+            background: transparent;
+            color: var(--text);
+            border: 2px solid var(--border);
+            box-shadow: none;
+        }
+        .btn-outline:hover { border-color: var(--accent); color: var(--accent); box-shadow: none; }
+
+        /* MOBILE */
+        .mobile-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text);
+            font-size: 1.4rem;
+            cursor: pointer;
+            padding: 4px;
+        }
+        @media (max-width: 640px) {
+            .mobile-toggle { display: block; }
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 60px;
+                left: 0;
+                right: 0;
+                background: var(--bg);
+                border-bottom: 1px solid var(--border);
+                flex-direction: column;
+                padding: 16px 24px;
+                gap: 16px;
+            }
+            .nav-links.open { display: flex; }
+            footer .container { flex-direction: column; gap: 8px; text-align: center; }
         }
     </style>
     
 </head>
 <body>
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="/">DinkyDash</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav">
-                <li class="nav-item">
-                    <a class="nav-link" href="/">Home</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/about/">About</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/family-dashboard/">Family dashboard</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/morning-routine/">Morning routine</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/office-dashboard/">Office dashboard</a>
-                </li>
-
-            </ul>
-        </div>
+<nav>
+    <div class="container">
+        <a class="nav-brand" href="/">DinkyDash</a>
+        <button class="mobile-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">&#9776;</button>
+        <ul class="nav-links">
+            <li><a href="/getting-started/">Get started</a></li>
+            <li><a href="/about/">About</a></li>
+            <li><a href="/family-dashboard/">Family dashboard</a></li>
+            <li><a href="/morning-routine/">Morning routine</a></li>
+            <li><a href="/office-dashboard/">Office dashboard</a></li>
+            <li><a href="https://github.com/caspii/dinkydash">GitHub</a></li>
+        </ul>
     </div>
 </nav>
 
 <main>
     
-<div class="container">
-    <div class="content-wrapper">
-        <h1 class="mb-4">Streamlining Office Communication with DinkyDash: A Simple Solution for Busy Teams</h1>
-        <p>In today's fast-paced office environments, clear communication is key. But with overflowing inboxes and endless chat notifications, important information can easily get lost in the noise. Enter DinkyDash: a simple, customizable, and open-source solution that can transform how your team stays informed and organized.</p>
-<h2>What is DinkyDash?</h2>
-<p>Originally designed for family use, DinkyDash is an open-source dashboard that runs on a Raspberry Pi. It displays important information using easy-to-read text and fun emojis. But who says offices can't benefit from a little fun and simplicity too? Let's explore how DinkyDash can streamline communication in your workplace.</p>
-<h2>1. Countdown to Important Deadlines ⏳</h2>
-<p>Every office has critical deadlines. Whether it's a project delivery, a client presentation, or the annual company picnic, DinkyDash can keep the whole team on track.</p>
+<div class="container page-content">
+    <h1>DinkyDash for Offices and Shared Spaces</h1>
+    <p>DinkyDash was built for families, but the same concept works beautifully in offices, co-working spaces, classrooms, and any shared area where people need quick, glanceable information.</p>
+<p>The idea is simple: a small screen that displays AI-generated, always-fresh content tailored to the people in that space.</p>
+<h2>Why AI-generated dashboards work for offices</h2>
+<p>Static office dashboards get ignored. Someone puts up a screen with a Google Calendar and a motivational quote, and after a week nobody looks at it.</p>
+<p>DinkyDash is different because the content changes completely every day. The AI writes new headlines, new facts, new challenges. People actually stop and read it because there's always something they haven't seen before.</p>
+<h2>Four ways to use DinkyDash in shared spaces</h2>
+<p><strong>1. Team dashboard in the office kitchen</strong></p>
+<p>Configure DinkyDash with your team members, shared calendar, and rotating responsibilities (who's buying coffee, who's cleaning the fridge, who's running standup). Every morning, the AI generates a fresh team dashboard with today's meetings, a fun icebreaker, and something to talk about at lunch.</p>
+<p><strong>2. Classroom daily board</strong></p>
+<p>Teachers can set up DinkyDash with student names, class events, and rotating classroom jobs. The AI writes a daily greeting, shows countdowns to field trips and holidays, rotates who's line leader or board eraser, and includes an age-appropriate fun fact.</p>
+<p><strong>3. Co-working space welcome screen</strong></p>
+<p>A DinkyDash in a co-working lobby can show community events, rotating "member spotlight" features, shared resource schedules, and daily conversation starters. It makes the space feel more personal without requiring someone to update content manually.</p>
+<p><strong>4. Family business or workshop</strong></p>
+<p>Small businesses with a shared break room can use DinkyDash to show the day's schedule, whose turn it is for various tasks, and inject a bit of fun into the workday with daily facts and challenges.</p>
+<h2>Adapting DinkyDash for your space</h2>
+<p>DinkyDash is configured through a simple YAML file. To adapt it for an office or shared space:</p>
 <ul>
-<li><strong>How it works:</strong> Set up countdowns for your most important events.</li>
-<li><strong>Why it's great:</strong> It creates a sense of urgency and keeps everyone aligned on priorities.</li>
-<li><strong>DinkyDash tip:</strong> Use emojis to make different types of deadlines instantly recognizable. 🚀 for project launches, 🤝 for client meetings, 🎉 for company events.</li>
+<li><strong>People</strong> become team members, students, or community members</li>
+<li><strong>Chores</strong> become rotating responsibilities (meeting facilitator, kitchen cleanup, etc.)</li>
+<li><strong>Special dates</strong> become deadlines, launches, team events</li>
+<li><strong>Calendar</strong> connects to your team's shared Google Calendar</li>
+<li><strong>The AI prompt</strong> can be customized to match the tone of your space — professional, playful, or somewhere in between</li>
 </ul>
-<h2>2. Daily Schedule for Shared Resources 📅</h2>
-<p>In offices with shared meeting rooms or equipment, scheduling can be a headache. DinkyDash can help.</p>
-<ul>
-<li><strong>How it works:</strong> Display the day's schedule for shared resources.</li>
-<li><strong>Why it's great:</strong> Reduces double-bookings and helps team members plan their day.</li>
-<li><strong>DinkyDash tip:</strong> Color-code different types of bookings for quick visual reference.</li>
-</ul>
-<h2>3. Rotating Task Assignments 🔄</h2>
-<p>Every office has those tasks that need to be done but nobody wants to do. DinkyDash can make managing these tasks fair and transparent.</p>
-<ul>
-<li><strong>How it works:</strong> Show a rotating list of who's responsible for office tasks.</li>
-<li><strong>Why it's great:</strong> Ensures everyone does their fair share and reduces management overhead.</li>
-<li><strong>DinkyDash tip:</strong> Include fun tasks along with the necessary ones to keep things interesting. Maybe "Friday afternoon snack run" along with "Restock the printer paper."</li>
-</ul>
-<h2>4. Simple Announcements or Quote of the Day 📢</h2>
-<p>Sometimes you just need to get a quick message out to everyone. DinkyDash makes this easy and eye-catching.</p>
-<ul>
-<li><strong>How it works:</strong> Display a daily announcement or motivational quote.</li>
-<li><strong>Why it's great:</strong> Boosts morale and ensures important messages are seen.</li>
-<li><strong>DinkyDash tip:</strong> Encourage team members to submit their own quotes or announcements to foster engagement.</li>
-</ul>
-<h2>Setting Up DinkyDash in Your Office</h2>
-<p>Getting DinkyDash up and running in your office is simpler than you might think:</p>
-<ol>
-<li><strong>Hardware:</strong> All you need is a Raspberry Pi and a display. Mount it in a central, visible location.</li>
-<li><strong>Software:</strong> DinkyDash is open-source. Download it from our GitHub repository and follow the setup instructions.</li>
-<li><strong>Customization:</strong> Tailor the displayed information to your office's needs. The setup is flexible and easy to modify.</li>
-<li><strong>Maintenance:</strong> Because it's self-hosted, you have full control. Update information as needed to keep it relevant.</li>
-</ol>
-<h2>Why Choose DinkyDash for Your Office?</h2>
-<ol>
-<li><strong>Simplicity:</strong> In a world of complex software solutions, DinkyDash offers refreshing simplicity.</li>
-<li><strong>Visibility:</strong> Unlike emails or chat messages, DinkyDash's information is always visible.</li>
-<li><strong>Customizability:</strong> As an open-source solution, you can adapt DinkyDash to your specific needs.</li>
-<li><strong>Cost-effective:</strong> Running on a Raspberry Pi, DinkyDash is an affordable solution for businesses of any size.</li>
-<li><strong>Privacy:</strong> Since it's self-hosted, you keep full control of your data.</li>
-</ol>
-<h2>Real Office, Real Results</h2>
-<blockquote>
-<p>"We installed DinkyDash in our startup's office last month. The deadline countdown has been a game-changer for our project timelines, and the rotating task list has finally solved our 'who's turning off the AC?' debates!" - Sarah, Tech Startup Founder</p>
-</blockquote>
-<h2>Conclusion: Simple Solution, Big Impact</h2>
-<p>In an age of information overload, sometimes the simplest solutions are the most effective. DinkyDash brings important information out of cluttered inboxes and into the real world where it's constantly visible and actionable.</p>
-<p>By providing a central, eye-catching display for deadlines, schedules, tasks, and announcements, DinkyDash can help your team stay aligned, informed, and even add a dash of fun to the office environment.</p>
-<p>Ready to streamline your office communication with a touch of simplicity and a splash of emoji? Give DinkyDash a try and watch your team's coordination transform!</p>
-<hr />
-<p>How does your office handle internal communication? What information would you love to have displayed for everyone to see? Share your thoughts and experiences in the comments below!</p>
-    </div>
+<p>The AI adapts its writing style based on the context you give it. A classroom dashboard will sound different from an office dashboard because the prompt tells Claude about the setting and audience.</p>
+<h2>Getting started</h2>
+<p>DinkyDash is free, open source, and runs on any Raspberry Pi with a screen. The setup takes an afternoon, and once it's running, it generates a new dashboard every morning on its own.</p>
+<p>Check out the <a href="https://github.com/caspii/dinkydash">GitHub repository</a> for setup instructions and configuration examples.</p>
 </div>
 
 </main>
 
-<footer class="text-bg-light py-3">
+<footer>
     <div class="container">
-        <div class="row">
-            <div class="col-md-6 text-center text-md-start">
-                <p>&copy; 2024 DinkyDash. All rights reserved.</p>
-            </div>
-            <div class="col-md-6 text-center text-md-end">
-                <a href="https://casparwre.de" class="text-bg-light">Created by Caspar</a>
-            </div>
-        </div>
+        <span>&copy; 2025 DinkyDash</span>
+        <span class="footer-links">
+            <a href="https://github.com/caspii/dinkydash/issues/new">Feedback</a>
+            <span class="footer-sep">&middot;</span>
+            <a href="https://casparwre.de">Built by Caspar</a>
+        </span>
     </div>
 </footer>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <!-- Fathom - beautiful, simple analytics -->
 <script src="https://cdn.usefathom.com/script.js" data-site="HLVHPKAZ" defer></script>
 <!-- / Fathom -->
