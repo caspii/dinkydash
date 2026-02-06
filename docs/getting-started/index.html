@@ -1,0 +1,505 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Getting Started with DinkyDash — DinkyDash</title>
+    <meta name="description" content="DinkyDash — an AI-powered daily dashboard for your family">
+    <meta property="og:title" content="DinkyDash — AI-powered family dashboard">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://dinkydash.co/">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #fffaf5;
+            --surface: #ffffff;
+            --surface-warm: #fff5ec;
+            --border: #f0e6da;
+            --text: #2d2319;
+            --text-mid: #5c4a3a;
+            --text-muted: #9a8677;
+            --accent: #e85d24;
+            --accent-soft: rgba(232, 93, 36, 0.08);
+            --purple: #7c5cbf;
+            --purple-soft: rgba(124, 92, 191, 0.08);
+            --blue: #3b82f6;
+            --green: #16a34a;
+            --radius: 16px;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Nunito', system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.65;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        a { color: var(--accent); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+
+        .container {
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* NAV */
+        nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(255, 250, 245, 0.9);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+        }
+        nav .container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 60px;
+        }
+        .nav-brand {
+            font-weight: 800;
+            font-size: 1.2rem;
+            color: var(--accent);
+            text-decoration: none;
+            letter-spacing: -0.02em;
+        }
+        .nav-links { display: flex; gap: 24px; list-style: none; }
+        .nav-links a {
+            color: var(--text-mid);
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: color 0.15s;
+        }
+        .nav-links a:hover { color: var(--accent); text-decoration: none; }
+
+        /* FOOTER */
+        footer {
+            border-top: 1px solid var(--border);
+            padding: 32px 0;
+            margin-top: 80px;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+        footer .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        footer a { color: var(--text-muted); }
+        footer a:hover { color: var(--accent); }
+        .footer-links { display: flex; align-items: center; gap: 8px; }
+        .footer-sep { color: var(--border); }
+
+        /* CONTENT PAGES */
+        .page-content {
+            padding: 56px 0;
+            max-width: 680px;
+            margin: 0 auto;
+        }
+        .page-content h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            margin-bottom: 24px;
+            color: var(--text);
+        }
+        .page-content h2 {
+            font-size: 1.4rem;
+            font-weight: 800;
+            letter-spacing: -0.01em;
+            margin-top: 40px;
+            margin-bottom: 12px;
+            color: var(--text);
+        }
+        .page-content h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-top: 28px;
+            margin-bottom: 10px;
+        }
+        .page-content p {
+            color: var(--text-mid);
+            margin-bottom: 16px;
+        }
+        .page-content ul, .page-content ol {
+            color: var(--text-mid);
+            padding-left: 20px;
+            margin-bottom: 16px;
+        }
+        .page-content li { margin-bottom: 8px; }
+        .page-content strong { color: var(--text); }
+        .page-content code {
+            font-size: 0.88em;
+            background: var(--surface-warm);
+            padding: 2px 7px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+        }
+        .page-content blockquote {
+            border-left: 3px solid var(--accent);
+            padding: 12px 20px;
+            margin: 20px 0;
+            background: var(--accent-soft);
+            border-radius: 0 var(--radius) var(--radius) 0;
+            color: var(--text-mid);
+            font-style: italic;
+        }
+
+        /* BUTTON */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 28px;
+            background: var(--accent);
+            color: #fff;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            font-family: inherit;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.1s, box-shadow 0.15s;
+            box-shadow: 0 2px 8px rgba(232, 93, 36, 0.25);
+        }
+        .btn:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(232, 93, 36, 0.3); text-decoration: none; color: #fff; }
+        .btn-outline {
+            background: transparent;
+            color: var(--text);
+            border: 2px solid var(--border);
+            box-shadow: none;
+        }
+        .btn-outline:hover { border-color: var(--accent); color: var(--accent); box-shadow: none; }
+
+        /* MOBILE */
+        .mobile-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text);
+            font-size: 1.4rem;
+            cursor: pointer;
+            padding: 4px;
+        }
+        @media (max-width: 640px) {
+            .mobile-toggle { display: block; }
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 60px;
+                left: 0;
+                right: 0;
+                background: var(--bg);
+                border-bottom: 1px solid var(--border);
+                flex-direction: column;
+                padding: 16px 24px;
+                gap: 16px;
+            }
+            .nav-links.open { display: flex; }
+            footer .container { flex-direction: column; gap: 8px; text-align: center; }
+        }
+    </style>
+    
+</head>
+<body>
+<nav>
+    <div class="container">
+        <a class="nav-brand" href="/">DinkyDash</a>
+        <button class="mobile-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">&#9776;</button>
+        <ul class="nav-links">
+            <li><a href="/getting-started/">Get started</a></li>
+            <li><a href="/about/">About</a></li>
+            <li><a href="/family-dashboard/">Family dashboard</a></li>
+            <li><a href="/morning-routine/">Morning routine</a></li>
+            <li><a href="/office-dashboard/">Office dashboard</a></li>
+            <li><a href="https://github.com/caspii/dinkydash">GitHub</a></li>
+        </ul>
+    </div>
+</nav>
+
+<main>
+    
+<div class="container page-content">
+    <h1>Getting Started with DinkyDash</h1>
+    <p>This guide walks you through setting up DinkyDash from scratch — first on your computer, then on a Raspberry Pi as a permanent family dashboard.</p>
+<h2>What you need</h2>
+<ul>
+<li><strong>Python 3.11+</strong></li>
+<li><strong>An Anthropic API key</strong> — <a href="https://console.anthropic.com/settings/keys">get one here</a></li>
+<li><strong>A Google Calendar iCal URL</strong> — In Google Calendar, go to Settings, find your calendar under "Integrate calendar", and copy the public iCal URL</li>
+<li><strong>A Raspberry Pi 4</strong> (2GB+ RAM) with a small display (800x480 recommended) — for the permanent dashboard</li>
+</ul>
+<h2>Step 1: Clone and install</h2>
+<pre><code class="language-bash">git clone https://github.com/caspii/dinkydash.git
+cd dinkydash
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+</code></pre>
+<h2>Step 2: Create your config</h2>
+<pre><code class="language-bash">cp config.example.yaml config.yaml
+</code></pre>
+<p>Open <code>config.yaml</code> and fill in your family's details. Here's what a typical config looks like:</p>
+<pre><code class="language-yaml">location: &quot;Berlin, Germany&quot;
+
+calendar_url: &quot;https://calendar.google.com/calendar/ical/your-email/basic.ics&quot;
+
+calendar_filter_emails:
+  - &quot;spouse@example.com&quot;
+
+people:
+  - name: &quot;Alice&quot;
+    date_of_birth: &quot;2015-03-15&quot;
+    sex: &quot;female&quot;
+    image: &quot;alice.jpg&quot;
+    email: &quot;alice@example.com&quot;
+    interests: &quot;drawing, dinosaurs&quot;
+  - name: &quot;Bob&quot;
+    date_of_birth: &quot;2017-06-20&quot;
+    sex: &quot;male&quot;
+    image: &quot;bob.jpg&quot;
+    interests: &quot;legos, soccer&quot;
+
+pets:
+  - name: &quot;Buddy&quot;
+    type: &quot;dog&quot;
+    image: &quot;pet.jpg&quot;
+
+recurring:
+  - title: &quot;Set Table&quot;
+    emoji: &quot;🍽&quot;
+    choices: [&quot;Alice&quot;, &quot;Bob&quot;]
+  - title: &quot;Feed Pet&quot;
+    emoji: &quot;🐕&quot;
+    choices: [&quot;Bob&quot;, &quot;Alice&quot;]
+
+special_dates:
+  - title: &quot;Christmas&quot;
+    emoji: &quot;🎄&quot;
+    date: &quot;12/25&quot;
+  - title: &quot;Summer Vacation&quot;
+    emoji: &quot;☀️&quot;
+    date: &quot;07/01&quot;
+
+claude_model: &quot;claude-sonnet-4-5-20250929&quot;
+max_tokens: 2048
+data_file: &quot;dashboard_data.json&quot;
+anthropic_api_key_env: &quot;ANTHROPIC_API_KEY&quot;
+</code></pre>
+<h3>Config fields explained</h3>
+<ul>
+<li><strong>location</strong> — Your city and country. The AI uses this for context.</li>
+<li><strong>calendar_url</strong> — Your Google Calendar's public iCal URL.</li>
+<li><strong>calendar_filter_emails</strong> — Only show events where these people are attendees.</li>
+<li><strong>people</strong> — Each family member with their name, date of birth (YYYY-MM-DD), sex, photo filename, email, and interests.</li>
+<li><strong>pets</strong> — Your family pets with name, type, and photo filename.</li>
+<li><strong>recurring</strong> — Daily chores that rotate automatically. Each chore lists the people it rotates between.</li>
+<li><strong>special_dates</strong> — Countdowns to holidays, vacations, and other events (MM/DD format).</li>
+<li><strong>claude_model</strong> — Which Claude model generates your dashboard.</li>
+<li><strong>max_tokens</strong> — Maximum length of the AI response.</li>
+</ul>
+<h2>Step 3: Add your API key</h2>
+<p>Create a <code>.env</code> file in the project root:</p>
+<pre><code>ANTHROPIC_API_KEY=sk-ant-...
+</code></pre>
+<h2>Step 4: Add family photos</h2>
+<p>Copy photos into the <code>static/</code> directory. The filenames must match the <code>image</code> field in your config — for example, if you set <code>image: "alice.jpg"</code>, there should be a <code>static/alice.jpg</code>.</p>
+<h2>Step 5: Generate and run</h2>
+<pre><code class="language-bash">python generate.py        # Generate today's dashboard
+flask run --host=0.0.0.0  # Start the server
+</code></pre>
+<p>Open <strong>http://localhost:5000</strong> to see your dashboard. Use <strong>http://localhost:5000/preview</strong> for an 800x480 preview that matches the Raspberry Pi display size.</p>
+<hr />
+<h2>Deploying to a Raspberry Pi</h2>
+<p>Once you've confirmed it works locally, here's how to set it up as a permanent dashboard on a Raspberry Pi.</p>
+<h3>What you need</h3>
+<ul>
+<li>Raspberry Pi 4 (2GB+ RAM)</li>
+<li>MicroSD card (16GB+)</li>
+<li>DSI touchscreen display or HDMI monitor (800x480 recommended)</li>
+<li>Power supply</li>
+<li>Wi-Fi connection</li>
+</ul>
+<h3>Pi setup: Install the OS</h3>
+<p>Install <strong>Raspberry Pi OS</strong> (Debian Bookworm) using the <a href="https://www.raspberrypi.com/software/">Raspberry Pi Imager</a>. Enable SSH and configure Wi-Fi during the setup process.</p>
+<p>After first boot, SSH in and install the required system packages:</p>
+<pre><code class="language-bash">ssh pi@raspberrypi
+sudo apt update &amp;&amp; sudo apt upgrade -y
+sudo apt install fonts-noto-color-emoji unclutter -y
+</code></pre>
+<p>The emoji font package is essential — without it, the dashboard won't render emoji.</p>
+<h3>Pi setup: Install DinkyDash</h3>
+<p>From your local machine, copy the project files to the Pi:</p>
+<pre><code class="language-bash">rsync -az --exclude='venv' --exclude='.git' --exclude='__pycache__' \
+  ./ pi@raspberrypi:/home/pi/dinkydash/
+</code></pre>
+<p>Or use the included deploy script:</p>
+<pre><code class="language-bash">./deploy_to_pi.sh
+</code></pre>
+<p>Then on the Pi, set up the virtual environment:</p>
+<pre><code class="language-bash">cd /home/pi/dinkydash
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+</code></pre>
+<p>Create the <code>.env</code> file on the Pi:</p>
+<pre><code class="language-bash">echo &quot;ANTHROPIC_API_KEY=sk-ant-...&quot; &gt; /home/pi/dinkydash/.env
+</code></pre>
+<p>Test that everything works:</p>
+<pre><code class="language-bash">python generate.py
+flask run --host=0.0.0.0
+</code></pre>
+<h3>Pi setup: Create the systemd service</h3>
+<p>This makes DinkyDash start automatically on boot.</p>
+<p>Create <code>/etc/systemd/system/dinkydash.service</code>:</p>
+<pre><code class="language-ini">[Unit]
+Description=DinkyDash Family Dashboard
+After=network.target
+
+[Service]
+ExecStart=/home/pi/dinkydash/run_app.sh
+User=pi
+WorkingDirectory=/home/pi/dinkydash
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+</code></pre>
+<p>Create <code>/home/pi/dinkydash/run_app.sh</code>:</p>
+<pre><code class="language-bash">#!/bin/bash
+cd /home/pi/dinkydash
+source venv/bin/activate
+export FLASK_APP=app.py
+flask run --host=0.0.0.0
+</code></pre>
+<p>Enable and start it:</p>
+<pre><code class="language-bash">chmod +x /home/pi/dinkydash/run_app.sh
+sudo systemctl daemon-reload
+sudo systemctl enable dinkydash.service
+sudo systemctl start dinkydash.service
+</code></pre>
+<h3>Pi setup: Daily generation cron job</h3>
+<p>This generates a fresh dashboard every morning at 6am:</p>
+<pre><code class="language-bash">crontab -e
+</code></pre>
+<p>Add this line:</p>
+<pre><code>0 6 * * * cd /home/pi/dinkydash &amp;&amp; source venv/bin/activate &amp;&amp; python generate.py &gt;&gt; generate.log 2&gt;&amp;1
+</code></pre>
+<h3>Pi setup: Kiosk mode</h3>
+<p>This launches Chromium in fullscreen on boot so the Pi shows nothing but the dashboard.</p>
+<p>Create <code>/home/pi/run.sh</code>:</p>
+<pre><code class="language-bash">#!/bin/sh
+# Wait for Flask to be ready (max 60 seconds)
+echo 'Waiting for DinkyDash...'
+i=0
+while [ $i -lt 60 ]; do
+    if curl -s -o /dev/null -w '' http://localhost:5000/ 2&gt;/dev/null; then
+        echo 'Ready!'
+        break
+    fi
+    i=$((i + 1))
+    sleep 1
+done
+
+/usr/bin/chromium-browser \
+  --kiosk \
+  --password-store=basic \
+  --disable-infobars \
+  --enable-features=OverlayScrollbar \
+  --disable-restore-session-state \
+  --noerrdialogs \
+  http://localhost:5000/
+</code></pre>
+<pre><code class="language-bash">chmod +x /home/pi/run.sh
+</code></pre>
+<p>Then edit <code>/home/pi/.config/lxsession/LXDE-pi/autostart</code>:</p>
+<pre><code>@lxpanel --profile LXDE-pi
+@pcmanfm --desktop --profile LXDE-pi
+@unclutter
+@xset s off
+@xset -dpms
+@xset s noblank
+@/home/pi/run.sh
+</code></pre>
+<p>This disables the screensaver, hides the mouse cursor, and launches the dashboard in kiosk mode on every boot.</p>
+<h3>Pi setup: Display rotation (optional)</h3>
+<p>If your screen is mounted upside down, add to <code>/boot/firmware/config.txt</code>:</p>
+<pre><code class="language-ini">[all]
+lcd_rotate=2
+display_rotate=2
+</code></pre>
+<p>On Bookworm, the boot config lives at <code>/boot/firmware/config.txt</code> (not <code>/boot/config.txt</code>).</p>
+<h3>Pi setup: Screen power schedule (optional)</h3>
+<p>Turn the display off at night and back on in the morning to save power.</p>
+<p>Create <code>/home/pi/screen_control.sh</code>:</p>
+<pre><code class="language-bash">#!/bin/bash
+if [ &quot;$1&quot; = &quot;off&quot; ]; then
+    vcgencmd display_power 0
+elif [ &quot;$1&quot; = &quot;on&quot; ]; then
+    vcgencmd display_power 1
+fi
+</code></pre>
+<pre><code class="language-bash">chmod +x /home/pi/screen_control.sh
+</code></pre>
+<p>Add to crontab:</p>
+<pre><code>0 22 * * * /home/pi/screen_control.sh off
+0 7 * * * /home/pi/screen_control.sh on
+</code></pre>
+<hr />
+<h2>Troubleshooting</h2>
+<p><strong>"localhost refused to connect" on boot</strong> — Chromium starts before Flask is ready. The <code>run.sh</code> script handles this by waiting up to 60 seconds, but if you wrote your own startup script, make sure it includes the wait loop.</p>
+<p><strong>GNOME Keyring password dialog</strong> — Chromium tries to use GNOME keyring on auto-login. The <code>--password-store=basic</code> flag in the kiosk script prevents this.</p>
+<p><strong>Emoji not displaying</strong> — You need the emoji font package: <code>sudo apt install fonts-noto-color-emoji &amp;&amp; fc-cache -fv</code></p>
+<p><strong>Wayland switch dialog on boot</strong> — Bookworm may prompt to switch from X11 to Wayland. Fix it with: <code>sudo raspi-config nonint do_wayland W1</code></p>
+<p><strong>Wi-Fi blocked after fresh install</strong> — Bookworm soft-blocks Wi-Fi until you set a country: <code>sudo raspi-config nonint do_wifi_country DE &amp;&amp; sudo rfkill unblock wifi</code></p>
+<hr />
+<h2>Quick reference</h2>
+<pre><code class="language-bash"># Local development
+source venv/bin/activate
+python generate.py
+flask run --host=0.0.0.0
+
+# On the Raspberry Pi
+sudo systemctl status dinkydash      # Check service
+sudo systemctl restart dinkydash     # Restart
+journalctl -u dinkydash -f           # View logs
+/home/pi/screen_control.sh on        # Screen on
+/home/pi/screen_control.sh off       # Screen off
+</code></pre>
+<p>That's it. Once everything is set up, your family gets a brand new dashboard every morning — no maintenance required.</p>
+</div>
+
+</main>
+
+<footer>
+    <div class="container">
+        <span>&copy; 2025 DinkyDash</span>
+        <span class="footer-links">
+            <a href="https://github.com/caspii/dinkydash/issues/new">Feedback</a>
+            <span class="footer-sep">&middot;</span>
+            <a href="https://casparwre.de">Built by Caspar</a>
+        </span>
+    </div>
+</footer>
+
+<!-- Fathom - beautiful, simple analytics -->
+<script src="https://cdn.usefathom.com/script.js" data-site="HLVHPKAZ" defer></script>
+<!-- / Fathom -->
+<!-- Ahrefs analytics -->
+<script src="https://analytics.ahrefs.com/analytics.js" data-key="NInZX5cjFNqKC44BBPaEBA" async></script>
+<!-- / Ahrefs analytics -->
+
+</body>
+</html>

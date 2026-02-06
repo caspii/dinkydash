@@ -1,12 +1,10 @@
 {% extends "base.html" %}
 
-{% block title %}{{ title }}{% endblock %}
+{% block title %}{{ title }} — DinkyDash{% endblock %}
 
 {% block content %}
-<div class="container">
-    <div class="content-wrapper">
-        <h1 class="mb-4">{{ title }}</h1>
-        {{ content | safe }}
-    </div>
+<div class="container page-content">
+    <h1>{{ title }}</h1>
+    {{ content | safe }}
 </div>
 {% endblock %}

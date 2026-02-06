@@ -1,103 +1,59 @@
 ---
-title: "DinkyDash: Your Open-Source, Self-Hosted Family Dashboard on Raspberry Pi"
+title: The AI-Powered Family Dashboard
 template: page.html
+description: How DinkyDash uses AI to create a daily family dashboard with calendars, chores, countdowns, and personalized content.
 ---
 
-Ever wished for a magical screen that answers all those questions your kids keep asking? Meet DinkyDash! It's a fun, simple, and completely self-hosted dashboard you can run on your own Raspberry Pi. The best part? It's open-source, so you can customize it however you like!
+If you've ever had a child ask "how many days until Christmas?" for the 47th time, DinkyDash was built for you.
 
-## What is DinkyDash?
+DinkyDash is an AI-powered dashboard that sits on a small screen in your home — in the kitchen, the hallway, or wherever your family passes by. Every morning, it generates a brand new dashboard with everything your family needs to know for the day.
 
-DinkyDash is an open-source family dashboard that you host on your own Raspberry Pi. It displays important family info using fun emojis and easy-to-read text. Think of it as a smart, always-updated family calendar and reminder board all in one!
+## What makes it different
 
-## Why Families Love DinkyDash
+Traditional family dashboards or shared calendars require someone to keep them updated. DinkyDash doesn't. You set it up once with your family's info, and Claude AI writes fresh content every single morning.
 
-### 1. It's Completely Under Your Control
+That means:
 
-Because you host DinkyDash on your own Raspberry Pi, all your family's information stays private and secure in your home. No cloud services, no subscriptions, just your own personal dashboard.
+- **No manual updates.** The dashboard writes itself.
+- **Always relevant.** It knows what day it is, who has events, and whose turn it is for chores.
+- **Genuinely fun.** Kids actually want to look at it because there's always something new — a fun fact, a daily challenge, a personalized message.
 
-### 2. It's Open Source
+## A typical DinkyDash morning
 
-DinkyDash's code is freely available on GitHub. This means you can:
-- See exactly how it works
-- Customize it to fit your family's needs
-- Add new features if you're tech-savvy
-- Be sure it's safe and secure
+Imagine it's a Tuesday in November. Your family wakes up and walks past the dashboard in the kitchen. Today it shows:
 
-### 3. It Runs on Raspberry Pi
+- A cheerful headline: "Happy Tuesday! Only 3 more days until the weekend."
+- Person cards for each family member with their photo
+- Chore badges showing it's Lily's turn for dishes and Sam's turn to feed the dog
+- A countdown: 28 days until Christmas, 5 days until Dad's birthday
+- Today's calendar: school pickup at 3pm, swimming at 5pm, dinner at grandma's at 7pm
+- A fun fact about space that Sam will probably talk about all day
+- A daily challenge: "Try to make someone laugh before breakfast"
 
-A Raspberry Pi is a small, affordable computer that's perfect for projects like this. It's:
-- Easy to set up
-- Energy-efficient
-- Small enough to hide behind any screen
+All of this was written by AI at 6am, specifically for your family, for this exact day.
 
-### 4. It Answers Those Never-Ending Questions
+## Five reasons to try DinkyDash
 
-Kids have a talent for asking the same questions over and over. With DinkyDash, the answers are always right there:
+**1. It answers the recurring questions**
 
-- "How many days until my birthday?" 🎂
-- "Whose turn is it to walk the dog?" 🐕
-- "When is our next family movie night?" 🍿
+Kids love to ask the same things over and over. How many days until my birthday? Whose turn is it to take the trash out? When is our vacation? The dashboard answers all of these at a glance.
 
-### 5. It Helps Kids Learn Responsibility
+**2. It makes chores fair and visible**
 
-By showing chores and tasks with fun emojis, DinkyDash makes it easy for kids to see what they need to do:
+DinkyDash automatically rotates chores daily. Everyone can see whose turn it is right there on the screen. No more "I did it yesterday" arguments.
 
-- Take out the trash 🗑️
-- Feed the cat 😺
-- Do homework 📚
+**3. It keeps the whole family in sync**
 
-## How to Set Up Your Own DinkyDash
+By pulling events from Google Calendar, the dashboard shows what everyone has going on today. No more missed pickups or forgotten appointments.
 
-1. **Get a Raspberry Pi:** Any recent model will do. The Raspberry Pi 4 or Raspberry Pi Zero 2 W are great choices.
+**4. It brings a little joy**
 
-2. **Download DinkyDash:** Get the open-source code from our GitHub repository.
+The AI-generated fun facts and daily challenges give your family something to talk about at breakfast. It's a small thing, but it makes mornings a bit more interesting.
 
-3. **Install on Your Pi:** Follow our simple setup guide to get DinkyDash running.
+**5. It's completely private**
 
-4. **Customize Your Dashboard:** Choose what information to display. It's easy to change anytime!
+DinkyDash runs on your own Raspberry Pi. Your family data stays in your house. There's no cloud service, no account to create, no data being sent anywhere except to generate the daily dashboard.
 
-5. **Set Up Your Display:** Connect your Raspberry Pi to any screen in your house. The kitchen, living room, or hallway are great spots.
+## Getting started
 
-6. **Get the Whole Family Involved:** Let kids help choose emojis for different tasks or events.
-
-## Real Families, Real Stories
-
-> "We love that DinkyDash runs on our own Raspberry Pi. It was a fun project to set up with the kids, and now we have our very own family hub!" - Emma, mom of two
-
-> "As a software developer, I appreciate that DinkyDash is open-source. I've already added a few custom features for our family." - Tom, dad of three
-
-## Fun Ideas for Your DinkyDash
-
-1. **Family Goal Tracker:** Watch your savings grow for your next big family purchase 💰
-
-2. **Joke of the Day:** Start each morning with a laugh 😂
-
-3. **Family Member of the Week:** Celebrate someone special with their picture on the dash 🌟
-
-4. **Pet Care Reminder:** Never forget to feed the fish again 🐠
-
-5. **Family Quote:** Share an inspiring or funny quote each day 💬
-
-## Why Self-Hosting and Open Source Matter
-
-By choosing DinkyDash, you're not just getting a family dashboard. You're:
-
-1. **Protecting Your Privacy:** Your family's data stays in your home, on your Raspberry Pi.
-
-2. **Learning About Technology:** Setting up DinkyDash is a great way to introduce kids to Raspberry Pi and open-source software.
-
-3. **Joining a Community:** As an open-source project, DinkyDash has a community of users and developers always working to improve it.
-
-4. **Customizing to Your Needs:** With access to the source code, you can tailor DinkyDash to be perfect for your family.
-
-## Conclusion
-
-DinkyDash isn't just a tool – it's a fun, educational, and customizable way to bring your family closer together. By putting all your important info in one easy-to-read place, you're creating a central spot for family communication, all while learning about open-source software and Raspberry Pi.
-
-Say goodbye to forgotten chores, missed events, and those endless "When is...?" questions. With DinkyDash, your family stays informed, organized, and connected – all with a dash of fun and tech education!
-
-Ready to make your family life a little bit easier, a lot more colorful, and dive into the world of open-source and Raspberry Pi? Give DinkyDash a try today!
-
----
-
-Have you set up DinkyDash on your Raspberry Pi? What custom features have you added? Share your experiences in the comments below!
+DinkyDash is free and open source. You'll need a Raspberry Pi, a small display, and an Anthropic API key. Check out the [GitHub repository](https://github.com/caspii/dinkydash) for setup instructions.

@@ -39,7 +39,7 @@ def read_markdown(filename):
         else:
             front_matter = {}
             markdown_content = content[0]
-        return front_matter, markdown.markdown(markdown_content)
+        return front_matter, markdown.markdown(markdown_content, extensions=['fenced_code'])
 
 
 def copy_images():
