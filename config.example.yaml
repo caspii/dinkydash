@@ -1,0 +1,70 @@
+# DinkyDash Configuration
+# Copy this file to config.yaml and fill in your own values
+
+# Location (used for local context in AI content)
+location: "Your City, Country"
+
+# Google Calendar (public iCal URL)
+# Get this from: Google Calendar > Settings > Integrate calendar > Public address in iCal format
+calendar_url: "https://calendar.google.com/calendar/ical/your-email%40gmail.com/private-xxx/basic.ics"
+
+# Environment variable name holding the Anthropic API key
+anthropic_api_key_env: "ANTHROPIC_API_KEY"
+
+# Claude model to use
+claude_model: "claude-sonnet-4-5-20250929"
+
+# Maximum tokens for Claude response
+max_tokens: 2048
+
+# Path where generated dashboard data is stored
+data_file: "dashboard_data.json"
+
+# Only show calendar events where ALL of these emails are attendees
+# (the calendar owner is implicit, so list the other required attendee)
+calendar_filter_emails:
+  - "spouse@example.com"
+
+# Family members
+people:
+  - name: "Alice"
+    date_of_birth: "2015-03-15"
+    sex: "female"
+    image: "alice.jpg"
+    email: "alice@example.com"
+    interests: "drawing, dinosaurs"
+  - name: "Bob"
+    date_of_birth: "2017-06-20"
+    sex: "male"
+    image: "bob.jpg"
+    interests: "legos, soccer"
+  - name: "Parent"
+    date_of_birth: "1985-09-10"
+    sex: "female"
+    image: "parent.jpg"
+    email: "parent@example.com"
+    interests: ""
+
+# Pets
+pets:
+  - name: "Buddy"
+    type: "dog"
+    image: "pet.jpg"
+
+# Recurring chores (rotated daily using day-of-year modulo)
+recurring:
+  - title: "Set Table"
+    emoji: "🍽"
+    choices: ["Alice", "Bob"]
+  - title: "Feed Pet"
+    emoji: "🐕"
+    choices: ["Bob", "Alice"]
+
+# Special dates (non-birthday countdowns)
+special_dates:
+  - title: "Christmas"
+    emoji: "🎄"
+    date: "12/25"
+  - title: "Summer Vacation"
+    emoji: "☀️"
+    date: "07/01"

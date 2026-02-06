@@ -346,6 +346,12 @@ def parse_ai_response(text):
 # ---------------------------------------------------------------------------
 
 def generate():
+    # Check for API key early with a clear error message
+    if not os.environ.get("ANTHROPIC_API_KEY"):
+        log.error("ANTHROPIC_API_KEY not found in environment.")
+        log.error("Add it to your .env file: ANTHROPIC_API_KEY=sk-ant-...")
+        sys.exit(1)
+
     config = load_config()
     today = date.today()
     now = datetime.now()

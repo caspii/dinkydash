@@ -5,3 +5,9 @@ __pycache__/
 .env
 dashboard_data.json
 generate.log
+
+# Personal data (not for public repo)
+config.yaml
+static/*.jpg
+static/*.png
+!static/icon.png

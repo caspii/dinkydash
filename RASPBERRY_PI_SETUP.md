@@ -62,12 +62,10 @@ Running the **legacy v1.x config-based** version of DinkyDash (not the new multi
 ├── run_app.sh          # Startup script for systemd
 ├── templates/
 │   └── index.html      # Single page template (Bootstrap 5 Quartz theme)
-├── static/             # Family member photos
-│   ├── caspar.jpg
-│   ├── estelle.jpg
-│   ├── jessica.jpg
-│   ├── josephine.jpg
-│   └── snae.jpg
+├── static/             # Family member photos (not in git)
+│   ├── person1.jpg     # Add your own family photos
+│   ├── person2.jpg
+│   └── pet.jpg
 └── venv/               # Python virtual environment
 ```
 

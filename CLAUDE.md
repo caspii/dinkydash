@@ -14,7 +14,7 @@ The project has two main components:
 
 ### Dashboard App
 
-**Setup**
+**Setup** (requires Python 3.11+)
 ```bash
 python3 -m venv venv
 source venv/bin/activate
@@ -76,6 +76,12 @@ Key functions:
 ### `app.py` - Flask Server
 
 Minimal: reads `dashboard_data.json`, passes to template. Graceful fallback if no JSON exists.
+
+Routes:
+- `/` - Main dashboard
+- `/preview` - 800x480 iframe preview matching Pi display size (useful for development)
+
+Environment variable `DINKYDASH_DATA_FILE` overrides the default data file path.
 
 ### `config.yaml` - Configuration
 

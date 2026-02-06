@@ -42,6 +42,16 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
+Create your config file from the template:
+
+```bash
+cp config.example.yaml config.yaml
+```
+
+Edit `config.yaml` with your family details, calendar URL, and other settings.
+
+Add family photos to `static/` (matching the filenames in your config).
+
 Create a `.env` file with your API key:
 
 ```
