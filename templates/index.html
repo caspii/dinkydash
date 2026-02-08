@@ -10,221 +10,303 @@
     <meta http-equiv="refresh" content="30">
     {% endif %}
     <link rel="apple-touch-icon" href="{{ url_for('static', filename='icon.png') }}">
-    <link rel="stylesheet" href="https://bootswatch.com/5/quartz/bootstrap.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            font-family: 'Nunito', system-ui, -apple-system, sans-serif;
             font-weight: 600;
+            background: #fffaf5;
+            color: #2d2319;
             overflow: hidden;
-            font-size: 15px;
+            height: 100vh;
+        }
+
+        .dashboard {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 12px;
+            height: 100vh;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 16px;
+            border: 1px solid #f0e6da;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+            padding: 12px 16px;
+        }
+
+        /* Header row */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .date {
+            font-size: 1rem;
+            color: #9a8677;
+            font-weight: 700;
         }
 
         .headline {
-            font-size: 1.4rem;
-            font-weight: 700;
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: #e85d24;
+            letter-spacing: -0.02em;
         }
 
-        .date-display {
-            font-size: 1.1rem;
-            opacity: 0.8;
+        /* Today's events */
+        .today-events {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 24px;
+            flex-wrap: wrap;
+            background: linear-gradient(135deg, #fff3e6 0%, #ffe8d6 100%);
+            border-color: #e85d24;
+            border-width: 2px;
         }
 
         .today-event {
-            font-size: 1.2rem;
-            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 800;
+            font-size: 1.15rem;
+            color: #e85d24;
         }
 
-        .chore-card {
-            text-align: center;
-            position: relative;
+        /* Chores row */
+        .chores {
+            display: flex;
+            gap: 10px;
+            flex: 0 0 auto;
+        }
+
+        .chore {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 10px 12px;
         }
 
         .chore-emoji {
-            font-size: 2rem;
+            font-size: 1.8rem;
             line-height: 1;
         }
 
         .chore-img {
-            width: 40px;
-            height: 40px;
+            width: 36px;
+            height: 36px;
             object-fit: cover;
             border-radius: 50%;
-            border: 2px solid rgba(255,255,255,0.3);
+            border: 2px solid #f0e6da;
         }
 
         .chore-name {
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             font-weight: 700;
+            color: #2d2319;
         }
 
-        .info-text {
-            font-size: 1.05rem;
-            font-weight: 400;
-            line-height: 1.4;
-        }
-
-        .countdown-item {
-            font-size: 1.4rem;
-            display: inline-flex;
+        /* Countdowns row */
+        .countdowns {
+            display: flex;
             align-items: center;
-            gap: 0.4rem;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
         }
 
-        .countdown-item img {
-            width: 38px;
-            height: 38px;
+        .countdown {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 1.2rem;
+        }
+
+        .countdown-emoji {
+            font-size: 1.3rem;
+        }
+
+        .countdown img {
+            width: 32px;
+            height: 32px;
             object-fit: cover;
             border-radius: 50%;
+            border: 2px solid #f0e6da;
         }
 
         .countdown-days {
+            font-weight: 800;
+            color: #e85d24;
+        }
+
+        /* Content rows */
+        .content-row {
+            display: flex;
+            gap: 10px;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .content-card {
+            flex: 1;
+            display: flex;
+            align-items: center;
+        }
+
+        .content-text {
+            font-size: 0.95rem;
+            font-weight: 600;
+            line-height: 1.5;
+            color: #2d2319;
+        }
+
+        .content-label {
+            font-size: 0.7rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #9a8677;
+            margin-bottom: 4px;
+        }
+
+        .event-item {
+            margin-bottom: 4px;
+        }
+
+        .event-title {
             font-weight: 700;
         }
 
-        .bottom-text {
-            font-size: 1rem;
-            font-weight: 400;
-            line-height: 1.4;
+        .event-comment {
+            color: #9a8677;
+            font-style: italic;
         }
 
-        .card-body {
-            padding: 0.4rem 0.5rem !important;
-        }
-
+        /* No data state */
         .no-data {
             display: flex;
             align-items: center;
             justify-content: center;
             height: 100vh;
-            font-size: 1.5rem;
             text-align: center;
+        }
+
+        .no-data-title {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #e85d24;
+        }
+
+        .no-data-subtitle {
+            font-size: 1rem;
+            color: #9a8677;
+            margin-top: 8px;
         }
     </style>
 </head>
 <body>
 {% if data %}
-<div class="container-fluid p-2 d-flex flex-column justify-content-between" style="height: 100vh;">
-    <!-- Row 1: Date + headline -->
-    <div class="row g-1">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body d-flex align-items-center justify-content-between py-1">
-                    <span class="date-display">{{ today }}</span>
-                    {% if data.ai_content and data.ai_content.headline %}
-                    <span class="headline">{{ data.ai_content.headline }}</span>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
+<div class="dashboard">
+    <!-- Header: Date + Headline -->
+    <div class="card header">
+        <span class="date">{{ today }}</span>
+        {% if data.ai_content and data.ai_content.headline %}
+        <span class="headline">{{ data.ai_content.headline }}</span>
+        {% endif %}
     </div>
 
-    <!-- Row 2: Today's events (if any) -->
+    <!-- Today's Events (if any) -->
     {% if data.today_events %}
-    <div class="row g-1">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body d-flex align-items-center justify-content-center gap-4 py-1">
-                    {% for event in data.today_events %}
-                    <span class="today-event">📅 {{ event.summary }}</span>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
+    <div class="card today-events">
+        {% for event in data.today_events %}
+        <span class="today-event">📅 {{ event.summary }}</span>
+        {% endfor %}
     </div>
     {% endif %}
 
-    <!-- Row 3: CHORES — photos with emoji badge -->
-    <div class="row g-1">
+    <!-- Chores -->
+    <div class="chores">
         {% for chore in data.chores %}
-        <div class="col">
-            <div class="card h-100">
-                <div class="card-body chore-card d-flex align-items-center justify-content-center gap-2 py-1">
-                    <span class="chore-emoji">{{ chore.emoji }}</span>
-                    {% if chore.image %}
-                    <img class="chore-img" src="{{ url_for('static', filename=chore.image) }}" alt="{{ chore.assigned_to }}">
-                    {% endif %}
-                    <span class="chore-name">{{ chore.assigned_to }}</span>
-                </div>
-            </div>
+        <div class="card chore">
+            <span class="chore-emoji">{{ chore.emoji }}</span>
+            {% if chore.image %}
+            <img class="chore-img" src="{{ url_for('static', filename=chore.image) }}" alt="{{ chore.assigned_to }}">
+            {% endif %}
+            <span class="chore-name">{{ chore.assigned_to }}</span>
         </div>
         {% endfor %}
     </div>
 
-    <!-- Row 3: Countdowns -->
-    <div class="row g-1">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body d-flex align-items-center justify-content-center gap-3 py-1">
-                    {% for cd in data.countdowns[:6] %}
-                    <span class="countdown-item">
-                        <span>{{ cd.emoji }}</span>
-                        {% if cd.image %}
-                        <img src="{{ url_for('static', filename=cd.image) }}" alt="{{ cd.title }}">
-                        {% endif %}
-                        <span class="countdown-days">{{ cd.days }}</span>
-                    </span>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
+    <!-- Countdowns -->
+    <div class="card countdowns">
+        {% for cd in data.countdowns[:6] %}
+        <span class="countdown">
+            <span class="countdown-emoji">{{ cd.emoji }}</span>
+            {% if cd.image %}
+            <img src="{{ url_for('static', filename=cd.image) }}" alt="{{ cd.title }}">
+            {% endif %}
+            <span class="countdown-days">{{ cd.days }}</span>
+        </span>
+        {% endfor %}
     </div>
 
-    <!-- Row 4: Fun fact + Daily challenge -->
-    <div class="row g-1">
+    <!-- Fun fact + Daily challenge -->
+    <div class="content-row">
         {% if data.ai_content and data.ai_content.fun_fact %}
-        <div class="col">
-            <div class="card h-100">
-                <div class="card-body info-text py-1">
-                    {{ data.ai_content.fun_fact }}
-                </div>
+        <div class="card content-card">
+            <div>
+                <div class="content-label">Fun Fact</div>
+                <div class="content-text">{{ data.ai_content.fun_fact }}</div>
             </div>
         </div>
         {% endif %}
         {% if data.ai_content and data.ai_content.daily_challenge %}
-        <div class="col">
-            <div class="card h-100">
-                <div class="card-body info-text py-1">
-                    {{ data.ai_content.daily_challenge }}
-                </div>
+        <div class="card content-card">
+            <div>
+                <div class="content-label">Challenge</div>
+                <div class="content-text">{{ data.ai_content.daily_challenge }}</div>
             </div>
         </div>
         {% endif %}
     </div>
 
-    <!-- Row 5: Pet corner + Calendar events -->
-    <div class="row g-1">
-        {% if data.ai_content and data.ai_content.pet_corner %}
-        <div class="col">
-            <div class="card h-100">
-                <div class="card-body bottom-text py-1">
-                    {{ data.ai_content.pet_corner }}
+    <!-- Calendar events -->
+    {% if data.ai_content and data.ai_content.events %}
+    <div class="content-row">
+        <div class="card content-card">
+            <div>
+                <div class="content-label">Coming Up</div>
+                {% for event in data.ai_content.events[:2] %}
+                <div class="event-item">
+                    <span class="event-title">{{ event.title }}</span>
+                    <span class="event-comment">— {{ event.commentary }}</span>
                 </div>
+                {% endfor %}
             </div>
         </div>
-        {% endif %}
-        {% if data.ai_content and data.ai_content.events %}
-        <div class="col">
-            <div class="card h-100">
-                <div class="card-body bottom-text py-1">
-                    {% for event in data.ai_content.events[:2] %}
-                    <div>{{ event.title }} — <em>{{ event.commentary }}</em></div>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
-        {% endif %}
     </div>
+    {% endif %}
 </div>
 {% else %}
 <div class="no-data">
     <div>
-        <div>DinkyDash</div>
-        <div style="font-size: 1rem; opacity: 0.7; margin-top: 0.5rem;">
-            Waiting for first daily generation...
-        </div>
+        <div class="no-data-title">DinkyDash</div>
+        <div class="no-data-subtitle">Waiting for first daily generation...</div>
     </div>
 </div>
 {% endif %}

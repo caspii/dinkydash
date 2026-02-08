@@ -376,9 +376,14 @@ def generate():
         filter_emails=config.get("calendar_filter_emails"),
     )
 
-    # Build prompt
+    # Filter out today's events for the AI prompt (they're shown separately)
+    today_display = now.strftime("%A, %B %d")
+    today_events = [e for e in calendar_events if e["date"].startswith(today_display)]
+    future_events = [e for e in calendar_events if not e["date"].startswith(today_display)]
+
+    # Build prompt (only include future events for AI commentary)
     user_prompt = build_user_prompt(
-        config, calendar_events, chore_assignments,
+        config, future_events, chore_assignments,
         birthday_infos, special_date_infos,
     )
     log.info("Prompt built (%d characters)", len(user_prompt))
@@ -424,10 +429,6 @@ def generate():
 
     # Map person name → image for template lookup
     people_images = {p["name"]: p.get("image", "") for p in config["people"]}
-
-    # Filter events for today
-    today_display = now.strftime("%A, %B %d")
-    today_events = [e for e in calendar_events if e["date"].startswith(today_display)]
 
     dashboard_data = {
         "generated_at": now.isoformat(),
