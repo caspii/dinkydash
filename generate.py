@@ -346,6 +346,8 @@ def parse_ai_response(text):
 # ---------------------------------------------------------------------------
 
 def generate():
+    log.info("Starting DinkyDash generation...")
+
     # Check for API key early with a clear error message
     if not os.environ.get("ANTHROPIC_API_KEY"):
         log.error("ANTHROPIC_API_KEY not found in environment.")
@@ -353,6 +355,8 @@ def generate():
         sys.exit(1)
 
     config = load_config()
+    log.info("Config loaded (%d people, %d chores)",
+             len(config.get("people", [])), len(config.get("recurring", [])))
     today = date.today()
     now = datetime.now()
 
@@ -365,6 +369,7 @@ def generate():
     chore_assignments = compute_chore_assignments(
         config.get("recurring", []), config["people"]
     )
+    log.info("Fetching calendar events...")
     calendar_events = fetch_calendar_events(
         config.get("calendar_url", ""),
         days_ahead=14,
@@ -420,14 +425,19 @@ def generate():
     # Map person name → image for template lookup
     people_images = {p["name"]: p.get("image", "") for p in config["people"]}
 
+    # Filter events for today
+    today_display = now.strftime("%A, %B %d")
+    today_events = [e for e in calendar_events if e["date"].startswith(today_display)]
+
     dashboard_data = {
         "generated_at": now.isoformat(),
         "generated_date": today.isoformat(),
-        "today_display": now.strftime("%A, %B %d"),
+        "today_display": today_display,
         "people_images": people_images,
         "chores": chore_assignments,
         "countdowns": all_countdowns,
         "calendar_events": calendar_events,
+        "today_events": today_events,
         "ai_content": ai_content,
     }
 
