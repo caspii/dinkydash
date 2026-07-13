@@ -1,0 +1,18 @@
+"$schema" = "https://conductor.build/schemas/settings.repo.schema.json"
+
+[scripts]
+setup = "python3 -m venv venv && venv/bin/pip install -r requirements.txt"
+run_mode = "concurrent"
+
+[scripts.run.dashboard]
+command = "FLASK_APP=app.py venv/bin/flask run --port $CONDUCTOR_PORT --debug"
+default = true
+icon = "monitor"
+
+[scripts.run.generate]
+command = "venv/bin/python generate.py"
+icon = "sparkles"
+
+[scripts.run.website]
+command = "cd website && ../venv/bin/python build.py"
+icon = "globe"
