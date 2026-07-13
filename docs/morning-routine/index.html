@@ -4,10 +4,12 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Transform Your Family's Morning Routine — DinkyDash</title>
-    <meta name="description" content="DinkyDash — an AI-powered daily dashboard for your family">
-    <meta property="og:title" content="DinkyDash — AI-powered family dashboard">
+    <meta name="description" content="How DinkyDash helps families start the day organized with an AI-generated morning dashboard.">
+    <meta property="og:title" content="Transform Your Family's Morning Routine — DinkyDash">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://dinkydash.co/">
+    <meta property="og:image" content="https://dinkydash.co/images/hero-kitchen.png">
+    <meta name="twitter:card" content="summary_large_image">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -93,11 +95,25 @@
         }
         footer .container {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            flex-direction: column;
+            gap: 14px;
         }
         footer a { color: var(--text-muted); }
         footer a:hover { color: var(--accent); }
+        .footer-guides {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px 18px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+        .footer-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
         .footer-links { display: flex; align-items: center; gap: 8px; }
         .footer-sep { color: var(--border); }
 
@@ -113,6 +129,7 @@
             letter-spacing: -0.02em;
             margin-bottom: 24px;
             color: var(--text);
+            line-height: 1.2;
         }
         .page-content h2 {
             font-size: 1.4rem;
@@ -154,6 +171,32 @@
             border-radius: 0 var(--radius) var(--radius) 0;
             color: var(--text-mid);
             font-style: italic;
+        }
+        .page-content img {
+            width: 100%;
+            height: auto;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            margin: 6px 0 20px;
+        }
+        .page-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0 24px;
+            font-size: 0.9rem;
+        }
+        .page-content th {
+            text-align: left;
+            font-weight: 800;
+            color: var(--text);
+            border-bottom: 2px solid var(--border);
+            padding: 8px 10px;
+        }
+        .page-content td {
+            border-bottom: 1px solid var(--border);
+            padding: 8px 10px;
+            color: var(--text-mid);
+            vertical-align: top;
         }
 
         /* BUTTON */
@@ -208,7 +251,8 @@
                 gap: 16px;
             }
             .nav-links.open { display: flex; }
-            footer .container { flex-direction: column; gap: 8px; text-align: center; }
+            .footer-row { flex-direction: column; gap: 8px; text-align: center; }
+            .footer-guides { justify-content: center; }
         }
     </style>
     
@@ -220,10 +264,9 @@
         <button class="mobile-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">&#9776;</button>
         <ul class="nav-links">
             <li><a href="/getting-started/">Get started</a></li>
+            <li><a href="/diy-skylight-calendar/">DIY calendar</a></li>
+            <li><a href="/skylight-calendar-alternatives/">Alternatives</a></li>
             <li><a href="/about/">About</a></li>
-            <li><a href="/family-dashboard/">Family dashboard</a></li>
-            <li><a href="/morning-routine/">Morning routine</a></li>
-            <li><a href="/office-dashboard/">Office dashboard</a></li>
             <li><a href="https://github.com/caspii/dinkydash">GitHub</a></li>
         </ul>
     </div>
@@ -267,12 +310,24 @@
 
 <footer>
     <div class="container">
-        <span>&copy; 2025 DinkyDash</span>
-        <span class="footer-links">
-            <a href="https://github.com/caspii/dinkydash/issues/new">Feedback</a>
-            <span class="footer-sep">&middot;</span>
-            <a href="https://casparwre.de">Built by Caspar</a>
-        </span>
+        <div class="footer-guides">
+            <a href="/skylight-calendar-alternatives/">Skylight alternatives</a>
+            <a href="/hearth-vs-skylight/">Hearth vs Skylight</a>
+            <a href="/skylight-calendar-subscription/">Skylight subscription costs</a>
+            <a href="/diy-skylight-calendar/">DIY digital calendar</a>
+            <a href="/digital-calendar-and-chore-chart/">Calendar + chore chart</a>
+            <a href="/best-digital-family-calendar/">Best family calendars</a>
+            <a href="/morning-routine/">Morning routines</a>
+            <a href="/family-dashboard/">Family dashboard</a>
+        </div>
+        <div class="footer-row">
+            <span>&copy; 2026 DinkyDash</span>
+            <span class="footer-links">
+                <a href="https://github.com/caspii/dinkydash/issues/new">Feedback</a>
+                <span class="footer-sep">&middot;</span>
+                <a href="https://casparwre.de">Built by Caspar</a>
+            </span>
+        </div>
     </div>
 </footer>
 

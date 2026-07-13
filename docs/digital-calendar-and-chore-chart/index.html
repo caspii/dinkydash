@@ -3,9 +3,9 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>The AI-Powered Family Dashboard — DinkyDash</title>
-    <meta name="description" content="How DinkyDash uses AI to create a daily family dashboard with calendars, chores, countdowns, and personalized content.">
-    <meta property="og:title" content="The AI-Powered Family Dashboard — DinkyDash">
+    <title>A Digital Calendar and Chore Chart in One Screen — DinkyDash</title>
+    <meta name="description" content="Combine the family calendar and the kids' chore chart on one wall screen — with chores that rotate automatically every day. No $300 hardware, no subscription, no nagging.">
+    <meta property="og:title" content="A Digital Calendar and Chore Chart in One Screen — DinkyDash">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://dinkydash.co/">
     <meta property="og:image" content="https://dinkydash.co/images/hero-kitchen.png">
@@ -275,42 +275,49 @@
 <main>
     
 <div class="container page-content">
-    <h1>The AI-Powered Family Dashboard</h1>
-    <p>If you've ever had a child ask "how many days until Christmas?" for the 47th time, DinkyDash was built for you.</p>
-<p>DinkyDash is an AI-powered dashboard that sits on a small screen in your home — in the kitchen, the hallway, or wherever your family passes by. Every morning, it generates a brand new dashboard with everything your family needs to know for the day.</p>
-<h2>What makes it different</h2>
-<p>Traditional family dashboards or shared calendars require someone to keep them updated. DinkyDash doesn't. You set it up once with your family's info, and Claude AI writes fresh content every single morning.</p>
-<p>That means:</p>
-<ul>
-<li><strong>No manual updates.</strong> The dashboard writes itself.</li>
-<li><strong>Always relevant.</strong> It knows what day it is, who has events, and whose turn it is for chores.</li>
-<li><strong>Genuinely fun.</strong> Kids actually want to look at it because there's always something new — a fun fact, a daily challenge, a personalized message.</li>
-</ul>
-<h2>A typical DinkyDash morning</h2>
-<p>Imagine it's a Tuesday in November. Your family wakes up and walks past the dashboard in the kitchen. Today it shows:</p>
-<ul>
-<li>A cheerful headline: "Happy Tuesday! Only 3 more days until the weekend."</li>
-<li>Person cards for each family member with their photo</li>
-<li>Chore badges showing it's Lily's turn for dishes and Sam's turn to feed the dog</li>
-<li>A countdown: 28 days until Christmas, 5 days until Dad's birthday</li>
-<li>Today's calendar: school pickup at 3pm, swimming at 5pm, dinner at grandma's at 7pm</li>
-<li>A fun fact about space that Sam will probably talk about all day</li>
-<li>A daily challenge: "Try to make someone laugh before breakfast"</li>
-</ul>
-<p>All of this was written by AI at 6am, specifically for your family, for this exact day.</p>
-<h2>Five reasons to try DinkyDash</h2>
-<p><strong>1. It answers the recurring questions</strong></p>
-<p>Kids love to ask the same things over and over. How many days until my birthday? Whose turn is it to take the trash out? When is our vacation? The dashboard answers all of these at a glance.</p>
-<p><strong>2. It makes chores fair and visible</strong></p>
-<p>DinkyDash automatically rotates chores daily. Everyone can see whose turn it is right there on the screen. No more "I did it yesterday" arguments.</p>
-<p><strong>3. It keeps the whole family in sync</strong></p>
-<p>By pulling events from Google Calendar, the dashboard shows what everyone has going on today. No more missed pickups or forgotten appointments.</p>
-<p><strong>4. It brings a little joy</strong></p>
-<p>The AI-generated fun facts and daily challenges give your family something to talk about at breakfast. It's a small thing, but it makes mornings a bit more interesting.</p>
-<p><strong>5. It's completely private</strong></p>
-<p>DinkyDash runs on your own Raspberry Pi. Your family data stays in your house. There's no cloud service, no account to create, no data being sent anywhere except to generate the daily dashboard.</p>
-<h2>Getting started</h2>
-<p>DinkyDash is free and open source. You'll need a Raspberry Pi, a small display, and an Anthropic API key. Check out the <a href="https://github.com/caspii/dinkydash">GitHub repository</a> for setup instructions.</p>
+    <h1>A Digital Calendar and Chore Chart in One Screen</h1>
+    <p>Every family runs the same two systems: a calendar (who needs to be where) and a chore chart (who's doing what). And in most kitchens they live in different places — the calendar on someone's phone, the chore chart on paper that stops being true by Wednesday.</p>
+<p>Putting both on one always-on screen changes the dynamic: <strong>kids check the screen instead of asking you</strong>, and the screen — not a parent — is the one saying whose turn it is.</p>
+<p><img alt="A child checking the family chore chart on a wall-mounted kitchen screen" src="/images/chore-chart-kid.png" /></p>
+<h2>Why rotation beats assignment</h2>
+<p>Paper chore charts fail for a predictable reason: someone has to maintain them, and re-negotiate them every time a kid declares "I did it yesterday!"</p>
+<p>DinkyDash handles this with automatic rotation. You define each recurring chore once — say, <em>set the table</em> and <em>feed the dog</em> — and list who's in the rotation. Every day, the assignment advances automatically and appears on the dashboard next to the child's name:</p>
+<blockquote>
+<p>🍽️ Set table — <strong>Jun</strong> &nbsp;&nbsp; 🐕 Feed dog — <strong>Mina</strong></p>
+</blockquote>
+<p>Nobody negotiates with a screen. The rotation is provably fair (it cycles through everyone in order), it never forgets, and it resets fresh every morning alongside the day's calendar events, birthday countdowns, and an AI-written daily brief.</p>
+<h2>Your options for a calendar + chore chart screen</h2>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Cost</th>
+<th>Chore features</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>DinkyDash</strong> (screen you own)</td>
+<td>Free, open source</td>
+<td>Automatic daily rotation</td>
+</tr>
+<tr>
+<td><strong>Skylight Calendar</strong></td>
+<td>$299–$629</td>
+<td>Chore chart free; rewards need Plus ($79/yr)</td>
+</tr>
+<tr>
+<td><strong>Hearth Display</strong></td>
+<td>$699 + $9/mo</td>
+<td>Routines and task assignments</td>
+</tr>
+</tbody>
+</table>
+<p><em>Prices checked July 2026.</em></p>
+<p>Skylight and Hearth both do chores well — that's part of why families pay for them. But if the hardware price is the obstacle, the free route gets you the core loop (visible chores, fair rotation, zero nagging) on a screen you already own. Our <a href="/diy-skylight-calendar/">DIY guide</a> shows the whole build, and the <a href="/getting-started/">getting started guide</a> has the copy-paste setup.</p>
+<h2>The countdown trick</h2>
+<p>One more thing that earns its place on the chore screen: countdowns. "8 days until your birthday" and "19 days until vacation" give kids a reason to look at the dashboard voluntarily every morning — and while they're there, they see whose turn the dishes are. That's the whole trick, honestly.</p>
+<p>Set it up this weekend: <strong><a href="/getting-started/">Getting started with DinkyDash</a></strong> — or <a href="mailto:caspar@keepthescore.com?subject=DinkyDash%20hosted%20waitlist">join the hosted-version waitlist</a> if you'd rather skip the setup.</p>
 </div>
 
 </main>

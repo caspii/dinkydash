@@ -3,11 +3,13 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>DinkyDash — AI-powered family dashboard</title>
-    <meta name="description" content="Claude generates a fresh, personalized dashboard for your family every morning. Calendars, chores, countdowns, fun facts — all on a small screen.">
-    <meta property="og:title" content="DinkyDash — AI-powered family dashboard">
+    <title>DinkyDash — The Digital Family Calendar for Screens You Already Own</title>
+    <meta name="description" content="A free, open-source alternative to Skylight and Hearth. Turn any TV, tablet, or Raspberry Pi into a shared family calendar with a chore chart, countdowns, and an AI-written daily brief.">
+    <meta property="og:title" content="DinkyDash — The Digital Family Calendar for Screens You Already Own">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://dinkydash.co/">
+    <meta property="og:image" content="https://dinkydash.co/images/hero-kitchen.png">
+    <meta name="twitter:card" content="summary_large_image">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -93,11 +95,25 @@
         }
         footer .container {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            flex-direction: column;
+            gap: 14px;
         }
         footer a { color: var(--text-muted); }
         footer a:hover { color: var(--accent); }
+        .footer-guides {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px 18px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+        .footer-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
         .footer-links { display: flex; align-items: center; gap: 8px; }
         .footer-sep { color: var(--border); }
 
@@ -113,6 +129,7 @@
             letter-spacing: -0.02em;
             margin-bottom: 24px;
             color: var(--text);
+            line-height: 1.2;
         }
         .page-content h2 {
             font-size: 1.4rem;
@@ -154,6 +171,32 @@
             border-radius: 0 var(--radius) var(--radius) 0;
             color: var(--text-mid);
             font-style: italic;
+        }
+        .page-content img {
+            width: 100%;
+            height: auto;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            margin: 6px 0 20px;
+        }
+        .page-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0 24px;
+            font-size: 0.9rem;
+        }
+        .page-content th {
+            text-align: left;
+            font-weight: 800;
+            color: var(--text);
+            border-bottom: 2px solid var(--border);
+            padding: 8px 10px;
+        }
+        .page-content td {
+            border-bottom: 1px solid var(--border);
+            padding: 8px 10px;
+            color: var(--text-mid);
+            vertical-align: top;
         }
 
         /* BUTTON */
@@ -208,15 +251,21 @@
                 gap: 16px;
             }
             .nav-links.open { display: flex; }
-            footer .container { flex-direction: column; gap: 8px; text-align: center; }
+            .footer-row { flex-direction: column; gap: 8px; text-align: center; }
+            .footer-guides { justify-content: center; }
         }
     </style>
     
 <style>
     /* HERO */
     .hero {
-        padding: 80px 0 64px;
-        text-align: center;
+        padding: 72px 0 56px;
+    }
+    .hero-grid {
+        display: grid;
+        grid-template-columns: 1.05fr 1fr;
+        gap: 48px;
+        align-items: center;
     }
     .hero-pill {
         display: inline-block;
@@ -226,112 +275,107 @@
         border-radius: 999px;
         font-size: 0.82rem;
         font-weight: 700;
-        margin-bottom: 24px;
+        margin-bottom: 20px;
     }
     .hero h1 {
-        font-size: clamp(2.2rem, 5.5vw, 3.4rem);
+        font-size: clamp(2.1rem, 4.5vw, 3rem);
         font-weight: 800;
         letter-spacing: -0.03em;
-        line-height: 1.15;
-        margin-bottom: 20px;
+        line-height: 1.12;
+        margin-bottom: 18px;
         color: var(--text);
     }
     .hero .subtitle {
-        font-size: 1.15rem;
+        font-size: 1.1rem;
         color: var(--text-mid);
-        max-width: 520px;
-        margin: 0 auto 36px;
+        margin-bottom: 30px;
         line-height: 1.7;
+        max-width: 460px;
     }
-    .hero-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
-
-    /* DASHBOARD SHOWCASE */
-    .showcase {
-        padding: 32px 0 80px;
-    }
-    .showcase-label {
-        text-align: center;
-        font-size: 0.8rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
+    .hero-buttons { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+    .hero-note {
+        font-size: 0.85rem;
         color: var(--text-muted);
-        margin-bottom: 24px;
     }
-    .showcase-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 24px;
+    .hero-note a { font-weight: 700; }
+
+    @media (prefers-reduced-motion: no-preference) {
+        .hero-copy, .hero-screens { animation: rise 0.5s ease-out both; }
+        .hero-screens { animation-delay: 0.12s; }
+        @keyframes rise {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: none; }
+        }
+    }
+
+    /* DEVICE MOCKUPS */
+    .hero-screens { position: relative; padding: 0 0 44px 30px; }
+    .tv-frame {
+        background: var(--surface);
+        border: 13px solid #23201c;
+        border-radius: 20px;
+        box-shadow: 0 24px 60px rgba(45, 35, 25, 0.18);
+        overflow: hidden;
+    }
+    .tablet-frame {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 190px;
+        background: var(--surface);
+        border: 7px solid #2d2823;
+        border-radius: 14px;
+        box-shadow: 0 16px 40px rgba(45, 35, 25, 0.25);
+        overflow: hidden;
+    }
+    .screens-caption {
+        text-align: left;
+        padding-left: 210px;
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        margin-top: 14px;
+        font-style: italic;
     }
 
     /* MINI DASHBOARD */
-    .mini-dash {
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: var(--radius);
-        padding: 24px;
-        box-shadow: 0 4px 24px rgba(45, 35, 25, 0.06);
-        overflow: hidden;
-    }
+    .mini-dash { padding: 18px 20px; }
     .mini-dash-header {
         display: flex;
         justify-content: space-between;
-        align-items: flex-start;
-        margin-bottom: 18px;
+        align-items: baseline;
+        margin-bottom: 10px;
     }
     .mini-dash-title {
-        font-size: 0.75rem;
+        font-size: 0.68rem;
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.06em;
         color: var(--text-muted);
     }
-    .mini-dash-date {
-        font-size: 0.7rem;
-        color: var(--text-muted);
-    }
+    .mini-dash-date { font-size: 0.65rem; color: var(--text-muted); }
     .mini-dash h3 {
-        font-size: 1.05rem;
+        font-size: 0.98rem;
         font-weight: 800;
-        margin-bottom: 16px;
+        margin-bottom: 12px;
         line-height: 1.3;
         color: var(--text);
     }
-    .mini-people {
-        display: flex;
-        gap: 12px;
-        margin-bottom: 16px;
-    }
-    .mini-person {
-        text-align: center;
-        flex: 1;
-    }
+    .mini-people { display: flex; gap: 10px; margin-bottom: 12px; }
+    .mini-person { text-align: center; flex: 1; }
     .mini-avatar {
-        width: 44px; height: 44px;
+        width: 38px; height: 38px;
         border-radius: 50%;
         display: flex; align-items: center; justify-content: center;
-        font-size: 1.3rem;
-        margin: 0 auto 4px;
+        font-size: 1.15rem;
+        margin: 0 auto 3px;
     }
-    .mini-person-name {
-        font-size: 0.7rem;
-        font-weight: 700;
-        color: var(--text);
-    }
-    .mini-person-note {
-        font-size: 0.6rem;
-        color: var(--text-muted);
-    }
-    .mini-badges {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 6px;
-        margin-bottom: 14px;
-    }
+    .mini-person-name { font-size: 0.65rem; font-weight: 700; color: var(--text); }
+    .mini-person-note { font-size: 0.56rem; color: var(--text-muted); }
+    .mini-badges { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 11px; }
     .mini-badge {
-        font-size: 0.68rem;
+        font-size: 0.62rem;
         font-weight: 700;
-        padding: 4px 10px;
+        padding: 3px 9px;
         border-radius: 999px;
         white-space: nowrap;
     }
@@ -340,62 +384,153 @@
     .mini-badge.blue { background: rgba(59,130,246,0.1); color: #2563eb; }
     .mini-badge.green { background: rgba(22,163,74,0.1); color: #15803d; }
     .mini-badge.pink { background: rgba(219,39,119,0.1); color: #be185d; }
-    .mini-items {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-    }
+    .mini-items { display: flex; flex-direction: column; gap: 6px; }
     .mini-item {
         display: flex;
         align-items: center;
-        gap: 10px;
-        font-size: 0.78rem;
+        gap: 8px;
+        font-size: 0.7rem;
         color: var(--text-mid);
     }
-    .mini-item-emoji {
-        font-size: 1rem;
-        flex-shrink: 0;
-        width: 24px;
-        text-align: center;
-    }
+    .mini-item-emoji { font-size: 0.9rem; flex-shrink: 0; width: 20px; text-align: center; }
     .mini-item strong { color: var(--text); font-weight: 700; }
     .mini-funfact {
         background: var(--surface-warm);
-        border-radius: 12px;
-        padding: 12px 14px;
-        font-size: 0.78rem;
+        border-radius: 10px;
+        padding: 9px 12px;
+        font-size: 0.66rem;
         color: var(--text-mid);
         line-height: 1.5;
-        margin-top: 14px;
+        margin-top: 11px;
     }
     .mini-funfact strong { color: var(--accent); }
-    .mini-calendar {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-    }
-    .mini-event {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        font-size: 0.78rem;
-    }
+    .mini-calendar { display: flex; flex-direction: column; gap: 6px; margin-bottom: 11px; }
+    .mini-event { display: flex; align-items: center; gap: 8px; font-size: 0.7rem; }
     .mini-event-time {
         font-weight: 700;
         color: var(--accent);
         white-space: nowrap;
-        min-width: 48px;
-        font-size: 0.72rem;
+        min-width: 40px;
+        font-size: 0.64rem;
     }
     .mini-event-title { color: var(--text-mid); }
 
-    /* VALUE PROPS */
-    .value {
+    /* Tablet mini content (condensed) */
+    .tablet-frame .mini-dash { padding: 10px 12px; }
+    .tablet-frame .mini-dash h3 { font-size: 0.68rem; margin-bottom: 7px; }
+    .tablet-frame .mini-event { font-size: 0.56rem; gap: 6px; }
+    .tablet-frame .mini-event-time { font-size: 0.52rem; min-width: 30px; }
+    .tablet-frame .mini-dash-header { margin-bottom: 5px; }
+    .tablet-frame .mini-dash-title, .tablet-frame .mini-dash-date { font-size: 0.5rem; }
+
+    /* PRICE MATH */
+    .math {
+        padding: 56px 0;
+        border-top: 1px solid var(--border);
+    }
+    .math h2 {
+        font-size: 1.7rem;
+        font-weight: 800;
+        text-align: center;
+        letter-spacing: -0.02em;
+        margin-bottom: 32px;
+    }
+    .math-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+        max-width: 860px;
+        margin: 0 auto;
+    }
+    .math-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 24px;
+        text-align: center;
+    }
+    .math-card.highlight { border: 2px solid var(--accent); background: var(--accent-soft); }
+    .math-name { font-size: 0.85rem; font-weight: 700; color: var(--text-mid); margin-bottom: 8px; }
+    .math-price { font-size: 1.9rem; font-weight: 800; letter-spacing: -0.02em; color: var(--text); }
+    .math-sub { font-size: 0.82rem; color: var(--text-muted); margin-top: 4px; }
+    .math-card.highlight .math-price { color: var(--accent); }
+    .math-note {
+        text-align: center;
+        font-size: 0.78rem;
+        color: var(--text-muted);
+        margin-top: 20px;
+    }
+
+    /* SCREENS YOU OWN */
+    .screens {
         padding: 64px 0;
         background: var(--surface-warm);
         border-top: 1px solid var(--border);
         border-bottom: 1px solid var(--border);
     }
+    .screens h2 {
+        font-size: 2rem;
+        font-weight: 800;
+        text-align: center;
+        margin-bottom: 12px;
+        letter-spacing: -0.02em;
+    }
+    .screens > .container > p {
+        text-align: center;
+        color: var(--text-mid);
+        max-width: 520px;
+        margin: 0 auto 40px;
+        font-size: 1.05rem;
+    }
+    .screens-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+    }
+    .screen-tile {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 22px 20px;
+    }
+    .screen-tile .emoji { font-size: 1.5rem; margin-bottom: 10px; }
+    .screen-tile h3 { font-size: 0.95rem; font-weight: 800; margin-bottom: 4px; }
+    .screen-tile p { font-size: 0.82rem; color: var(--text-mid); line-height: 1.55; }
+
+    /* SHOWCASE */
+    .showcase { padding: 72px 0 8px; }
+    .showcase-label {
+        text-align: center;
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--text-muted);
+        margin-bottom: 8px;
+    }
+    .showcase h2 {
+        font-size: 2rem;
+        font-weight: 800;
+        text-align: center;
+        margin-bottom: 32px;
+        letter-spacing: -0.02em;
+    }
+    .showcase-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+    }
+    .showcase-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: 0 4px 24px rgba(45, 35, 25, 0.06);
+        overflow: hidden;
+    }
+    .showcase-card .mini-dash { padding: 24px; }
+
+    /* VALUE PROPS */
+    .value { padding: 72px 0 8px; }
     .value h2 {
         font-size: 2rem;
         font-weight: 800;
@@ -407,7 +542,7 @@
         text-align: center;
         color: var(--text-mid);
         max-width: 500px;
-        margin: 0 auto 48px;
+        margin: 0 auto 40px;
         font-size: 1.05rem;
     }
     .value-grid {
@@ -421,30 +556,17 @@
         padding: 28px;
         border: 1px solid var(--border);
     }
-    .value-emoji {
-        font-size: 1.6rem;
-        margin-bottom: 12px;
-    }
-    .value-card h3 {
-        font-size: 1rem;
-        font-weight: 800;
-        margin-bottom: 6px;
-    }
-    .value-card p {
-        font-size: 0.88rem;
-        color: var(--text-mid);
-        line-height: 1.6;
-    }
+    .value-emoji { font-size: 1.6rem; margin-bottom: 12px; }
+    .value-card h3 { font-size: 1rem; font-weight: 800; margin-bottom: 6px; }
+    .value-card p { font-size: 0.88rem; color: var(--text-mid); line-height: 1.6; }
 
     /* HOW IT WORKS */
-    .how {
-        padding: 80px 0;
-    }
+    .how { padding: 72px 0 0; }
     .how h2 {
         font-size: 2rem;
         font-weight: 800;
         text-align: center;
-        margin-bottom: 48px;
+        margin-bottom: 44px;
         letter-spacing: -0.02em;
     }
     .steps {
@@ -454,11 +576,7 @@
         max-width: 580px;
         margin: 0 auto;
     }
-    .step {
-        display: flex;
-        gap: 18px;
-        align-items: flex-start;
-    }
+    .step { display: flex; gap: 18px; align-items: flex-start; }
     .step-num {
         flex-shrink: 0;
         width: 36px; height: 36px;
@@ -469,38 +587,68 @@
         font-size: 0.85rem;
         font-weight: 800;
     }
-    .step-body h3 {
-        font-size: 1rem;
-        font-weight: 700;
-        margin-bottom: 2px;
+    .step-body h3 { font-size: 1rem; font-weight: 700; margin-bottom: 2px; }
+    .step-body p { color: var(--text-mid); font-size: 0.9rem; }
+
+    /* FAQ */
+    .faq { padding: 72px 0 0; }
+    .faq h2 {
+        font-size: 2rem;
+        font-weight: 800;
+        text-align: center;
+        margin-bottom: 36px;
+        letter-spacing: -0.02em;
     }
-    .step-body p {
-        color: var(--text-mid);
+    .faq-list { max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; gap: 10px; }
+    .faq-list details {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 16px 20px;
+    }
+    .faq-list summary {
+        font-weight: 700;
+        font-size: 0.95rem;
+        cursor: pointer;
+        color: var(--text);
+        list-style: none;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+    }
+    .faq-list summary::after { content: "+"; color: var(--accent); font-weight: 800; font-size: 1.1rem; }
+    .faq-list details[open] summary::after { content: "–"; }
+    .faq-list details p {
+        margin-top: 10px;
         font-size: 0.9rem;
+        color: var(--text-mid);
     }
 
     /* CTA */
-    .cta {
-        text-align: center;
-        padding: 64px 0 0;
-    }
-    .cta h2 {
-        font-size: 1.8rem;
-        font-weight: 800;
-        margin-bottom: 12px;
-    }
-    .cta p {
-        color: var(--text-mid);
-        max-width: 420px;
-        margin: 0 auto 28px;
-        font-size: 1rem;
-    }
+    .cta { text-align: center; padding: 72px 0 0; }
+    .cta h2 { font-size: 1.8rem; font-weight: 800; margin-bottom: 12px; letter-spacing: -0.02em; }
+    .cta p { color: var(--text-mid); max-width: 460px; margin: 0 auto 28px; font-size: 1rem; }
+    .cta-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-bottom: 16px; }
+    .cta-note { font-size: 0.85rem; color: var(--text-muted); }
 
+    @media (max-width: 860px) {
+        .hero-grid { grid-template-columns: 1fr; gap: 40px; }
+        .hero .subtitle { max-width: none; }
+        .hero-screens { max-width: 540px; margin: 0 auto; }
+        .screens-grid { grid-template-columns: repeat(2, 1fr); }
+    }
     @media (max-width: 720px) {
         .showcase-grid { grid-template-columns: 1fr; }
         .value-grid { grid-template-columns: 1fr; }
-        .hero { padding: 56px 0 48px; }
-        .mini-people { gap: 8px; }
+        .math-grid { grid-template-columns: 1fr; }
+        .hero { padding: 48px 0 40px; }
+    }
+    @media (max-width: 480px) {
+        .screens-grid { grid-template-columns: 1fr; }
+        .tablet-frame { width: 150px; }
+        .hero-screens { padding-left: 16px; }
+        .screens-caption { padding-left: 160px; }
     }
 </style>
 
@@ -512,10 +660,9 @@
         <button class="mobile-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">&#9776;</button>
         <ul class="nav-links">
             <li><a href="/getting-started/">Get started</a></li>
+            <li><a href="/diy-skylight-calendar/">DIY calendar</a></li>
+            <li><a href="/skylight-calendar-alternatives/">Alternatives</a></li>
             <li><a href="/about/">About</a></li>
-            <li><a href="/family-dashboard/">Family dashboard</a></li>
-            <li><a href="/morning-routine/">Morning routine</a></li>
-            <li><a href="/office-dashboard/">Office dashboard</a></li>
             <li><a href="https://github.com/caspii/dinkydash">GitHub</a></li>
         </ul>
     </div>
@@ -527,105 +674,233 @@
 <!-- HERO -->
 <section class="hero">
     <div class="container">
-        <div class="hero-pill">Powered by Claude AI</div>
-        <h1>Your family's daily dashboard,<br>made fresh every morning</h1>
-        <p class="subtitle">DinkyDash uses AI to create a personalized dashboard for your family each day — with calendar events, chore rotations, countdowns, and fun surprises.</p>
-        <div class="hero-buttons">
-            <a href="/getting-started/" class="btn">Get started</a>
-            <a href="/about/" class="btn btn-outline">Learn more</a>
+        <div class="hero-grid">
+            <div class="hero-copy">
+                <div class="hero-pill">Free &amp; open source · Works with Google Calendar</div>
+                <h1>The digital family calendar for screens you already own</h1>
+                <p class="subtitle">DinkyDash turns any TV, tablet, or Raspberry Pi into a shared family calendar — with a chore chart, birthday countdowns, and a daily brief written fresh every morning by AI. No $300 frame. No subscription.</p>
+                <div class="hero-buttons">
+                    <a href="/getting-started/" class="btn">Set it up free</a>
+                    <a href="/skylight-calendar-alternatives/" class="btn btn-outline">Compare with Skylight</a>
+                </div>
+                <p class="hero-note">Prefer zero setup? <a href="mailto:caspar@keepthescore.com?subject=DinkyDash%20hosted%20waitlist">Join the hosted-version waitlist &rarr;</a></p>
+            </div>
+
+            <div class="hero-screens">
+                <div class="tv-frame">
+                    <div class="mini-dash">
+                        <div class="mini-dash-header">
+                            <div class="mini-dash-title">The Johnsons</div>
+                            <div class="mini-dash-date">Wednesday, Feb 5</div>
+                        </div>
+                        <h3>Library books are due today — Lily's got this!</h3>
+                        <div class="mini-people">
+                            <div class="mini-person">
+                                <div class="mini-avatar" style="background: #fde68a;">&#128104;</div>
+                                <div class="mini-person-name">Dad</div>
+                                <div class="mini-person-note">42 years</div>
+                            </div>
+                            <div class="mini-person">
+                                <div class="mini-avatar" style="background: #fbcfe8;">&#128105;</div>
+                                <div class="mini-person-name">Mom</div>
+                                <div class="mini-person-note">39 years</div>
+                            </div>
+                            <div class="mini-person">
+                                <div class="mini-avatar" style="background: #bfdbfe;">&#128103;</div>
+                                <div class="mini-person-name">Lily</div>
+                                <div class="mini-person-note">8 years</div>
+                            </div>
+                            <div class="mini-person">
+                                <div class="mini-avatar" style="background: #bbf7d0;">&#128102;</div>
+                                <div class="mini-person-name">Sam</div>
+                                <div class="mini-person-note">5 years</div>
+                            </div>
+                        </div>
+                        <div class="mini-calendar">
+                            <div class="mini-event"><span class="mini-event-time">8:30</span> <span class="mini-event-title">School drop-off</span></div>
+                            <div class="mini-event"><span class="mini-event-time">15:30</span> <span class="mini-event-title">Lily: Swimming practice</span></div>
+                            <div class="mini-event"><span class="mini-event-time">18:30</span> <span class="mini-event-title">Family: Taco night!</span></div>
+                        </div>
+                        <div class="mini-badges">
+                            <span class="mini-badge orange">&#128166; Dishes &mdash; Lily</span>
+                            <span class="mini-badge purple">&#128021; Feed dog &mdash; Sam</span>
+                            <span class="mini-badge blue">&#9851;&#65039; Bins &mdash; Dad</span>
+                        </div>
+                        <div class="mini-items">
+                            <div class="mini-item"><span class="mini-item-emoji">&#127874;</span> <strong>8 days</strong> until Lily's birthday</div>
+                            <div class="mini-item"><span class="mini-item-emoji">&#9992;&#65039;</span> <strong>51 days</strong> until family vacation</div>
+                        </div>
+                        <div class="mini-funfact"><strong>Fun fact:</strong> Octopuses have three hearts and blue blood!</div>
+                    </div>
+                </div>
+                <div class="tablet-frame">
+                    <div class="mini-dash">
+                        <div class="mini-dash-header">
+                            <div class="mini-dash-title">Same day</div>
+                            <div class="mini-dash-date">Old iPad</div>
+                        </div>
+                        <h3>Library books are due today!</h3>
+                        <div class="mini-calendar">
+                            <div class="mini-event"><span class="mini-event-time">8:30</span> <span class="mini-event-title">School drop-off</span></div>
+                            <div class="mini-event"><span class="mini-event-time">15:30</span> <span class="mini-event-title">Swimming</span></div>
+                            <div class="mini-event"><span class="mini-event-time">18:30</span> <span class="mini-event-title">Taco night!</span></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="screens-caption">The same morning, on the living-room TV and the iPad that was in a drawer last week.</div>
+            </div>
         </div>
     </div>
 </section>
 
-<!-- DASHBOARD SHOWCASE -->
+<!-- PRICE MATH -->
+<section class="math">
+    <div class="container">
+        <h2>Do the math</h2>
+        <div class="math-grid">
+            <div class="math-card">
+                <div class="math-name">Skylight Calendar Max 27&Prime;</div>
+                <div class="math-price">$629</div>
+                <div class="math-sub">+ $79/yr for Plus features</div>
+            </div>
+            <div class="math-card">
+                <div class="math-name">Hearth Display 27&Prime;</div>
+                <div class="math-price">$699</div>
+                <div class="math-sub">+ $9/mo membership</div>
+            </div>
+            <div class="math-card highlight">
+                <div class="math-name">DinkyDash on your own screen</div>
+                <div class="math-price">$0</div>
+                <div class="math-sub">open source + pennies of AI per day</div>
+            </div>
+        </div>
+        <p class="math-note">Prices checked July 2026. Skylight and Hearth are lovely products — you just might not need new hardware.</p>
+    </div>
+</section>
+
+<!-- SCREENS YOU ALREADY OWN -->
+<section class="screens">
+    <div class="container">
+        <h2>Bring your own screen</h2>
+        <p>DinkyDash is a web page your family's calendar lives on. Anything with a browser becomes the family command center.</p>
+        <div class="screens-grid">
+            <div class="screen-tile">
+                <div class="emoji">&#128241;</div>
+                <h3>An old tablet</h3>
+                <p>The retired iPad or Fire tablet in the drawer becomes a kitchen calendar in ten minutes.</p>
+            </div>
+            <div class="screen-tile">
+                <div class="emoji">&#128250;</div>
+                <h3>Any TV</h3>
+                <p>Open the dashboard in the TV browser or cast it. Great for the living room wall.</p>
+            </div>
+            <div class="screen-tile">
+                <div class="emoji">&#129383;</div>
+                <h3>A Raspberry Pi</h3>
+                <p>The classic build: Pi + small touchscreen, about $100 all-in. <a href="/diy-skylight-calendar/">Full guide here</a>.</p>
+            </div>
+            <div class="screen-tile">
+                <div class="emoji">&#128187;</div>
+                <h3>A spare monitor</h3>
+                <p>Prop it on the counter, point a browser at your dashboard URL, done.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- SHOWCASE -->
 <section class="showcase">
     <div class="container">
-        <div class="showcase-label">What your dashboard looks like</div>
+        <div class="showcase-label">Written fresh every morning</div>
+        <h2>No two days look the same</h2>
         <div class="showcase-grid">
 
-            <!-- Dashboard 1: Family morning -->
-            <div class="mini-dash">
-                <div class="mini-dash-header">
-                    <div class="mini-dash-title">The Johnsons</div>
-                    <div class="mini-dash-date">Wednesday, Feb 5</div>
-                </div>
-                <h3>Halfway through the week! Let's make today count.</h3>
-                <div class="mini-people">
-                    <div class="mini-person">
-                        <div class="mini-avatar" style="background: #fde68a;">&#128104;</div>
-                        <div class="mini-person-name">Dad</div>
-                        <div class="mini-person-note">42 years</div>
+            <div class="showcase-card">
+                <div class="mini-dash">
+                    <div class="mini-dash-header">
+                        <div class="mini-dash-title">The Petersons</div>
+                        <div class="mini-dash-date">Monday, Feb 3</div>
                     </div>
-                    <div class="mini-person">
-                        <div class="mini-avatar" style="background: #fbcfe8;">&#128105;</div>
-                        <div class="mini-person-name">Mom</div>
-                        <div class="mini-person-note">39 years</div>
+                    <h3>New week, new adventures! Here's what's happening today.</h3>
+                    <div class="mini-people">
+                        <div class="mini-person">
+                            <div class="mini-avatar" style="background: #e9d5ff;">&#128113;</div>
+                            <div class="mini-person-name">Maria</div>
+                            <div class="mini-person-note">37 years</div>
+                        </div>
+                        <div class="mini-person">
+                            <div class="mini-avatar" style="background: #fef3c7;">&#129489;</div>
+                            <div class="mini-person-name">Tom</div>
+                            <div class="mini-person-note">38 years</div>
+                        </div>
+                        <div class="mini-person">
+                            <div class="mini-avatar" style="background: #fecaca;">&#128103;</div>
+                            <div class="mini-person-name">Ella</div>
+                            <div class="mini-person-note">10 years</div>
+                        </div>
                     </div>
-                    <div class="mini-person">
-                        <div class="mini-avatar" style="background: #bfdbfe;">&#128566;</div>
-                        <div class="mini-person-name">Lily</div>
-                        <div class="mini-person-note">8 years</div>
+                    <div class="mini-calendar">
+                        <div class="mini-event"><span class="mini-event-time">8:30</span> <span class="mini-event-title">Ella: School drop-off</span></div>
+                        <div class="mini-event"><span class="mini-event-time">10:00</span> <span class="mini-event-title">Maria: Dentist appointment</span></div>
+                        <div class="mini-event"><span class="mini-event-time">15:30</span> <span class="mini-event-title">Ella: Swimming practice</span></div>
+                        <div class="mini-event"><span class="mini-event-time">18:00</span> <span class="mini-event-title">Family: Pizza night!</span></div>
                     </div>
-                    <div class="mini-person">
-                        <div class="mini-avatar" style="background: #bbf7d0;">&#128103;</div>
-                        <div class="mini-person-name">Sam</div>
-                        <div class="mini-person-note">5 years</div>
-                    </div>
-                </div>
-                <div class="mini-badges">
-                    <span class="mini-badge orange">&#128166; Dishes &mdash; Lily</span>
-                    <span class="mini-badge purple">&#128022; Feed dog &mdash; Sam</span>
-                    <span class="mini-badge blue">&#9851;&#65039; Bins &mdash; Dad</span>
-                </div>
-                <div class="mini-items">
-                    <div class="mini-item"><span class="mini-item-emoji">&#127876;</span> <strong>32 days</strong> until Christmas</div>
-                    <div class="mini-item"><span class="mini-item-emoji">&#127874;</span> <strong>8 days</strong> until Lily's birthday</div>
-                    <div class="mini-item"><span class="mini-item-emoji">&#9992;&#65039;</span> <strong>51 days</strong> until family vacation</div>
-                </div>
-                <div class="mini-funfact"><strong>Fun fact:</strong> Octopuses have three hearts and blue blood. Two hearts pump blood to the gills, while one pumps it to the rest of the body!</div>
-            </div>
-
-            <!-- Dashboard 2: Calendar + events focus -->
-            <div class="mini-dash">
-                <div class="mini-dash-header">
-                    <div class="mini-dash-title">The Petersons</div>
-                    <div class="mini-dash-date">Monday, Feb 3</div>
-                </div>
-                <h3>New week, new adventures! Here's what's happening today.</h3>
-                <div class="mini-people">
-                    <div class="mini-person">
-                        <div class="mini-avatar" style="background: #e9d5ff;">&#128113;</div>
-                        <div class="mini-person-name">Maria</div>
-                        <div class="mini-person-note">37 years</div>
-                    </div>
-                    <div class="mini-person">
-                        <div class="mini-avatar" style="background: #fef3c7;">&#129489;</div>
-                        <div class="mini-person-name">Tom</div>
-                        <div class="mini-person-note">38 years</div>
-                    </div>
-                    <div class="mini-person">
-                        <div class="mini-avatar" style="background: #fecaca;">&#128103;</div>
-                        <div class="mini-person-name">Ella</div>
-                        <div class="mini-person-note">10 years</div>
-                    </div>
-                </div>
-                <div class="mini-calendar">
-                    <div class="mini-event"><span class="mini-event-time">8:30</span> <span class="mini-event-title">Ella: School drop-off</span></div>
-                    <div class="mini-event"><span class="mini-event-time">10:00</span> <span class="mini-event-title">Maria: Dentist appointment</span></div>
-                    <div class="mini-event"><span class="mini-event-time">15:30</span> <span class="mini-event-title">Ella: Swimming practice</span></div>
-                    <div class="mini-event"><span class="mini-event-time">18:00</span> <span class="mini-event-title">Family: Pizza night!</span></div>
-                </div>
-                <div style="margin-top: 14px;">
                     <div class="mini-badges">
                         <span class="mini-badge green">&#127793; Water plants &mdash; Ella</span>
                         <span class="mini-badge pink">&#128058; Feed cat &mdash; Tom</span>
                     </div>
+                    <div class="mini-items">
+                        <div class="mini-item"><span class="mini-item-emoji">&#127946;</span> <strong>3 days</strong> until Ella's gymnastics show</div>
+                        <div class="mini-item"><span class="mini-item-emoji">&#128153;</span> <strong>11 days</strong> until Valentine's Day</div>
+                    </div>
+                    <div class="mini-funfact"><strong>Daily challenge:</strong> Everyone try to say "thank you" to someone you don't usually thank today!</div>
                 </div>
-                <div class="mini-items" style="margin-top: 2px;">
-                    <div class="mini-item"><span class="mini-item-emoji">&#127946;</span> <strong>3 days</strong> until Ella's gymnastics show</div>
-                    <div class="mini-item"><span class="mini-item-emoji">&#128153;</span> <strong>11 days</strong> until Valentine's Day</div>
+            </div>
+
+            <div class="showcase-card">
+                <div class="mini-dash">
+                    <div class="mini-dash-header">
+                        <div class="mini-dash-title">The Kims</div>
+                        <div class="mini-dash-date">Saturday, Jun 14</div>
+                    </div>
+                    <h3>Saturday! Soccer, sunshine, and zero school runs.</h3>
+                    <div class="mini-people">
+                        <div class="mini-person">
+                            <div class="mini-avatar" style="background: #bfdbfe;">&#128104;</div>
+                            <div class="mini-person-name">Daniel</div>
+                            <div class="mini-person-note">41 years</div>
+                        </div>
+                        <div class="mini-person">
+                            <div class="mini-avatar" style="background: #fbcfe8;">&#128105;</div>
+                            <div class="mini-person-name">Sora</div>
+                            <div class="mini-person-note">40 years</div>
+                        </div>
+                        <div class="mini-person">
+                            <div class="mini-avatar" style="background: #bbf7d0;">&#128102;</div>
+                            <div class="mini-person-name">Jun</div>
+                            <div class="mini-person-note">7 years</div>
+                        </div>
+                        <div class="mini-person">
+                            <div class="mini-avatar" style="background: #fde68a;">&#128103;</div>
+                            <div class="mini-person-name">Mina</div>
+                            <div class="mini-person-note">4 years</div>
+                        </div>
+                    </div>
+                    <div class="mini-calendar">
+                        <div class="mini-event"><span class="mini-event-time">9:00</span> <span class="mini-event-title">Jun: Soccer match</span></div>
+                        <div class="mini-event"><span class="mini-event-time">12:30</span> <span class="mini-event-title">Picnic at Vondelpark</span></div>
+                        <div class="mini-event"><span class="mini-event-time">19:00</span> <span class="mini-event-title">Movie night: Mina picks!</span></div>
+                    </div>
+                    <div class="mini-badges">
+                        <span class="mini-badge orange">&#127859; Set table &mdash; Jun</span>
+                        <span class="mini-badge blue">&#128031; Feed fish &mdash; Mina</span>
+                    </div>
+                    <div class="mini-items">
+                        <div class="mini-item"><span class="mini-item-emoji">&#127874;</span> <strong>2 days</strong> until Mina's birthday</div>
+                        <div class="mini-item"><span class="mini-item-emoji">&#9992;&#65039;</span> <strong>19 days</strong> until summer vacation</div>
+                    </div>
+                    <div class="mini-funfact"><strong>Daily challenge:</strong> Screen-free morning — first one to reach for a phone does the dishes!</div>
                 </div>
-                <div class="mini-funfact"><strong>Daily challenge:</strong> Everyone try to say "thank you" to someone you don't usually thank today!</div>
             </div>
 
         </div>
@@ -635,38 +910,38 @@
 <!-- VALUE PROPS -->
 <section class="value">
     <div class="container">
-        <h2>Why families love DinkyDash</h2>
-        <p>No more answering the same questions. Your family just looks at the screen.</p>
+        <h2>One screen answers everyone's questions</h2>
+        <p>"What's today?" "Whose turn is it?" "How many days until my birthday?" — the wall knows.</p>
         <div class="value-grid">
             <div class="value-card">
                 <div class="value-emoji">&#128197;</div>
-                <h3>Calendar at a glance</h3>
-                <p>Syncs with Google Calendar so everyone knows what's happening today, without asking.</p>
+                <h3>Your calendar, on the wall</h3>
+                <p>Syncs with Google Calendar (or any calendar with an iCal link), so the whole family sees the day at a glance.</p>
             </div>
             <div class="value-card">
                 <div class="value-emoji">&#128260;</div>
-                <h3>Fair chore rotation</h3>
-                <p>Automatically rotates daily chores between family members. No arguments, no forgetting.</p>
+                <h3>Chore chart built in</h3>
+                <p>Chores rotate between kids automatically every day. The screen says whose turn it is, so you don't have to.</p>
             </div>
             <div class="value-card">
-                <div class="value-emoji">&#9201;</div>
-                <h3>Countdowns to the fun stuff</h3>
-                <p>Birthdays, holidays, vacations. Kids always know how many days until the next big thing.</p>
+                <div class="value-emoji">&#9201;&#65039;</div>
+                <h3>Countdowns kids check daily</h3>
+                <p>Birthdays, holidays, vacations. Ages update themselves. No more answering "how many days until…" on repeat.</p>
             </div>
             <div class="value-card">
                 <div class="value-emoji">&#129302;</div>
-                <h3>AI-written surprises</h3>
-                <p>Fun facts, daily challenges, and personalized messages — all different, every single day.</p>
+                <h3>A daily brief written by AI</h3>
+                <p>Every morning Claude writes a fresh greeting, fun fact, and family challenge based on your actual day. Never the same twice.</p>
             </div>
             <div class="value-card">
-                <div class="value-emoji">&#128248;</div>
-                <h3>Tiny screen, big smiles</h3>
-                <p>Designed for a small display on a Raspberry Pi. Mount it in the kitchen and everyone sees it.</p>
+                <div class="value-emoji">&#128274;</div>
+                <h3>Private by design</h3>
+                <p>Your family's details live in one config file on your own device — not on someone else's cloud.</p>
             </div>
             <div class="value-card">
-                <div class="value-emoji">&#9881;&#65039;</div>
-                <h3>Easy to set up</h3>
-                <p>One YAML file to configure your family, pets, chores, and dates. No accounts, no cloud, no fuss.</p>
+                <div class="value-emoji">&#128176;</div>
+                <h3>No subscription</h3>
+                <p>MIT-licensed and free forever. The AI costs pennies a day with your own API key.</p>
             </div>
         </div>
     </div>
@@ -680,24 +955,53 @@
             <div class="step">
                 <div class="step-num">1</div>
                 <div class="step-body">
-                    <h3>Describe your family</h3>
-                    <p>Add names, birthdays, pets, chores, and your Google Calendar link to a simple config file.</p>
+                    <h3>Describe your family once</h3>
+                    <p>Names, birthdays, pets, chores, special dates, and your calendar link go in one simple config file.</p>
                 </div>
             </div>
             <div class="step">
                 <div class="step-num">2</div>
                 <div class="step-body">
-                    <h3>AI creates your dashboard each morning</h3>
-                    <p>Every day at 6am, DinkyDash sends your family's info to Claude, which writes a complete, personalized dashboard.</p>
+                    <h3>AI writes tomorrow's dashboard overnight</h3>
+                    <p>Every morning at 6am, DinkyDash reads your calendar and has Claude write a complete, personalized dashboard for the day.</p>
                 </div>
             </div>
             <div class="step">
                 <div class="step-num">3</div>
                 <div class="step-body">
-                    <h3>Display it on a small screen</h3>
-                    <p>A Raspberry Pi serves the dashboard in the kitchen, hallway, or wherever your family gathers. It refreshes automatically.</p>
+                    <h3>Point any screen at it</h3>
+                    <p>TV, tablet, Raspberry Pi, spare monitor — anything with a browser. It refreshes itself all day.</p>
                 </div>
             </div>
+        </div>
+    </div>
+</section>
+
+<!-- FAQ -->
+<section class="faq">
+    <div class="container">
+        <h2>Questions families ask</h2>
+        <div class="faq-list">
+            <details>
+                <summary>What screens can I use?</summary>
+                <p>Anything with a web browser: an old iPad or Android tablet, a smart TV, a Raspberry Pi with a touchscreen, a spare monitor, or a laptop on the counter. The dashboard is designed to be glanceable from across the room.</p>
+            </details>
+            <details>
+                <summary>Is it really free?</summary>
+                <p>Yes — DinkyDash is open source (MIT license). You run it yourself and bring your own Anthropic API key; a day's dashboard costs a few cents in AI usage. There is no subscription and nothing to unlock.</p>
+            </details>
+            <details>
+                <summary>Do I need to be technical to set it up?</summary>
+                <p>Today, a little — if you're comfortable copying commands into a terminal, the <a href="/getting-started/">setup guide</a> takes about an afternoon. A hosted version with zero setup is in the works — <a href="mailto:caspar@keepthescore.com?subject=DinkyDash%20hosted%20waitlist">join the waitlist</a>.</p>
+            </details>
+            <details>
+                <summary>Does it work with Google Calendar?</summary>
+                <p>Yes. DinkyDash reads any calendar that publishes an iCal link — Google Calendar, Apple iCloud Calendar, and Outlook all do. You can filter events to just the family members you choose.</p>
+            </details>
+            <details>
+                <summary>How is this different from a Skylight or Hearth?</summary>
+                <p>Skylight and Hearth sell you a dedicated touchscreen ($299–$699) with an optional or required subscription. DinkyDash is just the software — free, open source, and running on a screen you already own. It also does something they don't: an AI-written daily brief personalized to your family. <a href="/skylight-calendar-alternatives/">See the full comparison</a>.</p>
+            </details>
         </div>
     </div>
 </section>
@@ -705,9 +1009,13 @@
 <!-- CTA -->
 <section class="cta">
     <div class="container">
-        <h2>Free and open source</h2>
-        <p>DinkyDash is MIT-licensed. Set it up in an afternoon and have a new dashboard waiting for your family every morning.</p>
-        <a href="https://github.com/caspii/dinkydash" class="btn">View on GitHub</a>
+        <h2>Put your family's day on the wall this weekend</h2>
+        <p>Free and open source. Set it up in an afternoon and there's a fresh dashboard waiting every morning.</p>
+        <div class="cta-buttons">
+            <a href="/getting-started/" class="btn">Set it up free</a>
+            <a href="https://github.com/caspii/dinkydash" class="btn btn-outline">View on GitHub</a>
+        </div>
+        <p class="cta-note">Or <a href="mailto:caspar@keepthescore.com?subject=DinkyDash%20hosted%20waitlist">join the hosted-version waitlist</a> and skip the setup entirely.</p>
     </div>
 </section>
 
@@ -716,12 +1024,24 @@
 
 <footer>
     <div class="container">
-        <span>&copy; 2025 DinkyDash</span>
-        <span class="footer-links">
-            <a href="https://github.com/caspii/dinkydash/issues/new">Feedback</a>
-            <span class="footer-sep">&middot;</span>
-            <a href="https://casparwre.de">Built by Caspar</a>
-        </span>
+        <div class="footer-guides">
+            <a href="/skylight-calendar-alternatives/">Skylight alternatives</a>
+            <a href="/hearth-vs-skylight/">Hearth vs Skylight</a>
+            <a href="/skylight-calendar-subscription/">Skylight subscription costs</a>
+            <a href="/diy-skylight-calendar/">DIY digital calendar</a>
+            <a href="/digital-calendar-and-chore-chart/">Calendar + chore chart</a>
+            <a href="/best-digital-family-calendar/">Best family calendars</a>
+            <a href="/morning-routine/">Morning routines</a>
+            <a href="/family-dashboard/">Family dashboard</a>
+        </div>
+        <div class="footer-row">
+            <span>&copy; 2026 DinkyDash</span>
+            <span class="footer-links">
+                <a href="https://github.com/caspii/dinkydash/issues/new">Feedback</a>
+                <span class="footer-sep">&middot;</span>
+                <a href="https://casparwre.de">Built by Caspar</a>
+            </span>
+        </div>
     </div>
 </footer>
 
@@ -731,6 +1051,35 @@
 <!-- Ahrefs analytics -->
 <script src="https://analytics.ahrefs.com/analytics.js" data-key="NInZX5cjFNqKC44BBPaEBA" async></script>
 <!-- / Ahrefs analytics -->
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What screens can I use with DinkyDash?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Anything with a web browser: an old iPad or Android tablet, a smart TV, a Raspberry Pi with a touchscreen, a spare monitor, or a laptop on the counter." }
+    },
+    {
+      "@type": "Question",
+      "name": "Is DinkyDash really free?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes. DinkyDash is open source under the MIT license. You run it yourself and bring your own Anthropic API key; a day's dashboard costs a few cents in AI usage. There is no subscription." }
+    },
+    {
+      "@type": "Question",
+      "name": "Does DinkyDash work with Google Calendar?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes. DinkyDash reads any calendar that publishes an iCal link, including Google Calendar, Apple iCloud Calendar, and Outlook." }
+    },
+    {
+      "@type": "Question",
+      "name": "How is DinkyDash different from a Skylight or Hearth calendar?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Skylight and Hearth sell dedicated touchscreens for $299 to $699 with optional or required subscriptions. DinkyDash is free, open-source software that runs on a screen you already own, and adds an AI-written daily brief personalized to your family." }
+    }
+  ]
+}
+</script>
 
 </body>
 </html>
