@@ -1,51 +1,48 @@
 ---
 title: About DinkyDash
 template: page.html
-description: DinkyDash is an open-source, AI-powered family dashboard that runs on a Raspberry Pi.
+description: DinkyDash is a free, open-source digital family calendar that runs on screens you already own — with an AI-written daily brief for your family.
 ---
 
-DinkyDash is an open-source daily dashboard for families. Every morning, it calls the Claude AI to generate a completely fresh, personalized dashboard based on your family's calendar, chores, and context — then displays it on a small screen at home.
+DinkyDash is a free, open-source **digital family calendar for screens you already own**. Point a TV, an old tablet, or a Raspberry Pi at it and your family gets one glanceable screen with today's calendar, a self-rotating chore chart, countdowns to the big days — and a daily brief written fresh every morning by AI.
 
-## Why an AI dashboard?
+It was built by [Caspar](https://casparwre.de), an indie developer in Berlin, for his own kids — and open-sourced because a family calendar shouldn't cost $629 plus a subscription.
 
-Most family dashboards show static information that someone has to update manually. DinkyDash takes a different approach: you describe your family once, and AI does the rest.
+## Why an AI-written dashboard?
+
+Most family calendar displays show static information that someone has to curate. DinkyDash takes a different approach: you describe your family once, and AI does the rest.
 
 Every morning at 6am, DinkyDash automatically:
 
-- Fetches your Google Calendar events
+- Fetches your Google Calendar events (any iCal link works)
 - Figures out whose turn it is for each chore
 - Calculates countdowns to birthdays, holidays, and special dates
 - Sends all of this to Claude, which writes a personalized dashboard
 
-The result is a dashboard that feels alive. It knows it's someone's birthday week. It writes different fun facts and daily challenges every day. It adapts to what's actually happening in your family's life.
+The result is a screen that feels alive. It knows it's someone's birthday week. It writes a different fun fact and family challenge every day, tuned to your kids' interests. Kids check it voluntarily — which is the entire battle.
 
 ## What the dashboard shows
 
 - **A daily headline** — a cheerful, AI-written greeting for your family
 - **Person cards** — each family member with their photo and key info
-- **Chore rotation** — who does what today, automatically rotated
+- **Chore rotation** — who does what today, rotated automatically and fairly
 - **Countdowns** — days until birthdays, holidays, vacations, and special events
-- **Calendar events** — what's happening today, pulled from Google Calendar
+- **Calendar events** — what's happening today, pulled from your shared calendar
 - **Fun facts and challenges** — something new to read every morning
 - **Pet corner** — because pets are family too
 
-## How it's built
+## The principles
 
-DinkyDash is a simple two-script system:
+- **Bring your own screen.** Anything with a browser works — no proprietary hardware, ever.
+- **No subscription.** MIT-licensed, free forever. You bring your own AI API key; a day's dashboard costs a few cents.
+- **Private by design.** Your family's details live in one config file on your own device — not in our cloud, because there isn't one.
+- **Boring, reliable tech.** Python, a cron job, and a web page: `generate.py` builds the day's dashboard as JSON each morning, and a tiny Flask app renders it. It's fixable with a search engine and an afternoon.
 
-1. **generate.py** runs on a cron job each morning. It fetches your calendar, builds a rich prompt, calls the Claude API, and saves the result as a JSON file.
-2. **app.py** is a tiny Flask server that reads the JSON and renders it as a dashboard in the browser.
+## Where to start
 
-The whole thing runs on a Raspberry Pi with a small display. No cloud accounts, no subscriptions, no app to install.
+- [Getting started guide](/getting-started/) — from zero to a dashboard on your wall
+- [The ~$100 DIY build](/diy-skylight-calendar/) — the Raspberry Pi + touchscreen route
+- [How it compares to Skylight, Hearth & co.](/skylight-calendar-alternatives/)
+- [The code, on GitHub](https://github.com/caspii/dinkydash)
 
-## The stack
-
-- Python 3 with Flask
-- Anthropic Claude API for daily content generation
-- Google Calendar (iCal) for event data
-- YAML for all configuration
-- Designed for Raspberry Pi with a small display (800x480)
-
-## Open source
-
-DinkyDash is MIT-licensed and available on [GitHub](https://github.com/caspii/dinkydash). It was created by [Caspar](https://casparwre.de).
+Want DinkyDash without the setup? A hosted version is in the works — [join the waitlist](mailto:caspar@keepthescore.com?subject=DinkyDash%20hosted%20waitlist).

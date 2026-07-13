@@ -4,10 +4,12 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>About DinkyDash — DinkyDash</title>
-    <meta name="description" content="DinkyDash — an AI-powered daily dashboard for your family">
-    <meta property="og:title" content="DinkyDash — AI-powered family dashboard">
+    <meta name="description" content="DinkyDash is a free, open-source digital family calendar that runs on screens you already own — with an AI-written daily brief for your family.">
+    <meta property="og:title" content="About DinkyDash — DinkyDash">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://dinkydash.co/">
+    <meta property="og:image" content="https://dinkydash.co/images/hero-kitchen.png">
+    <meta name="twitter:card" content="summary_large_image">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -93,11 +95,25 @@
         }
         footer .container {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            flex-direction: column;
+            gap: 14px;
         }
         footer a { color: var(--text-muted); }
         footer a:hover { color: var(--accent); }
+        .footer-guides {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px 18px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+        .footer-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
         .footer-links { display: flex; align-items: center; gap: 8px; }
         .footer-sep { color: var(--border); }
 
@@ -113,6 +129,7 @@
             letter-spacing: -0.02em;
             margin-bottom: 24px;
             color: var(--text);
+            line-height: 1.2;
         }
         .page-content h2 {
             font-size: 1.4rem;
@@ -154,6 +171,32 @@
             border-radius: 0 var(--radius) var(--radius) 0;
             color: var(--text-mid);
             font-style: italic;
+        }
+        .page-content img {
+            width: 100%;
+            height: auto;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            margin: 6px 0 20px;
+        }
+        .page-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0 24px;
+            font-size: 0.9rem;
+        }
+        .page-content th {
+            text-align: left;
+            font-weight: 800;
+            color: var(--text);
+            border-bottom: 2px solid var(--border);
+            padding: 8px 10px;
+        }
+        .page-content td {
+            border-bottom: 1px solid var(--border);
+            padding: 8px 10px;
+            color: var(--text-mid);
+            vertical-align: top;
         }
 
         /* BUTTON */
@@ -208,7 +251,8 @@
                 gap: 16px;
             }
             .nav-links.open { display: flex; }
-            footer .container { flex-direction: column; gap: 8px; text-align: center; }
+            .footer-row { flex-direction: column; gap: 8px; text-align: center; }
+            .footer-guides { justify-content: center; }
         }
     </style>
     
@@ -220,10 +264,9 @@
         <button class="mobile-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">&#9776;</button>
         <ul class="nav-links">
             <li><a href="/getting-started/">Get started</a></li>
+            <li><a href="/diy-skylight-calendar/">DIY calendar</a></li>
+            <li><a href="/skylight-calendar-alternatives/">Alternatives</a></li>
             <li><a href="/about/">About</a></li>
-            <li><a href="/family-dashboard/">Family dashboard</a></li>
-            <li><a href="/morning-routine/">Morning routine</a></li>
-            <li><a href="/office-dashboard/">Office dashboard</a></li>
             <li><a href="https://github.com/caspii/dinkydash">GitHub</a></li>
         </ul>
     </div>
@@ -233,56 +276,67 @@
     
 <div class="container page-content">
     <h1>About DinkyDash</h1>
-    <p>DinkyDash is an open-source daily dashboard for families. Every morning, it calls the Claude AI to generate a completely fresh, personalized dashboard based on your family's calendar, chores, and context — then displays it on a small screen at home.</p>
-<h2>Why an AI dashboard?</h2>
-<p>Most family dashboards show static information that someone has to update manually. DinkyDash takes a different approach: you describe your family once, and AI does the rest.</p>
+    <p>DinkyDash is a free, open-source <strong>digital family calendar for screens you already own</strong>. Point a TV, an old tablet, or a Raspberry Pi at it and your family gets one glanceable screen with today's calendar, a self-rotating chore chart, countdowns to the big days — and a daily brief written fresh every morning by AI.</p>
+<p>It was built by <a href="https://casparwre.de">Caspar</a>, an indie developer in Berlin, for his own kids — and open-sourced because a family calendar shouldn't cost $629 plus a subscription.</p>
+<h2>Why an AI-written dashboard?</h2>
+<p>Most family calendar displays show static information that someone has to curate. DinkyDash takes a different approach: you describe your family once, and AI does the rest.</p>
 <p>Every morning at 6am, DinkyDash automatically:</p>
 <ul>
-<li>Fetches your Google Calendar events</li>
+<li>Fetches your Google Calendar events (any iCal link works)</li>
 <li>Figures out whose turn it is for each chore</li>
 <li>Calculates countdowns to birthdays, holidays, and special dates</li>
 <li>Sends all of this to Claude, which writes a personalized dashboard</li>
 </ul>
-<p>The result is a dashboard that feels alive. It knows it's someone's birthday week. It writes different fun facts and daily challenges every day. It adapts to what's actually happening in your family's life.</p>
+<p>The result is a screen that feels alive. It knows it's someone's birthday week. It writes a different fun fact and family challenge every day, tuned to your kids' interests. Kids check it voluntarily — which is the entire battle.</p>
 <h2>What the dashboard shows</h2>
 <ul>
 <li><strong>A daily headline</strong> — a cheerful, AI-written greeting for your family</li>
 <li><strong>Person cards</strong> — each family member with their photo and key info</li>
-<li><strong>Chore rotation</strong> — who does what today, automatically rotated</li>
+<li><strong>Chore rotation</strong> — who does what today, rotated automatically and fairly</li>
 <li><strong>Countdowns</strong> — days until birthdays, holidays, vacations, and special events</li>
-<li><strong>Calendar events</strong> — what's happening today, pulled from Google Calendar</li>
+<li><strong>Calendar events</strong> — what's happening today, pulled from your shared calendar</li>
 <li><strong>Fun facts and challenges</strong> — something new to read every morning</li>
 <li><strong>Pet corner</strong> — because pets are family too</li>
 </ul>
-<h2>How it's built</h2>
-<p>DinkyDash is a simple two-script system:</p>
-<ol>
-<li><strong>generate.py</strong> runs on a cron job each morning. It fetches your calendar, builds a rich prompt, calls the Claude API, and saves the result as a JSON file.</li>
-<li><strong>app.py</strong> is a tiny Flask server that reads the JSON and renders it as a dashboard in the browser.</li>
-</ol>
-<p>The whole thing runs on a Raspberry Pi with a small display. No cloud accounts, no subscriptions, no app to install.</p>
-<h2>The stack</h2>
+<h2>The principles</h2>
 <ul>
-<li>Python 3 with Flask</li>
-<li>Anthropic Claude API for daily content generation</li>
-<li>Google Calendar (iCal) for event data</li>
-<li>YAML for all configuration</li>
-<li>Designed for Raspberry Pi with a small display (800x480)</li>
+<li><strong>Bring your own screen.</strong> Anything with a browser works — no proprietary hardware, ever.</li>
+<li><strong>No subscription.</strong> MIT-licensed, free forever. You bring your own AI API key; a day's dashboard costs a few cents.</li>
+<li><strong>Private by design.</strong> Your family's details live in one config file on your own device — not in our cloud, because there isn't one.</li>
+<li><strong>Boring, reliable tech.</strong> Python, a cron job, and a web page: <code>generate.py</code> builds the day's dashboard as JSON each morning, and a tiny Flask app renders it. It's fixable with a search engine and an afternoon.</li>
 </ul>
-<h2>Open source</h2>
-<p>DinkyDash is MIT-licensed and available on <a href="https://github.com/caspii/dinkydash">GitHub</a>. It was created by <a href="https://casparwre.de">Caspar</a>.</p>
+<h2>Where to start</h2>
+<ul>
+<li><a href="/getting-started/">Getting started guide</a> — from zero to a dashboard on your wall</li>
+<li><a href="/diy-skylight-calendar/">The ~$100 DIY build</a> — the Raspberry Pi + touchscreen route</li>
+<li><a href="/skylight-calendar-alternatives/">How it compares to Skylight, Hearth &amp; co.</a></li>
+<li><a href="https://github.com/caspii/dinkydash">The code, on GitHub</a></li>
+</ul>
+<p>Want DinkyDash without the setup? A hosted version is in the works — <a href="mailto:caspar@keepthescore.com?subject=DinkyDash%20hosted%20waitlist">join the waitlist</a>.</p>
 </div>
 
 </main>
 
 <footer>
     <div class="container">
-        <span>&copy; 2025 DinkyDash</span>
-        <span class="footer-links">
-            <a href="https://github.com/caspii/dinkydash/issues/new">Feedback</a>
-            <span class="footer-sep">&middot;</span>
-            <a href="https://casparwre.de">Built by Caspar</a>
-        </span>
+        <div class="footer-guides">
+            <a href="/skylight-calendar-alternatives/">Skylight alternatives</a>
+            <a href="/hearth-vs-skylight/">Hearth vs Skylight</a>
+            <a href="/skylight-calendar-subscription/">Skylight subscription costs</a>
+            <a href="/diy-skylight-calendar/">DIY digital calendar</a>
+            <a href="/digital-calendar-and-chore-chart/">Calendar + chore chart</a>
+            <a href="/best-digital-family-calendar/">Best family calendars</a>
+            <a href="/morning-routine/">Morning routines</a>
+            <a href="/family-dashboard/">Family dashboard</a>
+        </div>
+        <div class="footer-row">
+            <span>&copy; 2026 DinkyDash</span>
+            <span class="footer-links">
+                <a href="https://github.com/caspii/dinkydash/issues/new">Feedback</a>
+                <span class="footer-sep">&middot;</span>
+                <a href="https://casparwre.de">Built by Caspar</a>
+            </span>
+        </div>
     </div>
 </footer>
 
