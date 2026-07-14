@@ -119,8 +119,10 @@
 
         /* CONTENT PAGES */
         .page-content {
-            padding: 56px 0;
-            max-width: 680px;
+            /* longhand so .container's horizontal padding survives on mobile */
+            padding-top: 56px;
+            padding-bottom: 56px;
+            max-width: 728px; /* 680px text column + 2x24px padding (border-box) */
             margin: 0 auto;
         }
         .page-content h1 {
@@ -162,6 +164,22 @@
             padding: 2px 7px;
             border-radius: 6px;
             border: 1px solid var(--border);
+        }
+        .page-content pre {
+            background: var(--surface-warm);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 14px 16px;
+            margin-bottom: 16px;
+            overflow-x: auto;
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+        .page-content pre code {
+            background: none;
+            border: none;
+            padding: 0;
+            font-size: inherit;
         }
         .page-content blockquote {
             border-left: 3px solid var(--accent);
