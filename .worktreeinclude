@@ -1,0 +1,5 @@
+.env
+config.yaml
+dashboard_data.json
+static/*.jpg
+static/*.png
