@@ -60,6 +60,6 @@ The [full getting-started guide](/getting-started/) has copy-paste commands for 
 
 ## Start here
 
-If you can copy commands into a terminal, you can have this on your kitchen wall by Sunday: **[the complete setup guide](/getting-started/)**. Rather skip the setup entirely? A hosted version is coming — [join the waitlist](mailto:caspar@keepthescore.com?subject=DinkyDash%20hosted%20waitlist).
+If you can copy commands into a terminal, you can have this on your kitchen wall by Sunday: **[the complete setup guide](/getting-started/)**. Rather skip the setup entirely? A hosted version is coming — [join the waitlist](https://fffwryhvses.typeform.com/to/yxMMhmFs).
 
 Not sure DIY is for you? See [all the Skylight alternatives](/skylight-calendar-alternatives/), including no-setup options.

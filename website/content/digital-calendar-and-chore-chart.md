@@ -36,4 +36,4 @@ Skylight and Hearth both do chores well — that's part of why families pay for 
 
 One more thing that earns its place on the chore screen: countdowns. "8 days until your birthday" and "19 days until vacation" give kids a reason to look at the dashboard voluntarily every morning — and while they're there, they see whose turn the dishes are. That's the whole trick, honestly.
 
-Set it up this weekend: **[Getting started with DinkyDash](/getting-started/)** — or [join the hosted-version waitlist](mailto:caspar@keepthescore.com?subject=DinkyDash%20hosted%20waitlist) if you'd rather skip the setup.
+Set it up this weekend: **[Getting started with DinkyDash](/getting-started/)** — or [join the hosted-version waitlist](https://fffwryhvses.typeform.com/to/yxMMhmFs) if you'd rather skip the setup.
