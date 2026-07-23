@@ -9,6 +9,7 @@ calls the Claude API, and saves structured JSON for the Flask app.
 import json
 import logging
 import os
+import random
 import sys
 import tempfile
 from datetime import date, datetime, timedelta
@@ -200,11 +201,48 @@ def compute_chore_assignments(recurring, people, today=None):
 # Prompt construction
 # ---------------------------------------------------------------------------
 
+# Rotated randomly each day to push the model off its default "safe" answers
+# (e.g. the clowder-cats fact, the build-in-Minecraft challenge) and give the
+# fun fact / daily challenge a fresh anchor even before any history exists.
+FUN_FACT_THEMES = [
+    "animals", "outer space", "the ocean", "dinosaurs", "the human body",
+    "weather and seasons", "insects and bugs", "plants and trees",
+    "food and cooking", "faraway countries", "inventions and machines",
+    "music and instruments", "sports and games", "rivers and mountains",
+    "the moon and stars", "reptiles and amphibians", "birds",
+    "colors and light", "vehicles and travel", "castles and history",
+    "robots and technology", "volcanoes and earthquakes", "rainforests",
+    "deserts", "snow and ice", "how everyday things work",
+]
+
+CHALLENGE_CATEGORIES = [
+    "being creative or making art",
+    "a small act of kindness",
+    "moving and being active",
+    "exploring outdoors or in nature",
+    "learning something new or being curious",
+    "using imagination and pretend play",
+    "helping out around the house",
+    "music, singing, or dancing",
+    "building or inventing something (not on a screen)",
+    "a silly or funny dare",
+    "teamwork with the whole family",
+    "storytelling or writing",
+]
+
 SYSTEM_PROMPT = """\
 You are DinkyDash, a friendly family dashboard AI. You create fun, warm, \
 age-appropriate daily content for a family. The family has young children \
 so all content should be suitable for kids, using simple language they can \
 understand. Keep text concise — this displays on a small screen.
+
+Every day the fun fact, daily challenge, and pet corner MUST be genuinely \
+new and clearly different from previous days. Reach for fresh, unexpected \
+topics rather than the most obvious "safe" answer, and never reuse a fact or \
+challenge that is similar in topic or wording to one in the recently-used \
+list. (For example, avoid overused clichés like "a group of cats is called a \
+clowder", and vary the daily challenge away from always suggesting the same \
+activity.)
 
 You MUST respond with valid JSON only. No markdown, no code fences, no \
 explanation. Use this exact structure:
@@ -228,7 +266,9 @@ If no calendar events are given, use an empty array for "events".\
 
 
 def build_user_prompt(config, calendar_events, chore_assignments,
-                      birthday_infos, special_date_infos):
+                      birthday_infos, special_date_infos,
+                      recent_content=None, fun_fact_theme=None,
+                      challenge_category=None):
     today = date.today()
     now = datetime.now()
 
@@ -295,14 +335,43 @@ def build_user_prompt(config, calendar_events, chore_assignments,
                 f"({sd['date_display']})"
             )
 
-    lines.append("")
-    lines.append(
+    recent_content = recent_content or []
+    recent_facts = [c.get("fun_fact") for c in recent_content if c.get("fun_fact")]
+    recent_challenges = [
+        c.get("daily_challenge") for c in recent_content if c.get("daily_challenge")
+    ]
+    recent_pet = [c.get("pet_corner") for c in recent_content if c.get("pet_corner")]
+
+    if recent_facts or recent_challenges or recent_pet:
+        lines.append("")
+        lines.append(
+            "ALREADY USED RECENTLY — do NOT repeat these or anything similar "
+            "in topic or wording. Pick entirely different subjects:"
+        )
+        for fact in recent_facts:
+            lines.append(f"- Fun fact used: {fact}")
+        for ch in recent_challenges:
+            lines.append(f"- Challenge used: {ch}")
+        for pc in recent_pet:
+            lines.append(f"- Pet corner used: {pc}")
+
+    final = (
         "Please generate today's dashboard content. Keep it SHORT — "
         "this displays on a tiny 800x480 screen. The headline should be "
         "punchy (max 8 words). The fun fact should be 1-2 short sentences. "
         "Only include up to 2 calendar events with very brief commentary. "
-        "If any birthday is within 7 days, mention it in the headline."
+        "If any birthday is within 7 days, mention it in the headline. "
+        "Make the fun fact, daily challenge, and pet corner FRESH and "
+        "surprising — clearly different from anything in the recently-used "
+        "list above."
     )
+    if fun_fact_theme:
+        final += f" For today, draw the fun fact from this theme: {fun_fact_theme}."
+    if challenge_category:
+        final += f" Today's challenge should be about {challenge_category}."
+
+    lines.append("")
+    lines.append(final)
 
     return "\n".join(lines)
 
@@ -342,6 +411,47 @@ def parse_ai_response(text):
 
 
 # ---------------------------------------------------------------------------
+# Content history (prevents repeating the same fun fact / challenge daily)
+# ---------------------------------------------------------------------------
+
+def load_content_history(path):
+    """Load recently generated content so we can tell Claude not to repeat it.
+
+    Returns a list of entries, oldest first. Never raises — a missing or
+    corrupt history file just means we have nothing to avoid yet.
+    """
+    try:
+        with open(path) as f:
+            data = json.load(f)
+        if isinstance(data, list):
+            return data
+        log.warning("Content history is not a list, ignoring it")
+    except FileNotFoundError:
+        pass
+    except Exception as e:
+        log.warning("Could not read content history: %s", e)
+    return []
+
+
+def record_content_history(path, entry, keep=30):
+    """Append today's content to the rolling history file, keeping last `keep`."""
+    history = load_content_history(path)
+    history.append(entry)
+    history = history[-keep:]
+    try:
+        fd, tmp_path = tempfile.mkstemp(dir=str(Path(path).parent), suffix=".tmp")
+        try:
+            with os.fdopen(fd, "w") as f:
+                json.dump(history, f, indent=2, ensure_ascii=False)
+            os.rename(tmp_path, str(path))
+        except Exception:
+            os.unlink(tmp_path)
+            raise
+    except Exception as e:
+        log.warning("Could not write content history: %s", e)
+
+
+# ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 
@@ -371,10 +481,27 @@ def generate():
         filter_emails=config.get("calendar_filter_emails"),
     )
 
+    # Load recent content so we can tell Claude what NOT to repeat, and pick a
+    # random theme/category to give today's content a fresh anchor.
+    history_file = SCRIPT_DIR / config.get(
+        "content_history_file", "content_history.json"
+    )
+    history_days = config.get("history_days", 30)
+    recent_content = load_content_history(history_file)[-history_days:]
+    fun_fact_theme = random.choice(FUN_FACT_THEMES)
+    challenge_category = random.choice(CHALLENGE_CATEGORIES)
+    log.info(
+        "Loaded %d recent entries to avoid; theme=%r, challenge=%r",
+        len(recent_content), fun_fact_theme, challenge_category,
+    )
+
     # Build prompt
     user_prompt = build_user_prompt(
         config, calendar_events, chore_assignments,
         birthday_infos, special_date_infos,
+        recent_content=recent_content,
+        fun_fact_theme=fun_fact_theme,
+        challenge_category=challenge_category,
     )
     log.info("Prompt built (%d characters)", len(user_prompt))
 
@@ -445,6 +572,19 @@ def generate():
         raise
 
     log.info("Dashboard data written to %s", data_file)
+
+    # Remember today's creative content so future runs don't repeat it.
+    record_content_history(
+        history_file,
+        {
+            "date": today.isoformat(),
+            "fun_fact": ai_content.get("fun_fact", ""),
+            "daily_challenge": ai_content.get("daily_challenge", ""),
+            "pet_corner": ai_content.get("pet_corner", ""),
+            "headline": ai_content.get("headline", ""),
+        },
+        keep=max(history_days, 30),
+    )
 
 
 if __name__ == "__main__":

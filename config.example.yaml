@@ -20,6 +20,12 @@ max_tokens: 2048
 # Path where generated dashboard data is stored
 data_file: "dashboard_data.json"
 
+# Rolling record of recently generated fun facts / challenges. Each day's
+# content is fed back to Claude so it avoids repeating itself. history_days
+# controls how many recent days to remember and avoid.
+content_history_file: "content_history.json"
+history_days: 30
+
 # Only show calendar events where ALL of these emails are attendees
 # (the calendar owner is implicit, so list the other required attendee)
 calendar_filter_emails:

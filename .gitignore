@@ -4,6 +4,7 @@ __pycache__/
 *.pyc
 .env
 dashboard_data.json
+content_history.json
 generate.log
 
 # Personal data (not for public repo)
