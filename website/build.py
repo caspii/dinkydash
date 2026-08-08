@@ -14,20 +14,28 @@ The build process:
 3. Converts Markdown to HTML
 4. Renders content using Jinja2 templates
 5. Outputs static HTML with clean URLs (e.g., about.md → about/index.html)
-6. Copies images and preserves CNAME file
+6. Writes sitemap.xml and robots.txt
+7. Copies images and preserves CNAME file
 """
 
 import os
 import shutil
+import subprocess
+from xml.sax.saxutils import escape
 from jinja2 import Environment, FileSystemLoader
 import markdown
 import yaml
 
-# Set up Jinja2 environment
-env = Environment(loader=FileSystemLoader('templates'))
+# Set up Jinja2 environment. Autoescaping keeps a title or description
+# containing & or " from breaking the meta tags it gets rendered into;
+# the converted Markdown is passed through with `| safe`.
+env = Environment(loader=FileSystemLoader('templates'), autoescape=True)
 
 # Set output directory to '../docs'
 OUTPUT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'docs'))
+
+# Canonical origin, used for canonical tags, og:url and the sitemap
+SITE_URL = 'https://dinkydash.co'
 
 
 def read_markdown(filename):
@@ -42,6 +50,53 @@ def read_markdown(filename):
         return front_matter, markdown.markdown(markdown_content, extensions=['fenced_code', 'tables'])
 
 
+def git_last_modified(file_path):
+    """Return the file's last commit date as YYYY-MM-DD, or None if unavailable.
+
+    Uses the commit date rather than the filesystem mtime, which would just be
+    the checkout time on a fresh clone. Uncommitted edits are not reflected,
+    which is correct: what gets deployed is what was committed.
+    """
+    try:
+        result = subprocess.run(
+            ['git', 'log', '-1', '--format=%cs', '--', file_path],
+            capture_output=True, text=True, check=True,
+        )
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return None
+    return result.stdout.strip() or None
+
+
+def generate_sitemap(pages):
+    lines = [
+        '<?xml version="1.0" encoding="UTF-8"?>',
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+    ]
+    for url_path, source_files in sorted(pages):
+        lines.append('  <url>')
+        lines.append(f'    <loc>{escape(SITE_URL + url_path)}</loc>')
+        # A page's real content is its Markdown plus the template rendering it —
+        # the home page in particular lives almost entirely in its template.
+        dates = [d for d in (git_last_modified(f) for f in source_files) if d]
+        if dates:
+            lines.append(f'    <lastmod>{max(dates)}</lastmod>')
+        lines.append('  </url>')
+    lines.append('</urlset>')
+
+    with open(os.path.join(OUTPUT_DIR, 'sitemap.xml'), 'w') as f:
+        f.write('\n'.join(lines) + '\n')
+
+
+def generate_robots():
+    content = f"""User-agent: *
+Allow: /
+
+Sitemap: {SITE_URL}/sitemap.xml
+"""
+    with open(os.path.join(OUTPUT_DIR, 'robots.txt'), 'w') as f:
+        f.write(content)
+
+
 def copy_images():
     if os.path.exists('images'):
         output_image_dir = os.path.join(OUTPUT_DIR, 'images')
@@ -51,8 +106,11 @@ def copy_images():
 
 
 def generate_pages():
+    """Render every Markdown file, returning (url_path, source_files) per page."""
     # Ensure output directory exists
     os.makedirs(OUTPUT_DIR, exist_ok=True)
+
+    pages = []
 
     for root, dirs, files in os.walk('content'):
         for file in files:
@@ -60,21 +118,27 @@ def generate_pages():
                 file_path = os.path.join(root, file)
                 front_matter, content = read_markdown(file_path)
 
-                template_name = front_matter.get('template', 'page.html')
-                template = env.get_template(template_name)
-
-                output = template.render(content=content, **front_matter)
-
-                # Determine output path
+                # Determine output path and the clean URL it will be served at
                 rel_path = os.path.relpath(file_path, 'content')
                 base_name = os.path.splitext(rel_path)[0]
 
                 if base_name == 'index':
                     # For index.md, keep it at the root of its directory
                     output_path = os.path.join(OUTPUT_DIR, os.path.dirname(rel_path), 'index.html')
+                    url_path = '/'
                 else:
                     # For other files, create a subdirectory
                     output_path = os.path.join(OUTPUT_DIR, base_name, 'index.html')
+                    url_path = '/' + base_name.replace(os.sep, '/') + '/'
+
+                template_name = front_matter.get('template', 'page.html')
+                template = env.get_template(template_name)
+
+                output = template.render(
+                    content=content,
+                    canonical_url=SITE_URL + url_path,
+                    **front_matter,
+                )
 
                 # Ensure output directory exists
                 os.makedirs(os.path.dirname(output_path), exist_ok=True)
@@ -82,6 +146,10 @@ def generate_pages():
                 # Write output
                 with open(output_path, 'w') as f:
                     f.write(output)
+
+                pages.append((url_path, (file_path, os.path.join('templates', template_name))))
+
+    return pages
 
 
 def preserve_cname():
@@ -108,10 +176,12 @@ if __name__ == '__main__':
     if os.path.exists(OUTPUT_DIR):
         shutil.rmtree(OUTPUT_DIR)
 
-    generate_pages()
+    pages = generate_pages()
+    generate_sitemap(pages)
+    generate_robots()
     copy_images()
 
     # Restore CNAME file
     restore_cname(cname_content)
 
-    print(f"Site generated in {OUTPUT_DIR}")
+    print(f"Site generated in {OUTPUT_DIR} ({len(pages)} pages)")
