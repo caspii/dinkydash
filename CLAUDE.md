@@ -101,6 +101,8 @@ Bootstrap 5 (Quartz Bootswatch) + Inter font. Sections: header with headline, pe
 
 Reads Markdown from `website/content/`, extracts YAML front matter, converts to HTML, renders via Jinja2 templates, outputs to `docs/` for GitHub Pages.
 
+Each page gets a `canonical_url` (derived from its output path and `SITE_URL`) used for both `<link rel="canonical">` and `og:url` in `templates/base.html`. The build also writes `docs/sitemap.xml` and `docs/robots.txt`; sitemap `lastmod` comes from the last git commit touching the page's Markdown or its template, so **a page's `lastmod` only updates once its change is committed**.
+
 ## Raspberry Pi Deployment
 
 `deploy_to_pi.sh` rsyncs files (including `.env` with API key), restarts the `dinkydash.service` systemd service, and installs pip dependencies.
