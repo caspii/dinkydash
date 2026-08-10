@@ -10,6 +10,22 @@ The project has two main components:
 1. **Dashboard App** (root directory) - `generate.py` (daily content generation) + `app.py` (Flask server)
 2. **Static Site Generator** (website/ directory) - Generates marketing/documentation site to GitHub Pages
 
+**This file describes the code as it currently is: single-family, file-based, Pi-targeted.** The project is being rebuilt as a hosted multi-tenant SaaS in the same public monorepo, with self-hosting as a second mode of one codebase. Before making structural changes, read:
+
+- [PLAN.md](PLAN.md) — hosted MVP architecture, phases, settled decisions, open questions
+- [STRATEGY.md](STRATEGY.md) — positioning, pricing, SEO
+
+## Known issues
+
+Latent on a single Pi, actively harmful once multi-tenant. Don't be surprised by them, and don't work around them — they're scheduled to be fixed in Phase 0:
+
+- `generate.py:119` sorts calendar events by **formatted string** (`"Friday, August 15 at 03:30 PM"`), so ordering is alphabetical by weekday name, not chronological.
+- `date.today()` / `datetime.now()` use **server local time** throughout. There is no per-family timezone.
+- `calendar_filter_emails` requires every listed email to appear as an `ATTENDEE`. Most personal Google Calendar events have no `ATTENDEE` property, so this silently returns zero events.
+- There are no tests.
+- `.env` carries unused `DATABASE_URL`, `SECRET_KEY`, `UPLOAD_FOLDER`, `MAX_CONTENT_LENGTH` keys left over from an abandoned plan.
+- `config.yaml` pins `claude-sonnet-4-5-20250929`. Note that newer models run adaptive thinking by default, which competes with `max_tokens: 2048` and can truncate the JSON response.
+
 ## Development Commands
 
 ### Dashboard App

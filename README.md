@@ -1,18 +1,25 @@
 # DinkyDash
 
-An AI-powered daily dashboard for families, running on a Raspberry Pi.
+The digital family calendar for screens you already own — a TV, an old tablet, or a Raspberry Pi.
 
 Website: [dinkydash.co](https://dinkydash.co)
 
-Every morning at 6am, DinkyDash calls the Claude API to generate a fresh, personalized dashboard — with calendar events, chore rotations, countdowns, fun facts, and daily challenges — then displays it on a small screen at home.
+Every morning at 6am, DinkyDash calls the Claude API to generate a fresh, personalized dashboard — with calendar events, chore rotations, countdowns, fun facts, and daily challenges — then displays it on a screen at home.
+
+## Two ways to run it
+
+**Self-hosted (this repo).** Free, MIT-licensed, runs on your own hardware with your own Anthropic API key. Setup takes an afternoon and some comfort with a terminal.
+
+> Self-hosting is **community-supported**. Issues and pull requests are welcome, but there is no support commitment — if you need it to just work, use the hosted version.
+
+**Hosted (in development).** Zero setup, $5/month or $39/year. [Join the waitlist.](https://fffwryhvses.typeform.com/to/yxMMhmFs) Built from this same repo — see [PLAN.md](PLAN.md).
 
 ## What the dashboard shows
 
 - AI-generated daily greeting and headline
-- Person cards for each family member
 - Chore rotation badges (automatically rotated daily)
 - Countdowns to birthdays, holidays, and special dates
-- Calendar events pulled from Google Calendar
+- Calendar events with AI commentary, pulled from any iCal feed
 - Fun facts, daily challenges, and a pet corner
 
 ## How it works
@@ -392,6 +399,14 @@ journalctl -u dinkydash -f           # View logs
 | `deploy_to_pi.sh` | Deployment script (rsync + service restart) |
 | `.env` | API key (not in git) |
 | `dashboard_data.json` | Generated daily content (not in git) |
+| `PLAN.md` | Hosted MVP architecture and build phases |
+| `STRATEGY.md` | Positioning, pricing, and SEO strategy |
+
+## Contributing
+
+Pull requests are welcome. Note that the codebase is mid-restructure into a monorepo that serves both the self-hosted and hosted builds — check [PLAN.md](PLAN.md) before starting anything structural, and open an issue first for larger changes.
+
+Known rough edges are listed under "Known issues" in [CLAUDE.md](CLAUDE.md).
 
 ## License
 

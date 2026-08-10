@@ -1,6 +1,6 @@
 # DinkyDash Strategy
 
-*Last updated: July 13, 2026. Based on Ahrefs keyword/competitor research (July 2026) — see data summary below.*
+*Last updated: August 10, 2026. Positioning based on Ahrefs keyword/competitor research (July 2026) — see data summary below. Hosted-version build plan lives in [PLAN.md](PLAN.md).*
 
 ## The decision
 
@@ -27,12 +27,16 @@ Two directions were considered and rejected:
 - **Proof it works at small scale: Mango Display** (software-only, DR 28) earns ~6.3K organic visits/mo, ranks #3 for "skylight calendar alternatives", and is cited in Google AI Overviews with the exact "no hardware required" angle.
 - **Proof of the community route: DAKboard** — nearly all of its 16.8K visits/mo is its own brand name (11K searches/mo), built through the Raspberry Pi/DIY community. DinkyDash's open-source repo plays this role.
 
-## Product model: open core + hosted SaaS
+## Product model: one public monorepo, hosted SaaS as the business
 
 1. **Open-source repo (now)** — the credibility wedge and top of funnel. Free, MIT, self-hosted, bring your own Anthropic API key. Feeds HN/Reddit launches, GitHub stars, and referring domains (dinkydash.co is DR 11 with 84 ref domains; needs ~DR 30 for the wedge terms).
-2. **Hosted version (next)** — the business. Signup, family config form, paste an iCal URL, per-family screen URL with pairing code, central 6am generation, Stripe. Category-anchored pricing: **~$4–6/mo or ~$39/yr** (vs Skylight Plus $79/yr, Hearth $9/mo). AI cost per family is pennies/month. Collect emails via a waitlist link until it exists.
+2. **Hosted version (next)** — the business. Signup, family config form, paste one or more iCal URLs, per-family screen URL, central 6am generation in the family's own timezone, Stripe. Category-anchored pricing: **$5/mo or $39/yr**, 14-day trial, no card up front (vs Skylight Plus $79/yr, Hearth $9/mo). AI cost per family is $0.19–0.39/month. Collect emails via a waitlist link until it exists.
 
-Explicitly skipped: monetizing self-hosting (license keys/paid repo) — keeps the audience filter, no recurring value capture.
+**Both ship from a single public monorepo.** The hosted app and the self-host build are one codebase in two modes, so self-hosting is "the same app with one family in it" rather than a second product to maintain. Billing and auth code being public is an accepted trade — the moat is the SEO position and the brand, not the source.
+
+Self-hosting is **community-supported only**: Docker Compose in the repo, issues welcome but unanswered. This preserves the funnel and the one differentiator Mango Display and DAKboard cannot copy, at near-zero ongoing cost. Revisit in six months — if the HN launch produces real referring domains it paid for itself; if not, close the repo with data rather than a guess.
+
+Explicitly skipped: monetizing self-hosting (license keys/paid repo) — keeps the audience filter, no recurring value capture. Also skipped for MVP: Google Calendar OAuth (verification review takes weeks; iCal paste ships now), photo uploads (emoji avatars instead), and a permanent free tier (every free family costs real AI money daily).
 
 ## Pricing anchors (verified July 2026)
 
@@ -43,7 +47,7 @@ Explicitly skipped: monetizing self-hosting (license keys/paid repo) — keeps t
 | Hearth Display (27") | $699 ($599 promo) | $9/mo after first month |
 | DAKboard (BYO screen) | — | Free tier; $5–8/mo |
 | Mango Display (BYO screen) | — | Free tier; Pro $5.99/mo |
-| **DinkyDash (BYO screen)** | — | **Free, open source (hosted tier planned ~$4–6/mo)** |
+| **DinkyDash (BYO screen)** | — | **Free, open source (hosted tier $5/mo or $39/yr, 14-day trial)** |
 
 ## SEO plan
 
@@ -69,12 +73,14 @@ Explicitly skipped: monetizing self-hosting (license keys/paid repo) — keeps t
 - Head terms ("digital family calendar") are shopping-walled SERPs — win long tail + AI Overview citations instead.
 - Comparison pages state competitor prices — re-verify quarterly ("prices checked July 2026" notes in copy).
 - DR 11 → 30 required before even KD-1 terms rank reliably; launch-driven backlinks are the fastest path.
-- Hosted version stores family data (kids' names, calendars) — GDPR care needed at build time.
+- Hosted version stores family data (kids' names, DOBs, calendar contents) and sends calendar text to Anthropic — GDPR care needed at build time. Phase 5 of [PLAN.md](PLAN.md).
+- Traffic is currently only modelled: Google Search Console is not connected to the Ahrefs project, so there are no impression, click, or position numbers. Attaching a paid funnel to unmeasurable traffic is the bigger risk than any single keyword call.
 
 ## Next steps
 
-1. ~~Reposition homepage + publish 6 satellite pages~~ (this change)
-2. Add waitlist capture for the hosted version (currently a mailto link — swap for a form endpoint)
-3. Launch: Show HN + r/selfhosted with the open-source story
-4. Build hosted MVP (multi-tenant generate + pairing-code screen URLs + Stripe)
-5. Free tools: birthday countdown page, chore chart generator
+1. ~~Reposition homepage + publish 6 satellite pages~~ (July 2026)
+2. ~~Add waitlist capture for the hosted version~~ (Typeform, July 2026)
+3. Connect Google Search Console to the Ahrefs project — highest-value measurement fix, blocks nothing, costs an hour
+4. Build the hosted MVP — see [PLAN.md](PLAN.md) for phases and open questions
+5. Launch: Show HN + r/selfhosted with the open-source story, timed with the hosted launch
+6. Free tools: birthday countdown page, chore chart generator
