@@ -53,14 +53,20 @@
     }
 
     /* Form */
+    .bc-form-head {
+        margin-top: 26px;
+        padding-top: 22px;
+        border-top: 1px solid var(--border);
+        font-size: 0.95rem;
+        font-weight: 800;
+        color: var(--text);
+    }
     .bc-form {
         display: flex;
         flex-wrap: wrap;
         gap: 10px;
         align-items: flex-end;
-        margin-top: 24px;
-        padding-top: 24px;
-        border-top: 1px solid var(--border);
+        margin-top: 12px;
     }
     .bc-field { display: flex; flex-direction: column; gap: 5px; flex: 1 1 130px; }
     .bc-field label {
@@ -96,8 +102,10 @@
         padding: 11px 20px;
         cursor: pointer;
         white-space: nowrap;
+        text-decoration: none;
+        display: inline-block;
     }
-    .bc-btn:hover { filter: brightness(1.06); }
+    .bc-btn:hover { filter: brightness(1.06); text-decoration: none; }
     .bc-btn-ghost {
         background: transparent;
         color: var(--text-mid);
@@ -109,13 +117,15 @@
         flex-wrap: wrap;
         gap: 8px;
         justify-content: center;
-        margin-top: 20px;
+        margin-top: 22px;
+        padding-top: 20px;
+        border-top: 1px solid var(--border);
     }
-    .bc-hint { font-size: 0.8rem; color: var(--text-muted); margin-top: 10px; text-align: center; }
+    .bc-hint { font-size: 0.8rem; color: var(--text-muted); margin-top: 10px; }
     .bc-error { color: #c2410c; font-size: 0.85rem; font-weight: 600; margin-top: 10px; }
 
     /* Extra people */
-    .bc-list { display: grid; gap: 10px; margin-top: 16px; }
+    .bc-list { display: grid; gap: 10px; margin-top: 18px; }
     .bc-row {
         display: flex;
         align-items: center;
@@ -170,6 +180,7 @@
         .bc-card { padding: 22px 16px; }
         .bc-field { flex: 1 1 100%; }
         .bc-form .bc-btn { width: 100%; }
+        .bc-actions .bc-btn { flex: 1 1 100%; text-align: center; }
     }
 </style>
 {% endblock %}
@@ -189,6 +200,7 @@
                 <div class="bc-sub" id="bc-sub">Enter a birthday below to start the countdown.</div>
             </div>
 
+            <div class="bc-form-head" id="bc-form-head">Start a countdown</div>
             <form class="bc-form" id="bc-form">
                 <div class="bc-field">
                     <label for="bc-name">Name</label>
@@ -209,11 +221,12 @@
                 <button type="submit" class="bc-btn" id="bc-submit">Start countdown</button>
             </form>
             <div class="bc-error" id="bc-error" hidden></div>
-            <div class="bc-hint">Add a year and it will show the age they're turning. Nothing is uploaded — it all stays in your browser.</div>
+            <div class="bc-hint" id="bc-hint">Add a year and it will show the age they're turning. Nothing is uploaded — it all stays in your browser.</div>
 
             <div class="bc-list" id="bc-list"></div>
 
             <div class="bc-actions" id="bc-actions" hidden>
+                <a class="bc-btn" id="bc-fullscreen" href="/birthday-countdown/display/">Open full screen</a>
                 <button type="button" class="bc-btn bc-btn-ghost" id="bc-share">Copy shareable link</button>
                 <button type="button" class="bc-btn bc-btn-ghost" id="bc-clear">Clear all</button>
             </div>
@@ -226,7 +239,7 @@
                 chart that rotates itself, and a short daily brief written for your family —
                 on any old tablet, TV or Raspberry Pi you already own. Free and open source.
             </p>
-            <a class="bc-btn" href="/diy-skylight-calendar/" style="display:inline-block">See how it works</a>
+            <a class="bc-btn" href="/diy-skylight-calendar/">See how it works</a>
         </div>
     </div>
 
@@ -235,166 +248,82 @@
 {% endblock %}
 
 {% block extra_js %}
+{% include "_countdown-lib.html" %}
 <script>
 (function () {
     'use strict';
 
-    var MONTHS = ['January', 'February', 'March', 'April', 'May', 'June',
-                  'July', 'August', 'September', 'October', 'November', 'December'];
+    var C = window.DDCountdown;
     var STORAGE_KEY = 'dinkydash.birthdays';
-    var SEP = '~';
+    var DISPLAY_PATH = '/birthday-countdown/display/';
 
     var el = function (id) { return document.getElementById(id); };
     var people = [];
 
-    // --- date helpers -------------------------------------------------------
-    // Mirrors anniversary() in generate.py: February 29 is observed on
-    // February 28 in common years, so leap-day birthdays still land on a real
-    // date instead of silently rolling into March.
-
-    function isLeap(y) { return (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0; }
-
-    function daysInMonth(month, year) {
-        if (month === 2) { return isLeap(year || 2024) ? 29 : 28; }
-        return [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][month - 1];
-    }
-
-    function anniversary(year, month, day) {
-        if (month === 2 && day === 29 && !isLeap(year)) { return new Date(year, 1, 28); }
-        return new Date(year, month - 1, day);
-    }
-
-    function todayMidnight() {
-        var n = new Date();
-        return new Date(n.getFullYear(), n.getMonth(), n.getDate());
-    }
-
-    function nextOccurrence(month, day, from) {
-        var thisYear = anniversary(from.getFullYear(), month, day);
-        if (thisYear >= from) { return thisYear; }
-        return anniversary(from.getFullYear() + 1, month, day);
-    }
-
-    // Round rather than floor: clock changes make some local days 23 or 25
-    // hours long, and only whole days matter here.
-    function daysUntil(target, from) {
-        return Math.round((target - from) / 86400000);
-    }
-
-    function ageOn(birthYear, month, day, when) {
-        var age = when.getFullYear() - birthYear;
-        if (when < anniversary(when.getFullYear(), month, day)) { age -= 1; }
-        return age;
-    }
-
     // --- state --------------------------------------------------------------
-
-    function parsePerson(raw) {
-        var bits = raw.split(SEP);
-        var md = (bits[1] || '').split('-');
-        var month = parseInt(md[0], 10);
-        var day = parseInt(md[1], 10);
-        if (!month || !day || month < 1 || month > 12 || day < 1 || day > daysInMonth(month, 2024)) {
-            return null;
-        }
-        var year = parseInt(bits[2], 10);
-        return {
-            name: (bits[0] || '').slice(0, 24),
-            month: month,
-            day: day,
-            year: (year >= 1900 && year <= 2100) ? year : null
-        };
-    }
-
-    function encodePerson(p) {
-        var pad = function (n) { return (n < 10 ? '0' : '') + n; };
-        return [p.name, pad(p.month) + '-' + pad(p.day), p.year || ''].join(SEP);
-    }
-
-    function readFromUrl() {
-        var params = new URLSearchParams(window.location.search);
-        return params.getAll('p').map(parsePerson).filter(Boolean);
-    }
 
     function readFromStorage() {
         try {
             var raw = window.localStorage.getItem(STORAGE_KEY);
-            return raw ? JSON.parse(raw).map(parsePerson).filter(Boolean) : [];
+            return raw ? JSON.parse(raw).map(C.parsePerson).filter(Boolean) : [];
         } catch (e) { return []; }
+    }
+
+    function displayUrl() {
+        return window.location.origin + DISPLAY_PATH
+            + (people.length ? '?' + C.query(people) : '');
     }
 
     function persist() {
         try {
-            window.localStorage.setItem(STORAGE_KEY, JSON.stringify(people.map(encodePerson)));
+            window.localStorage.setItem(STORAGE_KEY, JSON.stringify(people.map(C.encodePerson)));
         } catch (e) { /* private browsing — the tool still works for this visit */ }
         var url = people.length
-            ? window.location.pathname + '?' + people.map(function (p) {
-                  return 'p=' + encodeURIComponent(encodePerson(p));
-              }).join('&')
+            ? window.location.pathname + '?' + C.query(people)
             : window.location.pathname;
         window.history.replaceState(null, '', url);
     }
 
     // --- rendering ----------------------------------------------------------
 
-    function describe(p, now) {
-        var target = nextOccurrence(p.month, p.day, now);
-        var days = daysUntil(target, now);
-        var possessive = p.name ? (p.name + "'s") : 'your';
-        var dateText = MONTHS[target.getMonth()] + ' ' + target.getDate();
-        var meta = dateText;
-        if (p.year) { meta += ' · turning ' + (ageOn(p.year, p.month, p.day, target) ); }
-        if (p.month === 2 && p.day === 29 && target.getDate() === 28) {
-            meta += ' · leap-day birthday, observed the 28th';
-        }
-        return { target: target, days: days, possessive: possessive, meta: meta };
-    }
-
-    function renderHero(now) {
-        if (!people.length) {
+    function renderHero(sorted, now) {
+        if (!sorted.length) {
+            el('bc-days').className = 'bc-days';
             el('bc-days').textContent = '—';
             el('bc-label').textContent = 'days until your birthday';
             el('bc-clock').textContent = '';
             el('bc-sub').textContent = 'Enter a birthday below to start the countdown.';
             return;
         }
-        var d = describe(people[0], now);
+        var d = C.describe(sorted[0], now);
         var hero = el('bc-days');
         if (d.days === 0) {
             hero.className = 'bc-today';
             hero.textContent = '🎉 Today!';
-            el('bc-label').textContent = 'Happy birthday' + (people[0].name ? ', ' + people[0].name : '') + '!';
+            el('bc-label').textContent =
+                'Happy birthday' + (sorted[0].name ? ', ' + sorted[0].name : '') + '!';
+            el('bc-clock').textContent = '';
         } else {
             hero.className = 'bc-days';
-            hero.textContent = d.days;
-            el('bc-label').textContent = 'day' + (d.days === 1 ? '' : 's') + ' until ' + d.possessive + ' birthday';
+            hero.textContent = String(d.days);
+            el('bc-label').textContent =
+                'day' + (d.days === 1 ? '' : 's') + ' until ' + d.possessive + ' birthday';
+            el('bc-clock').textContent = C.clockText(d.target);
         }
         el('bc-sub').textContent = d.meta;
-        renderClock(d.target);
     }
 
-    function renderClock(target) {
-        var ms = target - new Date();
-        if (ms <= 0) { el('bc-clock').textContent = ''; return; }
-        var total = Math.floor(ms / 1000);
-        var h = Math.floor(total / 3600) % 24;
-        var m = Math.floor(total / 60) % 60;
-        var s = total % 60;
-        var pad = function (n) { return (n < 10 ? '0' : '') + n; };
-        el('bc-clock').textContent = pad(h) + 'h ' + pad(m) + 'm ' + pad(s) + 's';
-    }
-
-    function renderList(now) {
+    function renderList(sorted, now) {
         var list = el('bc-list');
         list.textContent = '';
-        people.slice(1).forEach(function (p, i) {
-            var d = describe(p, now);
+        sorted.slice(1).forEach(function (p) {
+            var d = C.describe(p, now);
             var row = document.createElement('div');
             row.className = 'bc-row';
 
             var days = document.createElement('div');
             days.className = 'bc-row-days';
-            days.textContent = d.days === 0 ? '🎉' : d.days;
+            days.textContent = d.days === 0 ? '🎉' : String(d.days);
 
             var body = document.createElement('div');
             body.className = 'bc-row-body';
@@ -413,7 +342,10 @@
             remove.setAttribute('aria-label', 'Remove ' + (p.name || 'this birthday'));
             remove.textContent = '×';
             remove.addEventListener('click', function () {
-                people.splice(i + 1, 1);
+                // Sorted is a shallow copy, so identity still maps back to the
+                // insertion-ordered array that gets persisted.
+                var i = people.indexOf(p);
+                if (i !== -1) { people.splice(i, 1); }
                 persist();
                 render();
             });
@@ -425,11 +357,19 @@
         });
     }
 
+    function renderFormAffordance() {
+        var has = people.length > 0;
+        // The original wording left no hint that a second birthday could be
+        // added, so nobody tried. Say it plainly once there is one.
+        el('bc-form-head').textContent = has ? 'Add another birthday' : 'Start a countdown';
+        el('bc-submit').textContent = has ? 'Add birthday' : 'Start countdown';
+        el('bc-hint').textContent = has
+            ? 'Add everyone — the whole family stacks up in one countdown you can share.'
+            : "Add a year and it will show the age they're turning. Nothing is uploaded — it all stays in your browser.";
+    }
+
     function renderPitch() {
-        var pitch = el('bc-pitch');
-        pitch.hidden = people.length === 0;
-        // Once there's a family on screen the page is already a DinkyDash
-        // preview, so say so plainly rather than repeating the generic pitch.
+        el('bc-pitch').hidden = people.length === 0;
         if (people.length > 1) {
             el('bc-pitch-title').textContent = "You've just built a family dashboard";
             el('bc-pitch-body').textContent =
@@ -441,18 +381,21 @@
     }
 
     function render() {
-        var now = todayMidnight();
-        renderHero(now);
-        renderList(now);
+        var now = C.todayMidnight();
+        var sorted = C.bySoonest(people, now);
+        renderHero(sorted, now);
+        renderList(sorted, now);
+        renderFormAffordance();
         renderPitch();
         el('bc-actions').hidden = people.length === 0;
+        el('bc-fullscreen').href = displayUrl();
     }
 
     // --- form ---------------------------------------------------------------
 
     function buildSelects() {
         var monthSel = el('bc-month');
-        MONTHS.forEach(function (name, i) {
+        C.MONTHS.forEach(function (name, i) {
             var o = document.createElement('option');
             o.value = String(i + 1);
             o.textContent = name;
@@ -469,7 +412,7 @@
         var month = parseInt(el('bc-month').value, 10);
         var current = preselect || parseInt(daySel.value, 10) || 1;
         // 29 stays selectable in February so leap-day birthdays can be entered.
-        var max = daysInMonth(month, 2024);
+        var max = C.daysInMonth(month, 2024);
         daySel.textContent = '';
         for (var d = 1; d <= max; d++) {
             var o = document.createElement('option');
@@ -488,20 +431,21 @@
 
     el('bc-form').addEventListener('submit', function (e) {
         e.preventDefault();
-        var month = parseInt(el('bc-month').value, 10);
-        var day = parseInt(el('bc-day').value, 10);
         var yearRaw = el('bc-year').value.trim();
         var year = yearRaw ? parseInt(yearRaw, 10) : null;
 
-        if (year !== null) {
-            if (isNaN(year) || year < 1900 || year > new Date().getFullYear()) {
-                showError('That birth year does not look right — leave it blank if you would rather not say.');
-                return;
-            }
+        if (year !== null && (isNaN(year) || year < 1900 || year > new Date().getFullYear())) {
+            showError('That birth year does not look right — leave it blank if you would rather not say.');
+            return;
         }
         showError('');
 
-        people.push({ name: el('bc-name').value.trim(), month: month, day: day, year: year });
+        people.push({
+            name: el('bc-name').value.trim(),
+            month: parseInt(el('bc-month').value, 10),
+            day: parseInt(el('bc-day').value, 10),
+            year: year
+        });
         el('bc-name').value = '';
         el('bc-year').value = '';
         persist();
@@ -516,7 +460,9 @@
 
     el('bc-share').addEventListener('click', function () {
         var btn = el('bc-share');
-        var url = window.location.href;
+        // Share the full-screen view, not the editor — what a recipient wants
+        // is the countdown, not the form that made it.
+        var url = displayUrl();
         var done = function () {
             btn.textContent = 'Link copied';
             setTimeout(function () { btn.textContent = 'Copy shareable link'; }, 2000);
@@ -533,25 +479,29 @@
     // --- boot ---------------------------------------------------------------
 
     buildSelects();
-    // A shared link wins over whatever is in storage — the visitor followed it
-    // to see that countdown, not their own.
-    var fromUrl = readFromUrl();
+    // A shared link wins over storage — the visitor followed it to see that
+    // countdown, not their own.
+    var fromUrl = C.readFromUrl();
     people = fromUrl.length ? fromUrl : readFromStorage();
     render();
     if (people.length) { persist(); }
 
     setInterval(function () {
         if (!people.length) { return; }
-        var now = todayMidnight();
-        renderClock(nextOccurrence(people[0].month, people[0].day, now));
+        var now = C.todayMidnight();
+        var soonest = C.bySoonest(people, now)[0];
+        var d = C.describe(soonest, now);
+        if (d.days > 0) {
+            el('bc-clock').textContent = C.clockText(d.target);
+        }
     }, 1000);
 
     // Recompute at local midnight so a tab left open overnight is not stale.
     setInterval(function () {
         if (!people.length) { return; }
+        var d = C.describe(C.bySoonest(people, C.todayMidnight())[0], C.todayMidnight());
         var shown = el('bc-days').textContent;
-        var d = describe(people[0], todayMidnight());
-        if (String(d.days) !== shown && !(d.days === 0 && shown.indexOf('Today') !== -1)) {
+        if (shown !== String(d.days) && !(d.days === 0 && shown.indexOf('Today') !== -1)) {
             render();
         }
     }, 60000);

@@ -6,6 +6,7 @@
     <title>{% block title %}DinkyDash — The digital family calendar for screens you already own{% endblock %}</title>
     <meta name="description" content="{% block description %}Turn any TV, tablet, or Raspberry Pi into a shared family calendar with a chore chart, countdowns, and an AI-written daily brief. Free and open source.{% endblock %}">
     <link rel="canonical" href="{{ canonical_url }}">
+    {% if noindex %}<meta name="robots" content="noindex, follow">{% endif %}
     <meta property="og:title" content="{% block og_title %}DinkyDash — The digital family calendar for screens you already own{% endblock %}">
     <meta property="og:type" content="website">
     <meta property="og:url" content="{{ canonical_url }}">
