@@ -335,7 +335,12 @@
 </tr>
 </tbody>
 </table>
-<p>The Raspberry Pi route is the classic: it draws a couple of watts, mounts cleanly on a wall or shelf, and boots straight into the dashboard in kiosk mode. The old-tablet route is the fastest way to find out whether your family will actually use a wall calendar.</p>
+<p>The Raspberry Pi route is the classic: it draws well under 10 watts, mounts cleanly on a wall or shelf, and boots straight into the dashboard in kiosk mode. Our <a href="/raspberry-pi-family-calendar/">Raspberry Pi family calendar guide</a> covers which Pi and screen to buy, with a full parts list.</p>
+<p>The old-tablet route is the fastest way to find out whether your family will actually use a wall calendar — and that's the real question, not which hardware to buy.</p>
+<h2>Start with the screen you already own</h2>
+<p>Before spending anything, prop up an old tablet or spare monitor in the kitchen and run the dashboard on it for two weeks.</p>
+<p>This sounds like a hedge, but it's the single most useful thing you can do. A family calendar only works if it's somewhere everyone walks past at the right time of day, and you will almost certainly get that spot wrong on the first try. Finding out with a tablet on a cookbook stand costs nothing. Finding out after mounting a Pi behind drywall is annoying.</p>
+<p>If it sticks, buy the hardware. If it doesn't, you've lost an evening instead of $629.</p>
 <h2>The build, in five steps</h2>
 <p>The <a href="/getting-started/">full getting-started guide</a> has copy-paste commands for every step. The short version:</p>
 <ol>
@@ -345,6 +350,15 @@
 <li><strong>Set the 6am schedule</strong> — one cron line generates a fresh dashboard every morning before anyone wakes up.</li>
 <li><strong>Point your screen at it</strong> — on a Pi, Chromium launches fullscreen at boot; on a tablet or TV, just open the dashboard URL in the browser.</li>
 </ol>
+<p>Realistically: an evening for the first build if you're comfortable in a terminal, and about ten minutes whenever you want to change a chore rotation afterwards.</p>
+<h2>Mounting it on the wall</h2>
+<p>Three things decide whether this gets looked at:</p>
+<ul>
+<li><strong>Height and place.</strong> Eye level, on the route between the coffee machine and the door. Kitchens beat hallways; hallways beat home offices.</li>
+<li><strong>Power.</strong> This is the part people underestimate. A wall-mounted screen needs a cable to somewhere, and the honest options are a nearby outlet, a surface-mounted cable channel, or a shelf instead of a wall. Pick the spot with power in mind rather than solving it afterwards.</li>
+<li><strong>Glare.</strong> A screen facing a window is unreadable for two hours a day. Turn it perpendicular to the light.</li>
+</ul>
+<p>A cheap tablet wall mount, a picture ledge, or a small easel stand all work. None of this needs to be permanent — and it shouldn't be, until you're sure about the location.</p>
 <h2>DIY vs Skylight, honestly</h2>
 <p><strong>What you give up:</strong> the slick touch interface for editing events on the screen itself (you edit in Google Calendar instead), the polished companion app, and someone to email when things break.</p>
 <p><strong>What you gain:</strong></p>
@@ -390,9 +404,22 @@
 </tbody>
 </table>
 <p><em>Prices checked July 2026.</em></p>
+<h2>Questions people ask</h2>
+<p><strong>Is there a monthly fee for a DIY calendar?</strong>
+No subscription. The only running cost is the Anthropic API key for the daily brief, which comes to a few cents a month — roughly $0.20–0.40 for a typical family. Skip the AI brief and it's free. (For what Skylight itself charges, see our <a href="/skylight-calendar-subscription/">Skylight subscription breakdown</a>.)</p>
+<p><strong>Do I need to know how to code?</strong>
+No, but you need to be willing to copy commands into a terminal and read an error message without panicking. If you've ever followed a Raspberry Pi tutorial, you're comfortably over the bar. If the word "terminal" is a dealbreaker, buy the Skylight — that's a legitimate answer.</p>
+<p><strong>What actually goes wrong?</strong>
+Two things, both fixable in a minute. Chromium sometimes starts before the server is ready and shows a connection error at boot — the startup script waits for the server to fix this. And emoji render as empty boxes until you install the emoji font package. Both are covered in the <a href="/getting-started/">troubleshooting section</a>.</p>
+<p><strong>What happens if the internet goes down?</strong>
+The dashboard keeps showing yesterday's data. The AI brief is generated once each morning and saved to a file, so the screen never depends on a live connection to display something.</p>
+<p><strong>Can the kids break it?</strong>
+There's nothing to tap. It's a read-only display — events are edited in Google Calendar on your phone, so there's no way to delete next week from the wall.</p>
+<p><strong>Is DIY actually worth it versus just buying one?</strong>
+If your time is worth more than about $500 an evening, no. If you already own a spare screen, enjoy this sort of project, or specifically want your family's data staying on your own hardware, yes. Both are reasonable — see <a href="/skylight-calendar-alternatives/">all the Skylight alternatives</a> including no-setup options.</p>
 <h2>Start here</h2>
-<p>If you can copy commands into a terminal, you can have this on your kitchen wall by Sunday: <strong><a href="/getting-started/">the complete setup guide</a></strong>. Rather skip the setup entirely? A hosted version is coming — <a href="https://fffwryhvses.typeform.com/to/yxMMhmFs">join the waitlist</a>.</p>
-<p>Not sure DIY is for you? See <a href="/skylight-calendar-alternatives/">all the Skylight alternatives</a>, including no-setup options.</p>
+<p>If you can copy commands into a terminal, you can have this on your kitchen wall by Sunday: <strong><a href="/getting-started/">the complete setup guide</a></strong>. Buying hardware for it? Start with the <a href="/raspberry-pi-family-calendar/">Raspberry Pi build guide</a>.</p>
+<p>Rather skip the setup entirely? A hosted version is coming — <a href="https://fffwryhvses.typeform.com/to/yxMMhmFs">join the waitlist</a>.</p>
 </div>
 
 </main>
@@ -404,6 +431,7 @@
             <a href="/hearth-vs-skylight/">Hearth vs Skylight</a>
             <a href="/skylight-calendar-subscription/">Skylight subscription costs</a>
             <a href="/diy-skylight-calendar/">DIY digital calendar</a>
+            <a href="/raspberry-pi-family-calendar/">Raspberry Pi calendar</a>
             <a href="/digital-calendar-and-chore-chart/">Calendar + chore chart</a>
             <a href="/best-digital-family-calendar/">Best family calendars</a>
             <a href="/morning-routine/">Morning routines</a>
