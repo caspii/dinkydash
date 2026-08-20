@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Birthday countdown</title>
+    <meta name="description" content="A full-screen birthday countdown.">
+    <link rel="canonical" href="https://dinkydash.co/birthday-countdown/display/">
+    
+    <meta name="robots" content="noindex, follow">
+    <meta property="og:title" content="Birthday countdown">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="https://dinkydash.co/images/hero-kitchen.png">
+    <meta property="og:description" content="A full-screen birthday countdown.">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="theme-color" content="#fffaf5">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #fffaf5;
+            --surface-warm: #fff5ec;
+            --border: #f0e6da;
+            --text: #2d2319;
+            --text-mid: #5c4a3a;
+            --text-muted: #9a8677;
+            --accent: #e85d24;
+            --purple: #7c5cbf;
+        }
+
+        html, body { height: 100%; }
+        body {
+            font-family: 'Nunito', system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            -webkit-font-smoothing: antialiased;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 4vmin 4vw;
+            text-align: center;
+            overflow: hidden;
+        }
+
+        /* Hero — sized in viewport units so it fills a phone, a tablet on the
+           wall, or a TV without needing breakpoints. */
+        .d-days {
+            font-size: clamp(5rem, 26vmin, 22rem);
+            font-weight: 800;
+            line-height: 0.92;
+            letter-spacing: -0.05em;
+            color: var(--accent);
+            font-variant-numeric: tabular-nums;
+        }
+        .d-label {
+            font-size: clamp(1.1rem, 3.6vmin, 2.4rem);
+            font-weight: 800;
+            margin-top: 2vmin;
+            line-height: 1.2;
+            text-wrap: balance;
+        }
+        .d-clock {
+            font-size: clamp(0.9rem, 2.2vmin, 1.5rem);
+            font-weight: 700;
+            color: var(--text-muted);
+            font-variant-numeric: tabular-nums;
+            margin-top: 1.4vmin;
+        }
+        .d-meta {
+            font-size: clamp(0.85rem, 2vmin, 1.3rem);
+            color: var(--text-mid);
+            margin-top: 0.6vmin;
+        }
+        .d-today { color: var(--accent); font-size: clamp(3rem, 15vmin, 12rem); line-height: 1.05; }
+
+        /* The others */
+        .d-rest {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1.4vmin 3vmin;
+            margin-top: 5vmin;
+            padding-top: 4vmin;
+            border-top: 1px solid var(--border);
+            max-width: 1100px;
+        }
+        .d-chip { display: flex; align-items: baseline; gap: 0.8vmin; }
+        .d-chip-days {
+            font-size: clamp(1.3rem, 4vmin, 2.6rem);
+            font-weight: 800;
+            color: var(--purple);
+            font-variant-numeric: tabular-nums;
+        }
+        .d-chip-name {
+            font-size: clamp(0.8rem, 2vmin, 1.2rem);
+            font-weight: 700;
+            color: var(--text-mid);
+        }
+
+        .d-empty { max-width: 30rem; }
+        .d-empty p { color: var(--text-mid); margin-bottom: 1.2rem; font-size: 1.05rem; }
+        .d-empty a { color: var(--accent); font-weight: 700; }
+
+        /* Attribution. Deliberately quiet, but present — a shared countdown is
+           the only place a recipient learns where it came from. */
+        .d-mark {
+            position: fixed;
+            bottom: 2.4vmin;
+            left: 0;
+            right: 0;
+            font-size: clamp(0.7rem, 1.5vmin, 0.95rem);
+            font-weight: 700;
+            color: var(--text-muted);
+            opacity: 0.55;
+            text-decoration: none;
+            transition: opacity 0.15s;
+        }
+        .d-mark:hover { opacity: 1; color: var(--accent); }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #1c1613;
+                --surface-warm: #241d18;
+                --border: #3a2f27;
+                --text: #f6ede4;
+                --text-mid: #cbb9a8;
+                --text-muted: #9a8677;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main id="d-root">
+        <div class="d-empty">
+            <p>Loading countdown…</p>
+        </div>
+    </main>
+
+    <a class="d-mark" href="/birthday-countdown/">Made with DinkyDash</a>
+
+
+<script>
+window.DDCountdown = (function () {
+    'use strict';
+
+    var MONTHS = ['January', 'February', 'March', 'April', 'May', 'June',
+                  'July', 'August', 'September', 'October', 'November', 'December'];
+    var SEP = '~';
+
+    function isLeap(y) { return (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0; }
+
+    function daysInMonth(month, year) {
+        if (month === 2) { return isLeap(year || 2024) ? 29 : 28; }
+        return [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][month - 1];
+    }
+
+    // Mirrors anniversary() in generate.py: February 29 is observed on
+    // February 28 in common years, so leap-day birthdays land on a real date
+    // instead of silently rolling into March.
+    function anniversary(year, month, day) {
+        if (month === 2 && day === 29 && !isLeap(year)) { return new Date(year, 1, 28); }
+        return new Date(year, month - 1, day);
+    }
+
+    function todayMidnight() {
+        var n = new Date();
+        return new Date(n.getFullYear(), n.getMonth(), n.getDate());
+    }
+
+    function nextOccurrence(month, day, from) {
+        var thisYear = anniversary(from.getFullYear(), month, day);
+        if (thisYear >= from) { return thisYear; }
+        return anniversary(from.getFullYear() + 1, month, day);
+    }
+
+    // Round rather than floor: clock changes make some local days 23 or 25
+    // hours long, and only whole days matter here.
+    function daysUntil(target, from) {
+        return Math.round((target - from) / 86400000);
+    }
+
+    function ageOn(birthYear, month, day, when) {
+        var age = when.getFullYear() - birthYear;
+        if (when < anniversary(when.getFullYear(), month, day)) { age -= 1; }
+        return age;
+    }
+
+    function parsePerson(raw) {
+        var bits = String(raw).split(SEP);
+        var md = (bits[1] || '').split('-');
+        var month = parseInt(md[0], 10);
+        var day = parseInt(md[1], 10);
+        if (!month || !day || month < 1 || month > 12 || day < 1 || day > daysInMonth(month, 2024)) {
+            return null;
+        }
+        var year = parseInt(bits[2], 10);
+        return {
+            name: (bits[0] || '').slice(0, 24),
+            month: month,
+            day: day,
+            year: (year >= 1900 && year <= 2100) ? year : null
+        };
+    }
+
+    function encodePerson(p) {
+        var pad = function (n) { return (n < 10 ? '0' : '') + n; };
+        return [p.name, pad(p.month) + '-' + pad(p.day), p.year || ''].join(SEP);
+    }
+
+    function query(people) {
+        return people.map(function (p) {
+            return 'p=' + encodeURIComponent(encodePerson(p));
+        }).join('&');
+    }
+
+    function readFromUrl() {
+        return new URLSearchParams(window.location.search)
+            .getAll('p').map(parsePerson).filter(Boolean);
+    }
+
+    function describe(p, now) {
+        var target = nextOccurrence(p.month, p.day, now);
+        var days = daysUntil(target, now);
+        var meta = MONTHS[target.getMonth()] + ' ' + target.getDate();
+        if (p.year) { meta += ' · turning ' + ageOn(p.year, p.month, p.day, target); }
+        if (p.month === 2 && p.day === 29 && target.getDate() === 28) {
+            meta += ' · leap-day birthday, observed the 28th';
+        }
+        return {
+            target: target,
+            days: days,
+            possessive: p.name ? (p.name + "'s") : 'your',
+            meta: meta
+        };
+    }
+
+    // Soonest first — "whose birthday is next" is the question a countdown
+    // exists to answer, so insertion order would be the wrong emphasis.
+    function bySoonest(people, now) {
+        return people.slice().sort(function (a, b) {
+            return describe(a, now).days - describe(b, now).days;
+        });
+    }
+
+    function clockText(target) {
+        var ms = target - new Date();
+        if (ms <= 0) { return ''; }
+        var total = Math.floor(ms / 1000);
+        var pad = function (n) { return (n < 10 ? '0' : '') + n; };
+        return pad(Math.floor(total / 3600) % 24) + 'h '
+             + pad(Math.floor(total / 60) % 60) + 'm '
+             + pad(total % 60) + 's';
+    }
+
+    return {
+        MONTHS: MONTHS,
+        daysInMonth: daysInMonth,
+        anniversary: anniversary,
+        todayMidnight: todayMidnight,
+        nextOccurrence: nextOccurrence,
+        daysUntil: daysUntil,
+        ageOn: ageOn,
+        parsePerson: parsePerson,
+        encodePerson: encodePerson,
+        query: query,
+        readFromUrl: readFromUrl,
+        describe: describe,
+        bySoonest: bySoonest,
+        clockText: clockText
+    };
+})();
+</script>
+<script>
+(function () {
+    'use strict';
+
+    var C = window.DDCountdown;
+    var root = document.getElementById('d-root');
+    var people = C.readFromUrl();
+    var primary = null;
+
+    function empty() {
+        root.innerHTML = '';
+        var box = document.createElement('div');
+        box.className = 'd-empty';
+        var p = document.createElement('p');
+        p.textContent = 'This countdown link has no birthdays in it.';
+        var a = document.createElement('a');
+        a.href = '/birthday-countdown/';
+        a.textContent = 'Make your own birthday countdown →';
+        box.appendChild(p);
+        box.appendChild(a);
+        root.appendChild(box);
+    }
+
+    function text(cls, value) {
+        var d = document.createElement('div');
+        d.className = cls;
+        d.textContent = value;
+        return d;
+    }
+
+    function render() {
+        var now = C.todayMidnight();
+        var sorted = C.bySoonest(people, now);
+        primary = sorted[0];
+        var d = C.describe(primary, now);
+
+        root.innerHTML = '';
+
+        if (d.days === 0) {
+            root.appendChild(text('d-days d-today', '🎉'));
+            root.appendChild(text('d-label',
+                'Happy birthday' + (primary.name ? ', ' + primary.name : '') + '!'));
+        } else {
+            root.appendChild(text('d-days', String(d.days)));
+            root.appendChild(text('d-label',
+                'day' + (d.days === 1 ? '' : 's') + ' until ' + d.possessive + ' birthday'));
+            root.appendChild(text('d-clock', C.clockText(d.target)));
+        }
+        root.appendChild(text('d-meta', d.meta));
+
+        if (sorted.length > 1) {
+            var rest = document.createElement('div');
+            rest.className = 'd-rest';
+            sorted.slice(1).forEach(function (p) {
+                var pd = C.describe(p, now);
+                var chip = document.createElement('div');
+                chip.className = 'd-chip';
+                chip.appendChild(text('d-chip-days', pd.days === 0 ? '🎉' : String(pd.days)));
+                chip.appendChild(text('d-chip-name', p.name || 'birthday'));
+                rest.appendChild(chip);
+            });
+            root.appendChild(rest);
+        }
+    }
+
+    if (!people.length) {
+        empty();
+        return;
+    }
+
+    render();
+    document.title = (function () {
+        var d = C.describe(C.bySoonest(people, C.todayMidnight())[0], C.todayMidnight());
+        return d.days === 0
+            ? 'Today! · Birthday countdown'
+            : d.days + ' days until ' + d.possessive + ' birthday';
+    })();
+
+    // Tick the clock without rebuilding the DOM.
+    setInterval(function () {
+        var clock = root.querySelector('.d-clock');
+        if (!clock || !primary) { return; }
+        clock.textContent = C.clockText(
+            C.nextOccurrence(primary.month, primary.day, C.todayMidnight()));
+    }, 1000);
+
+    // A display left running on a wall needs to notice midnight.
+    setInterval(function () {
+        var shown = root.querySelector('.d-days');
+        var d = C.describe(C.bySoonest(people, C.todayMidnight())[0], C.todayMidnight());
+        if (!shown || shown.textContent !== String(d.days)) { render(); }
+    }, 60000);
+})();
+</script>
+</body>
+</html>

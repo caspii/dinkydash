@@ -106,11 +106,16 @@ def copy_images():
 
 
 def generate_pages():
-    """Render every Markdown file, returning (url_path, source_files) per page."""
+    """Render every Markdown file.
+
+    Returns (sitemap_pages, written_count). These differ because `noindex`
+    pages are still rendered, just kept out of the sitemap.
+    """
     # Ensure output directory exists
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
     pages = []
+    written = 0
 
     for root, dirs, files in os.walk('content'):
         for file in files:
@@ -146,10 +151,16 @@ def generate_pages():
                 # Write output
                 with open(output_path, 'w') as f:
                     f.write(output)
+                written += 1
 
-                pages.append((url_path, (file_path, os.path.join('templates', template_name))))
+                # `noindex: true` pages stay out of the sitemap and carry a
+                # robots meta tag. Used for pages whose content only exists once
+                # query parameters are supplied — indexing the bare URL would
+                # just add a thin page.
+                if not front_matter.get('noindex'):
+                    pages.append((url_path, (file_path, os.path.join('templates', template_name))))
 
-    return pages
+    return pages, written
 
 
 def preserve_cname():
@@ -176,7 +187,7 @@ if __name__ == '__main__':
     if os.path.exists(OUTPUT_DIR):
         shutil.rmtree(OUTPUT_DIR)
 
-    pages = generate_pages()
+    pages, written = generate_pages()
     generate_sitemap(pages)
     generate_robots()
     copy_images()
@@ -184,4 +195,5 @@ if __name__ == '__main__':
     # Restore CNAME file
     restore_cname(cname_content)
 
-    print(f"Site generated in {OUTPUT_DIR} ({len(pages)} pages)")
+    print(f"Site generated in {OUTPUT_DIR} "
+          f"({written} pages, {len(pages)} in sitemap)")

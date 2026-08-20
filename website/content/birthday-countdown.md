@@ -14,11 +14,19 @@ Count from today to your next birthday. If it's already been this year, you're c
 
 The counter above does this for you, but the arithmetic that trips people up is the year boundary: from 20 August to 15 March is 207 days, not the 158 you'd get by subtracting the dates and ignoring the year change.
 
+## Adding the whole family
+
+You're not limited to one. Add a birthday, then add another — everyone stacks up in the same countdown, sorted so the next one coming is always the big number at the top.
+
+That's the point at which it stops being a countdown and starts being a calendar, which is rather the idea.
+
 ## Sharing a countdown
 
-Every countdown you build gets its own link. Copy it and whoever opens it sees the same numbers you do, counting down live from their own clock.
+Every countdown you build gets its own link, and that link opens **full screen** — just the numbers, no menus and no page around them. It's meant to be sent to someone, or left open on a spare tablet or TV.
 
-The link holds the name and the date, so nothing is stored on our end and nothing expires. A countdown you share today still works next year — it'll just be counting to the next birthday.
+Copy it and whoever opens it sees the same countdown you do, ticking live from their own clock. Use **Open full screen** to put it up on your own screen.
+
+The link holds the names and dates, so nothing is stored on our end and nothing expires. A countdown you share today still works next year — it'll just be counting to the next birthday.
 
 If you'd rather not put a birth year in a shared link, leave the year blank. You'll still get the countdown, just without the "turning 12" line.
 

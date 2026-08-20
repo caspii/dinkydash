@@ -1,0 +1,134 @@
+{# Shared countdown logic for the tool page and the full-screen display page.
+   Included by both so the date arithmetic has one definition — the display
+   page and the editor must never disagree about how many days are left. #}
+<script>
+window.DDCountdown = (function () {
+    'use strict';
+
+    var MONTHS = ['January', 'February', 'March', 'April', 'May', 'June',
+                  'July', 'August', 'September', 'October', 'November', 'December'];
+    var SEP = '~';
+
+    function isLeap(y) { return (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0; }
+
+    function daysInMonth(month, year) {
+        if (month === 2) { return isLeap(year || 2024) ? 29 : 28; }
+        return [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][month - 1];
+    }
+
+    // Mirrors anniversary() in generate.py: February 29 is observed on
+    // February 28 in common years, so leap-day birthdays land on a real date
+    // instead of silently rolling into March.
+    function anniversary(year, month, day) {
+        if (month === 2 && day === 29 && !isLeap(year)) { return new Date(year, 1, 28); }
+        return new Date(year, month - 1, day);
+    }
+
+    function todayMidnight() {
+        var n = new Date();
+        return new Date(n.getFullYear(), n.getMonth(), n.getDate());
+    }
+
+    function nextOccurrence(month, day, from) {
+        var thisYear = anniversary(from.getFullYear(), month, day);
+        if (thisYear >= from) { return thisYear; }
+        return anniversary(from.getFullYear() + 1, month, day);
+    }
+
+    // Round rather than floor: clock changes make some local days 23 or 25
+    // hours long, and only whole days matter here.
+    function daysUntil(target, from) {
+        return Math.round((target - from) / 86400000);
+    }
+
+    function ageOn(birthYear, month, day, when) {
+        var age = when.getFullYear() - birthYear;
+        if (when < anniversary(when.getFullYear(), month, day)) { age -= 1; }
+        return age;
+    }
+
+    function parsePerson(raw) {
+        var bits = String(raw).split(SEP);
+        var md = (bits[1] || '').split('-');
+        var month = parseInt(md[0], 10);
+        var day = parseInt(md[1], 10);
+        if (!month || !day || month < 1 || month > 12 || day < 1 || day > daysInMonth(month, 2024)) {
+            return null;
+        }
+        var year = parseInt(bits[2], 10);
+        return {
+            name: (bits[0] || '').slice(0, 24),
+            month: month,
+            day: day,
+            year: (year >= 1900 && year <= 2100) ? year : null
+        };
+    }
+
+    function encodePerson(p) {
+        var pad = function (n) { return (n < 10 ? '0' : '') + n; };
+        return [p.name, pad(p.month) + '-' + pad(p.day), p.year || ''].join(SEP);
+    }
+
+    function query(people) {
+        return people.map(function (p) {
+            return 'p=' + encodeURIComponent(encodePerson(p));
+        }).join('&');
+    }
+
+    function readFromUrl() {
+        return new URLSearchParams(window.location.search)
+            .getAll('p').map(parsePerson).filter(Boolean);
+    }
+
+    function describe(p, now) {
+        var target = nextOccurrence(p.month, p.day, now);
+        var days = daysUntil(target, now);
+        var meta = MONTHS[target.getMonth()] + ' ' + target.getDate();
+        if (p.year) { meta += ' · turning ' + ageOn(p.year, p.month, p.day, target); }
+        if (p.month === 2 && p.day === 29 && target.getDate() === 28) {
+            meta += ' · leap-day birthday, observed the 28th';
+        }
+        return {
+            target: target,
+            days: days,
+            possessive: p.name ? (p.name + "'s") : 'your',
+            meta: meta
+        };
+    }
+
+    // Soonest first — "whose birthday is next" is the question a countdown
+    // exists to answer, so insertion order would be the wrong emphasis.
+    function bySoonest(people, now) {
+        return people.slice().sort(function (a, b) {
+            return describe(a, now).days - describe(b, now).days;
+        });
+    }
+
+    function clockText(target) {
+        var ms = target - new Date();
+        if (ms <= 0) { return ''; }
+        var total = Math.floor(ms / 1000);
+        var pad = function (n) { return (n < 10 ? '0' : '') + n; };
+        return pad(Math.floor(total / 3600) % 24) + 'h '
+             + pad(Math.floor(total / 60) % 60) + 'm '
+             + pad(total % 60) + 's';
+    }
+
+    return {
+        MONTHS: MONTHS,
+        daysInMonth: daysInMonth,
+        anniversary: anniversary,
+        todayMidnight: todayMidnight,
+        nextOccurrence: nextOccurrence,
+        daysUntil: daysUntil,
+        ageOn: ageOn,
+        parsePerson: parsePerson,
+        encodePerson: encodePerson,
+        query: query,
+        readFromUrl: readFromUrl,
+        describe: describe,
+        bySoonest: bySoonest,
+        clockText: clockText
+    };
+})();
+</script>

@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ title }}</title>
+    <meta name="description" content="{{ description }}">
+    <link rel="canonical" href="{{ canonical_url }}">
+    {# The bare URL has nothing on it — the countdown lives in ?p= parameters —
+       so there is nothing here worth indexing. build.py also keeps it out of
+       the sitemap. #}
+    <meta name="robots" content="noindex, follow">
+    <meta property="og:title" content="Birthday countdown">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="https://dinkydash.co/images/hero-kitchen.png">
+    <meta property="og:description" content="{{ description }}">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="theme-color" content="#fffaf5">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #fffaf5;
+            --surface-warm: #fff5ec;
+            --border: #f0e6da;
+            --text: #2d2319;
+            --text-mid: #5c4a3a;
+            --text-muted: #9a8677;
+            --accent: #e85d24;
+            --purple: #7c5cbf;
+        }
+
+        html, body { height: 100%; }
+        body {
+            font-family: 'Nunito', system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            -webkit-font-smoothing: antialiased;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 4vmin 4vw;
+            text-align: center;
+            overflow: hidden;
+        }
+
+        /* Hero — sized in viewport units so it fills a phone, a tablet on the
+           wall, or a TV without needing breakpoints. */
+        .d-days {
+            font-size: clamp(5rem, 26vmin, 22rem);
+            font-weight: 800;
+            line-height: 0.92;
+            letter-spacing: -0.05em;
+            color: var(--accent);
+            font-variant-numeric: tabular-nums;
+        }
+        .d-label {
+            font-size: clamp(1.1rem, 3.6vmin, 2.4rem);
+            font-weight: 800;
+            margin-top: 2vmin;
+            line-height: 1.2;
+            text-wrap: balance;
+        }
+        .d-clock {
+            font-size: clamp(0.9rem, 2.2vmin, 1.5rem);
+            font-weight: 700;
+            color: var(--text-muted);
+            font-variant-numeric: tabular-nums;
+            margin-top: 1.4vmin;
+        }
+        .d-meta {
+            font-size: clamp(0.85rem, 2vmin, 1.3rem);
+            color: var(--text-mid);
+            margin-top: 0.6vmin;
+        }
+        .d-today { color: var(--accent); font-size: clamp(3rem, 15vmin, 12rem); line-height: 1.05; }
+
+        /* The others */
+        .d-rest {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1.4vmin 3vmin;
+            margin-top: 5vmin;
+            padding-top: 4vmin;
+            border-top: 1px solid var(--border);
+            max-width: 1100px;
+        }
+        .d-chip { display: flex; align-items: baseline; gap: 0.8vmin; }
+        .d-chip-days {
+            font-size: clamp(1.3rem, 4vmin, 2.6rem);
+            font-weight: 800;
+            color: var(--purple);
+            font-variant-numeric: tabular-nums;
+        }
+        .d-chip-name {
+            font-size: clamp(0.8rem, 2vmin, 1.2rem);
+            font-weight: 700;
+            color: var(--text-mid);
+        }
+
+        .d-empty { max-width: 30rem; }
+        .d-empty p { color: var(--text-mid); margin-bottom: 1.2rem; font-size: 1.05rem; }
+        .d-empty a { color: var(--accent); font-weight: 700; }
+
+        /* Attribution. Deliberately quiet, but present — a shared countdown is
+           the only place a recipient learns where it came from. */
+        .d-mark {
+            position: fixed;
+            bottom: 2.4vmin;
+            left: 0;
+            right: 0;
+            font-size: clamp(0.7rem, 1.5vmin, 0.95rem);
+            font-weight: 700;
+            color: var(--text-muted);
+            opacity: 0.55;
+            text-decoration: none;
+            transition: opacity 0.15s;
+        }
+        .d-mark:hover { opacity: 1; color: var(--accent); }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #1c1613;
+                --surface-warm: #241d18;
+                --border: #3a2f27;
+                --text: #f6ede4;
+                --text-mid: #cbb9a8;
+                --text-muted: #9a8677;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main id="d-root">
+        <div class="d-empty">
+            <p>Loading countdown…</p>
+        </div>
+    </main>
+
+    <a class="d-mark" href="/birthday-countdown/">Made with DinkyDash</a>
+
+{% include "_countdown-lib.html" %}
+<script>
+(function () {
+    'use strict';
+
+    var C = window.DDCountdown;
+    var root = document.getElementById('d-root');
+    var people = C.readFromUrl();
+    var primary = null;
+
+    function empty() {
+        root.innerHTML = '';
+        var box = document.createElement('div');
+        box.className = 'd-empty';
+        var p = document.createElement('p');
+        p.textContent = 'This countdown link has no birthdays in it.';
+        var a = document.createElement('a');
+        a.href = '/birthday-countdown/';
+        a.textContent = 'Make your own birthday countdown →';
+        box.appendChild(p);
+        box.appendChild(a);
+        root.appendChild(box);
+    }
+
+    function text(cls, value) {
+        var d = document.createElement('div');
+        d.className = cls;
+        d.textContent = value;
+        return d;
+    }
+
+    function render() {
+        var now = C.todayMidnight();
+        var sorted = C.bySoonest(people, now);
+        primary = sorted[0];
+        var d = C.describe(primary, now);
+
+        root.innerHTML = '';
+
+        if (d.days === 0) {
+            root.appendChild(text('d-days d-today', '🎉'));
+            root.appendChild(text('d-label',
+                'Happy birthday' + (primary.name ? ', ' + primary.name : '') + '!'));
+        } else {
+            root.appendChild(text('d-days', String(d.days)));
+            root.appendChild(text('d-label',
+                'day' + (d.days === 1 ? '' : 's') + ' until ' + d.possessive + ' birthday'));
+            root.appendChild(text('d-clock', C.clockText(d.target)));
+        }
+        root.appendChild(text('d-meta', d.meta));
+
+        if (sorted.length > 1) {
+            var rest = document.createElement('div');
+            rest.className = 'd-rest';
+            sorted.slice(1).forEach(function (p) {
+                var pd = C.describe(p, now);
+                var chip = document.createElement('div');
+                chip.className = 'd-chip';
+                chip.appendChild(text('d-chip-days', pd.days === 0 ? '🎉' : String(pd.days)));
+                chip.appendChild(text('d-chip-name', p.name || 'birthday'));
+                rest.appendChild(chip);
+            });
+            root.appendChild(rest);
+        }
+    }
+
+    if (!people.length) {
+        empty();
+        return;
+    }
+
+    render();
+    document.title = (function () {
+        var d = C.describe(C.bySoonest(people, C.todayMidnight())[0], C.todayMidnight());
+        return d.days === 0
+            ? 'Today! · Birthday countdown'
+            : d.days + ' days until ' + d.possessive + ' birthday';
+    })();
+
+    // Tick the clock without rebuilding the DOM.
+    setInterval(function () {
+        var clock = root.querySelector('.d-clock');
+        if (!clock || !primary) { return; }
+        clock.textContent = C.clockText(
+            C.nextOccurrence(primary.month, primary.day, C.todayMidnight()));
+    }, 1000);
+
+    // A display left running on a wall needs to notice midnight.
+    setInterval(function () {
+        var shown = root.querySelector('.d-days');
+        var d = C.describe(C.bySoonest(people, C.todayMidnight())[0], C.todayMidnight());
+        if (!shown || shown.textContent !== String(d.days)) { render(); }
+    }, 60000);
+})();
+</script>
+</body>
+</html>
