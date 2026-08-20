@@ -7,6 +7,8 @@ window.DDCountdown = (function () {
 
     var MONTHS = ['January', 'February', 'March', 'April', 'May', 'June',
                   'July', 'August', 'September', 'October', 'November', 'December'];
+    var WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday',
+                    'Friday', 'Saturday'];
     var SEP = '~';
 
     function isLeap(y) { return (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0; }
@@ -80,20 +82,46 @@ window.DDCountdown = (function () {
             .getAll('p').map(parsePerson).filter(Boolean);
     }
 
+    // Returns the pieces rather than one pre-baked string, so the compact and
+    // full-screen views can each show as much as they have room for.
     function describe(p, now) {
         var target = nextOccurrence(p.month, p.day, now);
-        var days = daysUntil(target, now);
-        var meta = MONTHS[target.getMonth()] + ' ' + target.getDate();
-        if (p.year) { meta += ' · turning ' + ageOn(p.year, p.month, p.day, target); }
-        if (p.month === 2 && p.day === 29 && target.getDate() === 28) {
-            meta += ' · leap-day birthday, observed the 28th';
-        }
         return {
             target: target,
-            days: days,
+            days: daysUntil(target, now),
             possessive: p.name ? (p.name + "'s") : 'your',
-            meta: meta
+            weekday: WEEKDAYS[target.getDay()],
+            dateText: MONTHS[target.getMonth()] + ' ' + target.getDate(),
+            year: target.getFullYear(),
+            turning: p.year ? ageOn(p.year, p.month, p.day, target) : null,
+            observedLeap: p.month === 2 && p.day === 29 && target.getDate() === 28
         };
+    }
+
+    // opts.weekday   prefix the date with the day of the week
+    // opts.year      include the year (worth it when it is not this one)
+    // opts.leapNote  spell out the leap-day substitution
+    function metaText(d, opts) {
+        opts = opts || {};
+        var date = (opts.weekday ? d.weekday + ', ' : '') + d.dateText;
+        if (opts.year) { date += ' ' + d.year; }
+        var parts = [date];
+        if (d.turning !== null) { parts.push('turning ' + d.turning); }
+        if (d.observedLeap && opts.leapNote) {
+            parts.push('leap-day birthday, observed the 28th');
+        }
+        return parts.join(' · ');
+    }
+
+    // "in 3 weeks" / "next March" — a rough sense of scale that a bare day
+    // count does not give you at a glance.
+    function humanGap(days) {
+        if (days === 0) { return 'today'; }
+        if (days === 1) { return 'tomorrow'; }
+        if (days < 7) { return 'this week'; }
+        if (days < 14) { return 'next week'; }
+        if (days < 60) { return 'in ' + Math.round(days / 7) + ' weeks'; }
+        return 'in ' + Math.round(days / 30.44) + ' months';
     }
 
     // Soonest first — "whose birthday is next" is the question a countdown
@@ -116,6 +144,9 @@ window.DDCountdown = (function () {
 
     return {
         MONTHS: MONTHS,
+        WEEKDAYS: WEEKDAYS,
+        metaText: metaText,
+        humanGap: humanGap,
         daysInMonth: daysInMonth,
         anniversary: anniversary,
         todayMidnight: todayMidnight,

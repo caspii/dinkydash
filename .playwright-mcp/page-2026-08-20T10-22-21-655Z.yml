@@ -1,0 +1,25 @@
+- generic [active] [ref=f8e1]:
+  - main [ref=f8e2]:
+    - generic [ref=f8e3]: "12"
+    - generic [ref=f8e4]: days until Bob's birthday
+    - generic [ref=f8e5]: 11h 37m 38s
+    - generic [ref=f8e6]: Tuesday, September 1 · turning 42
+    - generic [ref=f8e7]: next week
+    - generic [ref=f8e8]:
+      - generic [ref=f8e9]:
+        - generic [ref=f8e10]: "74"
+        - generic [ref=f8e11]:
+          - generic [ref=f8e12]: Dad
+          - generic [ref=f8e13]: Monday, November 2
+      - generic [ref=f8e14]:
+        - generic [ref=f8e15]: "192"
+        - generic [ref=f8e16]:
+          - generic [ref=f8e17]: Leapy
+          - generic [ref=f8e18]: Sunday, February 28 2027 · turning 11
+      - generic [ref=f8e19]:
+        - generic [ref=f8e20]: "207"
+        - generic [ref=f8e21]:
+          - generic [ref=f8e22]: Alice
+          - generic [ref=f8e23]: Monday, March 15 2027 · turning 12
+  - link "Made with DinkyDash" [ref=f8e24] [cursor=pointer]:
+    - /url: /birthday-countdown/

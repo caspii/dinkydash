@@ -78,27 +78,53 @@
         .d-today { color: var(--accent); font-size: clamp(3rem, 15vmin, 12rem); line-height: 1.05; }
 
         /* The others */
+        .d-gap {
+            font-size: clamp(0.8rem, 1.9vmin, 1.2rem);
+            font-weight: 700;
+            color: var(--accent);
+            opacity: 0.75;
+            margin-top: 0.4vmin;
+        }
+
         .d-rest {
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            gap: 1.4vmin 3vmin;
+            gap: 1.6vmin 2vmin;
             margin-top: 5vmin;
             padding-top: 4vmin;
             border-top: 1px solid var(--border);
             max-width: 1100px;
         }
-        .d-chip { display: flex; align-items: baseline; gap: 0.8vmin; }
+        .d-chip {
+            display: flex;
+            align-items: baseline;
+            gap: 1vmin;
+            background: var(--surface-warm);
+            border: 1px solid var(--border);
+            border-radius: 1.4vmin;
+            padding: 1.2vmin 2vmin;
+            text-align: left;
+        }
         .d-chip-days {
             font-size: clamp(1.3rem, 4vmin, 2.6rem);
             font-weight: 800;
             color: var(--purple);
             font-variant-numeric: tabular-nums;
+            line-height: 1;
         }
+        .d-chip-body { display: flex; flex-direction: column; gap: 0.2vmin; }
         .d-chip-name {
             font-size: clamp(0.8rem, 2vmin, 1.2rem);
-            font-weight: 700;
-            color: var(--text-mid);
+            font-weight: 800;
+            color: var(--text);
+            line-height: 1.15;
+        }
+        .d-chip-meta {
+            font-size: clamp(0.68rem, 1.55vmin, 0.95rem);
+            font-weight: 600;
+            color: var(--text-muted);
+            line-height: 1.2;
         }
 
         .d-empty { max-width: 30rem; }
@@ -149,6 +175,8 @@ window.DDCountdown = (function () {
 
     var MONTHS = ['January', 'February', 'March', 'April', 'May', 'June',
                   'July', 'August', 'September', 'October', 'November', 'December'];
+    var WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday',
+                    'Friday', 'Saturday'];
     var SEP = '~';
 
     function isLeap(y) { return (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0; }
@@ -222,20 +250,46 @@ window.DDCountdown = (function () {
             .getAll('p').map(parsePerson).filter(Boolean);
     }
 
+    // Returns the pieces rather than one pre-baked string, so the compact and
+    // full-screen views can each show as much as they have room for.
     function describe(p, now) {
         var target = nextOccurrence(p.month, p.day, now);
-        var days = daysUntil(target, now);
-        var meta = MONTHS[target.getMonth()] + ' ' + target.getDate();
-        if (p.year) { meta += ' · turning ' + ageOn(p.year, p.month, p.day, target); }
-        if (p.month === 2 && p.day === 29 && target.getDate() === 28) {
-            meta += ' · leap-day birthday, observed the 28th';
-        }
         return {
             target: target,
-            days: days,
+            days: daysUntil(target, now),
             possessive: p.name ? (p.name + "'s") : 'your',
-            meta: meta
+            weekday: WEEKDAYS[target.getDay()],
+            dateText: MONTHS[target.getMonth()] + ' ' + target.getDate(),
+            year: target.getFullYear(),
+            turning: p.year ? ageOn(p.year, p.month, p.day, target) : null,
+            observedLeap: p.month === 2 && p.day === 29 && target.getDate() === 28
         };
+    }
+
+    // opts.weekday   prefix the date with the day of the week
+    // opts.year      include the year (worth it when it is not this one)
+    // opts.leapNote  spell out the leap-day substitution
+    function metaText(d, opts) {
+        opts = opts || {};
+        var date = (opts.weekday ? d.weekday + ', ' : '') + d.dateText;
+        if (opts.year) { date += ' ' + d.year; }
+        var parts = [date];
+        if (d.turning !== null) { parts.push('turning ' + d.turning); }
+        if (d.observedLeap && opts.leapNote) {
+            parts.push('leap-day birthday, observed the 28th');
+        }
+        return parts.join(' · ');
+    }
+
+    // "in 3 weeks" / "next March" — a rough sense of scale that a bare day
+    // count does not give you at a glance.
+    function humanGap(days) {
+        if (days === 0) { return 'today'; }
+        if (days === 1) { return 'tomorrow'; }
+        if (days < 7) { return 'this week'; }
+        if (days < 14) { return 'next week'; }
+        if (days < 60) { return 'in ' + Math.round(days / 7) + ' weeks'; }
+        return 'in ' + Math.round(days / 30.44) + ' months';
     }
 
     // Soonest first — "whose birthday is next" is the question a countdown
@@ -258,6 +312,9 @@ window.DDCountdown = (function () {
 
     return {
         MONTHS: MONTHS,
+        WEEKDAYS: WEEKDAYS,
+        metaText: metaText,
+        humanGap: humanGap,
         daysInMonth: daysInMonth,
         anniversary: anniversary,
         todayMidnight: todayMidnight,
@@ -322,7 +379,12 @@ window.DDCountdown = (function () {
                 'day' + (d.days === 1 ? '' : 's') + ' until ' + d.possessive + ' birthday'));
             root.appendChild(text('d-clock', C.clockText(d.target)));
         }
-        root.appendChild(text('d-meta', d.meta));
+        root.appendChild(text('d-meta', C.metaText(d, {
+            weekday: true,
+            year: d.year !== now.getFullYear(),
+            leapNote: true
+        })));
+        if (d.days > 0) { root.appendChild(text('d-gap', C.humanGap(d.days))); }
 
         if (sorted.length > 1) {
             var rest = document.createElement('div');
@@ -332,7 +394,17 @@ window.DDCountdown = (function () {
                 var chip = document.createElement('div');
                 chip.className = 'd-chip';
                 chip.appendChild(text('d-chip-days', pd.days === 0 ? '🎉' : String(pd.days)));
-                chip.appendChild(text('d-chip-name', p.name || 'birthday'));
+
+                var body = document.createElement('div');
+                body.className = 'd-chip-body';
+                body.appendChild(text('d-chip-name', p.name || 'Birthday'));
+                // A bare number and a name left you guessing which date it was
+                // counting to; say it.
+                body.appendChild(text('d-chip-meta', C.metaText(pd, {
+                    weekday: true,
+                    year: pd.year !== now.getFullYear()
+                })));
+                chip.appendChild(body);
                 rest.appendChild(chip);
             });
             root.appendChild(rest);

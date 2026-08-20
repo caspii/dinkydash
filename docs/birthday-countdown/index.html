@@ -396,8 +396,16 @@
     .bc-hint { font-size: 0.8rem; color: var(--text-muted); margin-top: 10px; }
     .bc-error { color: #c2410c; font-size: 0.85rem; font-weight: 600; margin-top: 10px; }
 
-    /* Extra people */
-    .bc-list { display: grid; gap: 10px; margin-top: 18px; }
+    /* The roster — every countdown, including the one in the hero */
+    .bc-list-head {
+        margin-top: 24px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+    .bc-list { display: grid; gap: 10px; margin-top: 10px; }
     .bc-row {
         display: flex;
         align-items: center;
@@ -407,6 +415,24 @@
         border-radius: 12px;
         padding: 12px 16px;
     }
+    .bc-row-is-next {
+        border-color: rgba(232, 93, 36, 0.35);
+        background: var(--accent-soft);
+    }
+    .bc-row-is-next .bc-row-days { color: var(--accent); }
+    .bc-next-pill {
+        font-size: 0.68rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--accent);
+        border: 1px solid rgba(232, 93, 36, 0.35);
+        border-radius: 999px;
+        padding: 1px 7px;
+        margin-left: 8px;
+        white-space: nowrap;
+    }
+    .bc-row-gap { font-size: 0.82rem; color: var(--text-muted); font-weight: 600; }
     .bc-row-days {
         font-size: 1.6rem;
         font-weight: 800;
@@ -511,6 +537,7 @@
             <div class="bc-error" id="bc-error" hidden></div>
             <div class="bc-hint" id="bc-hint">Add a year and it will show the age they're turning. Nothing is uploaded — it all stays in your browser.</div>
 
+            <div class="bc-list-head" id="bc-list-head" hidden>Your countdowns</div>
             <div class="bc-list" id="bc-list"></div>
 
             <div class="bc-actions" id="bc-actions" hidden>
@@ -608,6 +635,8 @@ window.DDCountdown = (function () {
 
     var MONTHS = ['January', 'February', 'March', 'April', 'May', 'June',
                   'July', 'August', 'September', 'October', 'November', 'December'];
+    var WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday',
+                    'Friday', 'Saturday'];
     var SEP = '~';
 
     function isLeap(y) { return (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0; }
@@ -681,20 +710,46 @@ window.DDCountdown = (function () {
             .getAll('p').map(parsePerson).filter(Boolean);
     }
 
+    // Returns the pieces rather than one pre-baked string, so the compact and
+    // full-screen views can each show as much as they have room for.
     function describe(p, now) {
         var target = nextOccurrence(p.month, p.day, now);
-        var days = daysUntil(target, now);
-        var meta = MONTHS[target.getMonth()] + ' ' + target.getDate();
-        if (p.year) { meta += ' · turning ' + ageOn(p.year, p.month, p.day, target); }
-        if (p.month === 2 && p.day === 29 && target.getDate() === 28) {
-            meta += ' · leap-day birthday, observed the 28th';
-        }
         return {
             target: target,
-            days: days,
+            days: daysUntil(target, now),
             possessive: p.name ? (p.name + "'s") : 'your',
-            meta: meta
+            weekday: WEEKDAYS[target.getDay()],
+            dateText: MONTHS[target.getMonth()] + ' ' + target.getDate(),
+            year: target.getFullYear(),
+            turning: p.year ? ageOn(p.year, p.month, p.day, target) : null,
+            observedLeap: p.month === 2 && p.day === 29 && target.getDate() === 28
         };
+    }
+
+    // opts.weekday   prefix the date with the day of the week
+    // opts.year      include the year (worth it when it is not this one)
+    // opts.leapNote  spell out the leap-day substitution
+    function metaText(d, opts) {
+        opts = opts || {};
+        var date = (opts.weekday ? d.weekday + ', ' : '') + d.dateText;
+        if (opts.year) { date += ' ' + d.year; }
+        var parts = [date];
+        if (d.turning !== null) { parts.push('turning ' + d.turning); }
+        if (d.observedLeap && opts.leapNote) {
+            parts.push('leap-day birthday, observed the 28th');
+        }
+        return parts.join(' · ');
+    }
+
+    // "in 3 weeks" / "next March" — a rough sense of scale that a bare day
+    // count does not give you at a glance.
+    function humanGap(days) {
+        if (days === 0) { return 'today'; }
+        if (days === 1) { return 'tomorrow'; }
+        if (days < 7) { return 'this week'; }
+        if (days < 14) { return 'next week'; }
+        if (days < 60) { return 'in ' + Math.round(days / 7) + ' weeks'; }
+        return 'in ' + Math.round(days / 30.44) + ' months';
     }
 
     // Soonest first — "whose birthday is next" is the question a countdown
@@ -717,6 +772,9 @@ window.DDCountdown = (function () {
 
     return {
         MONTHS: MONTHS,
+        WEEKDAYS: WEEKDAYS,
+        metaText: metaText,
+        humanGap: humanGap,
         daysInMonth: daysInMonth,
         anniversary: anniversary,
         todayMidnight: todayMidnight,
@@ -794,16 +852,25 @@ window.DDCountdown = (function () {
                 'day' + (d.days === 1 ? '' : 's') + ' until ' + d.possessive + ' birthday';
             el('bc-clock').textContent = C.clockText(d.target);
         }
-        el('bc-sub').textContent = d.meta;
+        el('bc-sub').textContent = C.metaText(d, {
+            weekday: true,
+            year: d.year !== now.getFullYear(),
+            leapNote: true
+        });
     }
 
     function renderList(sorted, now) {
         var list = el('bc-list');
         list.textContent = '';
-        sorted.slice(1).forEach(function (p) {
+        el('bc-list-head').hidden = sorted.length === 0;
+        // Every countdown is listed, including the one shown large above.
+        // Rendering from index 1 left the soonest birthday with no remove
+        // control — and a birthday today is always the soonest, so a stray
+        // test entry could never be deleted.
+        sorted.forEach(function (p, idx) {
             var d = C.describe(p, now);
             var row = document.createElement('div');
-            row.className = 'bc-row';
+            row.className = 'bc-row' + (idx === 0 ? ' bc-row-is-next' : '');
 
             var days = document.createElement('div');
             days.className = 'bc-row-days';
@@ -814,11 +881,23 @@ window.DDCountdown = (function () {
             var name = document.createElement('div');
             name.className = 'bc-row-name';
             name.textContent = p.name || 'Birthday';
+            if (idx === 0) {
+                var pill = document.createElement('span');
+                pill.className = 'bc-next-pill';
+                pill.textContent = d.days === 0 ? 'Today' : 'Next';
+                name.appendChild(pill);
+            }
             var meta = document.createElement('div');
             meta.className = 'bc-row-meta';
-            meta.textContent = d.meta;
+            meta.textContent = C.metaText(d, { weekday: true, leapNote: true });
             body.appendChild(name);
             body.appendChild(meta);
+            if (d.days > 0) {
+                var gap = document.createElement('div');
+                gap.className = 'bc-row-gap';
+                gap.textContent = C.humanGap(d.days);
+                body.appendChild(gap);
+            }
 
             var remove = document.createElement('button');
             remove.type = 'button';
