@@ -2,6 +2,9 @@
 venv/
 __pycache__/
 *.pyc
+
+# Browser-automation scratch output (snapshots, console logs, screenshots)
+.playwright-mcp/
 .env
 dashboard_data.json
 content_history.json
