@@ -3,14 +3,14 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>About DinkyDash — DinkyDash</title>
-    <meta name="description" content="DinkyDash is a free, open-source digital family calendar that runs on screens you already own — with an AI-written daily brief for your family.">
-    <link rel="canonical" href="https://dinkydash.co/about/">
-    <meta property="og:title" content="About DinkyDash — DinkyDash">
+    <title>Raspberry Pi Family Calendar: Build a Wall Dashboard That Updates Itself — DinkyDash</title>
+    <meta name="description" content="How to turn a Raspberry Pi into a wall-mounted family calendar and dashboard — today&#39;s events, rotating chores, birthday countdowns and an AI daily brief, for about $100 in parts and no subscription.">
+    <link rel="canonical" href="https://dinkydash.co/raspberry-pi-family-calendar/">
+    <meta property="og:title" content="Raspberry Pi Family Calendar: Build a Wall Dashboard That Updates Itself — DinkyDash">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://dinkydash.co/about/">
+    <meta property="og:url" content="https://dinkydash.co/raspberry-pi-family-calendar/">
     <meta property="og:image" content="https://dinkydash.co/images/hero-kitchen.png">
-    <meta property="og:description" content="DinkyDash is a free, open-source digital family calendar that runs on screens you already own — with an AI-written daily brief for your family.">
+    <meta property="og:description" content="How to turn a Raspberry Pi into a wall-mounted family calendar and dashboard — today&#39;s events, rotating chores, birthday countdowns and an AI daily brief, for about $100 in parts and no subscription.">
     <meta name="twitter:card" content="summary_large_image">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -295,44 +295,124 @@
 <main>
     
 <div class="container page-content">
-    <h1>About DinkyDash</h1>
-    <p>DinkyDash is a free, open-source <strong>digital family calendar for screens you already own</strong>. Point a TV, an old tablet, or a Raspberry Pi at it and your family gets one glanceable screen with today's calendar, a self-rotating chore chart, countdowns to the big days — and a daily brief written fresh every morning by AI.</p>
-<p>It was built by <a href="https://casparwre.de">Caspar</a>, an indie developer in Berlin, for his own kids — and open-sourced because a family calendar shouldn't cost $629 plus a subscription.</p>
-<h2>Why an AI-written dashboard?</h2>
-<p>Most family calendar displays show static information that someone has to curate. DinkyDash takes a different approach: you describe your family once, and AI does the rest.</p>
-<p>Every morning at 6am, DinkyDash automatically:</p>
+    <h1>Raspberry Pi Family Calendar: Build a Wall Dashboard That Updates Itself</h1>
+    <p>A Raspberry Pi, a small touchscreen and some open-source software make a genuinely good family calendar: it hangs on the kitchen wall, shows today's schedule at a glance, updates itself every morning, and costs about <strong>$100 in parts with nothing monthly</strong>.</p>
+<p>This page covers the hardware side — which Pi, which screen, what it draws, what it costs. The <a href="/getting-started/">full setup guide</a> has the copy-paste commands.</p>
+<p><img alt="A Raspberry Pi with a small touchscreen showing a family dashboard, sitting on a kitchen shelf" src="/images/diy-raspberry-pi-calendar.png" /></p>
+<h2>What ends up on the screen</h2>
+<p><a href="https://github.com/caspii/dinkydash">DinkyDash</a> is a free, open-source, MIT-licensed family dashboard built for exactly this. On the display you get:</p>
 <ul>
-<li>Fetches your Google Calendar events (any iCal link works)</li>
-<li>Figures out whose turn it is for each chore</li>
-<li>Calculates countdowns to birthdays, holidays, and special dates</li>
-<li>Sends all of this to Claude, which writes a personalized dashboard</li>
+<li><strong>Today's events</strong>, pulled from Google Calendar or any calendar with an iCal link</li>
+<li><strong>A chore chart</strong> that rotates between family members automatically each day</li>
+<li><strong>Countdowns</strong> to birthdays, holidays and vacations</li>
+<li><strong>A daily brief written by Claude</strong> — a fresh greeting, fun fact and family challenge every morning, written around your actual family</li>
 </ul>
-<p>The result is a screen that feels alive. It knows it's someone's birthday week. It writes a different fun fact and family challenge every day, tuned to your kids' interests. Kids check it voluntarily — which is the entire battle.</p>
-<h2>What the dashboard shows</h2>
+<p>No touch interaction is required. It's a display, not an app — which is the point, and also why a modest Pi is plenty.</p>
+<h2>Which Raspberry Pi</h2>
+<table>
+<thead>
+<tr>
+<th>Model</th>
+<th>Verdict</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Pi 4 (2GB)</strong></td>
+<td>The sweet spot. Runs Chromium in kiosk mode comfortably, cheap, widely available second-hand. This is what we'd pick.</td>
+</tr>
+<tr>
+<td><strong>Pi 5</strong></td>
+<td>Works fine and boots faster, but it's more money and more heat for a job that's mostly idle. Overkill here.</td>
+</tr>
+<tr>
+<td><strong>Pi Zero 2 W</strong></td>
+<td>Tempting at the price, but Chromium is a heavy browser and the Zero struggles. Workable if you're patient; frustrating if you're not.</td>
+</tr>
+<tr>
+<td><strong>Pi 3</strong></td>
+<td>Fine if you already own one. Slow to boot, but it only boots once.</td>
+</tr>
+</tbody>
+</table>
+<p>2GB of RAM is enough. The dashboard is a single static page that refreshes every five minutes — there's no database and no continuous rendering.</p>
+<h2>Which display</h2>
+<p>The software targets <strong>800×480</strong>, which is the resolution of the official Raspberry Pi 7″ Touch Display. That's the path of least resistance.</p>
 <ul>
-<li><strong>A daily headline</strong> — a cheerful, AI-written greeting for your family</li>
-<li><strong>Person cards</strong> — each family member with their photo and key info</li>
-<li><strong>Chore rotation</strong> — who does what today, rotated automatically and fairly</li>
-<li><strong>Countdowns</strong> — days until birthdays, holidays, vacations, and special events</li>
-<li><strong>Calendar events</strong> — what's happening today, pulled from your shared calendar</li>
-<li><strong>Fun facts and challenges</strong> — something new to read every morning</li>
-<li><strong>Pet corner</strong> — because pets are family too</li>
+<li><strong>Official 7″ Touch Display</strong> — connects over DSI (one ribbon cable, no HDMI), powered from the Pi itself. Around $60–80.</li>
+<li><strong>Any HDMI monitor</strong> — works, and a bigger screen reads better from across a room. You'll want to adjust the layout, and you're now managing two power supplies.</li>
+<li><strong>An old monitor you already own</strong> — free, and honestly the best way to test whether your family will actually look at it before you spend anything.</li>
 </ul>
-<h2>The principles</h2>
+<p>Touch is optional. The dashboard is read-only by design; you edit events in Google Calendar on your phone, the way you already do.</p>
+<h2>Parts list</h2>
+<table>
+<thead>
+<tr>
+<th>Part</th>
+<th>Approximate cost</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Raspberry Pi 4 (2GB)</td>
+<td>$45–60</td>
+</tr>
+<tr>
+<td>Official 7″ Touch Display</td>
+<td>$60–80</td>
+</tr>
+<tr>
+<td>MicroSD card (16GB+)</td>
+<td>$8–12</td>
+</tr>
+<tr>
+<td>USB-C power supply</td>
+<td>$8–12</td>
+</tr>
+<tr>
+<td>Case or stand</td>
+<td>$0–20</td>
+</tr>
+<tr>
+<td><strong>Total</strong></td>
+<td><strong>~$120–185 new, well under $100 with parts you own or buy used</strong></td>
+</tr>
+</tbody>
+</table>
+<p><em>Prices are approximate and vary by retailer — checked August 2026.</em></p>
+<p>Second-hand Pis are abundant and this workload will never stress one, so the used market is a genuinely good idea here.</p>
+<h2>How it actually works</h2>
+<p>The architecture is deliberately boring, which is why it keeps running:</p>
+<ol>
+<li><strong>A cron job at 6am</strong> runs a generation script. It fetches your calendar, works out ages, birthday countdowns and whose turn it is for each chore, sends all of that to the Claude API, and writes the result to a single JSON file.</li>
+<li><strong>A small Flask server</strong> reads that JSON file and renders the page.</li>
+<li><strong>Chromium launches fullscreen at boot</strong> in kiosk mode and refreshes every five minutes.</li>
+</ol>
+<p>The API call happens <strong>once a day</strong>, not on every page load. That matters for two reasons: the dashboard stays instant because it's only ever serving a static file, and your Anthropic bill is a few cents a month rather than a few dollars.</p>
+<p>If the network drops or the API call fails, the previous day's JSON is still on disk and the screen keeps showing it. A stale dashboard beats a blank one.</p>
+<h2>Power draw and leaving it on</h2>
+<p>A Pi 4 with the 7″ display sits <strong>under 10 watts</strong>. Left on around the clock that's roughly 60 kWh a year — call it $10 at typical US rates.</p>
+<p>You can cut that roughly in half with two cron lines that switch the display off overnight and back on before breakfast:</p>
+<pre><code>0 22 * * * /home/pi/screen_control.sh off
+0 7 * * * /home/pi/screen_control.sh on
+</code></pre>
+<p>The Pi stays up; only the panel sleeps. The <a href="/getting-started/">setup guide</a> has the script.</p>
+<h2>Kiosk mode</h2>
+<p>The one part people usually get wrong is the boot sequence: Chromium starts before Flask is ready and you get "localhost refused to connect" on the wall every morning. The startup script in the setup guide polls the server for up to 60 seconds before launching the browser, which fixes it.</p>
+<p>Two other things worth knowing before you start:</p>
 <ul>
-<li><strong>Bring your own screen.</strong> Anything with a browser works — no proprietary hardware, ever.</li>
-<li><strong>No subscription.</strong> MIT-licensed, free forever. You bring your own AI API key; a day's dashboard costs a few cents.</li>
-<li><strong>Private by design.</strong> Your family's details live in one config file on your own device — not in our cloud, because there isn't one.</li>
-<li><strong>Boring, reliable tech.</strong> Python, a cron job, and a web page: <code>generate.py</code> builds the day's dashboard as JSON each morning, and a tiny Flask app renders it. It's fixable with a search engine and an afternoon.</li>
+<li>Install <code>fonts-noto-color-emoji</code>, or the dashboard renders as empty boxes.</li>
+<li>On Raspberry Pi OS Bookworm the boot config lives at <code>/boot/firmware/config.txt</code>, not <code>/boot/config.txt</code> — this trips up a lot of older tutorials.</li>
 </ul>
-<h2>Where to start</h2>
-<ul>
-<li><a href="/getting-started/">Getting started guide</a> — from zero to a dashboard on your wall</li>
-<li><a href="/diy-skylight-calendar/">The ~$100 DIY build</a> — the Raspberry Pi + touchscreen route</li>
-<li><a href="/skylight-calendar-alternatives/">How it compares to Skylight, Hearth &amp; co.</a></li>
-<li><a href="https://github.com/caspii/dinkydash">The code, on GitHub</a></li>
-</ul>
-<p>Want DinkyDash without the setup? A hosted version is in the works — <a href="https://fffwryhvses.typeform.com/to/yxMMhmFs">join the waitlist</a>.</p>
+<p>Both are covered, with fixes, in the <a href="/getting-started/">troubleshooting section</a>.</p>
+<h2>Why build one instead of buying</h2>
+<p>A Skylight Calendar Max is $629, plus $79 a year for the Plus features. A Hearth Display is $699 plus $9 a month. They're nicely made, and if you want something that works out of the box with a support line, they're reasonable purchases.</p>
+<p>But a digital family calendar is fundamentally a screen showing a web page. If you're comfortable with a terminal, the Pi version costs about a sixth as much, has no subscription, keeps your family's data on your own device, and does one thing the $629 hardware doesn't: writes you a fresh daily brief every morning.</p>
+<p>The full cost comparison is on the <a href="/diy-skylight-calendar/">DIY Skylight calendar page</a>.</p>
+<h2>Start building</h2>
+<p>Everything you need is in the <a href="/getting-started/">setup guide</a> — install, config, cron, systemd service and kiosk mode, with the commands to copy. Budget an evening for the first build.</p>
+<p>The code is on <a href="https://github.com/caspii/dinkydash">GitHub</a> under an MIT licence. Stars and issues welcome.</p>
+<p>Want the dashboard without the Pi? A hosted version is coming — <a href="https://fffwryhvses.typeform.com/to/yxMMhmFs">join the waitlist</a>.</p>
 </div>
 
 </main>
