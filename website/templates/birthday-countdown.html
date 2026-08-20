@@ -1,0 +1,560 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} — DinkyDash{% endblock %}
+{% block description %}{{ description or "DinkyDash — the digital family calendar for screens you already own." }}{% endblock %}
+{% block og_title %}{{ title }} — DinkyDash{% endblock %}
+
+{% block extra_head %}
+<style>
+    .bc-app { margin: 8px 0 40px; }
+
+    .bc-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 28px 24px;
+        box-shadow: 0 2px 14px rgba(45, 35, 25, 0.04);
+    }
+
+    /* The headline countdown */
+    .bc-hero { text-align: center; }
+    .bc-days {
+        font-size: clamp(4rem, 18vw, 7.5rem);
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: -0.04em;
+        color: var(--accent);
+        font-variant-numeric: tabular-nums;
+    }
+    .bc-days-label {
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: var(--text);
+        margin-top: 4px;
+    }
+    .bc-clock {
+        font-variant-numeric: tabular-nums;
+        color: var(--text-muted);
+        font-size: 0.95rem;
+        font-weight: 600;
+        margin-top: 10px;
+    }
+    .bc-sub {
+        color: var(--text-mid);
+        font-size: 0.95rem;
+        margin-top: 6px;
+    }
+    .bc-today {
+        font-size: clamp(2rem, 9vw, 3.2rem);
+        font-weight: 800;
+        color: var(--accent);
+        line-height: 1.15;
+        letter-spacing: -0.02em;
+    }
+
+    /* Form */
+    .bc-form {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: flex-end;
+        margin-top: 24px;
+        padding-top: 24px;
+        border-top: 1px solid var(--border);
+    }
+    .bc-field { display: flex; flex-direction: column; gap: 5px; flex: 1 1 130px; }
+    .bc-field label {
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+    .bc-field input, .bc-field select {
+        font-family: inherit;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: var(--text);
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 10px 12px;
+        width: 100%;
+    }
+    .bc-field input:focus, .bc-field select:focus {
+        outline: 2px solid var(--accent);
+        outline-offset: -1px;
+    }
+    .bc-btn {
+        font-family: inherit;
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: #fff;
+        background: var(--accent);
+        border: none;
+        border-radius: 10px;
+        padding: 11px 20px;
+        cursor: pointer;
+        white-space: nowrap;
+    }
+    .bc-btn:hover { filter: brightness(1.06); }
+    .bc-btn-ghost {
+        background: transparent;
+        color: var(--text-mid);
+        border: 1px solid var(--border);
+    }
+    .bc-btn-ghost:hover { color: var(--accent); border-color: var(--accent); filter: none; }
+    .bc-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: center;
+        margin-top: 20px;
+    }
+    .bc-hint { font-size: 0.8rem; color: var(--text-muted); margin-top: 10px; text-align: center; }
+    .bc-error { color: #c2410c; font-size: 0.85rem; font-weight: 600; margin-top: 10px; }
+
+    /* Extra people */
+    .bc-list { display: grid; gap: 10px; margin-top: 16px; }
+    .bc-row {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        background: var(--surface-warm);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 12px 16px;
+    }
+    .bc-row-days {
+        font-size: 1.6rem;
+        font-weight: 800;
+        color: var(--purple);
+        font-variant-numeric: tabular-nums;
+        min-width: 62px;
+        text-align: right;
+        line-height: 1.1;
+    }
+    .bc-row-body { flex: 1; min-width: 0; }
+    .bc-row-name { font-weight: 700; color: var(--text); }
+    .bc-row-meta { font-size: 0.82rem; color: var(--text-muted); }
+    .bc-row-remove {
+        background: none;
+        border: none;
+        color: var(--text-muted);
+        font-size: 1.3rem;
+        line-height: 1;
+        cursor: pointer;
+        padding: 4px 6px;
+        border-radius: 6px;
+    }
+    .bc-row-remove:hover { color: #c2410c; background: rgba(194, 65, 12, 0.08); }
+
+    /* The bridge to the product */
+    .bc-pitch {
+        margin-top: 20px;
+        background: var(--purple-soft);
+        border: 1px solid rgba(124, 92, 191, 0.22);
+        border-radius: var(--radius);
+        padding: 22px 24px;
+    }
+    .bc-pitch h2 {
+        font-size: 1.15rem !important;
+        font-weight: 800;
+        margin: 0 0 8px !important;
+        color: var(--text);
+    }
+    .bc-pitch p { color: var(--text-mid); font-size: 0.94rem; margin-bottom: 14px !important; }
+    .bc-pitch .bc-btn { background: var(--purple); }
+
+    @media (max-width: 520px) {
+        .bc-card { padding: 22px 16px; }
+        .bc-field { flex: 1 1 100%; }
+        .bc-form .bc-btn { width: 100%; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container page-content">
+    <h1>{{ title }}</h1>
+
+    <div class="bc-app">
+        <div class="bc-card">
+            <div class="bc-hero" id="bc-hero">
+                <!-- Rendered by JS. Static default keeps the page useful before
+                     scripts run and gives crawlers something concrete. -->
+                <div class="bc-days" id="bc-days">—</div>
+                <div class="bc-days-label" id="bc-label">days until your birthday</div>
+                <div class="bc-clock" id="bc-clock"></div>
+                <div class="bc-sub" id="bc-sub">Enter a birthday below to start the countdown.</div>
+            </div>
+
+            <form class="bc-form" id="bc-form">
+                <div class="bc-field">
+                    <label for="bc-name">Name</label>
+                    <input type="text" id="bc-name" placeholder="Alice" maxlength="24" autocomplete="off">
+                </div>
+                <div class="bc-field">
+                    <label for="bc-month">Month</label>
+                    <select id="bc-month"></select>
+                </div>
+                <div class="bc-field">
+                    <label for="bc-day">Day</label>
+                    <select id="bc-day"></select>
+                </div>
+                <div class="bc-field">
+                    <label for="bc-year">Year <span style="text-transform:none;font-weight:600">(optional)</span></label>
+                    <input type="number" id="bc-year" placeholder="2015" min="1900" max="2100" autocomplete="off">
+                </div>
+                <button type="submit" class="bc-btn" id="bc-submit">Start countdown</button>
+            </form>
+            <div class="bc-error" id="bc-error" hidden></div>
+            <div class="bc-hint">Add a year and it will show the age they're turning. Nothing is uploaded — it all stays in your browser.</div>
+
+            <div class="bc-list" id="bc-list"></div>
+
+            <div class="bc-actions" id="bc-actions" hidden>
+                <button type="button" class="bc-btn bc-btn-ghost" id="bc-share">Copy shareable link</button>
+                <button type="button" class="bc-btn bc-btn-ghost" id="bc-clear">Clear all</button>
+            </div>
+        </div>
+
+        <div class="bc-pitch" id="bc-pitch" hidden>
+            <h2 id="bc-pitch-title">Want this on your kitchen wall every morning?</h2>
+            <p id="bc-pitch-body">
+                That's DinkyDash. The same countdowns, plus today's calendar events, a chore
+                chart that rotates itself, and a short daily brief written for your family —
+                on any old tablet, TV or Raspberry Pi you already own. Free and open source.
+            </p>
+            <a class="bc-btn" href="/diy-skylight-calendar/" style="display:inline-block">See how it works</a>
+        </div>
+    </div>
+
+    {{ content | safe }}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    'use strict';
+
+    var MONTHS = ['January', 'February', 'March', 'April', 'May', 'June',
+                  'July', 'August', 'September', 'October', 'November', 'December'];
+    var STORAGE_KEY = 'dinkydash.birthdays';
+    var SEP = '~';
+
+    var el = function (id) { return document.getElementById(id); };
+    var people = [];
+
+    // --- date helpers -------------------------------------------------------
+    // Mirrors anniversary() in generate.py: February 29 is observed on
+    // February 28 in common years, so leap-day birthdays still land on a real
+    // date instead of silently rolling into March.
+
+    function isLeap(y) { return (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0; }
+
+    function daysInMonth(month, year) {
+        if (month === 2) { return isLeap(year || 2024) ? 29 : 28; }
+        return [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][month - 1];
+    }
+
+    function anniversary(year, month, day) {
+        if (month === 2 && day === 29 && !isLeap(year)) { return new Date(year, 1, 28); }
+        return new Date(year, month - 1, day);
+    }
+
+    function todayMidnight() {
+        var n = new Date();
+        return new Date(n.getFullYear(), n.getMonth(), n.getDate());
+    }
+
+    function nextOccurrence(month, day, from) {
+        var thisYear = anniversary(from.getFullYear(), month, day);
+        if (thisYear >= from) { return thisYear; }
+        return anniversary(from.getFullYear() + 1, month, day);
+    }
+
+    // Round rather than floor: clock changes make some local days 23 or 25
+    // hours long, and only whole days matter here.
+    function daysUntil(target, from) {
+        return Math.round((target - from) / 86400000);
+    }
+
+    function ageOn(birthYear, month, day, when) {
+        var age = when.getFullYear() - birthYear;
+        if (when < anniversary(when.getFullYear(), month, day)) { age -= 1; }
+        return age;
+    }
+
+    // --- state --------------------------------------------------------------
+
+    function parsePerson(raw) {
+        var bits = raw.split(SEP);
+        var md = (bits[1] || '').split('-');
+        var month = parseInt(md[0], 10);
+        var day = parseInt(md[1], 10);
+        if (!month || !day || month < 1 || month > 12 || day < 1 || day > daysInMonth(month, 2024)) {
+            return null;
+        }
+        var year = parseInt(bits[2], 10);
+        return {
+            name: (bits[0] || '').slice(0, 24),
+            month: month,
+            day: day,
+            year: (year >= 1900 && year <= 2100) ? year : null
+        };
+    }
+
+    function encodePerson(p) {
+        var pad = function (n) { return (n < 10 ? '0' : '') + n; };
+        return [p.name, pad(p.month) + '-' + pad(p.day), p.year || ''].join(SEP);
+    }
+
+    function readFromUrl() {
+        var params = new URLSearchParams(window.location.search);
+        return params.getAll('p').map(parsePerson).filter(Boolean);
+    }
+
+    function readFromStorage() {
+        try {
+            var raw = window.localStorage.getItem(STORAGE_KEY);
+            return raw ? JSON.parse(raw).map(parsePerson).filter(Boolean) : [];
+        } catch (e) { return []; }
+    }
+
+    function persist() {
+        try {
+            window.localStorage.setItem(STORAGE_KEY, JSON.stringify(people.map(encodePerson)));
+        } catch (e) { /* private browsing — the tool still works for this visit */ }
+        var url = people.length
+            ? window.location.pathname + '?' + people.map(function (p) {
+                  return 'p=' + encodeURIComponent(encodePerson(p));
+              }).join('&')
+            : window.location.pathname;
+        window.history.replaceState(null, '', url);
+    }
+
+    // --- rendering ----------------------------------------------------------
+
+    function describe(p, now) {
+        var target = nextOccurrence(p.month, p.day, now);
+        var days = daysUntil(target, now);
+        var possessive = p.name ? (p.name + "'s") : 'your';
+        var dateText = MONTHS[target.getMonth()] + ' ' + target.getDate();
+        var meta = dateText;
+        if (p.year) { meta += ' · turning ' + (ageOn(p.year, p.month, p.day, target) ); }
+        if (p.month === 2 && p.day === 29 && target.getDate() === 28) {
+            meta += ' · leap-day birthday, observed the 28th';
+        }
+        return { target: target, days: days, possessive: possessive, meta: meta };
+    }
+
+    function renderHero(now) {
+        if (!people.length) {
+            el('bc-days').textContent = '—';
+            el('bc-label').textContent = 'days until your birthday';
+            el('bc-clock').textContent = '';
+            el('bc-sub').textContent = 'Enter a birthday below to start the countdown.';
+            return;
+        }
+        var d = describe(people[0], now);
+        var hero = el('bc-days');
+        if (d.days === 0) {
+            hero.className = 'bc-today';
+            hero.textContent = '🎉 Today!';
+            el('bc-label').textContent = 'Happy birthday' + (people[0].name ? ', ' + people[0].name : '') + '!';
+        } else {
+            hero.className = 'bc-days';
+            hero.textContent = d.days;
+            el('bc-label').textContent = 'day' + (d.days === 1 ? '' : 's') + ' until ' + d.possessive + ' birthday';
+        }
+        el('bc-sub').textContent = d.meta;
+        renderClock(d.target);
+    }
+
+    function renderClock(target) {
+        var ms = target - new Date();
+        if (ms <= 0) { el('bc-clock').textContent = ''; return; }
+        var total = Math.floor(ms / 1000);
+        var h = Math.floor(total / 3600) % 24;
+        var m = Math.floor(total / 60) % 60;
+        var s = total % 60;
+        var pad = function (n) { return (n < 10 ? '0' : '') + n; };
+        el('bc-clock').textContent = pad(h) + 'h ' + pad(m) + 'm ' + pad(s) + 's';
+    }
+
+    function renderList(now) {
+        var list = el('bc-list');
+        list.textContent = '';
+        people.slice(1).forEach(function (p, i) {
+            var d = describe(p, now);
+            var row = document.createElement('div');
+            row.className = 'bc-row';
+
+            var days = document.createElement('div');
+            days.className = 'bc-row-days';
+            days.textContent = d.days === 0 ? '🎉' : d.days;
+
+            var body = document.createElement('div');
+            body.className = 'bc-row-body';
+            var name = document.createElement('div');
+            name.className = 'bc-row-name';
+            name.textContent = p.name || 'Birthday';
+            var meta = document.createElement('div');
+            meta.className = 'bc-row-meta';
+            meta.textContent = d.meta;
+            body.appendChild(name);
+            body.appendChild(meta);
+
+            var remove = document.createElement('button');
+            remove.type = 'button';
+            remove.className = 'bc-row-remove';
+            remove.setAttribute('aria-label', 'Remove ' + (p.name || 'this birthday'));
+            remove.textContent = '×';
+            remove.addEventListener('click', function () {
+                people.splice(i + 1, 1);
+                persist();
+                render();
+            });
+
+            row.appendChild(days);
+            row.appendChild(body);
+            row.appendChild(remove);
+            list.appendChild(row);
+        });
+    }
+
+    function renderPitch() {
+        var pitch = el('bc-pitch');
+        pitch.hidden = people.length === 0;
+        // Once there's a family on screen the page is already a DinkyDash
+        // preview, so say so plainly rather than repeating the generic pitch.
+        if (people.length > 1) {
+            el('bc-pitch-title').textContent = "You've just built a family dashboard";
+            el('bc-pitch-body').textContent =
+                'That list of countdowns is one panel of DinkyDash. The full thing adds '
+                + "today's calendar events, a chore chart that rotates between the kids, and a "
+                + 'short daily brief written for your family — on any old tablet, TV or Raspberry '
+                + 'Pi you already own. Free and open source.';
+        }
+    }
+
+    function render() {
+        var now = todayMidnight();
+        renderHero(now);
+        renderList(now);
+        renderPitch();
+        el('bc-actions').hidden = people.length === 0;
+    }
+
+    // --- form ---------------------------------------------------------------
+
+    function buildSelects() {
+        var monthSel = el('bc-month');
+        MONTHS.forEach(function (name, i) {
+            var o = document.createElement('option');
+            o.value = String(i + 1);
+            o.textContent = name;
+            monthSel.appendChild(o);
+        });
+        var now = new Date();
+        monthSel.value = String(now.getMonth() + 1);
+        buildDays(now.getDate());
+        monthSel.addEventListener('change', function () { buildDays(); });
+    }
+
+    function buildDays(preselect) {
+        var daySel = el('bc-day');
+        var month = parseInt(el('bc-month').value, 10);
+        var current = preselect || parseInt(daySel.value, 10) || 1;
+        // 29 stays selectable in February so leap-day birthdays can be entered.
+        var max = daysInMonth(month, 2024);
+        daySel.textContent = '';
+        for (var d = 1; d <= max; d++) {
+            var o = document.createElement('option');
+            o.value = String(d);
+            o.textContent = String(d);
+            daySel.appendChild(o);
+        }
+        daySel.value = String(Math.min(current, max));
+    }
+
+    function showError(msg) {
+        var box = el('bc-error');
+        box.textContent = msg;
+        box.hidden = !msg;
+    }
+
+    el('bc-form').addEventListener('submit', function (e) {
+        e.preventDefault();
+        var month = parseInt(el('bc-month').value, 10);
+        var day = parseInt(el('bc-day').value, 10);
+        var yearRaw = el('bc-year').value.trim();
+        var year = yearRaw ? parseInt(yearRaw, 10) : null;
+
+        if (year !== null) {
+            if (isNaN(year) || year < 1900 || year > new Date().getFullYear()) {
+                showError('That birth year does not look right — leave it blank if you would rather not say.');
+                return;
+            }
+        }
+        showError('');
+
+        people.push({ name: el('bc-name').value.trim(), month: month, day: day, year: year });
+        el('bc-name').value = '';
+        el('bc-year').value = '';
+        persist();
+        render();
+    });
+
+    el('bc-clear').addEventListener('click', function () {
+        people = [];
+        persist();
+        render();
+    });
+
+    el('bc-share').addEventListener('click', function () {
+        var btn = el('bc-share');
+        var url = window.location.href;
+        var done = function () {
+            btn.textContent = 'Link copied';
+            setTimeout(function () { btn.textContent = 'Copy shareable link'; }, 2000);
+        };
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(url).then(done, function () {
+                window.prompt('Copy this link:', url);
+            });
+        } else {
+            window.prompt('Copy this link:', url);
+        }
+    });
+
+    // --- boot ---------------------------------------------------------------
+
+    buildSelects();
+    // A shared link wins over whatever is in storage — the visitor followed it
+    // to see that countdown, not their own.
+    var fromUrl = readFromUrl();
+    people = fromUrl.length ? fromUrl : readFromStorage();
+    render();
+    if (people.length) { persist(); }
+
+    setInterval(function () {
+        if (!people.length) { return; }
+        var now = todayMidnight();
+        renderClock(nextOccurrence(people[0].month, people[0].day, now));
+    }, 1000);
+
+    // Recompute at local midnight so a tab left open overnight is not stale.
+    setInterval(function () {
+        if (!people.length) { return; }
+        var shown = el('bc-days').textContent;
+        var d = describe(people[0], todayMidnight());
+        if (String(d.days) !== shown && !(d.days === 0 && shown.indexOf('Today') !== -1)) {
+            render();
+        }
+    }, 60000);
+})();
+</script>
+{% endblock %}

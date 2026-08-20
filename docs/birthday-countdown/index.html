@@ -1,0 +1,910 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Birthday Countdown: How Many Days Until Your Birthday? — DinkyDash</title>
+    <meta name="description" content="A free birthday countdown timer. Enter a birthday and see exactly how many days, hours, minutes and seconds are left — add the whole family, and share the countdown with a link. No sign-up.">
+    <link rel="canonical" href="https://dinkydash.co/birthday-countdown/">
+    <meta property="og:title" content="Birthday Countdown: How Many Days Until Your Birthday? — DinkyDash">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://dinkydash.co/birthday-countdown/">
+    <meta property="og:image" content="https://dinkydash.co/images/hero-kitchen.png">
+    <meta property="og:description" content="A free birthday countdown timer. Enter a birthday and see exactly how many days, hours, minutes and seconds are left — add the whole family, and share the countdown with a link. No sign-up.">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #fffaf5;
+            --surface: #ffffff;
+            --surface-warm: #fff5ec;
+            --border: #f0e6da;
+            --text: #2d2319;
+            --text-mid: #5c4a3a;
+            --text-muted: #9a8677;
+            --accent: #e85d24;
+            --accent-soft: rgba(232, 93, 36, 0.08);
+            --purple: #7c5cbf;
+            --purple-soft: rgba(124, 92, 191, 0.08);
+            --blue: #3b82f6;
+            --green: #16a34a;
+            --radius: 16px;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Nunito', system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.65;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        a { color: var(--accent); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+
+        .container {
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* NAV */
+        nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(255, 250, 245, 0.9);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+        }
+        nav .container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 60px;
+        }
+        .nav-brand {
+            font-weight: 800;
+            font-size: 1.2rem;
+            color: var(--accent);
+            text-decoration: none;
+            letter-spacing: -0.02em;
+        }
+        .nav-links { display: flex; gap: 24px; list-style: none; }
+        .nav-links a {
+            color: var(--text-mid);
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: color 0.15s;
+        }
+        .nav-links a:hover { color: var(--accent); text-decoration: none; }
+
+        /* FOOTER */
+        footer {
+            border-top: 1px solid var(--border);
+            padding: 32px 0;
+            margin-top: 80px;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+        footer .container {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        footer a { color: var(--text-muted); }
+        footer a:hover { color: var(--accent); }
+        .footer-guides {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px 18px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+        .footer-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .footer-links { display: flex; align-items: center; gap: 8px; }
+        .footer-sep { color: var(--border); }
+
+        /* CONTENT PAGES */
+        .page-content {
+            /* longhand so .container's horizontal padding survives on mobile */
+            padding-top: 56px;
+            padding-bottom: 56px;
+            max-width: 728px; /* 680px text column + 2x24px padding (border-box) */
+            margin: 0 auto;
+        }
+        .page-content h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            margin-bottom: 24px;
+            color: var(--text);
+            line-height: 1.2;
+        }
+        .page-content h2 {
+            font-size: 1.4rem;
+            font-weight: 800;
+            letter-spacing: -0.01em;
+            margin-top: 40px;
+            margin-bottom: 12px;
+            color: var(--text);
+        }
+        .page-content h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-top: 28px;
+            margin-bottom: 10px;
+        }
+        .page-content p {
+            color: var(--text-mid);
+            margin-bottom: 16px;
+        }
+        .page-content ul, .page-content ol {
+            color: var(--text-mid);
+            padding-left: 20px;
+            margin-bottom: 16px;
+        }
+        .page-content li { margin-bottom: 8px; }
+        .page-content strong { color: var(--text); }
+        .page-content code {
+            font-size: 0.88em;
+            background: var(--surface-warm);
+            padding: 2px 7px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+        }
+        .page-content pre {
+            background: var(--surface-warm);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 14px 16px;
+            margin-bottom: 16px;
+            overflow-x: auto;
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+        .page-content pre code {
+            background: none;
+            border: none;
+            padding: 0;
+            font-size: inherit;
+        }
+        .page-content blockquote {
+            border-left: 3px solid var(--accent);
+            padding: 12px 20px;
+            margin: 20px 0;
+            background: var(--accent-soft);
+            border-radius: 0 var(--radius) var(--radius) 0;
+            color: var(--text-mid);
+            font-style: italic;
+        }
+        .page-content img {
+            width: 100%;
+            height: auto;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            margin: 6px 0 20px;
+        }
+        .page-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0 24px;
+            font-size: 0.9rem;
+        }
+        .page-content th {
+            text-align: left;
+            font-weight: 800;
+            color: var(--text);
+            border-bottom: 2px solid var(--border);
+            padding: 8px 10px;
+        }
+        .page-content td {
+            border-bottom: 1px solid var(--border);
+            padding: 8px 10px;
+            color: var(--text-mid);
+            vertical-align: top;
+        }
+
+        /* BUTTON */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 28px;
+            background: var(--accent);
+            color: #fff;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            font-family: inherit;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.1s, box-shadow 0.15s;
+            box-shadow: 0 2px 8px rgba(232, 93, 36, 0.25);
+        }
+        .btn:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(232, 93, 36, 0.3); text-decoration: none; color: #fff; }
+        .btn-outline {
+            background: transparent;
+            color: var(--text);
+            border: 2px solid var(--border);
+            box-shadow: none;
+        }
+        .btn-outline:hover { border-color: var(--accent); color: var(--accent); box-shadow: none; }
+
+        /* MOBILE */
+        .mobile-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text);
+            font-size: 1.4rem;
+            cursor: pointer;
+            padding: 4px;
+        }
+        @media (max-width: 640px) {
+            .mobile-toggle { display: block; }
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 60px;
+                left: 0;
+                right: 0;
+                background: var(--bg);
+                border-bottom: 1px solid var(--border);
+                flex-direction: column;
+                padding: 16px 24px;
+                gap: 16px;
+            }
+            .nav-links.open { display: flex; }
+            .footer-row { flex-direction: column; gap: 8px; text-align: center; }
+            .footer-guides { justify-content: center; }
+        }
+    </style>
+    
+<style>
+    .bc-app { margin: 8px 0 40px; }
+
+    .bc-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 28px 24px;
+        box-shadow: 0 2px 14px rgba(45, 35, 25, 0.04);
+    }
+
+    /* The headline countdown */
+    .bc-hero { text-align: center; }
+    .bc-days {
+        font-size: clamp(4rem, 18vw, 7.5rem);
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: -0.04em;
+        color: var(--accent);
+        font-variant-numeric: tabular-nums;
+    }
+    .bc-days-label {
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: var(--text);
+        margin-top: 4px;
+    }
+    .bc-clock {
+        font-variant-numeric: tabular-nums;
+        color: var(--text-muted);
+        font-size: 0.95rem;
+        font-weight: 600;
+        margin-top: 10px;
+    }
+    .bc-sub {
+        color: var(--text-mid);
+        font-size: 0.95rem;
+        margin-top: 6px;
+    }
+    .bc-today {
+        font-size: clamp(2rem, 9vw, 3.2rem);
+        font-weight: 800;
+        color: var(--accent);
+        line-height: 1.15;
+        letter-spacing: -0.02em;
+    }
+
+    /* Form */
+    .bc-form {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: flex-end;
+        margin-top: 24px;
+        padding-top: 24px;
+        border-top: 1px solid var(--border);
+    }
+    .bc-field { display: flex; flex-direction: column; gap: 5px; flex: 1 1 130px; }
+    .bc-field label {
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+    .bc-field input, .bc-field select {
+        font-family: inherit;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: var(--text);
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 10px 12px;
+        width: 100%;
+    }
+    .bc-field input:focus, .bc-field select:focus {
+        outline: 2px solid var(--accent);
+        outline-offset: -1px;
+    }
+    .bc-btn {
+        font-family: inherit;
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: #fff;
+        background: var(--accent);
+        border: none;
+        border-radius: 10px;
+        padding: 11px 20px;
+        cursor: pointer;
+        white-space: nowrap;
+    }
+    .bc-btn:hover { filter: brightness(1.06); }
+    .bc-btn-ghost {
+        background: transparent;
+        color: var(--text-mid);
+        border: 1px solid var(--border);
+    }
+    .bc-btn-ghost:hover { color: var(--accent); border-color: var(--accent); filter: none; }
+    .bc-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: center;
+        margin-top: 20px;
+    }
+    .bc-hint { font-size: 0.8rem; color: var(--text-muted); margin-top: 10px; text-align: center; }
+    .bc-error { color: #c2410c; font-size: 0.85rem; font-weight: 600; margin-top: 10px; }
+
+    /* Extra people */
+    .bc-list { display: grid; gap: 10px; margin-top: 16px; }
+    .bc-row {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        background: var(--surface-warm);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 12px 16px;
+    }
+    .bc-row-days {
+        font-size: 1.6rem;
+        font-weight: 800;
+        color: var(--purple);
+        font-variant-numeric: tabular-nums;
+        min-width: 62px;
+        text-align: right;
+        line-height: 1.1;
+    }
+    .bc-row-body { flex: 1; min-width: 0; }
+    .bc-row-name { font-weight: 700; color: var(--text); }
+    .bc-row-meta { font-size: 0.82rem; color: var(--text-muted); }
+    .bc-row-remove {
+        background: none;
+        border: none;
+        color: var(--text-muted);
+        font-size: 1.3rem;
+        line-height: 1;
+        cursor: pointer;
+        padding: 4px 6px;
+        border-radius: 6px;
+    }
+    .bc-row-remove:hover { color: #c2410c; background: rgba(194, 65, 12, 0.08); }
+
+    /* The bridge to the product */
+    .bc-pitch {
+        margin-top: 20px;
+        background: var(--purple-soft);
+        border: 1px solid rgba(124, 92, 191, 0.22);
+        border-radius: var(--radius);
+        padding: 22px 24px;
+    }
+    .bc-pitch h2 {
+        font-size: 1.15rem !important;
+        font-weight: 800;
+        margin: 0 0 8px !important;
+        color: var(--text);
+    }
+    .bc-pitch p { color: var(--text-mid); font-size: 0.94rem; margin-bottom: 14px !important; }
+    .bc-pitch .bc-btn { background: var(--purple); }
+
+    @media (max-width: 520px) {
+        .bc-card { padding: 22px 16px; }
+        .bc-field { flex: 1 1 100%; }
+        .bc-form .bc-btn { width: 100%; }
+    }
+</style>
+
+</head>
+<body>
+<nav>
+    <div class="container">
+        <a class="nav-brand" href="/">DinkyDash</a>
+        <button class="mobile-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">&#9776;</button>
+        <ul class="nav-links">
+            <li><a href="/getting-started/">Get started</a></li>
+            <li><a href="/diy-skylight-calendar/">DIY calendar</a></li>
+            <li><a href="/skylight-calendar-alternatives/">Alternatives</a></li>
+            <li><a href="/about/">About</a></li>
+            <li><a href="https://github.com/caspii/dinkydash">GitHub</a></li>
+        </ul>
+    </div>
+</nav>
+
+<main>
+    
+<div class="container page-content">
+    <h1>Birthday Countdown: How Many Days Until Your Birthday?</h1>
+
+    <div class="bc-app">
+        <div class="bc-card">
+            <div class="bc-hero" id="bc-hero">
+                <!-- Rendered by JS. Static default keeps the page useful before
+                     scripts run and gives crawlers something concrete. -->
+                <div class="bc-days" id="bc-days">—</div>
+                <div class="bc-days-label" id="bc-label">days until your birthday</div>
+                <div class="bc-clock" id="bc-clock"></div>
+                <div class="bc-sub" id="bc-sub">Enter a birthday below to start the countdown.</div>
+            </div>
+
+            <form class="bc-form" id="bc-form">
+                <div class="bc-field">
+                    <label for="bc-name">Name</label>
+                    <input type="text" id="bc-name" placeholder="Alice" maxlength="24" autocomplete="off">
+                </div>
+                <div class="bc-field">
+                    <label for="bc-month">Month</label>
+                    <select id="bc-month"></select>
+                </div>
+                <div class="bc-field">
+                    <label for="bc-day">Day</label>
+                    <select id="bc-day"></select>
+                </div>
+                <div class="bc-field">
+                    <label for="bc-year">Year <span style="text-transform:none;font-weight:600">(optional)</span></label>
+                    <input type="number" id="bc-year" placeholder="2015" min="1900" max="2100" autocomplete="off">
+                </div>
+                <button type="submit" class="bc-btn" id="bc-submit">Start countdown</button>
+            </form>
+            <div class="bc-error" id="bc-error" hidden></div>
+            <div class="bc-hint">Add a year and it will show the age they're turning. Nothing is uploaded — it all stays in your browser.</div>
+
+            <div class="bc-list" id="bc-list"></div>
+
+            <div class="bc-actions" id="bc-actions" hidden>
+                <button type="button" class="bc-btn bc-btn-ghost" id="bc-share">Copy shareable link</button>
+                <button type="button" class="bc-btn bc-btn-ghost" id="bc-clear">Clear all</button>
+            </div>
+        </div>
+
+        <div class="bc-pitch" id="bc-pitch" hidden>
+            <h2 id="bc-pitch-title">Want this on your kitchen wall every morning?</h2>
+            <p id="bc-pitch-body">
+                That's DinkyDash. The same countdowns, plus today's calendar events, a chore
+                chart that rotates itself, and a short daily brief written for your family —
+                on any old tablet, TV or Raspberry Pi you already own. Free and open source.
+            </p>
+            <a class="bc-btn" href="/diy-skylight-calendar/" style="display:inline-block">See how it works</a>
+        </div>
+    </div>
+
+    <p>Pick a birthday above and the counter shows exactly how many days are left, ticking down to the hour. Add everyone in the family and you get the whole year at a glance.</p>
+<p>There's no sign-up and nothing gets uploaded — the countdown lives in the link and in your own browser, so you can bookmark it, put it on your phone's home screen, or paste it into the family group chat.</p>
+<h2>How many days until my birthday?</h2>
+<p>Count from today to your next birthday. If it's already been this year, you're counting to next year's — which is why the number can jump from 1 to 364 overnight.</p>
+<p>The counter above does this for you, but the arithmetic that trips people up is the year boundary: from 20 August to 15 March is 207 days, not the 158 you'd get by subtracting the dates and ignoring the year change.</p>
+<h2>Sharing a countdown</h2>
+<p>Every countdown you build gets its own link. Copy it and whoever opens it sees the same numbers you do, counting down live from their own clock.</p>
+<p>The link holds the name and the date, so nothing is stored on our end and nothing expires. A countdown you share today still works next year — it'll just be counting to the next birthday.</p>
+<p>If you'd rather not put a birth year in a shared link, leave the year blank. You'll still get the countdown, just without the "turning 12" line.</p>
+<h2>What about 29 February?</h2>
+<p>Leap-day birthdays get counted properly here, which is more than a lot of countdown tools manage — plenty of them either crash or quietly skip to 1 March.</p>
+<p>In a leap year the countdown runs to 29 February. In every other year it runs to <strong>28 February</strong>, so the number hits zero in the month the family actually celebrates. That's also the convention most countries use for legal purposes.</p>
+<h2>Questions</h2>
+<p><strong>Is this free?</strong>
+Yes, and there's no account. It's a small tool from <a href="https://github.com/caspii/dinkydash">DinkyDash</a>, our open-source family calendar.</p>
+<p><strong>Does the countdown keep running if I close the tab?</strong>
+It picks up where it left off. Your countdowns are saved in your own browser, so the page remembers them next time. Clearing your browser data clears them too — keep the link if you want a permanent copy.</p>
+<p><strong>Can I count down to something that isn't a birthday?</strong>
+Anything that happens on the same date every year works: anniversaries, holidays, the last day of school. Put the name in the name field and it'll count down all the same.</p>
+<p><strong>How many people can I add?</strong>
+As many as you like. Past three or four the list is more useful than the big number, which is roughly the point at which you might want it on a screen instead of in a browser tab.</p>
+<p><strong>Why does it say 364 days and not 365?</strong>
+Because it counts whole days from today. The day after your birthday, there are 364 sleeps until the next one — 365 in a leap year, or if a 29 February falls in between.</p>
+<p><strong>Does it work offline?</strong>
+Once the page has loaded, yes. All the arithmetic happens in your browser.</p>
+<h2>Every birthday, on the kitchen wall</h2>
+<p>A browser tab is a fine place for one countdown. It's a bad place for the eight your family actually cares about — nobody opens a tab to find out whose birthday is coming up.</p>
+<p>That's what <a href="/diy-skylight-calendar/">DinkyDash</a> is for. It's a free, open-source family dashboard that turns any old tablet, spare monitor or <a href="/raspberry-pi-family-calendar/">Raspberry Pi</a> into a screen on the kitchen wall showing today's calendar events, a chore chart that rotates between the kids, every birthday countdown, and a short daily brief written fresh each morning.</p>
+<p>It's the same countdowns you just made, somewhere the family will actually see them.</p>
+</div>
+
+</main>
+
+<footer>
+    <div class="container">
+        <div class="footer-guides">
+            <a href="/skylight-calendar-alternatives/">Skylight alternatives</a>
+            <a href="/hearth-vs-skylight/">Hearth vs Skylight</a>
+            <a href="/skylight-calendar-subscription/">Skylight subscription costs</a>
+            <a href="/diy-skylight-calendar/">DIY digital calendar</a>
+            <a href="/raspberry-pi-family-calendar/">Raspberry Pi calendar</a>
+            <a href="/digital-calendar-and-chore-chart/">Calendar + chore chart</a>
+            <a href="/best-digital-family-calendar/">Best family calendars</a>
+            <a href="/birthday-countdown/">Birthday countdown</a>
+            <a href="/morning-routine/">Morning routines</a>
+            <a href="/family-dashboard/">Family dashboard</a>
+            <a href="/office-dashboard/">Office dashboard</a>
+        </div>
+        <div class="footer-row">
+            <span>&copy; 2026 DinkyDash</span>
+            <span class="footer-links">
+                <a href="https://github.com/caspii/dinkydash/issues/new">Feedback</a>
+                <span class="footer-sep">&middot;</span>
+                <a href="https://casparwre.de">Built by Caspar</a>
+            </span>
+        </div>
+    </div>
+</footer>
+
+<!-- Fathom - beautiful, simple analytics -->
+<script src="https://cdn.usefathom.com/script.js" data-site="HLVHPKAZ" defer></script>
+<!-- / Fathom -->
+<!-- Ahrefs analytics -->
+<script src="https://analytics.ahrefs.com/analytics.js" data-key="NInZX5cjFNqKC44BBPaEBA" async></script>
+<!-- / Ahrefs analytics -->
+
+<script>
+(function () {
+    'use strict';
+
+    var MONTHS = ['January', 'February', 'March', 'April', 'May', 'June',
+                  'July', 'August', 'September', 'October', 'November', 'December'];
+    var STORAGE_KEY = 'dinkydash.birthdays';
+    var SEP = '~';
+
+    var el = function (id) { return document.getElementById(id); };
+    var people = [];
+
+    // --- date helpers -------------------------------------------------------
+    // Mirrors anniversary() in generate.py: February 29 is observed on
+    // February 28 in common years, so leap-day birthdays still land on a real
+    // date instead of silently rolling into March.
+
+    function isLeap(y) { return (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0; }
+
+    function daysInMonth(month, year) {
+        if (month === 2) { return isLeap(year || 2024) ? 29 : 28; }
+        return [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][month - 1];
+    }
+
+    function anniversary(year, month, day) {
+        if (month === 2 && day === 29 && !isLeap(year)) { return new Date(year, 1, 28); }
+        return new Date(year, month - 1, day);
+    }
+
+    function todayMidnight() {
+        var n = new Date();
+        return new Date(n.getFullYear(), n.getMonth(), n.getDate());
+    }
+
+    function nextOccurrence(month, day, from) {
+        var thisYear = anniversary(from.getFullYear(), month, day);
+        if (thisYear >= from) { return thisYear; }
+        return anniversary(from.getFullYear() + 1, month, day);
+    }
+
+    // Round rather than floor: clock changes make some local days 23 or 25
+    // hours long, and only whole days matter here.
+    function daysUntil(target, from) {
+        return Math.round((target - from) / 86400000);
+    }
+
+    function ageOn(birthYear, month, day, when) {
+        var age = when.getFullYear() - birthYear;
+        if (when < anniversary(when.getFullYear(), month, day)) { age -= 1; }
+        return age;
+    }
+
+    // --- state --------------------------------------------------------------
+
+    function parsePerson(raw) {
+        var bits = raw.split(SEP);
+        var md = (bits[1] || '').split('-');
+        var month = parseInt(md[0], 10);
+        var day = parseInt(md[1], 10);
+        if (!month || !day || month < 1 || month > 12 || day < 1 || day > daysInMonth(month, 2024)) {
+            return null;
+        }
+        var year = parseInt(bits[2], 10);
+        return {
+            name: (bits[0] || '').slice(0, 24),
+            month: month,
+            day: day,
+            year: (year >= 1900 && year <= 2100) ? year : null
+        };
+    }
+
+    function encodePerson(p) {
+        var pad = function (n) { return (n < 10 ? '0' : '') + n; };
+        return [p.name, pad(p.month) + '-' + pad(p.day), p.year || ''].join(SEP);
+    }
+
+    function readFromUrl() {
+        var params = new URLSearchParams(window.location.search);
+        return params.getAll('p').map(parsePerson).filter(Boolean);
+    }
+
+    function readFromStorage() {
+        try {
+            var raw = window.localStorage.getItem(STORAGE_KEY);
+            return raw ? JSON.parse(raw).map(parsePerson).filter(Boolean) : [];
+        } catch (e) { return []; }
+    }
+
+    function persist() {
+        try {
+            window.localStorage.setItem(STORAGE_KEY, JSON.stringify(people.map(encodePerson)));
+        } catch (e) { /* private browsing — the tool still works for this visit */ }
+        var url = people.length
+            ? window.location.pathname + '?' + people.map(function (p) {
+                  return 'p=' + encodeURIComponent(encodePerson(p));
+              }).join('&')
+            : window.location.pathname;
+        window.history.replaceState(null, '', url);
+    }
+
+    // --- rendering ----------------------------------------------------------
+
+    function describe(p, now) {
+        var target = nextOccurrence(p.month, p.day, now);
+        var days = daysUntil(target, now);
+        var possessive = p.name ? (p.name + "'s") : 'your';
+        var dateText = MONTHS[target.getMonth()] + ' ' + target.getDate();
+        var meta = dateText;
+        if (p.year) { meta += ' · turning ' + (ageOn(p.year, p.month, p.day, target) ); }
+        if (p.month === 2 && p.day === 29 && target.getDate() === 28) {
+            meta += ' · leap-day birthday, observed the 28th';
+        }
+        return { target: target, days: days, possessive: possessive, meta: meta };
+    }
+
+    function renderHero(now) {
+        if (!people.length) {
+            el('bc-days').textContent = '—';
+            el('bc-label').textContent = 'days until your birthday';
+            el('bc-clock').textContent = '';
+            el('bc-sub').textContent = 'Enter a birthday below to start the countdown.';
+            return;
+        }
+        var d = describe(people[0], now);
+        var hero = el('bc-days');
+        if (d.days === 0) {
+            hero.className = 'bc-today';
+            hero.textContent = '🎉 Today!';
+            el('bc-label').textContent = 'Happy birthday' + (people[0].name ? ', ' + people[0].name : '') + '!';
+        } else {
+            hero.className = 'bc-days';
+            hero.textContent = d.days;
+            el('bc-label').textContent = 'day' + (d.days === 1 ? '' : 's') + ' until ' + d.possessive + ' birthday';
+        }
+        el('bc-sub').textContent = d.meta;
+        renderClock(d.target);
+    }
+
+    function renderClock(target) {
+        var ms = target - new Date();
+        if (ms <= 0) { el('bc-clock').textContent = ''; return; }
+        var total = Math.floor(ms / 1000);
+        var h = Math.floor(total / 3600) % 24;
+        var m = Math.floor(total / 60) % 60;
+        var s = total % 60;
+        var pad = function (n) { return (n < 10 ? '0' : '') + n; };
+        el('bc-clock').textContent = pad(h) + 'h ' + pad(m) + 'm ' + pad(s) + 's';
+    }
+
+    function renderList(now) {
+        var list = el('bc-list');
+        list.textContent = '';
+        people.slice(1).forEach(function (p, i) {
+            var d = describe(p, now);
+            var row = document.createElement('div');
+            row.className = 'bc-row';
+
+            var days = document.createElement('div');
+            days.className = 'bc-row-days';
+            days.textContent = d.days === 0 ? '🎉' : d.days;
+
+            var body = document.createElement('div');
+            body.className = 'bc-row-body';
+            var name = document.createElement('div');
+            name.className = 'bc-row-name';
+            name.textContent = p.name || 'Birthday';
+            var meta = document.createElement('div');
+            meta.className = 'bc-row-meta';
+            meta.textContent = d.meta;
+            body.appendChild(name);
+            body.appendChild(meta);
+
+            var remove = document.createElement('button');
+            remove.type = 'button';
+            remove.className = 'bc-row-remove';
+            remove.setAttribute('aria-label', 'Remove ' + (p.name || 'this birthday'));
+            remove.textContent = '×';
+            remove.addEventListener('click', function () {
+                people.splice(i + 1, 1);
+                persist();
+                render();
+            });
+
+            row.appendChild(days);
+            row.appendChild(body);
+            row.appendChild(remove);
+            list.appendChild(row);
+        });
+    }
+
+    function renderPitch() {
+        var pitch = el('bc-pitch');
+        pitch.hidden = people.length === 0;
+        // Once there's a family on screen the page is already a DinkyDash
+        // preview, so say so plainly rather than repeating the generic pitch.
+        if (people.length > 1) {
+            el('bc-pitch-title').textContent = "You've just built a family dashboard";
+            el('bc-pitch-body').textContent =
+                'That list of countdowns is one panel of DinkyDash. The full thing adds '
+                + "today's calendar events, a chore chart that rotates between the kids, and a "
+                + 'short daily brief written for your family — on any old tablet, TV or Raspberry '
+                + 'Pi you already own. Free and open source.';
+        }
+    }
+
+    function render() {
+        var now = todayMidnight();
+        renderHero(now);
+        renderList(now);
+        renderPitch();
+        el('bc-actions').hidden = people.length === 0;
+    }
+
+    // --- form ---------------------------------------------------------------
+
+    function buildSelects() {
+        var monthSel = el('bc-month');
+        MONTHS.forEach(function (name, i) {
+            var o = document.createElement('option');
+            o.value = String(i + 1);
+            o.textContent = name;
+            monthSel.appendChild(o);
+        });
+        var now = new Date();
+        monthSel.value = String(now.getMonth() + 1);
+        buildDays(now.getDate());
+        monthSel.addEventListener('change', function () { buildDays(); });
+    }
+
+    function buildDays(preselect) {
+        var daySel = el('bc-day');
+        var month = parseInt(el('bc-month').value, 10);
+        var current = preselect || parseInt(daySel.value, 10) || 1;
+        // 29 stays selectable in February so leap-day birthdays can be entered.
+        var max = daysInMonth(month, 2024);
+        daySel.textContent = '';
+        for (var d = 1; d <= max; d++) {
+            var o = document.createElement('option');
+            o.value = String(d);
+            o.textContent = String(d);
+            daySel.appendChild(o);
+        }
+        daySel.value = String(Math.min(current, max));
+    }
+
+    function showError(msg) {
+        var box = el('bc-error');
+        box.textContent = msg;
+        box.hidden = !msg;
+    }
+
+    el('bc-form').addEventListener('submit', function (e) {
+        e.preventDefault();
+        var month = parseInt(el('bc-month').value, 10);
+        var day = parseInt(el('bc-day').value, 10);
+        var yearRaw = el('bc-year').value.trim();
+        var year = yearRaw ? parseInt(yearRaw, 10) : null;
+
+        if (year !== null) {
+            if (isNaN(year) || year < 1900 || year > new Date().getFullYear()) {
+                showError('That birth year does not look right — leave it blank if you would rather not say.');
+                return;
+            }
+        }
+        showError('');
+
+        people.push({ name: el('bc-name').value.trim(), month: month, day: day, year: year });
+        el('bc-name').value = '';
+        el('bc-year').value = '';
+        persist();
+        render();
+    });
+
+    el('bc-clear').addEventListener('click', function () {
+        people = [];
+        persist();
+        render();
+    });
+
+    el('bc-share').addEventListener('click', function () {
+        var btn = el('bc-share');
+        var url = window.location.href;
+        var done = function () {
+            btn.textContent = 'Link copied';
+            setTimeout(function () { btn.textContent = 'Copy shareable link'; }, 2000);
+        };
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(url).then(done, function () {
+                window.prompt('Copy this link:', url);
+            });
+        } else {
+            window.prompt('Copy this link:', url);
+        }
+    });
+
+    // --- boot ---------------------------------------------------------------
+
+    buildSelects();
+    // A shared link wins over whatever is in storage — the visitor followed it
+    // to see that countdown, not their own.
+    var fromUrl = readFromUrl();
+    people = fromUrl.length ? fromUrl : readFromStorage();
+    render();
+    if (people.length) { persist(); }
+
+    setInterval(function () {
+        if (!people.length) { return; }
+        var now = todayMidnight();
+        renderClock(nextOccurrence(people[0].month, people[0].day, now));
+    }, 1000);
+
+    // Recompute at local midnight so a tab left open overnight is not stale.
+    setInterval(function () {
+        if (!people.length) { return; }
+        var shown = el('bc-days').textContent;
+        var d = describe(people[0], todayMidnight());
+        if (String(d.days) !== shown && !(d.days === 0 && shown.indexOf('Today') !== -1)) {
+            render();
+        }
+    }, 60000);
+})();
+</script>
+
+</body>
+</html>

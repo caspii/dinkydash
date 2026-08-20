@@ -6,6 +6,7 @@ Runs once per day via cron. Fetches calendar events, builds a prompt,
 calls the Claude API, and saves structured JSON for the Flask app.
 """
 
+import calendar
 import json
 import logging
 import os
@@ -126,10 +127,29 @@ def fetch_calendar_events(url, days_ahead=14, filter_emails=None):
 # Context computation
 # ---------------------------------------------------------------------------
 
+def anniversary(year, month, day):
+    """Return the given month/day as it falls in `year`.
+
+    February 29 exists only in leap years; in other years the anniversary is
+    observed on February 28, so a leap-day birthday still counts down to a
+    real date instead of raising ValueError. Any other invalid month/day is a
+    config error and is left to raise.
+    """
+    if (month, day) == (2, 29) and not calendar.isleap(year):
+        return date(year, 2, 28)
+    return date(year, month, day)
+
+
 def compute_age(dob, today=None):
     """Return current age given a date-of-birth."""
     today = today or date.today()
-    return today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
+    age = today.year - dob.year
+    # Compare against the observed anniversary rather than the raw month/day,
+    # so someone born on February 29 ages up on February 28 in common years —
+    # the same day compute_birthday_info counts down to.
+    if today < anniversary(today.year, dob.month, dob.day):
+        age -= 1
+    return age
 
 
 def compute_birthday_info(person, today=None):
@@ -138,9 +158,9 @@ def compute_birthday_info(person, today=None):
     dob = datetime.strptime(person["date_of_birth"], "%Y-%m-%d").date()
     current_age = compute_age(dob, today)
 
-    birthday_this_year = dob.replace(year=today.year)
+    birthday_this_year = anniversary(today.year, dob.month, dob.day)
     if birthday_this_year < today:
-        next_birthday = dob.replace(year=today.year + 1)
+        next_birthday = anniversary(today.year + 1, dob.month, dob.day)
         turning = current_age + 1
     elif birthday_this_year == today:
         next_birthday = birthday_this_year
@@ -163,10 +183,12 @@ def compute_birthday_info(person, today=None):
 def compute_special_date_info(sd, today=None):
     """Return dict with countdown info for a special date."""
     today = today or date.today()
-    month, day = sd["date"].split("/")
-    target = date(today.year, int(month), int(day))
+    month, day = [int(part) for part in sd["date"].split("/")]
+    target = anniversary(today.year, month, day)
     if target < today:
-        target = target.replace(year=today.year + 1)
+        # Recompute from month/day rather than bumping the year: a Feb 28 that
+        # was rolled back from Feb 29 must become Feb 29 again in a leap year.
+        target = anniversary(today.year + 1, month, day)
     days_until = (target - today).days
     return {
         "title": sd["title"],
