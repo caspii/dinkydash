@@ -105,6 +105,20 @@ def copy_images():
         shutil.copytree('images', output_image_dir)
 
 
+def copy_static():
+    """Copy static/ to the site root.
+
+    These are files that have to sit at the root to work: browsers request
+    /favicon.ico without being told to, and iOS looks for /apple-touch-icon.png.
+    """
+    if not os.path.exists('static'):
+        return
+    for name in sorted(os.listdir('static')):
+        source = os.path.join('static', name)
+        if os.path.isfile(source):
+            shutil.copy2(source, os.path.join(OUTPUT_DIR, name))
+
+
 def generate_pages():
     """Render every Markdown file.
 
@@ -191,6 +205,7 @@ if __name__ == '__main__':
     generate_sitemap(pages)
     generate_robots()
     copy_images()
+    copy_static()
 
     # Restore CNAME file
     restore_cname(cname_content)

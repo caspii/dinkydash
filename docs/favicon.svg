@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <!-- DinkyDash marketing-site mark. Same 2x2 dashboard grid as the Pi app's
+       icon, recoloured to the site palette: warm orange (#e85d24) on cream
+       (#fffaf5) rather than the app's purple gradient. -->
+  <rect width="128" height="128" rx="26" ry="26" fill="#e85d24"/>
+  <g fill="#fffaf5">
+    <rect x="20" y="20" width="40" height="40" rx="9"/>
+    <rect x="68" y="20" width="40" height="40" rx="9"/>
+    <rect x="20" y="68" width="40" height="40" rx="9"/>
+    <rect x="68" y="68" width="40" height="40" rx="9"/>
+  </g>
+  <g>
+    <circle cx="40" cy="40" r="8" fill="#e85d24"/>
+    <circle cx="88" cy="40" r="8" fill="#7c5cbf"/>
+    <circle cx="40" cy="88" r="8" fill="#16a34a"/>
+    <circle cx="88" cy="88" r="8" fill="#3b82f6"/>
+  </g>
+</svg>
