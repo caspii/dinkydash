@@ -14,7 +14,7 @@
     <meta property="og:title" content="The AI-Powered Family Dashboard — DinkyDash">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://dinkydash.co/family-dashboard/">
-    <meta property="og:image" content="https://dinkydash.co/images/hero-kitchen.png">
+    <meta property="og:image" content="https://dinkydash.co/images/og-hero.jpg">
     <meta property="og:description" content="How DinkyDash uses AI to create a daily family dashboard with calendars, chores, countdowns, and personalized content.">
     <meta name="twitter:card" content="summary_large_image">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -204,6 +204,13 @@
             border: 1px solid var(--border);
             margin: 6px 0 20px;
         }
+        .page-updated {
+            margin-top: 40px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+            font-size: 0.82rem;
+            color: var(--text-muted) !important;
+        }
         .page-content table {
             width: 100%;
             border-collapse: collapse;
@@ -280,6 +287,44 @@
             .footer-guides { justify-content: center; }
         }
     </style>
+    <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://dinkydash.co/#org",
+      "name": "DinkyDash",
+      "url": "https://dinkydash.co/",
+      "logo": "https://dinkydash.co/favicon.svg",
+      "sameAs": ["https://github.com/caspii/dinkydash"]
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://dinkydash.co/#site",
+      "name": "DinkyDash",
+      "url": "https://dinkydash.co/",
+      "publisher": { "@id": "https://dinkydash.co/#org" }
+    }
+  ]
+}
+    </script>
+    
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "The AI-Powered Family Dashboard",
+  "description": "How DinkyDash uses AI to create a daily family dashboard with calendars, chores, countdowns, and personalized content.",
+  "mainEntityOfPage": "https://dinkydash.co/family-dashboard/",
+  "dateModified": "2026-09-03",
+  "author": { "@type": "Person", "name": "Caspar Wrede", "url": "https://casparwre.de" },
+  "publisher": { "@id": "https://dinkydash.co/#org" }
+}
+</script>
+
+
+
     
 </head>
 <body>
@@ -291,6 +336,7 @@
             <li><a href="/getting-started/">Get started</a></li>
             <li><a href="/diy-skylight-calendar/">DIY calendar</a></li>
             <li><a href="/skylight-calendar-alternatives/">Alternatives</a></li>
+            <li><a href="/birthday-countdown/">Countdown</a></li>
             <li><a href="/about/">About</a></li>
             <li><a href="https://github.com/caspii/dinkydash">GitHub</a></li>
         </ul>
@@ -317,7 +363,7 @@
 <li>A cheerful headline: "Happy Tuesday! Only 3 more days until the weekend."</li>
 <li>Person cards for each family member with their photo</li>
 <li>Chore badges showing it's Lily's turn for dishes and Sam's turn to feed the dog</li>
-<li>A countdown: 28 days until Christmas, 5 days until Dad's birthday</li>
+<li>A <a href="/birthday-countdown/">countdown</a>: 28 days until Christmas, 5 days until Dad's birthday</li>
 <li>Today's calendar: school pickup at 3pm, swimming at 5pm, dinner at grandma's at 7pm</li>
 <li>A fun fact about space that Sam will probably talk about all day</li>
 <li>A daily challenge: "Try to make someone laugh before breakfast"</li>
@@ -336,6 +382,7 @@
 <p>DinkyDash runs on your own Raspberry Pi. Your family data stays in your house. There's no cloud service, no account to create, no data being sent anywhere except to generate the daily dashboard.</p>
 <h2>Getting started</h2>
 <p>DinkyDash is free and open source. You'll need a Raspberry Pi, a small display, and an Anthropic API key. Check out the <a href="https://github.com/caspii/dinkydash">GitHub repository</a> for setup instructions.</p>
+    <p class="page-updated">Last updated 2026-09-03.</p>
 </div>
 
 </main>

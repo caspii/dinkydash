@@ -1,12 +1,35 @@
 {% extends "base.html" %}
 
-{% block title %}{{ title }} — DinkyDash{% endblock %}
+{# `seo_title` overrides the <title> when the H1 plus the brand suffix would
+   run past the ~60 characters Google shows before truncating. #}
+{% block title %}{{ seo_title or title ~ " — DinkyDash" }}{% endblock %}
 {% block description %}{{ description or "DinkyDash — the digital family calendar for screens you already own." }}{% endblock %}
-{% block og_title %}{{ title }} — DinkyDash{% endblock %}
+{% block og_title %}{{ seo_title or title ~ " — DinkyDash" }}{% endblock %}
+
+{% block schema %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": {{ title | tojson }},
+  "description": {{ (description or "") | tojson }},
+  "mainEntityOfPage": {{ canonical_url | tojson }},
+  {% if last_modified %}"dateModified": {{ last_modified | tojson }},
+  {% endif %}"author": { "@type": "Person", "name": "Caspar Wrede", "url": "https://casparwre.de" },
+  "publisher": { "@id": "https://dinkydash.co/#org" }
+}
+</script>
+{# Built by json.dumps in build.py from trusted front matter, so it is already
+   valid JSON and must not be HTML-escaped into the script body. #}
+{% if faq_schema %}<script type="application/ld+json">
+{{ faq_schema | safe }}
+</script>{% endif %}
+{% endblock %}
 
 {% block content %}
 <div class="container page-content">
     <h1>{{ title }}</h1>
     {{ content | safe }}
+    {% if last_modified %}<p class="page-updated">Last updated {{ last_modified }}.</p>{% endif %}
 </div>
 {% endblock %}

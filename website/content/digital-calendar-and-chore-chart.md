@@ -8,7 +8,7 @@ Every family runs the same two systems: a calendar (who needs to be where) and a
 
 Putting both on one always-on screen changes the dynamic: **kids check the screen instead of asking you**, and the screen — not a parent — is the one saying whose turn it is.
 
-![A child checking the family chore chart on a wall-mounted kitchen screen](/images/chore-chart-kid.png)
+![A child checking the family chore chart on a wall-mounted kitchen screen](/images/chore-chart-kid.webp)
 
 ## Why rotation beats assignment
 
@@ -35,5 +35,7 @@ Skylight and Hearth both do chores well — that's part of why families pay for 
 ## The countdown trick
 
 One more thing that earns its place on the chore screen: countdowns. "8 days until your birthday" and "19 days until vacation" give kids a reason to look at the dashboard voluntarily every morning — and while they're there, they see whose turn the dishes are. That's the whole trick, honestly.
+
+You can see the effect without installing anything: our [birthday countdown](/birthday-countdown/) is the same panel on its own, free and with no sign-up. Add the kids' birthdays and leave it open on a spare screen.
 
 Set it up this weekend: **[Getting started with DinkyDash](/getting-started/)** — or [join the hosted-version waitlist](https://fffwryhvses.typeform.com/to/yxMMhmFs) if you'd rather skip the setup.

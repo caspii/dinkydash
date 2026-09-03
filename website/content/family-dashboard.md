@@ -25,7 +25,7 @@ Imagine it's a Tuesday in November. Your family wakes up and walks past the dash
 - A cheerful headline: "Happy Tuesday! Only 3 more days until the weekend."
 - Person cards for each family member with their photo
 - Chore badges showing it's Lily's turn for dishes and Sam's turn to feed the dog
-- A countdown: 28 days until Christmas, 5 days until Dad's birthday
+- A [countdown](/birthday-countdown/): 28 days until Christmas, 5 days until Dad's birthday
 - Today's calendar: school pickup at 3pm, swimming at 5pm, dinner at grandma's at 7pm
 - A fun fact about space that Sam will probably talk about all day
 - A daily challenge: "Try to make someone laugh before breakfast"

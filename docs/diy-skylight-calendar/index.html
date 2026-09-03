@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>DIY Skylight Calendar: Build a Digital Family Calendar for About $100 — DinkyDash</title>
+    <title>DIY Skylight Calendar: Build a Family Calendar for ~$100</title>
     <meta name="description" content="How to build your own Skylight-style digital family calendar with a Raspberry Pi or an old tablet — free, open-source software, no subscription, about $100 in hardware (or $0 if you have a spare screen).">
     <link rel="canonical" href="https://dinkydash.co/diy-skylight-calendar/">
     
@@ -11,10 +11,10 @@
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/apple-touch-icon.png">
     <meta name="theme-color" content="#fffaf5">
-    <meta property="og:title" content="DIY Skylight Calendar: Build a Digital Family Calendar for About $100 — DinkyDash">
+    <meta property="og:title" content="DIY Skylight Calendar: Build a Family Calendar for ~$100">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://dinkydash.co/diy-skylight-calendar/">
-    <meta property="og:image" content="https://dinkydash.co/images/hero-kitchen.png">
+    <meta property="og:image" content="https://dinkydash.co/images/og-hero.jpg">
     <meta property="og:description" content="How to build your own Skylight-style digital family calendar with a Raspberry Pi or an old tablet — free, open-source software, no subscription, about $100 in hardware (or $0 if you have a spare screen).">
     <meta name="twitter:card" content="summary_large_image">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -204,6 +204,13 @@
             border: 1px solid var(--border);
             margin: 6px 0 20px;
         }
+        .page-updated {
+            margin-top: 40px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+            font-size: 0.82rem;
+            color: var(--text-muted) !important;
+        }
         .page-content table {
             width: 100%;
             border-collapse: collapse;
@@ -280,6 +287,44 @@
             .footer-guides { justify-content: center; }
         }
     </style>
+    <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://dinkydash.co/#org",
+      "name": "DinkyDash",
+      "url": "https://dinkydash.co/",
+      "logo": "https://dinkydash.co/favicon.svg",
+      "sameAs": ["https://github.com/caspii/dinkydash"]
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://dinkydash.co/#site",
+      "name": "DinkyDash",
+      "url": "https://dinkydash.co/",
+      "publisher": { "@id": "https://dinkydash.co/#org" }
+    }
+  ]
+}
+    </script>
+    
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "DIY Skylight Calendar: Build a Digital Family Calendar for About $100",
+  "description": "How to build your own Skylight-style digital family calendar with a Raspberry Pi or an old tablet \u2014 free, open-source software, no subscription, about $100 in hardware (or $0 if you have a spare screen).",
+  "mainEntityOfPage": "https://dinkydash.co/diy-skylight-calendar/",
+  "dateModified": "2026-09-03",
+  "author": { "@type": "Person", "name": "Caspar Wrede", "url": "https://casparwre.de" },
+  "publisher": { "@id": "https://dinkydash.co/#org" }
+}
+</script>
+
+
+
     
 </head>
 <body>
@@ -291,6 +336,7 @@
             <li><a href="/getting-started/">Get started</a></li>
             <li><a href="/diy-skylight-calendar/">DIY calendar</a></li>
             <li><a href="/skylight-calendar-alternatives/">Alternatives</a></li>
+            <li><a href="/birthday-countdown/">Countdown</a></li>
             <li><a href="/about/">About</a></li>
             <li><a href="https://github.com/caspii/dinkydash">GitHub</a></li>
         </ul>
@@ -303,7 +349,7 @@
     <h1>DIY Skylight Calendar: Build a Digital Family Calendar for About $100</h1>
     <p>A Skylight Calendar Max costs $629, plus $79 a year if you want the Plus features. The thing is, a digital family calendar is fundamentally <em>a screen showing a web page</em> — and that's something you can build yourself for about $100 with a Raspberry Pi, or for <strong>$0</strong> with a tablet you already own.</p>
 <p>Here's exactly how, using <a href="https://github.com/caspii/dinkydash">DinkyDash</a>, our free and open-source family calendar software.</p>
-<p><img alt="A Raspberry Pi with a small touchscreen showing a family dashboard, sitting on a kitchen shelf" src="/images/diy-raspberry-pi-calendar.png" /></p>
+<p><img alt="A Raspberry Pi with a small touchscreen showing a family dashboard, sitting on a kitchen shelf" src="/images/diy-raspberry-pi-calendar.webp" width="1408" height="768" decoding="async" /></p>
 <h2>What you get</h2>
 <p>Your DIY calendar shows everything on one glanceable screen, refreshed automatically:</p>
 <ul>
@@ -313,6 +359,7 @@
 <li><strong>A daily brief written by AI</strong> — a fresh greeting, fun fact, and family challenge every single morning, personalized to your family</li>
 </ul>
 <p>That last one is something even the $629 hardware doesn't do.</p>
+<p>Want to see the countdown part before you build anything? Our <a href="/birthday-countdown/">birthday countdown</a> runs in a browser tab, free and without a sign-up.</p>
 <h2>The hardware: three routes</h2>
 <table>
 <thead>
@@ -425,6 +472,7 @@ If your time is worth more than about $500 an evening, no. If you already own a 
 <h2>Start here</h2>
 <p>If you can copy commands into a terminal, you can have this on your kitchen wall by Sunday: <strong><a href="/getting-started/">the complete setup guide</a></strong>. Buying hardware for it? Start with the <a href="/raspberry-pi-family-calendar/">Raspberry Pi build guide</a>.</p>
 <p>Rather skip the setup entirely? A hosted version is coming — <a href="https://fffwryhvses.typeform.com/to/yxMMhmFs">join the waitlist</a>.</p>
+    <p class="page-updated">Last updated 2026-09-03.</p>
 </div>
 
 </main>

@@ -1,5 +1,6 @@
 ---
 title: "DIY Skylight Calendar: Build a Digital Family Calendar for About $100"
+seo_title: "DIY Skylight Calendar: Build a Family Calendar for ~$100"
 template: page.html
 description: How to build your own Skylight-style digital family calendar with a Raspberry Pi or an old tablet — free, open-source software, no subscription, about $100 in hardware (or $0 if you have a spare screen).
 ---
@@ -8,7 +9,7 @@ A Skylight Calendar Max costs $629, plus $79 a year if you want the Plus feature
 
 Here's exactly how, using [DinkyDash](https://github.com/caspii/dinkydash), our free and open-source family calendar software.
 
-![A Raspberry Pi with a small touchscreen showing a family dashboard, sitting on a kitchen shelf](/images/diy-raspberry-pi-calendar.png)
+![A Raspberry Pi with a small touchscreen showing a family dashboard, sitting on a kitchen shelf](/images/diy-raspberry-pi-calendar.webp)
 
 ## What you get
 
@@ -20,6 +21,8 @@ Your DIY calendar shows everything on one glanceable screen, refreshed automatic
 - **A daily brief written by AI** — a fresh greeting, fun fact, and family challenge every single morning, personalized to your family
 
 That last one is something even the $629 hardware doesn't do.
+
+Want to see the countdown part before you build anything? Our [birthday countdown](/birthday-countdown/) runs in a browser tab, free and without a sign-up.
 
 ## The hardware: three routes
 

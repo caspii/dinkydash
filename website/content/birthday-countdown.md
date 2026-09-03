@@ -1,7 +1,33 @@
 ---
-title: "Birthday Countdown: How Many Days Until Your Birthday?"
+title: "Birthday Countdown: How Many Days Until My Birthday?"
+seo_title: "Birthday Countdown: How Many Days Until My Birthday?"
 template: birthday-countdown.html
-description: A free birthday countdown timer. Enter a birthday and see exactly how many days, hours, minutes and seconds are left — add the whole family, and share the countdown with a link. No sign-up.
+description: A free birthday countdown timer. See how many days until your birthday, ticking down live — add the whole family, open it full screen, and share with a link.
+faq:
+  - q: "Is this birthday countdown free?"
+    a: "Yes, and there's no account. It's a small tool from DinkyDash, an open-source family\
+  \ calendar."
+  - q: "Does the countdown keep running if I close the tab?"
+    a: "It picks up where it left off. Your countdowns are saved in your own browser, so\
+  \ the page remembers them next time. Clearing your browser data clears them too\
+  \ — keep the link if you want a permanent copy."
+  - q: "Can I count down to something that isn't a birthday?"
+    a: "Anything that happens on the same date every year works: anniversaries, holidays,\
+  \ the last day of school. Put the name in the name field and it'll count down all\
+  \ the same."
+  - q: "How many birthdays can I add?"
+    a: "As many as you like. Past three or four the list is more useful than the big number,\
+  \ which is roughly the point at which you might want it on a screen instead of in\
+  \ a browser tab."
+  - q: "Why does it say 364 days and not 365?"
+    a: "Because it counts whole days from today. The day after your birthday, there are 364\
+  \ sleeps until the next one — 365 in a leap year, or if a 29 February falls in between."
+  - q: "Does the birthday countdown work offline?"
+    a: "Once the page has loaded, yes. All the arithmetic happens in your browser."
+  - q: "Can I put the birthday countdown on a TV full screen?"
+    a: "Yes. Open full screen strips the page down to just the numbers, sized to fill whatever\
+  \ screen it's on, so it works on a TV, a spare monitor or an old tablet. The link\
+  \ holds the birthdays, so opening it on another device shows the same countdown."
 ---
 
 Pick a birthday above and the counter shows exactly how many days are left, ticking down to the hour. Add everyone in the family and you get the whole year at a glance.
@@ -20,11 +46,17 @@ You're not limited to one. Add a birthday, then add another — everyone stacks 
 
 That's the point at which it stops being a countdown and starts being a calendar, which is rather the idea.
 
+## A full screen birthday countdown timer
+
+Press **Open full screen** and the page strips down to just the numbers — no menu, no footer, no explanation. The digits scale to fill whatever they're on, so the same view works on a phone propped against the kettle, a spare monitor, or a TV across the room.
+
+This is the bit people usually want for a party. Put it on the big screen an hour before guests arrive and the countdown does the announcing for you. For a child counting sleeps, an old tablet on a shelf in their room does the job — it costs nothing and it answers the question without anybody being asked.
+
+The full screen view reads its birthdays from the link, so it needs no app and no sign-in. Open the link on any device and you get the same countdown, ticking from that device's own clock.
+
 ## Sharing a countdown
 
-Every countdown you build gets its own link, and that link opens **full screen** — just the numbers, no menus and no page around them. It's meant to be sent to someone, or left open on a spare tablet or TV.
-
-Copy it and whoever opens it sees the same countdown you do, ticking live from their own clock. Use **Open full screen** to put it up on your own screen.
+Every countdown you build gets its own link, and that link opens straight into the full screen view. Copy it and whoever opens it sees exactly what you see.
 
 The link holds the names and dates, so nothing is stored on our end and nothing expires. A countdown you share today still works next year — it'll just be counting to the next birthday.
 
@@ -38,7 +70,7 @@ In a leap year the countdown runs to 29 February. In every other year it runs to
 
 ## Questions
 
-**Is this free?**
+**Is this birthday countdown free?**
 Yes, and there's no account. It's a small tool from [DinkyDash](https://github.com/caspii/dinkydash), our open-source family calendar.
 
 **Does the countdown keep running if I close the tab?**
@@ -47,14 +79,17 @@ It picks up where it left off. Your countdowns are saved in your own browser, so
 **Can I count down to something that isn't a birthday?**
 Anything that happens on the same date every year works: anniversaries, holidays, the last day of school. Put the name in the name field and it'll count down all the same.
 
-**How many people can I add?**
+**How many birthdays can I add?**
 As many as you like. Past three or four the list is more useful than the big number, which is roughly the point at which you might want it on a screen instead of in a browser tab.
 
 **Why does it say 364 days and not 365?**
 Because it counts whole days from today. The day after your birthday, there are 364 sleeps until the next one — 365 in a leap year, or if a 29 February falls in between.
 
-**Does it work offline?**
+**Does the birthday countdown work offline?**
 Once the page has loaded, yes. All the arithmetic happens in your browser.
+
+**Can I put the birthday countdown on a TV full screen?**
+Yes. **Open full screen** strips the page down to just the numbers, sized to fill whatever screen it's on, so it works on a TV, a spare monitor or an old tablet. The link holds the birthdays, so opening it on another device shows the same countdown.
 
 ## Every birthday, on the kitchen wall
 

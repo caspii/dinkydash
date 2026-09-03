@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>About DinkyDash — DinkyDash</title>
+    <title>About DinkyDash — Free Open-Source Family Calendar</title>
     <meta name="description" content="DinkyDash is a free, open-source digital family calendar that runs on screens you already own — with an AI-written daily brief for your family.">
     <link rel="canonical" href="https://dinkydash.co/about/">
     
@@ -11,10 +11,10 @@
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/apple-touch-icon.png">
     <meta name="theme-color" content="#fffaf5">
-    <meta property="og:title" content="About DinkyDash — DinkyDash">
+    <meta property="og:title" content="About DinkyDash — Free Open-Source Family Calendar">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://dinkydash.co/about/">
-    <meta property="og:image" content="https://dinkydash.co/images/hero-kitchen.png">
+    <meta property="og:image" content="https://dinkydash.co/images/og-hero.jpg">
     <meta property="og:description" content="DinkyDash is a free, open-source digital family calendar that runs on screens you already own — with an AI-written daily brief for your family.">
     <meta name="twitter:card" content="summary_large_image">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -204,6 +204,13 @@
             border: 1px solid var(--border);
             margin: 6px 0 20px;
         }
+        .page-updated {
+            margin-top: 40px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+            font-size: 0.82rem;
+            color: var(--text-muted) !important;
+        }
         .page-content table {
             width: 100%;
             border-collapse: collapse;
@@ -280,6 +287,44 @@
             .footer-guides { justify-content: center; }
         }
     </style>
+    <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://dinkydash.co/#org",
+      "name": "DinkyDash",
+      "url": "https://dinkydash.co/",
+      "logo": "https://dinkydash.co/favicon.svg",
+      "sameAs": ["https://github.com/caspii/dinkydash"]
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://dinkydash.co/#site",
+      "name": "DinkyDash",
+      "url": "https://dinkydash.co/",
+      "publisher": { "@id": "https://dinkydash.co/#org" }
+    }
+  ]
+}
+    </script>
+    
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "About DinkyDash",
+  "description": "DinkyDash is a free, open-source digital family calendar that runs on screens you already own \u2014 with an AI-written daily brief for your family.",
+  "mainEntityOfPage": "https://dinkydash.co/about/",
+  "dateModified": "2026-09-03",
+  "author": { "@type": "Person", "name": "Caspar Wrede", "url": "https://casparwre.de" },
+  "publisher": { "@id": "https://dinkydash.co/#org" }
+}
+</script>
+
+
+
     
 </head>
 <body>
@@ -291,6 +336,7 @@
             <li><a href="/getting-started/">Get started</a></li>
             <li><a href="/diy-skylight-calendar/">DIY calendar</a></li>
             <li><a href="/skylight-calendar-alternatives/">Alternatives</a></li>
+            <li><a href="/birthday-countdown/">Countdown</a></li>
             <li><a href="/about/">About</a></li>
             <li><a href="https://github.com/caspii/dinkydash">GitHub</a></li>
         </ul>
@@ -338,6 +384,7 @@
 <li><a href="https://github.com/caspii/dinkydash">The code, on GitHub</a></li>
 </ul>
 <p>Want DinkyDash without the setup? A hosted version is in the works — <a href="https://fffwryhvses.typeform.com/to/yxMMhmFs">join the waitlist</a>.</p>
+    <p class="page-updated">Last updated 2026-09-03.</p>
 </div>
 
 </main>
