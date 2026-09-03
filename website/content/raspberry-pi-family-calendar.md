@@ -1,5 +1,6 @@
 ---
 title: "Raspberry Pi Family Calendar: Build a Wall Dashboard That Updates Itself"
+seo_title: "Raspberry Pi Family Calendar: Build a Wall Dashboard"
 template: page.html
 description: How to turn a Raspberry Pi into a wall-mounted family calendar and dashboard — today's events, rotating chores, birthday countdowns and an AI daily brief, for about $100 in parts and no subscription.
 ---
@@ -8,7 +9,7 @@ A Raspberry Pi, a small touchscreen and some open-source software make a genuine
 
 This page covers the hardware side — which Pi, which screen, what it draws, what it costs. The [full setup guide](/getting-started/) has the copy-paste commands.
 
-![A Raspberry Pi with a small touchscreen showing a family dashboard, sitting on a kitchen shelf](/images/diy-raspberry-pi-calendar.png)
+![A Raspberry Pi with a small touchscreen showing a family dashboard, sitting on a kitchen shelf](/images/diy-raspberry-pi-calendar.webp)
 
 ## What ends up on the screen
 
@@ -20,6 +21,8 @@ This page covers the hardware side — which Pi, which screen, what it draws, wh
 - **A daily brief written by Claude** — a fresh greeting, fun fact and family challenge every morning, written around your actual family
 
 No touch interaction is required. It's a display, not an app — which is the point, and also why a modest Pi is plenty.
+
+If you have not ordered parts yet, the [birthday countdown](/birthday-countdown/) is one panel of this running in a plain browser tab — a fair preview of what a wall screen feels like, on a screen you are already looking at.
 
 ## Which Raspberry Pi
 

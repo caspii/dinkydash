@@ -8,7 +8,7 @@ The Skylight Calendar is a lovely idea: your family's schedule, big and glanceab
 
 The good news: you have real options — including some that cost nothing because they run on a screen you already own.
 
-![The same family calendar dashboard running on a TV, an old iPad, and a Raspberry Pi touchscreen](/images/any-screen-family-calendar.png)
+![The same family calendar dashboard running on a TV, an old iPad, and a Raspberry Pi touchscreen](/images/any-screen-family-calendar.webp)
 
 ## Quick comparison
 

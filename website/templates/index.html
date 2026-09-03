@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}DinkyDash — The Digital Family Calendar for Screens You Already Own{% endblock %}
+{% block title %}DinkyDash — Digital Family Calendar, Any Screen You Own{% endblock %}
 {% block description %}A free, open-source alternative to Skylight and Hearth. Turn any TV, tablet, or Raspberry Pi into a shared family calendar with a chore chart, countdowns, and an AI-written daily brief.{% endblock %}
 {% block og_title %}DinkyDash — The Digital Family Calendar for Screens You Already Own{% endblock %}
 
@@ -659,7 +659,7 @@
             <div class="value-card">
                 <div class="value-emoji">&#9201;&#65039;</div>
                 <h3>Countdowns kids check daily</h3>
-                <p>Birthdays, holidays, vacations. Ages update themselves. No more answering "how many days until…" on repeat.</p>
+                <p>Birthdays, holidays, vacations. Ages update themselves. No more answering "how many days until…" on repeat. <a href="/birthday-countdown/">Try the birthday countdown &rarr;</a></p>
             </div>
             <div class="value-card">
                 <div class="value-emoji">&#129302;</div>
@@ -755,6 +755,9 @@
 {% endblock %}
 
 {% block extra_js %}
+{# Questions and answers below must stay word-for-word identical to the
+   "Questions families ask" section above: Google requires FAQPage markup to
+   describe content the visitor can actually see. #}
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -762,23 +765,28 @@
   "mainEntity": [
     {
       "@type": "Question",
-      "name": "What screens can I use with DinkyDash?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Anything with a web browser: an old iPad or Android tablet, a smart TV, a Raspberry Pi with a touchscreen, a spare monitor, or a laptop on the counter." }
+      "name": "What screens can I use?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Anything with a web browser: an old iPad or Android tablet, a smart TV, a Raspberry Pi with a touchscreen, a spare monitor, or a laptop on the counter. The dashboard is designed to be glanceable from across the room." }
     },
     {
       "@type": "Question",
-      "name": "Is DinkyDash really free?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Yes. DinkyDash is open source under the MIT license. You run it yourself and bring your own Anthropic API key; a day's dashboard costs a few cents in AI usage. There is no subscription." }
+      "name": "Is it really free?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes — DinkyDash is open source (MIT license). You run it yourself and bring your own Anthropic API key; a day's dashboard costs a few cents in AI usage. There is no subscription and nothing to unlock." }
     },
     {
       "@type": "Question",
-      "name": "Does DinkyDash work with Google Calendar?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Yes. DinkyDash reads any calendar that publishes an iCal link, including Google Calendar, Apple iCloud Calendar, and Outlook." }
+      "name": "Do I need to be technical to set it up?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Today, a little — if you're comfortable copying commands into a terminal, the setup guide takes about an afternoon. A hosted version with zero setup is in the works." }
     },
     {
       "@type": "Question",
-      "name": "How is DinkyDash different from a Skylight or Hearth calendar?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Skylight and Hearth sell dedicated touchscreens for $299 to $699 with optional or required subscriptions. DinkyDash is free, open-source software that runs on a screen you already own, and adds an AI-written daily brief personalized to your family." }
+      "name": "Does it work with Google Calendar?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes. DinkyDash reads any calendar that publishes an iCal link — Google Calendar, Apple iCloud Calendar, and Outlook all do. You can filter events to just the family members you choose." }
+    },
+    {
+      "@type": "Question",
+      "name": "How is this different from a Skylight or Hearth?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Skylight and Hearth sell you a dedicated touchscreen ($299–$699) with an optional or required subscription. DinkyDash is just the software — free, open source, and running on a screen you already own. It also does something they don't: an AI-written daily brief personalized to your family." }
     }
   ]
 }

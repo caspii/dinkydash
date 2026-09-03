@@ -1,8 +1,31 @@
 {% extends "base.html" %}
 
-{% block title %}{{ title }} — DinkyDash{% endblock %}
+{% block title %}{{ seo_title or title ~ " — DinkyDash" }}{% endblock %}
 {% block description %}{{ description or "DinkyDash — the digital family calendar for screens you already own." }}{% endblock %}
-{% block og_title %}{{ title }} — DinkyDash{% endblock %}
+{% block og_title %}{{ seo_title or title ~ " — DinkyDash" }}{% endblock %}
+
+{% block schema %}
+{# WebApplication rather than Article: the page is the tool, and the prose
+   below it exists to explain the tool. #}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Birthday Countdown",
+  "url": {{ canonical_url | tojson }},
+  "applicationCategory": "UtilitiesApplication",
+  "operatingSystem": "Any",
+  "browserRequirements": "Requires JavaScript",
+  "description": {{ (description or "") | tojson }},
+  {% if last_modified %}"dateModified": {{ last_modified | tojson }},
+  {% endif %}"offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "publisher": { "@id": "https://dinkydash.co/#org" }
+}
+</script>
+{% if faq_schema %}<script type="application/ld+json">
+{{ faq_schema | safe }}
+</script>{% endif %}
+{% endblock %}
 
 {% block extra_head %}
 <style>
@@ -221,7 +244,7 @@
                 <!-- Rendered by JS. Static default keeps the page useful before
                      scripts run and gives crawlers something concrete. -->
                 <div class="bc-days" id="bc-days">—</div>
-                <div class="bc-days-label" id="bc-label">days until your birthday</div>
+                <div class="bc-days-label" id="bc-label">days until my birthday</div>
                 <div class="bc-clock" id="bc-clock"></div>
                 <div class="bc-sub" id="bc-sub">Enter a birthday below to start the countdown.</div>
             </div>
@@ -271,6 +294,7 @@
     </div>
 
     {{ content | safe }}
+    {% if last_modified %}<p class="page-updated">Last updated {{ last_modified }}.</p>{% endif %}
 </div>
 {% endblock %}
 
@@ -317,7 +341,7 @@
         if (!sorted.length) {
             el('bc-days').className = 'bc-days';
             el('bc-days').textContent = '—';
-            el('bc-label').textContent = 'days until your birthday';
+            el('bc-label').textContent = 'days until my birthday';
             el('bc-clock').textContent = '';
             el('bc-sub').textContent = 'Enter a birthday below to start the countdown.';
             return;

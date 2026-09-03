@@ -1,12 +1,13 @@
 ---
 title: "The Best Digital Family Calendar in 2026: Buy One, or Use a Screen You Own"
+seo_title: "Best Digital Family Calendar in 2026 (Buy or DIY)"
 template: page.html
 description: An honest guide to choosing a digital family calendar in 2026 — dedicated displays like Skylight and Hearth vs free software on a screen you already own.
 ---
 
 Every "best digital family calendar" list starts from the same assumption: that you need to buy a screen. You might! But the actual decision has two branches, and it's worth choosing the branch before the product.
 
-![A wall-mounted digital calendar display in a warm family kitchen](/images/hero-kitchen.png)
+![A wall-mounted digital calendar display in a warm family kitchen](/images/hero-kitchen.webp)
 
 ## Path 1: Buy a dedicated calendar display
 

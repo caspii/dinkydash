@@ -1,5 +1,6 @@
 ---
 title: About DinkyDash
+seo_title: "About DinkyDash — Free Open-Source Family Calendar"
 template: page.html
 description: DinkyDash is a free, open-source digital family calendar that runs on screens you already own — with an AI-written daily brief for your family.
 ---

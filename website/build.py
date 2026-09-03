@@ -15,11 +15,14 @@ The build process:
 4. Renders content using Jinja2 templates
 5. Outputs static HTML with clean URLs (e.g., about.md → about/index.html)
 6. Writes sitemap.xml and robots.txt
-7. Copies images and preserves CNAME file
+7. Copies images and the static/ root files (favicons, CNAME)
 """
 
+import json
 import os
+import re
 import shutil
+import struct
 import subprocess
 from xml.sax.saxutils import escape
 from jinja2 import Environment, FileSystemLoader
@@ -47,7 +50,78 @@ def read_markdown(filename):
         else:
             front_matter = {}
             markdown_content = content[0]
-        return front_matter, markdown.markdown(markdown_content, extensions=['fenced_code', 'tables'])
+        html = markdown.markdown(markdown_content, extensions=['fenced_code', 'tables'])
+        return front_matter, enhance_images(html)
+
+
+def image_size(path):
+    """Return (width, height) for a local image, or None if it can't be read.
+
+    Hand-rolled rather than pulling in Pillow: the site only ever ships WebP
+    and JPEG, and a build dependency that exists to read four numbers is not
+    worth the install.
+    """
+    try:
+        with open(path, 'rb') as f:
+            head = f.read(32)
+            if head[:4] == b'RIFF' and head[8:12] == b'WEBP':
+                chunk = head[12:16]
+                if chunk == b'VP8 ':
+                    # Lossy: 3-byte frame tag, 3-byte start code, then 14-bit
+                    # width and height (the top 2 bits are a scale hint).
+                    w, h = struct.unpack('<HH', head[26:30])
+                    return w & 0x3FFF, h & 0x3FFF
+                if chunk == b'VP8L':
+                    bits = struct.unpack('<I', head[21:25])[0]
+                    return (bits & 0x3FFF) + 1, ((bits >> 14) & 0x3FFF) + 1
+                if chunk == b'VP8X':
+                    w = int.from_bytes(head[24:27], 'little') + 1
+                    h = int.from_bytes(head[27:30], 'little') + 1
+                    return w, h
+                return None
+            if head[:8] == b'\x89PNG\r\n\x1a\n':
+                return struct.unpack('>II', head[16:24])
+            if head[:2] == b'\xff\xd8':
+                # JPEG: walk the segment chain to the frame header.
+                f.seek(2)
+                while True:
+                    marker = f.read(2)
+                    if len(marker) < 2 or marker[0] != 0xFF:
+                        return None
+                    length = struct.unpack('>H', f.read(2))[0]
+                    if 0xC0 <= marker[1] <= 0xCF and marker[1] not in (0xC4, 0xC8, 0xCC):
+                        h, w = struct.unpack('>HH', f.read(5)[1:])
+                        return w, h
+                    f.seek(length - 2, 1)
+    except (OSError, struct.error, IndexError):
+        return None
+    return None
+
+
+def enhance_images(html):
+    """Add width/height and loading hints to Markdown-generated <img> tags.
+
+    Intrinsic dimensions stop the text below an image from jumping once it
+    loads (Cumulative Layout Shift). Everything after the first image is
+    lazy-loaded; the first one is left eager because on these pages it sits
+    near the top and is usually the Largest Contentful Paint element.
+    """
+    seen = {'count': 0}
+
+    def replace(match):
+        tag, src = match.group(0), match.group(1)
+        seen['count'] += 1
+        attrs = []
+        # Content images are written as /images/foo.webp and live in images/.
+        size = image_size(src.lstrip('/')) if src.startswith('/images/') else None
+        if size:
+            attrs.append(f'width="{size[0]}" height="{size[1]}"')
+        attrs.append('decoding="async"')
+        if seen['count'] > 1:
+            attrs.append('loading="lazy"')
+        return tag[:-2].rstrip() + ' ' + ' '.join(attrs) + ' />'
+
+    return re.sub(r'<img[^>]*\bsrc="([^"]+)"[^>]*/>', replace, html)
 
 
 def git_last_modified(file_path):
@@ -65,6 +139,30 @@ def git_last_modified(file_path):
     except (subprocess.CalledProcessError, FileNotFoundError):
         return None
     return result.stdout.strip() or None
+
+
+def faq_schema(faq):
+    """Render a `faq:` front-matter list as FAQPage JSON-LD, or '' if absent.
+
+    Google stopped showing FAQ rich results for sites like this one in 2023,
+    so this is not a snippet play — it is there so answer engines parsing the
+    page get the questions and answers as data rather than as prose.
+    """
+    if not faq:
+        return ''
+    data = {
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        'mainEntity': [
+            {
+                '@type': 'Question',
+                'name': item['q'],
+                'acceptedAnswer': {'@type': 'Answer', 'text': item['a']},
+            }
+            for item in faq
+        ],
+    }
+    return json.dumps(data, indent=2)
 
 
 def generate_sitemap(pages):
@@ -153,9 +251,16 @@ def generate_pages():
                 template_name = front_matter.get('template', 'page.html')
                 template = env.get_template(template_name)
 
+                # Same sources the sitemap dates a page by: its Markdown and
+                # the template that renders it.
+                sources = (file_path, os.path.join('templates', template_name))
+                dates = [d for d in (git_last_modified(f) for f in sources) if d]
+
                 output = template.render(
                     content=content,
                     canonical_url=SITE_URL + url_path,
+                    last_modified=max(dates) if dates else None,
+                    faq_schema=faq_schema(front_matter.get('faq')),
                     **front_matter,
                 )
 
@@ -177,27 +282,11 @@ def generate_pages():
     return pages, written
 
 
-def preserve_cname():
-    cname_path = os.path.join(OUTPUT_DIR, 'CNAME')
-    if os.path.exists(cname_path):
-        with open(cname_path, 'r') as f:
-            cname_content = f.read()
-        return cname_content
-    return None
-
-
-def restore_cname(cname_content):
-    if cname_content:
-        cname_path = os.path.join(OUTPUT_DIR, 'CNAME')
-        with open(cname_path, 'w') as f:
-            f.write(cname_content)
-
-
 if __name__ == '__main__':
-    # Preserve CNAME content
-    cname_content = preserve_cname()
-
-    # Clear the output directory if it exists
+    # Clear the output directory if it exists. CNAME used to be read out of
+    # here and written back afterwards, which meant a build that failed
+    # between the two lost the custom domain; it now lives in static/ and is
+    # copied in like any other root file.
     if os.path.exists(OUTPUT_DIR):
         shutil.rmtree(OUTPUT_DIR)
 
@@ -206,9 +295,6 @@ if __name__ == '__main__':
     generate_robots()
     copy_images()
     copy_static()
-
-    # Restore CNAME file
-    restore_cname(cname_content)
 
     print(f"Site generated in {OUTPUT_DIR} "
           f"({written} pages, {len(pages)} in sitemap)")

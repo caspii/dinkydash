@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Raspberry Pi Family Calendar: Build a Wall Dashboard That Updates Itself — DinkyDash</title>
+    <title>Raspberry Pi Family Calendar: Build a Wall Dashboard</title>
     <meta name="description" content="How to turn a Raspberry Pi into a wall-mounted family calendar and dashboard — today&#39;s events, rotating chores, birthday countdowns and an AI daily brief, for about $100 in parts and no subscription.">
     <link rel="canonical" href="https://dinkydash.co/raspberry-pi-family-calendar/">
     
@@ -11,10 +11,10 @@
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/apple-touch-icon.png">
     <meta name="theme-color" content="#fffaf5">
-    <meta property="og:title" content="Raspberry Pi Family Calendar: Build a Wall Dashboard That Updates Itself — DinkyDash">
+    <meta property="og:title" content="Raspberry Pi Family Calendar: Build a Wall Dashboard">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://dinkydash.co/raspberry-pi-family-calendar/">
-    <meta property="og:image" content="https://dinkydash.co/images/hero-kitchen.png">
+    <meta property="og:image" content="https://dinkydash.co/images/og-hero.jpg">
     <meta property="og:description" content="How to turn a Raspberry Pi into a wall-mounted family calendar and dashboard — today&#39;s events, rotating chores, birthday countdowns and an AI daily brief, for about $100 in parts and no subscription.">
     <meta name="twitter:card" content="summary_large_image">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -204,6 +204,13 @@
             border: 1px solid var(--border);
             margin: 6px 0 20px;
         }
+        .page-updated {
+            margin-top: 40px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+            font-size: 0.82rem;
+            color: var(--text-muted) !important;
+        }
         .page-content table {
             width: 100%;
             border-collapse: collapse;
@@ -280,6 +287,44 @@
             .footer-guides { justify-content: center; }
         }
     </style>
+    <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://dinkydash.co/#org",
+      "name": "DinkyDash",
+      "url": "https://dinkydash.co/",
+      "logo": "https://dinkydash.co/favicon.svg",
+      "sameAs": ["https://github.com/caspii/dinkydash"]
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://dinkydash.co/#site",
+      "name": "DinkyDash",
+      "url": "https://dinkydash.co/",
+      "publisher": { "@id": "https://dinkydash.co/#org" }
+    }
+  ]
+}
+    </script>
+    
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Raspberry Pi Family Calendar: Build a Wall Dashboard That Updates Itself",
+  "description": "How to turn a Raspberry Pi into a wall-mounted family calendar and dashboard \u2014 today\u0027s events, rotating chores, birthday countdowns and an AI daily brief, for about $100 in parts and no subscription.",
+  "mainEntityOfPage": "https://dinkydash.co/raspberry-pi-family-calendar/",
+  "dateModified": "2026-09-03",
+  "author": { "@type": "Person", "name": "Caspar Wrede", "url": "https://casparwre.de" },
+  "publisher": { "@id": "https://dinkydash.co/#org" }
+}
+</script>
+
+
+
     
 </head>
 <body>
@@ -291,6 +336,7 @@
             <li><a href="/getting-started/">Get started</a></li>
             <li><a href="/diy-skylight-calendar/">DIY calendar</a></li>
             <li><a href="/skylight-calendar-alternatives/">Alternatives</a></li>
+            <li><a href="/birthday-countdown/">Countdown</a></li>
             <li><a href="/about/">About</a></li>
             <li><a href="https://github.com/caspii/dinkydash">GitHub</a></li>
         </ul>
@@ -303,7 +349,7 @@
     <h1>Raspberry Pi Family Calendar: Build a Wall Dashboard That Updates Itself</h1>
     <p>A Raspberry Pi, a small touchscreen and some open-source software make a genuinely good family calendar: it hangs on the kitchen wall, shows today's schedule at a glance, updates itself every morning, and costs about <strong>$100 in parts with nothing monthly</strong>.</p>
 <p>This page covers the hardware side — which Pi, which screen, what it draws, what it costs. The <a href="/getting-started/">full setup guide</a> has the copy-paste commands.</p>
-<p><img alt="A Raspberry Pi with a small touchscreen showing a family dashboard, sitting on a kitchen shelf" src="/images/diy-raspberry-pi-calendar.png" /></p>
+<p><img alt="A Raspberry Pi with a small touchscreen showing a family dashboard, sitting on a kitchen shelf" src="/images/diy-raspberry-pi-calendar.webp" width="1408" height="768" decoding="async" /></p>
 <h2>What ends up on the screen</h2>
 <p><a href="https://github.com/caspii/dinkydash">DinkyDash</a> is a free, open-source, MIT-licensed family dashboard built for exactly this. On the display you get:</p>
 <ul>
@@ -313,6 +359,7 @@
 <li><strong>A daily brief written by Claude</strong> — a fresh greeting, fun fact and family challenge every morning, written around your actual family</li>
 </ul>
 <p>No touch interaction is required. It's a display, not an app — which is the point, and also why a modest Pi is plenty.</p>
+<p>If you have not ordered parts yet, the <a href="/birthday-countdown/">birthday countdown</a> is one panel of this running in a plain browser tab — a fair preview of what a wall screen feels like, on a screen you are already looking at.</p>
 <h2>Which Raspberry Pi</h2>
 <table>
 <thead>
@@ -418,6 +465,7 @@
 <p>Everything you need is in the <a href="/getting-started/">setup guide</a> — install, config, cron, systemd service and kiosk mode, with the commands to copy. Budget an evening for the first build.</p>
 <p>The code is on <a href="https://github.com/caspii/dinkydash">GitHub</a> under an MIT licence. Stars and issues welcome.</p>
 <p>Want the dashboard without the Pi? A hosted version is coming — <a href="https://fffwryhvses.typeform.com/to/yxMMhmFs">join the waitlist</a>.</p>
+    <p class="page-updated">Last updated 2026-09-03.</p>
 </div>
 
 </main>

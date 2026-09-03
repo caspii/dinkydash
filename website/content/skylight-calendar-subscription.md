@@ -1,7 +1,19 @@
 ---
 title: Does the Skylight Calendar Require a Subscription? (2026)
+seo_title: "Does the Skylight Calendar Require a Subscription? (2026)"
 template: page.html
 description: "Short answer: no for the basics, but the good stuff costs $79/year. Here's exactly what Skylight Plus covers in 2026, the real first-year math, and the subscription-free alternatives."
+faq:
+  - q: "Does the Skylight Calendar require a subscription?"
+    a: "No. Calendar syncing, the shared family view, basic chore charts and lists all work on the device you bought, with no subscription. The extras — meal planning, Magic Import, chore rewards and the photo screensaver — need Skylight Plus at $79 per year."
+  - q: "How much does Skylight Plus cost?"
+    a: "$79 per year as of July 2026, with the first month free. Skylight adjusts pricing and bundles regularly, and Costco bundles sometimes include a year of Plus."
+  - q: "What does Skylight Plus include?"
+    a: "Meal planning with a recipe box and weekly dinner plan, Magic Import (photograph a school newsletter or forward an email and AI turns it into events), chore rewards with stars and tracking, and a photo screensaver for when the calendar is idle."
+  - q: "What does a Skylight Calendar cost in the first year with Plus?"
+    a: "About $379 for the 15-inch Calendar 2 ($299 plus $79 a year) and about $708 for the 27-inch Calendar Max ($629 plus $79 a year). Over three years the Max works out at roughly $866."
+  - q: "Is there a family calendar with no subscription at all?"
+    a: "Yes. You can keep a Skylight and skip Plus, buy hardware like Cozyla that advertises no monthly fees, or run free open-source software such as DinkyDash on a TV, tablet or Raspberry Pi you already own, which costs nothing per month."
 ---
 
 **Short answer: no — the Skylight Calendar works without a subscription.** Calendar syncing, the shared family view, basic chore charts, and lists all work on the device you bought, forever.
@@ -36,3 +48,20 @@ You have three subscription-free routes:
 3. **Free software on a screen you already own** — [DinkyDash](/) is open source and turns any TV, tablet, or Raspberry Pi into a family calendar with chore rotations, countdowns, and an AI-written daily brief. Hardware cost: $0 if you own a spare screen, [about $100 for a tidy Raspberry Pi build](/diy-skylight-calendar/). Subscription: none, ever.
 
 For the full field, see our guide to [the 7 best Skylight Calendar alternatives](/skylight-calendar-alternatives/).
+
+## Common questions
+
+**Does the Skylight Calendar require a subscription?**
+No. Calendar syncing, the shared family view, basic chore charts and lists all work on the device you bought, with no subscription. The extras — meal planning, Magic Import, chore rewards and the photo screensaver — need Skylight Plus at $79 per year.
+
+**How much does Skylight Plus cost?**
+$79 per year as of July 2026, with the first month free. Skylight adjusts pricing and bundles regularly, and Costco bundles sometimes include a year of Plus.
+
+**What does Skylight Plus include?**
+Meal planning with a recipe box and weekly dinner plan, Magic Import (photograph a school newsletter or forward an email and AI turns it into events), chore rewards with stars and tracking, and a photo screensaver for when the calendar is idle.
+
+**What does a Skylight Calendar cost in the first year with Plus?**
+About $379 for the 15-inch Calendar 2 ($299 plus $79 a year) and about $708 for the 27-inch Calendar Max ($629 plus $79 a year). Over three years the Max works out at roughly $866.
+
+**Is there a family calendar with no subscription at all?**
+Yes. You can keep a Skylight and skip Plus, buy hardware like Cozyla that advertises no monthly fees, or run free open-source software such as [DinkyDash](/diy-skylight-calendar/) on a TV, tablet or Raspberry Pi you already own, which costs nothing per month.

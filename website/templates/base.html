@@ -14,7 +14,7 @@
     <meta property="og:title" content="{% block og_title %}DinkyDash — The digital family calendar for screens you already own{% endblock %}">
     <meta property="og:type" content="website">
     <meta property="og:url" content="{{ canonical_url }}">
-    <meta property="og:image" content="https://dinkydash.co/images/hero-kitchen.png">
+    <meta property="og:image" content="https://dinkydash.co/images/og-hero.jpg">
     <meta property="og:description" content="{{ self.description() }}">
     <meta name="twitter:card" content="summary_large_image">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -204,6 +204,13 @@
             border: 1px solid var(--border);
             margin: 6px 0 20px;
         }
+        .page-updated {
+            margin-top: 40px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+            font-size: 0.82rem;
+            color: var(--text-muted) !important;
+        }
         .page-content table {
             width: 100%;
             border-collapse: collapse;
@@ -280,6 +287,29 @@
             .footer-guides { justify-content: center; }
         }
     </style>
+    <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://dinkydash.co/#org",
+      "name": "DinkyDash",
+      "url": "https://dinkydash.co/",
+      "logo": "https://dinkydash.co/favicon.svg",
+      "sameAs": ["https://github.com/caspii/dinkydash"]
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://dinkydash.co/#site",
+      "name": "DinkyDash",
+      "url": "https://dinkydash.co/",
+      "publisher": { "@id": "https://dinkydash.co/#org" }
+    }
+  ]
+}
+    </script>
+    {% block schema %}{% endblock %}
     {% block extra_head %}{% endblock %}
 </head>
 <body>
@@ -291,6 +321,7 @@
             <li><a href="/getting-started/">Get started</a></li>
             <li><a href="/diy-skylight-calendar/">DIY calendar</a></li>
             <li><a href="/skylight-calendar-alternatives/">Alternatives</a></li>
+            <li><a href="/birthday-countdown/">Countdown</a></li>
             <li><a href="/about/">About</a></li>
             <li><a href="https://github.com/caspii/dinkydash">GitHub</a></li>
         </ul>

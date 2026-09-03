@@ -14,7 +14,7 @@
     <meta property="og:title" content="Transform Your Family&#39;s Morning Routine — DinkyDash">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://dinkydash.co/morning-routine/">
-    <meta property="og:image" content="https://dinkydash.co/images/hero-kitchen.png">
+    <meta property="og:image" content="https://dinkydash.co/images/og-hero.jpg">
     <meta property="og:description" content="How DinkyDash helps families start the day organized with an AI-generated morning dashboard.">
     <meta name="twitter:card" content="summary_large_image">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -204,6 +204,13 @@
             border: 1px solid var(--border);
             margin: 6px 0 20px;
         }
+        .page-updated {
+            margin-top: 40px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+            font-size: 0.82rem;
+            color: var(--text-muted) !important;
+        }
         .page-content table {
             width: 100%;
             border-collapse: collapse;
@@ -280,6 +287,44 @@
             .footer-guides { justify-content: center; }
         }
     </style>
+    <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://dinkydash.co/#org",
+      "name": "DinkyDash",
+      "url": "https://dinkydash.co/",
+      "logo": "https://dinkydash.co/favicon.svg",
+      "sameAs": ["https://github.com/caspii/dinkydash"]
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://dinkydash.co/#site",
+      "name": "DinkyDash",
+      "url": "https://dinkydash.co/",
+      "publisher": { "@id": "https://dinkydash.co/#org" }
+    }
+  ]
+}
+    </script>
+    
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Transform Your Family\u0027s Morning Routine",
+  "description": "How DinkyDash helps families start the day organized with an AI-generated morning dashboard.",
+  "mainEntityOfPage": "https://dinkydash.co/morning-routine/",
+  "dateModified": "2026-09-03",
+  "author": { "@type": "Person", "name": "Caspar Wrede", "url": "https://casparwre.de" },
+  "publisher": { "@id": "https://dinkydash.co/#org" }
+}
+</script>
+
+
+
     
 </head>
 <body>
@@ -291,6 +336,7 @@
             <li><a href="/getting-started/">Get started</a></li>
             <li><a href="/diy-skylight-calendar/">DIY calendar</a></li>
             <li><a href="/skylight-calendar-alternatives/">Alternatives</a></li>
+            <li><a href="/birthday-countdown/">Countdown</a></li>
             <li><a href="/about/">About</a></li>
             <li><a href="https://github.com/caspii/dinkydash">GitHub</a></li>
         </ul>
@@ -329,6 +375,7 @@
 <p><strong>7:45am</strong> — Before heading out, you glance at the calendar section. Right — your son has a dentist appointment at 4pm. Almost forgot.</p>
 <h2>Getting started</h2>
 <p>DinkyDash is free, open source, and runs on a Raspberry Pi. Set it up once, and your family gets a new dashboard every morning without lifting a finger. Check out the <a href="https://github.com/caspii/dinkydash">GitHub repository</a> to get started.</p>
+    <p class="page-updated">Last updated 2026-09-03.</p>
 </div>
 
 </main>
