@@ -1,0 +1,81 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Nunito', system-ui, -apple-system, sans-serif; background: #fffaf5; color: #2d2319; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+    a { color: #e85d24; text-decoration: none; }
+    a:hover { color: #c44d1a; }
+  </style>
+</helmet>
+
+<div style="width: 390px; height: 844px; background: #fffaf5; display: flex; flex-direction: column; overflow: hidden;">
+
+  <div style="display: flex; align-items: center; gap: 4px; height: 56px; padding: 0 12px; border-bottom: 1px solid #f0e6da; flex-shrink: 0;">
+    <div style="display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; margin-left: -10px;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5c4a3a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+    </div>
+    <div style="font-size: 1.0625rem; font-weight: 800; letter-spacing: -0.01em; flex-grow: 1;">Chores</div>
+    <div style="display: flex; align-items: center; justify-content: center; height: 44px; padding: 0 6px; font-size: 0.9375rem; font-weight: 700; color: #e85d24;">Reorder</div>
+  </div>
+
+  <div style="flex-grow: 1; padding: 16px; display: flex; flex-direction: column; gap: 14px; overflow: hidden;">
+
+    <div style="background: #ffffff; border: 1px solid #f0e6da; border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 12px;">
+      <div style="display: flex; align-items: center; gap: 13px;">
+        <div style="width: 46px; height: 46px; border-radius: 13px; background: #fff5ec; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0;">🍽</div>
+        <div style="flex-grow: 1;">
+          <div style="font-size: 1rem; font-weight: 800;">Set the table</div>
+          <div style="font-size: 0.8125rem; color: #9a8677;">Mia &rarr; Theo &rarr; Ines, one a day</div>
+        </div>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c4b3a3" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+      </div>
+      <div style="display: flex; align-items: center; gap: 8px; background: #fff5ec; border-radius: 11px; padding: 8px 12px;">
+        <div style="font-size: 0.6875rem; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; color: #9a8677;">Today</div>
+        <div style="width: 24px; height: 24px; border-radius: 50%; background: rgba(59, 130, 246, 0.14); display: flex; align-items: center; justify-content: center; font-size: 0.8125rem;">⚽</div>
+        <div style="font-size: 0.875rem; font-weight: 800;">Theo</div>
+        <div style="flex-grow: 1;"></div>
+        <div style="font-size: 0.75rem; color: #9a8677;">Tomorrow: Ines</div>
+      </div>
+    </div>
+
+    <div style="background: #ffffff; border: 1px solid #f0e6da; border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 12px;">
+      <div style="display: flex; align-items: center; gap: 13px;">
+        <div style="width: 46px; height: 46px; border-radius: 13px; background: #fff5ec; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0;">🦴</div>
+        <div style="flex-grow: 1;">
+          <div style="font-size: 1rem; font-weight: 800;">Feed Biscuit</div>
+          <div style="font-size: 0.8125rem; color: #9a8677;">Theo &rarr; Mia, one a day</div>
+        </div>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c4b3a3" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+      </div>
+      <div style="display: flex; align-items: center; gap: 8px; background: #fff5ec; border-radius: 11px; padding: 8px 12px;">
+        <div style="font-size: 0.6875rem; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; color: #9a8677;">Today</div>
+        <div style="width: 24px; height: 24px; border-radius: 50%; background: rgba(124, 92, 191, 0.14); display: flex; align-items: center; justify-content: center; font-size: 0.8125rem;">🦖</div>
+        <div style="font-size: 0.875rem; font-weight: 800;">Mia</div>
+        <div style="flex-grow: 1;"></div>
+        <div style="font-size: 0.75rem; color: #9a8677;">Tomorrow: Theo</div>
+      </div>
+    </div>
+
+    <div style="display: flex; align-items: center; justify-content: center; gap: 9px; height: 52px; border: 2px dashed #e2d7c9; border-radius: 14px; font-size: 0.9375rem; font-weight: 700; color: #5c4a3a;">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#5c4a3a" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg>
+      Add a job
+    </div>
+
+    <div style="background: #fff5ec; border-radius: 14px; padding: 13px 15px; display: flex; gap: 11px;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9a8677" stroke-width="1.9" stroke-linecap="round" style="flex-shrink: 0; margin-top: 2px;"><circle cx="12" cy="12" r="8.8"></circle><path d="M12 11.2v5"></path><path d="M12 7.9h.01"></path></svg>
+      <div style="font-size: 0.8125rem; color: #5c4a3a; line-height: 1.55;">Jobs hand over at midnight and keep to the order you set. Nobody has to tick anything off &mdash; the board just says whose turn it is.</div>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

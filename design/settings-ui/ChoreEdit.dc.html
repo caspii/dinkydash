@@ -1,0 +1,115 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Nunito', system-ui, -apple-system, sans-serif; background: #fffaf5; color: #2d2319; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+    a { color: #e85d24; text-decoration: none; }
+    a:hover { color: #c44d1a; }
+  </style>
+</helmet>
+
+<div style="width: 390px; height: 844px; background: #fffaf5; display: flex; flex-direction: column; overflow: hidden;">
+
+  <div style="display: flex; align-items: center; height: 56px; padding: 0 14px; border-bottom: 1px solid #f0e6da; flex-shrink: 0;">
+    <div style="font-size: 0.9375rem; font-weight: 700; color: #9a8677; width: 62px;">Cancel</div>
+    <div style="font-size: 1.0625rem; font-weight: 800; letter-spacing: -0.01em; flex-grow: 1; text-align: center;">Set the table</div>
+    <div style="font-size: 0.9375rem; font-weight: 800; color: #e85d24; width: 62px; text-align: right;">Save</div>
+  </div>
+
+  <div style="flex-grow: 1; padding: 16px; display: flex; flex-direction: column; gap: 14px; overflow: hidden;">
+
+    <div style="display: flex; gap: 10px;">
+      <div style="width: 62px; height: 62px; border-radius: 14px; border: 1.5px solid #f0e6da; background: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 1.75rem; flex-shrink: 0;">🍽</div>
+      <div style="flex-grow: 1;">
+        <div style="font-size: 0.6875rem; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; color: #9a8677; margin-bottom: 6px;">Job</div>
+        <div style="height: 48px; border: 1.5px solid #f0e6da; border-radius: 12px; background: #ffffff; padding: 0 14px; display: flex; align-items: center; font-size: 0.9375rem; font-weight: 600;">Set the table</div>
+      </div>
+    </div>
+
+    <div>
+      <div style="display: flex; align-items: baseline; justify-content: space-between; padding: 0 4px 8px;">
+        <div style="font-size: 0.6875rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: #9a8677;">Whose turn, in order</div>
+      </div>
+      <div style="background: #ffffff; border: 1px solid #f0e6da; border-radius: 16px; overflow: hidden;">
+
+        <div style="display: flex; align-items: center; gap: 12px; padding: 10px 14px; min-height: 58px;">
+          <div style="width: 21px; height: 21px; border-radius: 50%; background: #fff5ec; display: flex; align-items: center; justify-content: center; font-size: 0.6875rem; font-weight: 800; color: #9a8677; flex-shrink: 0;">1</div>
+          <div style="width: 34px; height: 34px; border-radius: 50%; background: rgba(124, 92, 191, 0.14); display: flex; align-items: center; justify-content: center; font-size: 1.05rem; flex-shrink: 0;">🦖</div>
+          <div style="flex-grow: 1; font-size: 0.9375rem; font-weight: 700;">Mia</div>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#c4b3a3" stroke-width="2.4" stroke-linecap="round"><path d="M8 8h.01"></path><path d="M16 8h.01"></path><path d="M8 12h.01"></path><path d="M16 12h.01"></path><path d="M8 16h.01"></path><path d="M16 16h.01"></path></svg>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 12px; padding: 10px 14px; min-height: 58px; border-top: 1px solid #f0e6da;">
+          <div style="width: 21px; height: 21px; border-radius: 50%; background: #fff5ec; display: flex; align-items: center; justify-content: center; font-size: 0.6875rem; font-weight: 800; color: #9a8677; flex-shrink: 0;">2</div>
+          <div style="width: 34px; height: 34px; border-radius: 50%; background: rgba(59, 130, 246, 0.14); display: flex; align-items: center; justify-content: center; font-size: 1.05rem; flex-shrink: 0;">⚽</div>
+          <div style="flex-grow: 1; font-size: 0.9375rem; font-weight: 700;">Theo</div>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#c4b3a3" stroke-width="2.4" stroke-linecap="round"><path d="M8 8h.01"></path><path d="M16 8h.01"></path><path d="M8 12h.01"></path><path d="M16 12h.01"></path><path d="M8 16h.01"></path><path d="M16 16h.01"></path></svg>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 12px; padding: 10px 14px; min-height: 58px; border-top: 1px solid #f0e6da;">
+          <div style="width: 21px; height: 21px; border-radius: 50%; background: #fff5ec; display: flex; align-items: center; justify-content: center; font-size: 0.6875rem; font-weight: 800; color: #9a8677; flex-shrink: 0;">3</div>
+          <div style="width: 34px; height: 34px; border-radius: 50%; background: rgba(219, 39, 119, 0.11); display: flex; align-items: center; justify-content: center; font-size: 1.05rem; flex-shrink: 0;">🎨</div>
+          <div style="flex-grow: 1; font-size: 0.9375rem; font-weight: 700;">Ines</div>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#c4b3a3" stroke-width="2.4" stroke-linecap="round"><path d="M8 8h.01"></path><path d="M16 8h.01"></path><path d="M8 12h.01"></path><path d="M16 12h.01"></path><path d="M8 16h.01"></path><path d="M16 16h.01"></path></svg>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 12px; padding: 10px 14px; min-height: 56px; border-top: 1px solid #f0e6da;">
+          <div style="width: 34px; height: 34px; border-radius: 50%; border: 1.5px dashed #e2d7c9; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-left: 33px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9a8677" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg>
+          </div>
+          <div style="flex-grow: 1; font-size: 0.9375rem; font-weight: 700; color: #9a8677;">Add Sam</div>
+        </div>
+
+      </div>
+    </div>
+
+    <div style="background: #ffffff; border: 1px solid #f0e6da; border-radius: 16px; padding: 14px;">
+      <div style="font-size: 0.6875rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: #9a8677; margin-bottom: 11px;">The next week</div>
+      <div style="display: flex; gap: 5px;">
+        <div style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 7px 0 8px; border-radius: 10px; background: #fff5ec;">
+          <div style="font-size: 0.625rem; font-weight: 800; color: #c44d1a;">TODAY</div>
+          <div style="width: 30px; height: 30px; border-radius: 50%; background: rgba(59, 130, 246, 0.14); display: flex; align-items: center; justify-content: center; font-size: 0.95rem;">⚽</div>
+        </div>
+        <div style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 7px 0 8px;">
+          <div style="font-size: 0.625rem; font-weight: 800; color: #9a8677;">THU</div>
+          <div style="width: 30px; height: 30px; border-radius: 50%; background: rgba(219, 39, 119, 0.11); display: flex; align-items: center; justify-content: center; font-size: 0.95rem;">🎨</div>
+        </div>
+        <div style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 7px 0 8px;">
+          <div style="font-size: 0.625rem; font-weight: 800; color: #9a8677;">FRI</div>
+          <div style="width: 30px; height: 30px; border-radius: 50%; background: rgba(124, 92, 191, 0.14); display: flex; align-items: center; justify-content: center; font-size: 0.95rem;">🦖</div>
+        </div>
+        <div style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 7px 0 8px;">
+          <div style="font-size: 0.625rem; font-weight: 800; color: #9a8677;">SAT</div>
+          <div style="width: 30px; height: 30px; border-radius: 50%; background: rgba(59, 130, 246, 0.14); display: flex; align-items: center; justify-content: center; font-size: 0.95rem;">⚽</div>
+        </div>
+        <div style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 7px 0 8px;">
+          <div style="font-size: 0.625rem; font-weight: 800; color: #9a8677;">SUN</div>
+          <div style="width: 30px; height: 30px; border-radius: 50%; background: rgba(219, 39, 119, 0.11); display: flex; align-items: center; justify-content: center; font-size: 0.95rem;">🎨</div>
+        </div>
+        <div style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 7px 0 8px;">
+          <div style="font-size: 0.625rem; font-weight: 800; color: #9a8677;">MON</div>
+          <div style="width: 30px; height: 30px; border-radius: 50%; background: rgba(124, 92, 191, 0.14); display: flex; align-items: center; justify-content: center; font-size: 0.95rem;">🦖</div>
+        </div>
+        <div style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 7px 0 8px;">
+          <div style="font-size: 0.625rem; font-weight: 800; color: #9a8677;">TUE</div>
+          <div style="width: 30px; height: 30px; border-radius: 50%; background: rgba(59, 130, 246, 0.14); display: flex; align-items: center; justify-content: center; font-size: 0.95rem;">⚽</div>
+        </div>
+      </div>
+      <div style="font-size: 0.75rem; color: #9a8677; line-height: 1.55; margin-top: 11px;">Reordering the list above changes who is up tomorrow, not today &mdash; today's board is already written.</div>
+    </div>
+
+    <div style="text-align: center; font-size: 0.875rem; font-weight: 700; color: #c0392b; padding-top: 2px;">Delete this job</div>
+
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

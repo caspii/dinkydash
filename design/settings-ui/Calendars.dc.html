@@ -1,0 +1,90 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Nunito', system-ui, -apple-system, sans-serif; background: #fffaf5; color: #2d2319; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+    a { color: #e85d24; text-decoration: none; }
+    a:hover { color: #c44d1a; }
+  </style>
+</helmet>
+
+<div style="width: 390px; height: 844px; background: #fffaf5; display: flex; flex-direction: column; overflow: hidden;">
+
+  <div style="display: flex; align-items: center; gap: 4px; height: 56px; padding: 0 12px; border-bottom: 1px solid #f0e6da; flex-shrink: 0;">
+    <div style="display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; margin-left: -10px;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5c4a3a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+    </div>
+    <div style="font-size: 1.0625rem; font-weight: 800; letter-spacing: -0.01em; flex-grow: 1;">Calendars</div>
+  </div>
+
+  <div style="flex-grow: 1; padding: 16px; display: flex; flex-direction: column; gap: 12px; overflow: hidden;">
+
+    <div style="background: #ffffff; border: 1px solid #f0e6da; border-radius: 16px; padding: 14px; display: flex; align-items: flex-start; gap: 12px;">
+      <div style="flex-grow: 1;">
+        <div style="font-size: 0.9375rem; font-weight: 800;">Sam's Google</div>
+        <div style="font-size: 0.75rem; color: #c4b3a3; margin-top: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 245px;">calendar.google.com/&hellip;/basic.ics</div>
+        <div style="display: flex; align-items: center; gap: 7px; margin-top: 7px;">
+          <div style="width: 7px; height: 7px; border-radius: 50%; background: #16a34a; flex-shrink: 0;"></div>
+          <div style="font-size: 0.8125rem; color: #5c4a3a;">24 events &middot; checked 4:31 am</div>
+        </div>
+      </div>
+      <div style="width: 48px; height: 28px; border-radius: 999px; background: #e85d24; padding: 3px; display: flex; justify-content: flex-end; flex-shrink: 0;">
+        <div style="width: 22px; height: 22px; border-radius: 50%; background: #ffffff; box-shadow: 0 1px 3px rgba(45, 35, 25, 0.3);"></div>
+      </div>
+    </div>
+
+    <div style="background: #ffffff; border: 1.5px solid #f4d9a8; border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 12px;">
+      <div style="display: flex; align-items: flex-start; gap: 12px;">
+        <div style="flex-grow: 1;">
+          <div style="font-size: 0.9375rem; font-weight: 800;">Alex's iCloud</div>
+          <div style="font-size: 0.75rem; color: #c4b3a3; margin-top: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 245px;">p42-caldav.icloud.com/&hellip;/calendar.ics</div>
+          <div style="display: flex; align-items: center; gap: 7px; margin-top: 7px;">
+            <div style="width: 7px; height: 7px; border-radius: 50%; background: #d97706; flex-shrink: 0;"></div>
+            <div style="font-size: 0.8125rem; color: #b45309; font-weight: 700;">Nothing came back for 3 days</div>
+          </div>
+        </div>
+        <div style="width: 48px; height: 28px; border-radius: 999px; background: #e85d24; padding: 3px; display: flex; justify-content: flex-end; flex-shrink: 0;">
+          <div style="width: 22px; height: 22px; border-radius: 50%; background: #ffffff; box-shadow: 0 1px 3px rgba(45, 35, 25, 0.3);"></div>
+        </div>
+      </div>
+      <div style="background: #fdf6e7; border-radius: 11px; padding: 11px 13px; font-size: 0.8125rem; color: #5c4a3a; line-height: 1.55;">Apple regenerates this link when a calendar stops being shared. Paste a fresh one to fix it.</div>
+      <div style="display: flex; align-items: center; justify-content: center; height: 44px; border: 2px solid #f0e6da; border-radius: 12px; font-weight: 700; font-size: 0.875rem; color: #2d2319;">Replace the link</div>
+    </div>
+
+    <div style="background: #ffffff; border: 1px solid #f0e6da; border-radius: 16px; padding: 14px; display: flex; align-items: flex-start; gap: 12px; opacity: 0.62;">
+      <div style="flex-grow: 1;">
+        <div style="font-size: 0.9375rem; font-weight: 800;">School term dates</div>
+        <div style="font-size: 0.75rem; color: #c4b3a3; margin-top: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 245px;">stmarys.sch.uk/calendar/term.ics</div>
+        <div style="display: flex; align-items: center; gap: 7px; margin-top: 7px;">
+          <div style="width: 7px; height: 7px; border-radius: 50%; background: #c4b3a3; flex-shrink: 0;"></div>
+          <div style="font-size: 0.8125rem; color: #9a8677;">Paused &mdash; not on the board</div>
+        </div>
+      </div>
+      <div style="width: 48px; height: 28px; border-radius: 999px; background: #e2d7c9; padding: 3px; display: flex; justify-content: flex-start; flex-shrink: 0;">
+        <div style="width: 22px; height: 22px; border-radius: 50%; background: #ffffff; box-shadow: 0 1px 3px rgba(45, 35, 25, 0.2);"></div>
+      </div>
+    </div>
+
+    <div style="display: flex; align-items: center; justify-content: center; gap: 9px; height: 52px; border: 2px dashed #e2d7c9; border-radius: 14px; font-size: 0.9375rem; font-weight: 700; color: #5c4a3a;">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#5c4a3a" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg>
+      Add a calendar
+    </div>
+
+    <div style="background: #fff5ec; border-radius: 14px; padding: 13px 15px; display: flex; gap: 11px;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9a8677" stroke-width="1.9" stroke-linecap="round" style="flex-shrink: 0; margin-top: 2px;"><rect x="4.5" y="10.5" width="15" height="9.5" rx="2.2"></rect><path d="M8 10.5V7.6a4 4 0 0 1 8 0v2.9"></path></svg>
+      <div style="font-size: 0.8125rem; color: #5c4a3a; line-height: 1.55;">Every calendar you switch on is merged into one agenda. Event titles and times are sent to Claude each morning to write the board. <span style="color: #e85d24; font-weight: 700;">What we send</span></div>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+</body>
+</html>
