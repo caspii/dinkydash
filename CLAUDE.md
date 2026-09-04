@@ -96,6 +96,7 @@ the first entry in `calendars`, and `calendar_filter_emails` is dropped with a w
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
+pip install -r requirements-dev.txt   # pytest; not deployed to the Pi
 cp config.example.yaml config.yaml
 ```
 
@@ -120,6 +121,36 @@ Board at `/`, settings at `/settings`, all three screen sizes at once at `/previ
 ```bash
 cd website && python build.py
 ```
+
+## Working on it
+
+**What the tests cover**, and why they exist: leap years, timezone conversion, event ordering,
+rotation, staleness, and the config round-trip — the things that used to break silently. They run
+in under a second, so there is no excuse for skipping them.
+
+**Testing without spending money.** `generate.py --date 2026-12-24` generates for any date, which is
+how to check a countdown or a quiet day. It still costs one API call. To exercise the board with no
+call at all, edit `dashboard_data.json` by hand — change `generated_for_date` to an older date to
+see the stale state, or move it aside entirely to see the first-run screen.
+
+**Adding a field to a settings section.** Add a tuple to the section's `fields` list in
+`web/routes/settings.py` — `(name, label, kind, required, help)`. The list template and the edit
+form both render from it, and `parse_field` reads it back. `kind` is one of `text`, `url`, `date`,
+`monthday`, `textarea`, `checkbox`, `emoji`, `color`, `people`. A new `kind` needs a branch in
+`parse_field` and a branch in `web/templates/settings/edit.html`; nothing else.
+
+**Adding a whole settings section.** Add an entry to `SECTIONS` and a row to
+`web/templates/settings/home.html`. The list, edit, delete and reorder routes are generic and need
+no changes.
+
+**Changing the payload shape.** Ask first whether the value can be recomputed from config + date.
+If it can, it belongs in `board.build_view`, not the payload — that is what keeps the stale state
+honest. The payload is for things only the generator can know.
+
+**Changing the board layout.** Everything is sized in `rem` off one root value, so check all three
+sizes at `/preview` rather than just the one you are looking at. Headless screenshots of a
+fixed-height board can drop the bottom of the frame; measure `scrollHeight` against the viewport
+before believing a clipping bug.
 
 ## Conventions
 
