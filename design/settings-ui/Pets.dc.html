@@ -1,0 +1,83 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Nunito', system-ui, -apple-system, sans-serif; background: #fffaf5; color: #2d2319; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+    a { color: #e85d24; text-decoration: none; }
+    a:hover { color: #c44d1a; }
+  </style>
+</helmet>
+
+<div style="width: 390px; height: 844px; background: #fffaf5; display: flex; flex-direction: column; overflow: hidden;">
+
+  <div style="display: flex; align-items: center; gap: 4px; height: 56px; padding: 0 12px; border-bottom: 1px solid #f0e6da; flex-shrink: 0;">
+    <div style="display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; margin-left: -10px;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5c4a3a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+    </div>
+    <div style="font-size: 1.0625rem; font-weight: 800; letter-spacing: -0.01em; flex-grow: 1;">Pets</div>
+  </div>
+
+  <div style="flex-grow: 1; padding: 16px; display: flex; flex-direction: column; gap: 16px; overflow: hidden;">
+
+    <div style="background: #ffffff; border: 1px solid #f0e6da; border-radius: 16px; display: flex; align-items: center; gap: 13px; padding: 12px 14px; min-height: 76px;">
+      <div style="width: 52px; height: 52px; border-radius: 50%; background: rgba(217, 119, 6, 0.12); display: flex; align-items: center; justify-content: center; font-size: 1.6rem; flex-shrink: 0;">🐕</div>
+      <div style="flex-grow: 1;">
+        <div style="font-size: 1rem; font-weight: 800;">Biscuit</div>
+        <div style="font-size: 0.8125rem; color: #9a8677;">Dog</div>
+      </div>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c4b3a3" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+    </div>
+
+    <div style="background: #ffffff; border: 2px solid #e85d24; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 4px 20px rgba(232, 93, 36, 0.1);">
+
+      <div style="font-size: 0.9375rem; font-weight: 800;">Add a pet</div>
+
+      <div style="display: flex; gap: 7px;">
+        <div style="flex-grow: 1; height: 46px; border-radius: 12px; border: 1.5px solid #f0e6da; display: flex; align-items: center; justify-content: center; font-size: 1.35rem;">🐕</div>
+        <div style="flex-grow: 1; height: 46px; border-radius: 12px; border: 2px solid #e85d24; background: rgba(232, 93, 36, 0.06); display: flex; align-items: center; justify-content: center; font-size: 1.35rem;">🐈</div>
+        <div style="flex-grow: 1; height: 46px; border-radius: 12px; border: 1.5px solid #f0e6da; display: flex; align-items: center; justify-content: center; font-size: 1.35rem;">🐰</div>
+        <div style="flex-grow: 1; height: 46px; border-radius: 12px; border: 1.5px solid #f0e6da; display: flex; align-items: center; justify-content: center; font-size: 1.35rem;">🐠</div>
+        <div style="flex-grow: 1; height: 46px; border-radius: 12px; border: 1.5px solid #f0e6da; display: flex; align-items: center; justify-content: center; font-size: 1.35rem;">🐹</div>
+        <div style="flex-grow: 1; height: 46px; border-radius: 12px; border: 1.5px solid #f0e6da; display: flex; align-items: center; justify-content: center;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9a8677" stroke-width="2.4" stroke-linecap="round"><circle cx="5.5" cy="12" r="0.6"></circle><circle cx="12" cy="12" r="0.6"></circle><circle cx="18.5" cy="12" r="0.6"></circle></svg>
+        </div>
+      </div>
+
+      <div>
+        <div style="font-size: 0.6875rem; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; color: #9a8677; margin-bottom: 6px;">Name</div>
+        <div style="height: 48px; border: 1.5px solid #f0e6da; border-radius: 12px; padding: 0 14px; display: flex; align-items: center; font-size: 0.9375rem; color: #c4b3a3; font-weight: 600;">Marmalade</div>
+      </div>
+
+      <div>
+        <div style="font-size: 0.6875rem; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; color: #9a8677; margin-bottom: 6px;">Kind of animal</div>
+        <div style="height: 48px; border: 1.5px solid #f0e6da; border-radius: 12px; padding: 0 14px; display: flex; align-items: center; justify-content: space-between; font-size: 0.9375rem; font-weight: 600;">
+          Cat
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9a8677" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 10px; padding-top: 2px;">
+        <div style="flex-grow: 1; display: flex; align-items: center; justify-content: center; height: 46px; border: 2px solid #f0e6da; border-radius: 12px; font-weight: 700; font-size: 0.9375rem; color: #5c4a3a;">Cancel</div>
+        <div style="flex-grow: 1; display: flex; align-items: center; justify-content: center; height: 46px; background: #e85d24; color: #ffffff; border-radius: 12px; font-weight: 700; font-size: 0.9375rem; box-shadow: 0 2px 8px rgba(232, 93, 36, 0.25);">Add pet</div>
+      </div>
+
+    </div>
+
+    <div style="background: #fff5ec; border-radius: 14px; padding: 13px 15px; display: flex; gap: 11px;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9a8677" stroke-width="1.9" stroke-linecap="round" style="flex-shrink: 0; margin-top: 2px;"><circle cx="12" cy="12" r="8.8"></circle><path d="M12 11.2v5"></path><path d="M12 7.9h.01"></path></svg>
+      <div style="font-size: 0.8125rem; color: #5c4a3a; line-height: 1.55;">Each pet gets a &ldquo;pet corner&rdquo; line on the board &mdash; a small invented update about their day.</div>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

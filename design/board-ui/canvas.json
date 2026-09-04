@@ -1,0 +1,19 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html",     "x": 0,    "y": 0,    "w": 1280, "h": 720, "title": "TV — light — 1280×720" },
+    { "file": "MainDark.dc.html", "x": 1360, "y": 0,    "w": 1280, "h": 720, "title": "TV — dark" },
+    { "file": "Tablet.dc.html",   "x": 2720, "y": 0,    "w": 1024, "h": 768, "title": "Old iPad — 1024×768" },
+    { "file": "Pi.dc.html",       "x": 0,    "y": 900,  "w": 800,  "h": 480, "title": "Pi display — light — 800×480" },
+    { "file": "PiDark.dc.html",   "x": 880,  "y": 900,  "w": 800,  "h": 480, "title": "Pi display — dark" },
+    { "file": "Stale.dc.html",    "x": 1760, "y": 900,  "w": 1280, "h": 720, "title": "State — brief didn't arrive" },
+    { "file": "QuietDay.dc.html", "x": 0,    "y": 1740, "w": 1280, "h": 720, "title": "State — nothing on" },
+    { "file": "FirstRun.dc.html", "x": 1360, "y": 1740, "w": 1280, "h": 720, "title": "State — first board" }
+  ],
+  "annotations": [
+    { "id": "intro", "x": 0, "y": -230, "w": 940, "text": "DinkyDash — the board itself\n\nNo person cards, no ages: the agenda is the board now, at 26px so it reads across a kitchen. The three prose boxes are one box carrying whatever the generator wrote that day — a fact here, a challenge on the quiet-day artboard." },
+    { "id": "theme-note", "x": 1360, "y": 760, "w": 620, "text": "Dark is a full palette swap, not a filter: warm near-black #17120f, the accent lifted to #ff7a45 so it still carries on a dark ground, and the chore-pill tints raised to stay visible. Chosen in Settings → Screen link." },
+    { "id": "layout-note", "x": 0, "y": 1420, "w": 800, "text": "Wide and short (TV, Pi) gets two columns — agenda left, chores and countdowns right. Tall (iPad, 4:3) keeps one column. That is a real breakpoint at roughly 1.5:1, not the vmin scaling the template does today." },
+    { "id": "stale-note", "x": 1760, "y": 1660, "w": 620, "text": "Ages, countdowns, chore rotation and the agenda are computed, not written — right even when generation fails. Only the one prose line is stale, so only it is marked, and the AI headline gives way to a computed one." }
+  ],
+  "launch": { "view": "canvas" }
+}

@@ -1,0 +1,78 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Nunito', system-ui, -apple-system, sans-serif; background: #fffaf5; color: #2d2319; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+    a { color: #e85d24; text-decoration: none; }
+    a:hover { color: #c44d1a; }
+  </style>
+</helmet>
+
+<div style="width: 390px; height: 844px; background: #fffaf5; display: flex; flex-direction: column; overflow: hidden;">
+
+  <div style="display: flex; align-items: center; height: 56px; padding: 0 14px; border-bottom: 1px solid #f0e6da; flex-shrink: 0;">
+    <div style="font-size: 0.9375rem; font-weight: 700; color: #9a8677; width: 62px;">Cancel</div>
+    <div style="font-size: 1.0625rem; font-weight: 800; letter-spacing: -0.01em; flex-grow: 1; text-align: center;">Add a calendar</div>
+    <div style="font-size: 0.9375rem; font-weight: 800; color: #e85d24; width: 62px; text-align: right;">Add</div>
+  </div>
+
+  <div style="flex-grow: 1; padding: 16px; display: flex; flex-direction: column; gap: 15px; overflow: hidden;">
+
+    <div>
+      <div style="font-size: 0.6875rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: #9a8677; padding: 0 4px 8px;">Where does it live?</div>
+      <div style="display: flex; gap: 8px;">
+        <div style="flex-grow: 1; height: 46px; border-radius: 12px; border: 2px solid #e85d24; background: rgba(232, 93, 36, 0.06); display: flex; align-items: center; justify-content: center; font-size: 0.875rem; font-weight: 800; color: #c44d1a;">Google</div>
+        <div style="flex-grow: 1; height: 46px; border-radius: 12px; border: 1.5px solid #f0e6da; background: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 0.875rem; font-weight: 700; color: #5c4a3a;">iCloud</div>
+        <div style="flex-grow: 1; height: 46px; border-radius: 12px; border: 1.5px solid #f0e6da; background: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 0.875rem; font-weight: 700; color: #5c4a3a;">Outlook</div>
+        <div style="flex-grow: 1; height: 46px; border-radius: 12px; border: 1.5px solid #f0e6da; background: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 0.875rem; font-weight: 700; color: #5c4a3a;">Other</div>
+      </div>
+    </div>
+
+    <div style="background: #ffffff; border: 1px solid #f0e6da; border-radius: 16px; padding: 15px; display: flex; flex-direction: column; gap: 10px;">
+      <div style="font-size: 0.8125rem; font-weight: 800; color: #2d2319;">Finding the link in Google Calendar</div>
+      <div style="display: flex; gap: 10px;">
+        <div style="width: 19px; height: 19px; border-radius: 50%; background: #fff5ec; display: flex; align-items: center; justify-content: center; font-size: 0.625rem; font-weight: 800; color: #9a8677; flex-shrink: 0; margin-top: 2px;">1</div>
+        <div style="font-size: 0.8125rem; color: #5c4a3a; line-height: 1.5;">Open Google Calendar on a computer &mdash; this isn't in the phone app.</div>
+      </div>
+      <div style="display: flex; gap: 10px;">
+        <div style="width: 19px; height: 19px; border-radius: 50%; background: #fff5ec; display: flex; align-items: center; justify-content: center; font-size: 0.625rem; font-weight: 800; color: #9a8677; flex-shrink: 0; margin-top: 2px;">2</div>
+        <div style="font-size: 0.8125rem; color: #5c4a3a; line-height: 1.5;">Hover the calendar in the left sidebar &rarr; <strong style="color: #2d2319;">Settings and sharing</strong>.</div>
+      </div>
+      <div style="display: flex; gap: 10px;">
+        <div style="width: 19px; height: 19px; border-radius: 50%; background: #fff5ec; display: flex; align-items: center; justify-content: center; font-size: 0.625rem; font-weight: 800; color: #9a8677; flex-shrink: 0; margin-top: 2px;">3</div>
+        <div style="font-size: 0.8125rem; color: #5c4a3a; line-height: 1.5;">Scroll to <strong style="color: #2d2319;">Secret address in iCal format</strong> and copy it.</div>
+      </div>
+    </div>
+
+    <div>
+      <div style="font-size: 0.6875rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: #9a8677; padding: 0 4px 8px;">Paste it here</div>
+      <div style="min-height: 48px; border: 2px solid #16a34a; border-radius: 12px; background: #ffffff; padding: 12px 14px; font-size: 0.8125rem; color: #5c4a3a; line-height: 1.45; word-break: break-all;">https://calendar.google.com/calendar/ical/sam%40gmail.com/private-8f3c1a/basic.ics</div>
+      <div style="display: flex; gap: 10px; background: rgba(22, 163, 74, 0.07); border-radius: 12px; padding: 12px 14px; margin-top: 8px;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#15803d" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 1px;"><circle cx="12" cy="12" r="9"></circle><polyline points="8 12.4 11 15.4 16 9.4"></polyline></svg>
+        <div style="font-size: 0.8125rem; color: #15803d; line-height: 1.5;"><strong>24 events over the next fortnight.</strong><br><span style="color: #5c4a3a;">First one: School run, tomorrow at 8:20 am.</span></div>
+      </div>
+    </div>
+
+    <div>
+      <div style="font-size: 0.6875rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: #9a8677; padding: 0 4px 8px;">Call it</div>
+      <div style="height: 48px; border: 1.5px solid #f0e6da; border-radius: 12px; background: #ffffff; padding: 0 14px; display: flex; align-items: center; font-size: 0.9375rem; font-weight: 600;">Sam's Google</div>
+    </div>
+
+    <div style="background: #fff5ec; border-radius: 14px; padding: 13px 15px; display: flex; gap: 11px;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9a8677" stroke-width="1.9" stroke-linecap="round" style="flex-shrink: 0; margin-top: 2px;"><rect x="4.5" y="10.5" width="15" height="9.5" rx="2.2"></rect><path d="M8 10.5V7.6a4 4 0 0 1 8 0v2.9"></path></svg>
+      <div style="font-size: 0.8125rem; color: #5c4a3a; line-height: 1.55;">That secret address lets anyone read the calendar, so don't share it around. You can revoke it from Google at any time.</div>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

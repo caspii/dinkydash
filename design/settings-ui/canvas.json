@@ -1,0 +1,132 @@
+{
+  "artboards": [
+    {
+      "file": "Main.dc.html",
+      "x": 0,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "Settings home"
+    },
+    {
+      "file": "People.dc.html",
+      "x": 470,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "People"
+    },
+    {
+      "file": "PersonEdit.dc.html",
+      "x": 940,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "Edit a person"
+    },
+    {
+      "file": "Pets.dc.html",
+      "x": 1410,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "Pets \u2014 adding one"
+    },
+    {
+      "file": "Chores.dc.html",
+      "x": 0,
+      "y": 964,
+      "w": 390,
+      "h": 844,
+      "title": "Chores"
+    },
+    {
+      "file": "ChoreEdit.dc.html",
+      "x": 470,
+      "y": 964,
+      "w": 390,
+      "h": 844,
+      "title": "Edit a chore rotation"
+    },
+    {
+      "file": "SpecialDates.dc.html",
+      "x": 940,
+      "y": 964,
+      "w": 390,
+      "h": 844,
+      "title": "Special dates"
+    },
+    {
+      "file": "Calendars.dc.html",
+      "x": 1410,
+      "y": 964,
+      "w": 390,
+      "h": 844,
+      "title": "Calendars"
+    },
+    {
+      "file": "AddCalendar.dc.html",
+      "x": 0,
+      "y": 1928,
+      "w": 390,
+      "h": 844,
+      "title": "Add a calendar"
+    },
+    {
+      "file": "Screen.dc.html",
+      "x": 470,
+      "y": 1928,
+      "w": 390,
+      "h": 844,
+      "title": "Screen link"
+    },
+    {
+      "file": "Account.dc.html",
+      "x": 940,
+      "y": 1928,
+      "w": 390,
+      "h": 844,
+      "title": "Account"
+    }
+  ],
+  "annotations": [
+    {
+      "id": "intro",
+      "x": 0,
+      "y": -190,
+      "w": 860,
+      "text": "DinkyDash \u2014 ongoing settings, mobile (390\u00d7844)\n\nThe hub at top-left is the whole map: every row is one Phase 1 section, and each row's subtitle carries live state so problems surface before you tap in. Static mockups; nothing is clickable."
+    },
+    {
+      "id": "rotation-note",
+      "x": 470,
+      "y": 1852,
+      "w": 390,
+      "text": "Chore rotation was undefined in PLAN.md. Proposal: an explicit ordered list plus a next-week preview, so the day-of-year modulo is visible rather than mysterious. Reordering takes effect tomorrow \u2014 today's board is already written."
+    },
+    {
+      "id": "calendar-note",
+      "x": 1410,
+      "y": 1852,
+      "w": 390,
+      "text": "The three states PLAN.md's calendars table implies: healthy, consecutive_failures > 0, and enabled = false. The failure card explains the likely cause and offers exactly one fix."
+    },
+    {
+      "id": "open-note",
+      "x": 1410,
+      "y": 2820,
+      "w": 390,
+      "text": "Still open: no drag-reorder interaction is drawn (the Reorder affordance is a placeholder), and lapse behaviour after trial isn't shown \u2014 it's an open question in PLAN.md."
+    },
+    {
+      "id": "theme-note",
+      "x": 470,
+      "y": 2820,
+      "w": 390,
+      "text": "Light/Dark lives here rather than in Account: it is a property of the screen on the wall, not of the person editing. An Auto option (dark after sunset, using the family timezone) would suit a kitchen board \u2014 not drawn, say the word."
+    }
+  ],
+  "launch": {
+    "view": "canvas"
+  }
+}
