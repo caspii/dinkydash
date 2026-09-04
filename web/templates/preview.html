@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Board preview · DinkyDash</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Nunito', system-ui, sans-serif;
+            background: #2d2823; color: #c9bcae;
+            padding: 32px; display: flex; flex-wrap: wrap;
+            gap: 36px; align-items: flex-start; justify-content: center;
+        }
+        figure { display: flex; flex-direction: column; gap: 10px; }
+        .frame {
+            background: #fff; border: 10px solid #17140f; border-radius: 14px;
+            overflow: hidden; box-shadow: 0 18px 44px rgba(0, 0, 0, 0.45);
+        }
+        iframe { display: block; border: 0; }
+        figcaption { font-size: 13px; text-align: center; letter-spacing: 0.03em; }
+        a { color: #ff9a6b; }
+        .bar { width: 100%; text-align: center; font-size: 13px; }
+    </style>
+</head>
+<body>
+<div class="bar"><a href="{{ url_for('settings.home') }}">&larr; Settings</a></div>
+{% for label, width, height in sizes %}
+<figure>
+    <div class="frame" style="width: {{ (width * 0.62) | round | int }}px;">
+        <iframe src="{{ url_for('board.index') }}" width="{{ width }}" height="{{ height }}"
+                style="transform: scale(0.62); transform-origin: top left;
+                       width: {{ width }}px; height: {{ height }}px;
+                       margin-bottom: {{ ((height * 0.38) | round | int) * -1 }}px;"></iframe>
+    </div>
+    <figcaption>{{ label }} &mdash; {{ width }} &times; {{ height }}</figcaption>
+</figure>
+{% endfor %}
+</body>
+</html>

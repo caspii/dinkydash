@@ -1,76 +1,75 @@
-# DinkyDash Configuration
-# Copy this file to config.yaml and fill in your own values
+# DinkyDash configuration
+# Copy this file to config.yaml and make it yours. The settings UI at
+# /settings writes this same file, and keeps your comments.
 
-# Location (used for local context in AI content)
-location: "Your City, Country"
+# Shown in the corner of the board.
+family_name: "Our family"
 
-# Google Calendar (public iCal URL)
-# Get this from: Google Calendar > Settings > Integrate calendar > Public address in iCal format
-calendar_url: "https://calendar.google.com/calendar/ical/your-email%40gmail.com/private-xxx/basic.ics"
+# Decides when "today" rolls over and how calendar times are displayed.
+# Set it even if the machine's clock is already local — the engine works from
+# this value, not from the server clock.
+timezone: "Europe/Berlin"
 
-# Environment variable name holding the Anthropic API key
-anthropic_api_key_env: "ANTHROPIC_API_KEY"
+# Optional. Gives the daily line a bit of local flavour.
+location: "Berlin, Germany"
 
-# Claude model to use
-claude_model: "claude-sonnet-4-5-20250929"
+# light or dark.
+theme: light
 
-# Maximum tokens for Claude response
-max_tokens: 2048
+# One entry per iCal feed; they are merged into a single agenda.
+# Google Calendar → Settings and sharing → Secret address in iCal format.
+calendars:
+  - label: "Family"
+    url: "https://calendar.google.com/calendar/ical/you%40gmail.com/private-xxxx/basic.ics"
+    enabled: true
 
-# Path where generated dashboard data is stored
-data_file: "dashboard_data.json"
-
-# Rolling record of recently generated fun facts / challenges. Each day's
-# content is fed back to Claude so it avoids repeating itself. history_days
-# controls how many recent days to remember and avoid.
-content_history_file: "content_history.json"
-history_days: 30
-
-# Only show calendar events where ALL of these emails are attendees
-# (the calendar owner is implicit, so list the other required attendee)
-calendar_filter_emails:
-  - "spouse@example.com"
-
-# Family members
+# Birthdays here become countdowns; names here are who chores rotate between.
 people:
-  - name: "Alice"
-    date_of_birth: "2015-03-15"
-    sex: "female"
-    image: "alice.jpg"
-    email: "alice@example.com"
-    interests: "drawing, dinosaurs"
-  - name: "Bob"
-    date_of_birth: "2017-06-20"
-    sex: "male"
-    image: "bob.jpg"
-    interests: "legos, soccer"
-  - name: "Parent"
-    date_of_birth: "1985-09-10"
-    sex: "female"
-    image: "parent.jpg"
-    email: "parent@example.com"
-    interests: ""
+  - name: "Mia"
+    date_of_birth: "2017-03-15"
+    avatar_emoji: "🦖"
+    avatar_color: purple
+    interests: "dinosaurs, drawing, swimming"
+  - name: "Theo"
+    date_of_birth: "2019-06-20"
+    avatar_emoji: "⚽"
+    avatar_color: blue
+    interests: "football, lego"
 
-# Pets
 pets:
-  - name: "Buddy"
+  - name: "Biscuit"
     type: "dog"
-    image: "pet.jpg"
+    avatar_emoji: "🐕"
 
-# Recurring chores (rotated daily using day-of-year modulo)
+# Rotated one person per day, by day of the year, in the order listed.
 recurring:
-  - title: "Set Table"
+  - title: "Set the table"
     emoji: "🍽"
-    choices: ["Alice", "Bob"]
-  - title: "Feed Pet"
-    emoji: "🐕"
-    choices: ["Bob", "Alice"]
+    choices: ["Mia", "Theo"]
+  - title: "Feed Biscuit"
+    emoji: "🦴"
+    choices: ["Theo", "Mia"]
 
-# Special dates (non-birthday countdowns)
+# Countdowns that come back every year. Day and month only.
 special_dates:
   - title: "Christmas"
     emoji: "🎄"
     date: "12/25"
-  - title: "Summer Vacation"
+  - title: "Summer holidays"
     emoji: "☀️"
     date: "07/01"
+
+# claude-haiku-4-5 costs roughly $0.13/month at one board a day.
+# claude-sonnet-5 writes better for about three times that.
+claude_model: "claude-haiku-4-5"
+max_tokens: 1024
+
+# How far ahead to fetch calendar events. The board shows today; the extra days
+# give the model context, and keep the agenda right if a morning's run fails.
+calendar_days_ahead: 14
+
+# How many days of past notes to send back to the model so it doesn't repeat itself.
+history_days: 30
+
+data_file: "dashboard_data.json"
+content_history_file: "content_history.json"

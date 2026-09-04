@@ -1,0 +1,65 @@
+{% extends "settings/base.html" %}
+{% import "settings/_icons.html" as icons %}
+{% block title %}{{ section.title }}{% endblock %}
+
+{% block appbar %}
+<a class="back" href="{{ url_for('settings.home') }}">{{ icons.back() }}</a>
+<h1>{{ section.title }}</h1>
+{% endblock %}
+
+{% block content %}
+{% if items %}
+<div class="card">
+    {% for item in items %}
+    <div class="row">
+        {% if section_name in ('people', 'pets') %}
+        <div class="avatar {{ item.avatar_color or '' }}">{{ item.avatar_emoji or (item.name or '?')[0] | upper }}</div>
+        {% elif item.emoji %}
+        <div class="avatar square">{{ item.emoji }}</div>
+        {% endif %}
+
+        <a class="row-main" href="{{ url_for('settings.section_edit', section_name=section_name, item_id=loop.index0) }}">
+            <div class="row-title">{{ item.name or item.title or item.label }}</div>
+            <div class="row-sub">
+                {% if section_name == 'people' %}
+                    {% set b = extras.birthdays[loop.index0] %}
+                    {{ b.current_age }} years old &middot; {{ b.birthday_date }}
+                {% elif section_name == 'pets' %}
+                    {{ item.type or "Pet" }}
+                {% elif section_name == 'recurring' %}
+                    {{ item.choices | join(' → ') if item.choices else "Nobody assigned" }}
+                {% elif section_name == 'special_dates' %}
+                    {{ item.date }}
+                {% elif section_name == 'calendars' %}
+                    {{ item.url | truncate(38, true) }}
+                {% endif %}
+            </div>
+        </a>
+
+        {% if section_name == 'people' and extras.birthdays[loop.index0].days_until_birthday <= 30 %}
+        <span class="pill warm">{{ extras.birthdays[loop.index0].days_until_birthday }}d</span>
+        {% elif section_name == 'recurring' and extras.turns[loop.index0] %}
+        <span class="pill muted">{{ extras.turns[loop.index0][0].assigned_to }}</span>
+        {% elif section_name == 'calendars' %}
+        <span class="pill {{ 'warm' if item.enabled else 'muted' }}">{{ "On" if item.enabled else "Paused" }}</span>
+        {% endif %}
+
+        <div class="move">
+            <form class="inline-form" method="post" action="{{ url_for('settings.section_move', section_name=section_name, index=loop.index0) }}">
+                <input type="hidden" name="direction" value="up"><button type="submit" title="Move up">&#9650;</button>
+            </form>
+            <form class="inline-form" method="post" action="{{ url_for('settings.section_move', section_name=section_name, index=loop.index0) }}">
+                <input type="hidden" name="direction" value="down"><button type="submit" title="Move down">&#9660;</button>
+            </form>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<a class="btn dashed" href="{{ url_for('settings.section_edit', section_name=section_name, item_id='new') }}">
+    {{ icons.plus() }} {{ section.add_label }}
+</a>
+
+<div class="note-box">{{ section.blurb }}</div>
+{% endblock %}

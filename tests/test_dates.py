@@ -1,14 +1,10 @@
-"""Date arithmetic tests for the countdown logic in generate.py.
+"""Date arithmetic tests for the countdown logic.
 
-Run with:  python3 -m unittest discover tests
+Run with:  python3 -m unittest discover tests   (pytest collects them too)
 
 Stdlib unittest rather than pytest so this adds no dependency to the Pi
-deploy. pytest can collect these unchanged if the project standardises on it
-later (PLAN.md Phase 0).
-
-These cover the functions that take an injected `today`, which is everything
-the daily dashboard depends on for countdowns. Calendar parsing and the API
-call are not covered here — they need fixtures and are Phase 0 work.
+deploy. The functions moved from generate.py into dinkydash.context during the
+Phase 0 extraction; the cases are unchanged.
 """
 
 import sys
@@ -18,7 +14,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from generate import (  # noqa: E402
+from dinkydash.context import (  # noqa: E402
     anniversary,
     compute_age,
     compute_birthday_info,
@@ -80,7 +76,7 @@ class TestComputeBirthdayInfo(unittest.TestCase):
         self.assertEqual(info["days_until_birthday"], 5)
         self.assertEqual(info["turning"], 11)
         self.assertEqual(info["current_age"], 10)
-        self.assertEqual(info["birthday_date"], "March 15")
+        self.assertEqual(info["birthday_date"], "15 March")
 
     def test_birthday_today(self):
         info = compute_birthday_info(person(dob="2015-03-15"), date(2026, 3, 15))
@@ -98,7 +94,7 @@ class TestComputeBirthdayInfo(unittest.TestCase):
         # for any family with a leap-day birthday.
         info = compute_birthday_info(person(dob="2016-02-29"), date(2027, 1, 1))
         self.assertEqual(info["days_until_birthday"], 58)  # 31 Jan + 27 Feb
-        self.assertEqual(info["birthday_date"], "February 28")
+        self.assertEqual(info["birthday_date"], "28 February")
         self.assertEqual(info["turning"], 11)
 
     def test_leap_day_birthday_observed_day_is_consistent(self):
@@ -110,7 +106,7 @@ class TestComputeBirthdayInfo(unittest.TestCase):
 
     def test_leap_day_birthday_rolls_into_a_leap_year(self):
         info = compute_birthday_info(person(dob="2016-02-29"), date(2027, 3, 1))
-        self.assertEqual(info["birthday_date"], "February 29")
+        self.assertEqual(info["birthday_date"], "29 February")
         self.assertEqual(info["days_until_birthday"], 365)
 
 
@@ -120,7 +116,7 @@ class TestComputeSpecialDateInfo(unittest.TestCase):
             {"title": "Christmas", "emoji": "🎄", "date": "12/25"}, date(2026, 12, 20)
         )
         self.assertEqual(info["days_until"], 5)
-        self.assertEqual(info["date_display"], "December 25")
+        self.assertEqual(info["date_display"], "25 December")
 
     def test_date_today(self):
         info = compute_special_date_info(
@@ -139,7 +135,7 @@ class TestComputeSpecialDateInfo(unittest.TestCase):
             {"title": "Leap Day", "date": "02/29"}, date(2027, 2, 1)
         )
         self.assertEqual(info["days_until"], 27)
-        self.assertEqual(info["date_display"], "February 28")
+        self.assertEqual(info["date_display"], "28 February")
 
     def test_feb_29_rolls_forward_to_a_real_feb_29(self):
         # Bumping the year on the rolled-back Feb 28 would wrongly yield
@@ -147,7 +143,7 @@ class TestComputeSpecialDateInfo(unittest.TestCase):
         info = compute_special_date_info(
             {"title": "Leap Day", "date": "02/29"}, date(2027, 3, 1)
         )
-        self.assertEqual(info["date_display"], "February 29")
+        self.assertEqual(info["date_display"], "29 February")
 
 
 if __name__ == "__main__":

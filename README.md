@@ -4,7 +4,7 @@ The digital family calendar for screens you already own — a TV, an old tablet,
 
 Website: [dinkydash.co](https://dinkydash.co)
 
-Every morning at 6am, DinkyDash calls the Claude API to generate a fresh, personalized dashboard — with calendar events, chore rotations, countdowns, fun facts, and daily challenges — then displays it on a screen at home.
+Every morning, DinkyDash merges your calendars into one agenda, works out whose turn each chore is, counts down to the next birthday, and asks Claude for a headline and one line of copy. Then it puts the lot on a screen at home — light or dark, sized to read from across the kitchen.
 
 ## Two ways to run it
 
@@ -14,25 +14,32 @@ Every morning at 6am, DinkyDash calls the Claude API to generate a fresh, person
 
 **Hosted (in development).** Zero setup, $5/month or $39/year. [Join the waitlist.](https://fffwryhvses.typeform.com/to/yxMMhmFs) Built from this same repo — see [PLAN.md](PLAN.md).
 
-## What the dashboard shows
+## What the board shows
 
-- AI-generated daily greeting and headline
-- Chore rotation badges (automatically rotated daily)
-- Countdowns to birthdays, holidays, and special dates
-- Calendar events with AI commentary, pulled from any iCal feed
-- Fun facts, daily challenges, and a pet corner
+- Today's agenda, in time order, merged from as many iCal feeds as you like
+- Whose turn each chore is — rotated daily, nothing to tick off
+- Countdowns to birthdays, holidays and special dates
+- An AI-written headline, and one line that is some days a fact, some days a
+  challenge, some days about the dog
+- Light or dark, chosen in the settings UI
+
+Configure all of it from your phone at `/settings`, or by editing `config.yaml` directly — they are
+the same file, and the UI keeps your comments.
 
 ## How it works
 
 ```
-[cron @ 6am] → generate.py → fetches Google Calendar
-                            → builds prompt with family context
-                            → calls Claude API
-                            → saves dashboard_data.json
+[cron @ 6am] → generate.py → merges every enabled iCal feed, in time order
+                           → builds the prompt, calls Claude
+                           → saves dashboard_data.json
 
-[browser]    → app.py       → reads dashboard_data.json
-                            → renders dashboard on screen
+[browser]    → app.py      → recomputes chores, countdowns and today's agenda
+                           → renders the board
 ```
+
+Only the headline and the written line come from the model. Ages, countdowns, chore turns and the
+agenda are recomputed on every render, so if a morning's run fails the times and turns on the wall
+are still today's — the board just labels the written line as older.
 
 ---
 
@@ -42,7 +49,7 @@ Every morning at 6am, DinkyDash calls the Claude API to generate a fresh, person
 
 - Python 3.11+
 - An [Anthropic API key](https://console.anthropic.com/settings/keys)
-- A Google Calendar iCal URL (Google Calendar → Settings → Integrate calendar → Public address in iCal format)
+- One or more iCal URLs (Google Calendar → Settings and sharing → Secret address in iCal format)
 
 ### 1. Clone and install
 
@@ -60,54 +67,43 @@ pip install -r requirements.txt
 cp config.example.yaml config.yaml
 ```
 
-Edit `config.yaml` with your family's details:
+Edit `config.yaml` with your family's details — or start the app and use `/settings`:
 
 ```yaml
-location: "Berlin, Germany"
+family_name: "The Wilsons"
+timezone: "Europe/Berlin"     # decides when "today" rolls over
+location: "Berlin, Germany"   # optional, flavours the daily line
+theme: light                  # or dark
 
-calendar_url: "https://calendar.google.com/calendar/ical/your-email/basic.ics"
-
-calendar_filter_emails:
-  - "spouse@example.com"
+calendars:                    # as many as you like; merged into one agenda
+  - label: "Sam's Google"
+    url: "https://calendar.google.com/calendar/ical/…/basic.ics"
+    enabled: true
 
 people:
-  - name: "Alice"
-    date_of_birth: "2015-03-15"
-    sex: "female"
-    image: "alice.jpg"
-    email: "alice@example.com"
-    interests: "drawing, dinosaurs"
-  - name: "Bob"
-    date_of_birth: "2017-06-20"
-    sex: "male"
-    image: "bob.jpg"
-    interests: "legos, soccer"
+  - name: "Mia"
+    date_of_birth: "2017-03-15"
+    avatar_emoji: "🦖"
+    avatar_color: purple
+    interests: "dinosaurs, drawing, swimming"
 
 pets:
-  - name: "Buddy"
+  - name: "Biscuit"
     type: "dog"
-    image: "pet.jpg"
+    avatar_emoji: "🐕"
 
-recurring:
-  - title: "Set Table"
+recurring:                    # rotated one person per day, in this order
+  - title: "Set the table"
     emoji: "🍽"
-    choices: ["Alice", "Bob"]
-  - title: "Feed Pet"
-    emoji: "🐕"
-    choices: ["Bob", "Alice"]
+    choices: ["Mia", "Theo"]
 
-special_dates:
+special_dates:                # repeat every year, so no year to set
   - title: "Christmas"
     emoji: "🎄"
     date: "12/25"
-  - title: "Summer Vacation"
-    emoji: "☀️"
-    date: "07/01"
 
-claude_model: "claude-sonnet-4-5-20250929"
-max_tokens: 2048
-data_file: "dashboard_data.json"
-anthropic_api_key_env: "ANTHROPIC_API_KEY"
+claude_model: "claude-haiku-4-5"
+max_tokens: 1024
 ```
 
 ### 3. Add your API key
@@ -118,18 +114,25 @@ Create a `.env` file:
 ANTHROPIC_API_KEY=sk-ant-...
 ```
 
-### 4. Add family photos
-
-Copy photos to the `static/` directory. Filenames must match the `image` field in your config.
-
-### 5. Generate and run
+### 4. Generate and run
 
 ```bash
-python generate.py        # Generate today's dashboard
-flask run --host=0.0.0.0  # Start the server
+python generate.py        # write today's board
+python app.py             # start the server
 ```
 
-Open http://localhost:5000 to see your dashboard. Use http://localhost:5000/preview for an 800x480 preview matching the Pi display.
+- http://localhost:5000 — the board
+- http://localhost:5000/settings — configure it from a phone
+- http://localhost:5000/preview — Pi, TV and tablet sizes side by side
+
+Before the first generation the board shows a waiting screen; press **Rewrite now** in the settings
+UI to fill it in.
+
+### Running the tests
+
+```bash
+venv/bin/python -m pytest tests/ -q
+```
 
 ---
 
@@ -137,17 +140,26 @@ Open http://localhost:5000 to see your dashboard. Use http://localhost:5000/prev
 
 | Field | Description |
 |-------|-------------|
-| `location` | Your city/country, used for context in AI content |
-| `calendar_url` | Google Calendar public iCal URL |
-| `calendar_filter_emails` | Only show events where these emails are attendees |
-| `people[]` | Family members: `name`, `date_of_birth` (YYYY-MM-DD), `sex`, `image`, `email`, `interests` |
-| `pets[]` | Pets: `name`, `type`, `image` |
-| `recurring[]` | Rotating chores: `title`, `emoji`, `choices` (list of names, rotated daily) |
-| `special_dates[]` | Countdowns: `title`, `emoji`, `date` (MM/DD) |
-| `claude_model` | Which Claude model to use |
+| `family_name` | Shown in the corner of the board |
+| `timezone` | IANA name. Decides when "today" rolls over and how event times are shown — set it even on a Pi whose clock is already local |
+| `location` | Your city/country. Optional, gives the daily line some local flavour |
+| `theme` | `light` or `dark` |
+| `calendars[]` | iCal feeds: `label`, `url`, `enabled`. Merged into one agenda |
+| `people[]` | `name`, `date_of_birth` (YYYY-MM-DD), `avatar_emoji`, `avatar_color`, `interests` |
+| `pets[]` | `name`, `type`, `avatar_emoji` |
+| `recurring[]` | Rotating chores: `title`, `emoji`, `choices` (names, one per day by day-of-year) |
+| `special_dates[]` | Countdowns: `title`, `emoji`, `date` (MM/DD, repeats yearly) |
+| `claude_model` | `claude-haiku-4-5` (~$0.13/month) or `claude-sonnet-5` for better prose |
 | `max_tokens` | Max response length |
-| `data_file` | Path for generated JSON (default: `dashboard_data.json`) |
-| `anthropic_api_key_env` | Name of the env var holding your API key |
+| `calendar_days_ahead` | How far ahead to fetch (default 14) |
+| `history_days` | Days of past notes sent back so the model doesn't repeat itself |
+| `data_file` | Path for the generated JSON |
+| `content_history_file` | Path for the rolling note history |
+
+Upgrading from an older config? A single `calendar_url` is migrated into `calendars` automatically,
+and `calendar_filter_emails` is dropped — it required every listed address to appear as an
+`ATTENDEE`, which most personal calendar events do not have, so it silently matched nothing. Use one
+feed per person instead.
 
 ---
 
@@ -263,7 +275,8 @@ sudo systemctl start dinkydash.service
 crontab -e
 ```
 
-Add this line to generate a fresh dashboard every morning at 6am:
+Add this line to write a fresh board every morning at 6am. If a run fails, the previous board
+stays up and labels itself — the screen never goes blank:
 
 ```cron
 0 6 * * * cd /home/pi/dinkydash && source venv/bin/activate && python generate.py >> generate.log 2>&1

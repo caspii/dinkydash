@@ -1,0 +1,95 @@
+{% extends "settings/base.html" %}
+{% import "settings/_icons.html" as icons %}
+{% block title %}Settings{% endblock %}
+
+{% block appbar %}
+<h1 style="padding-left:4px;color:var(--accent);font-size:1.15rem;">DinkyDash</h1>
+<a class="action muted" href="{{ url_for('board.index') }}">Board</a>
+{% endblock %}
+
+{% block content %}
+<div class="card pad" style="display:flex;flex-direction:column;gap:14px;">
+    <div>
+        <div style="font-size:1.125rem;font-weight:800;">{{ config.family_name or "Your board" }}</div>
+        <div style="display:flex;align-items:center;gap:7px;margin-top:3px;">
+            <span class="dot {{ status.state }}"></span>
+            <span style="font-size:0.8125rem;color:var(--text-mid);">{{ status.detail }}</span>
+        </div>
+    </div>
+    <div style="display:flex;gap:10px;">
+        <a class="btn outline" style="flex:1;" href="{{ url_for('board.index') }}">{{ icons.screen() }} View board</a>
+        <form class="inline-form" method="post" action="{{ url_for('settings.generate_now') }}" style="flex:1;">
+            <button class="btn" type="submit">{{ icons.refresh() }} Rewrite now</button>
+        </form>
+    </div>
+</div>
+
+{% if broken %}
+<div class="flash error">
+    {{ broken|length }} calendar{{ "s" if broken|length != 1 }} didn't answer at the last run.
+</div>
+{% endif %}
+
+<div>
+    <div class="label">What's on the board</div>
+    <div class="card">
+        <a class="row" href="{{ url_for('settings.section_list', section_name='people') }}">
+            <div class="row-main">
+                <div class="row-title">People</div>
+                <div class="row-sub">{{ config.people | map(attribute='name') | join(', ') or "Nobody yet" }}</div>
+            </div>{{ icons.chevron() }}
+        </a>
+        <a class="row" href="{{ url_for('settings.section_list', section_name='pets') }}">
+            <div class="row-main">
+                <div class="row-title">Pets</div>
+                <div class="row-sub">{{ config.pets | map(attribute='name') | join(', ') or "None" }}</div>
+            </div>{{ icons.chevron() }}
+        </a>
+        <a class="row" href="{{ url_for('settings.section_list', section_name='recurring') }}">
+            <div class="row-main">
+                <div class="row-title">Chores</div>
+                <div class="row-sub">{{ counts.recurring }} job{{ "s" if counts.recurring != 1 }}, rotating daily</div>
+            </div>{{ icons.chevron() }}
+        </a>
+        <a class="row" href="{{ url_for('settings.section_list', section_name='special_dates') }}">
+            <div class="row-main">
+                <div class="row-title">Special dates</div>
+                <div class="row-sub">{{ counts.special_dates }} countdown{{ "s" if counts.special_dates != 1 }}</div>
+            </div>{{ icons.chevron() }}
+        </a>
+        <a class="row" href="{{ url_for('settings.section_list', section_name='calendars') }}">
+            <div class="row-main">
+                <div class="row-title">Calendars</div>
+                <div class="row-sub">
+                    {% if broken %}<span style="color:var(--amber-dark);font-weight:700;">{{ broken|length }} of {{ counts.calendars }} needs attention</span>
+                    {% else %}{{ counts.calendars }} feed{{ "s" if counts.calendars != 1 }}{% endif %}
+                </div>
+            </div>{{ icons.chevron() }}
+        </a>
+    </div>
+</div>
+
+<div>
+    <div class="label">This screen</div>
+    <div class="card">
+        <a class="row" href="{{ url_for('settings.screen') }}">
+            <div class="row-main">
+                <div class="row-title">Colours</div>
+                <div class="row-sub">{{ config.theme | capitalize }}</div>
+            </div>{{ icons.chevron() }}
+        </a>
+        <a class="row" href="{{ url_for('settings.system') }}">
+            <div class="row-main">
+                <div class="row-title">Family &amp; system</div>
+                <div class="row-sub">{{ config.timezone }}{{ " · " ~ config.location if config.location }}</div>
+            </div>{{ icons.chevron() }}
+        </a>
+        <a class="row" href="{{ url_for('board.preview') }}">
+            <div class="row-main">
+                <div class="row-title">Preview the screens</div>
+                <div class="row-sub">Pi, TV and tablet sizes side by side</div>
+            </div>{{ icons.chevron() }}
+        </a>
+    </div>
+</div>
+{% endblock %}

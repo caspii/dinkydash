@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>{% block title %}Settings{% endblock %} · DinkyDash</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="icon" href="{{ url_for('static', filename='favicon.svg') }}" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #fffaf5;
+            --surface: #ffffff;
+            --warm: #fff5ec;
+            --border: #f0e6da;
+            --border-strong: #e2d7c9;
+            --text: #2d2319;
+            --text-mid: #5c4a3a;
+            --text-muted: #9a8677;
+            --faint: #c4b3a3;
+            --accent: #e85d24;
+            --accent-dark: #c44d1a;
+            --purple: #7c5cbf;
+            --green: #16a34a;
+            --amber: #d97706;
+            --amber-dark: #b45309;
+            --danger: #c0392b;
+        }
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Nunito', system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+        }
+        /* Built for a phone; on anything wider it just centres. */
+        .shell { max-width: 460px; margin: 0 auto; min-height: 100vh; background: var(--bg); }
+        a { color: var(--accent); text-decoration: none; }
+
+        .appbar {
+            display: flex; align-items: center; gap: 4px;
+            height: 56px; padding: 0 12px;
+            border-bottom: 1px solid var(--border);
+            position: sticky; top: 0; background: var(--bg); z-index: 5;
+        }
+        .appbar h1 { font-size: 1.0625rem; font-weight: 800; letter-spacing: -0.01em; flex-grow: 1; }
+        .appbar .back, .appbar .action {
+            display: inline-flex; align-items: center; justify-content: center;
+            min-width: 44px; height: 44px; color: var(--text-mid);
+        }
+        .appbar .action { font-size: 0.9375rem; font-weight: 800; color: var(--accent); padding: 0 6px; }
+        .appbar .action.muted { color: var(--text-muted); font-weight: 700; }
+
+        .content { padding: 16px; display: flex; flex-direction: column; gap: 16px; }
+
+        .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; }
+        .card.pad { padding: 15px; }
+        .row {
+            display: flex; align-items: center; gap: 13px;
+            padding: 12px 14px; min-height: 62px;
+            color: inherit;
+        }
+        .row + .row { border-top: 1px solid var(--border); }
+        .row-main { flex-grow: 1; min-width: 0; }
+        .row-title { font-size: 0.9375rem; font-weight: 700; }
+        .row-sub { font-size: 0.8125rem; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; }
+        .chev { flex-shrink: 0; color: var(--faint); }
+
+        .avatar {
+            width: 46px; height: 46px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.4rem; flex-shrink: 0; background: rgba(154, 134, 119, 0.12);
+        }
+        .avatar.purple { background: rgba(124, 92, 191, 0.14); }
+        .avatar.blue   { background: rgba(59, 130, 246, 0.14); }
+        .avatar.green  { background: rgba(22, 163, 74, 0.13); }
+        .avatar.pink   { background: rgba(219, 39, 119, 0.11); }
+        .avatar.orange { background: rgba(232, 93, 36, 0.11); }
+        .avatar.amber  { background: rgba(217, 119, 6, 0.13); }
+        .avatar.teal   { background: rgba(13, 148, 136, 0.13); }
+        .avatar.square { border-radius: 13px; }
+
+        .label {
+            font-size: 0.6875rem; font-weight: 800; letter-spacing: 0.08em;
+            text-transform: uppercase; color: var(--text-muted);
+            padding: 0 4px 8px;
+        }
+
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            width: 100%; height: 48px; border-radius: 12px; border: none;
+            font-family: inherit; font-size: 0.9375rem; font-weight: 700;
+            background: var(--accent); color: #fff; cursor: pointer;
+            box-shadow: 0 2px 8px rgba(232, 93, 36, 0.25);
+        }
+        .btn.outline { background: transparent; color: var(--text); border: 2px solid var(--border); box-shadow: none; }
+        .btn.dashed { background: transparent; color: var(--text-mid); border: 2px dashed var(--border-strong); box-shadow: none; height: 52px; }
+        .btn.danger { background: transparent; color: var(--danger); box-shadow: none; font-weight: 700; }
+        .btn.small { height: 40px; font-size: 0.875rem; width: auto; padding: 0 16px; }
+
+        .field { display: flex; flex-direction: column; gap: 6px; }
+        .field > label { font-size: 0.6875rem; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; color: var(--text-muted); }
+        .field input[type=text], .field input[type=url], .field input[type=date],
+        .field select, .field textarea {
+            width: 100%; min-height: 48px; padding: 12px 14px;
+            border: 1.5px solid var(--border); border-radius: 12px;
+            background: var(--surface); color: var(--text);
+            font-family: inherit; font-size: 0.9375rem; font-weight: 600;
+        }
+        .field textarea { min-height: 76px; resize: vertical; }
+        .field input:focus, .field select:focus, .field textarea:focus {
+            outline: none; border-color: var(--accent);
+        }
+        .hint { font-size: 0.75rem; color: var(--text-muted); line-height: 1.5; }
+
+        .picker { display: flex; flex-wrap: wrap; gap: 7px; }
+        .picker input { position: absolute; opacity: 0; pointer-events: none; }
+        .picker label {
+            display: flex; align-items: center; justify-content: center;
+            min-width: 46px; height: 46px; padding: 0 10px;
+            border: 1.5px solid var(--border); border-radius: 12px;
+            font-size: 1.3rem; cursor: pointer; background: var(--surface);
+        }
+        .picker input:checked + label { border: 2px solid var(--accent); background: rgba(232, 93, 36, 0.06); }
+        .swatch { width: 34px; height: 34px; border-radius: 50%; display: block; }
+        .picker.colors label { min-width: 46px; height: 46px; border-radius: 50%; border: none; padding: 0; }
+        .picker.colors input:checked + label { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent); }
+
+        .checkline { display: flex; align-items: center; gap: 11px; padding: 6px 2px; }
+        .checkline input { width: 22px; height: 22px; accent-color: var(--accent); }
+        .checkline span { font-size: 0.9375rem; font-weight: 700; }
+
+        .note-box { background: var(--warm); border-radius: 14px; padding: 13px 15px; font-size: 0.8125rem; color: var(--text-mid); line-height: 1.55; }
+        .flash { border-radius: 14px; padding: 13px 15px; font-size: 0.875rem; font-weight: 700; }
+        .flash.ok { background: rgba(22, 163, 74, 0.1); color: #15803d; }
+        .flash.error { background: rgba(192, 57, 43, 0.09); color: var(--danger); }
+        .problems { background: rgba(192, 57, 43, 0.07); border-radius: 14px; padding: 13px 15px; color: var(--danger); font-size: 0.8125rem; }
+        .problems li { margin-left: 18px; }
+
+        .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; display: inline-block; }
+        .dot.ready { background: var(--green); }
+        .dot.stale { background: var(--amber); }
+        .dot.waiting { background: var(--faint); }
+
+        .pill { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; font-size: 0.6875rem; font-weight: 800; }
+        .pill.warm { background: rgba(232, 93, 36, 0.1); color: var(--accent-dark); }
+        .pill.muted { background: rgba(154, 134, 119, 0.12); color: var(--text-mid); }
+
+        .inline-form { display: inline; }
+        .move { display: flex; flex-direction: column; gap: 2px; }
+        .move button {
+            width: 30px; height: 24px; border: 1px solid var(--border); background: var(--surface);
+            border-radius: 7px; cursor: pointer; color: var(--text-muted); font-size: 0.7rem; line-height: 1;
+        }
+    </style>
+</head>
+<body>
+<div class="shell">
+    <div class="appbar">
+        {% block appbar %}{% endblock %}
+    </div>
+    <div class="content">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+            <div class="flash {{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+    </div>
+</div>
+</body>
+</html>

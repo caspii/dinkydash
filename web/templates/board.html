@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="en" data-theme="{{ view.theme }}">
+<head>
+    <meta charset="utf-8">
+    <title>{{ view.family_name or "DinkyDash" }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <meta name="robots" content="noindex, nofollow">
+    <meta http-equiv="refresh" content="{{ 60 if view.state == 'waiting' else 300 }}">
+    <link rel="icon" href="{{ url_for('static', filename='favicon.svg') }}" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* Light is the default palette; dark redefines the same tokens so every
+           rule below is written once. */
+        :root {
+            --bg: #ffffff;
+            --box: #fff5ec;
+            --text: #2d2319;
+            --text-mid: #5c4a3a;
+            --text-muted: #9a8677;
+            --text-faint: #c4b3a3;
+            --accent: #e85d24;
+            --chore-1-bg: rgba(232, 93, 36, 0.1);
+            --chore-1-fg: #c44d1a;
+            --chore-2-bg: rgba(124, 92, 191, 0.1);
+            --chore-2-fg: #6b4fa8;
+            --warn-bg: #fdf6e7;
+            --warn-fg: #b45309;
+            --stale-box: #faf6f1;
+        }
+
+        [data-theme="dark"] {
+            --bg: #17120f;
+            --box: #241c17;
+            --text: #f6efe7;
+            --text-mid: #cbb9a7;
+            --text-muted: #93816f;
+            --text-faint: #6f6053;
+            --accent: #ff7a45;
+            --chore-1-bg: rgba(255, 122, 69, 0.16);
+            --chore-1-fg: #ffa477;
+            --chore-2-bg: rgba(157, 125, 222, 0.2);
+            --chore-2-fg: #bda3ee;
+            --warn-bg: #3a2c14;
+            --warn-fg: #f2b968;
+            --stale-box: #221b16;
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        /* Everything below is sized in rem off this one value, so the same
+           layout reads correctly on a 480px-tall Pi panel and a living-room TV. */
+        html { font-size: clamp(11px, 2.4vh, 26px); }
+
+        body {
+            font-family: 'Nunito', system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .board {
+            flex-grow: 1;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 1.4rem;
+            padding: 2.1rem 2.8rem;
+        }
+
+        .banner {
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+            background: var(--warn-bg);
+            color: var(--warn-fg);
+            padding: 0.7rem 2.8rem;
+            font-size: 0.88rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        .banner + .board { padding-top: 1.6rem; }
+        .banner svg { flex-shrink: 0; width: 1.05rem; height: 1.05rem; }
+
+        .head {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 1rem;
+            flex-shrink: 0;
+        }
+        .family {
+            font-size: 0.95rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.09em;
+            color: var(--accent);
+        }
+        .date { font-size: 1.1rem; font-weight: 700; color: var(--text-muted); }
+
+        .headline {
+            font-size: 2.7rem;
+            font-weight: 800;
+            line-height: 1.18;
+            letter-spacing: -0.02em;
+            flex-shrink: 0;
+        }
+
+        /* Wide and short (a TV, the Pi panel) has width to spare, so the agenda
+           and the side column sit next to each other. Tall screens (an iPad in
+           portrait, a phone) stack instead. */
+        .body { display: flex; flex-direction: column; gap: 1.4rem; flex-grow: 1; min-height: 0; }
+        @media (min-aspect-ratio: 3/2) {
+            .body { flex-direction: row; gap: 3rem; align-items: flex-start; }
+            .agenda { flex-grow: 1; flex-basis: 0; }
+            .side { width: 34%; flex-shrink: 0; }
+        }
+
+        .label {
+            font-size: 0.78rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            margin-bottom: 0.75rem;
+        }
+
+        .events { display: flex; flex-direction: column; gap: 0.6rem; }
+        .event { display: flex; gap: 1.1rem; align-items: baseline; }
+        .event-time {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--accent);
+            width: 5.2rem;
+            flex-shrink: 0;
+        }
+        .event-time.all-day { font-size: 1rem; }
+        .event-title { font-size: 1.5rem; font-weight: 700; }
+        .event-where { color: var(--text-muted); font-weight: 600; }
+
+        .empty {
+            background: var(--box);
+            border-radius: 1rem;
+            padding: 1.5rem 1.8rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 0.4rem;
+            height: 100%;
+        }
+        .empty-head { font-size: 1.55rem; font-weight: 800; color: var(--text-mid); }
+        .empty-sub { font-size: 1rem; color: var(--text-muted); }
+
+        .side { display: flex; flex-direction: column; gap: 1.3rem; }
+
+        .chores { display: flex; flex-direction: column; align-items: flex-start; gap: 0.55rem; }
+        .chore {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.55rem;
+            padding: 0.42rem 1.1rem 0.42rem 0.55rem;
+            border-radius: 999px;
+            font-size: 1.1rem;
+            font-weight: 800;
+            background: var(--chore-1-bg);
+            color: var(--chore-1-fg);
+        }
+        .chore:nth-child(even) { background: var(--chore-2-bg); color: var(--chore-2-fg); }
+        .chore-emoji { font-size: 1.25rem; }
+
+        .countdowns { display: flex; flex-direction: column; gap: 0.5rem; }
+        .countdown {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            font-size: 1.05rem;
+            color: var(--text-mid);
+        }
+        .countdown strong { color: var(--text); font-weight: 800; }
+        .countdown.today strong { color: var(--accent); }
+        .countdown-emoji { font-size: 1.2rem; }
+
+        .note {
+            background: var(--box);
+            border-radius: 0.9rem;
+            padding: 1rem 1.35rem;
+            font-size: 1.05rem;
+            line-height: 1.5;
+            color: var(--text-mid);
+            flex-shrink: 0;
+        }
+        .note.is-stale { background: var(--stale-box); color: var(--text-muted); }
+        .note-label {
+            font-size: 0.7rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-faint);
+            margin-bottom: 0.45rem;
+        }
+
+        /* First run, before any generation has landed. */
+        .waiting {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1.4rem;
+            text-align: center;
+            padding: 2rem;
+        }
+        .waiting .family { font-size: 1.1rem; }
+        .waiting-head { font-size: 2.4rem; font-weight: 800; letter-spacing: -0.02em; }
+        .waiting-sub { font-size: 1.05rem; color: var(--text-mid); max-width: 32rem; line-height: 1.6; }
+        .bar { width: 20rem; height: 0.4rem; border-radius: 999px; background: var(--box); overflow: hidden; }
+        .bar span { display: block; width: 40%; height: 100%; border-radius: 999px; background: var(--accent); }
+    </style>
+</head>
+<body>
+
+{% if view.state == 'waiting' %}
+<div class="waiting">
+    <div class="family">DinkyDash</div>
+    <div class="waiting-head">Writing {{ view.family_name or "your" }}{{ "'s" if view.family_name else "" }} first board&hellip;</div>
+    <div class="bar"><span></span></div>
+    <div class="waiting-sub">
+        Run <strong>python generate.py</strong> to fill this in, or open the settings
+        page and press &ldquo;Rewrite now&rdquo;. This page refreshes itself.
+    </div>
+</div>
+
+{% else %}
+
+{% if view.stale %}
+<div class="banner">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7.6v5"></path><path d="M12 16.2h.01"></path></svg>
+    This morning&rsquo;s brief didn&rsquo;t arrive. Times, turns and countdowns are today&rsquo;s &mdash; only the written line is older.
+</div>
+{% endif %}
+
+<div class="board">
+    <div class="head">
+        <div class="family">{{ view.family_name }}</div>
+        <div class="date">{{ view.date_display }}</div>
+    </div>
+
+    {% if view.headline %}
+    <div class="headline">{{ view.headline }}</div>
+    {% endif %}
+
+    <div class="body">
+        <div class="agenda">
+            {% if view.events %}
+            <div class="label">Today</div>
+            <div class="events">
+                {% for event in view.events %}
+                <div class="event">
+                    <div class="event-time{{ ' all-day' if event.all_day }}">{{ "All day" if event.all_day else event.time }}</div>
+                    <div class="event-title">
+                        {{ event.title }}
+                        {% if event.location %}<span class="event-where">&mdash; {{ event.location }}</span>{% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty">
+                <div class="label">Today</div>
+                <div class="empty-head">The calendar is empty.</div>
+                <div class="empty-sub">Nothing between now and bedtime.</div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="side">
+            {% if view.chores %}
+            <div>
+                <div class="label">Whose turn</div>
+                <div class="chores">
+                    {% for chore in view.chores %}
+                    <span class="chore">
+                        {% if chore.emoji %}<span class="chore-emoji">{{ chore.emoji }}</span>{% endif %}
+                        {{ chore.title }} &mdash; {{ chore.assigned_to }}
+                    </span>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            {% if view.countdowns %}
+            <div>
+                <div class="label">Coming up</div>
+                <div class="countdowns">
+                    {% for countdown in view.countdowns %}
+                    <div class="countdown{{ ' today' if countdown.days <= 3 }}">
+                        <span class="countdown-emoji">{{ countdown.emoji }}</span>
+                        <span>
+                            {% if countdown.days == 0 %}<strong>Today:</strong> {{ countdown.title }}
+                            {% elif countdown.days == 1 %}<strong>Tomorrow:</strong> {{ countdown.title }}
+                            {% else %}<strong>{{ countdown.days }} days</strong> until {{ countdown.title }}
+                            {% endif %}
+                        </span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if view.note %}
+    <div class="note{{ ' is-stale' if view.stale }}">
+        {% if view.stale %}<div class="note-label">Yesterday&rsquo;s line</div>{% endif %}
+        {{ view.note }}
+    </div>
+    {% endif %}
+</div>
+
+{% endif %}
+
+</body>
+</html>
