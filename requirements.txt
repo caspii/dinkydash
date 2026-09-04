@@ -1,5 +1,6 @@
 flask
 pyyaml
+ruamel.yaml
 jinja2
 markdown
 anthropic

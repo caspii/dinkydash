@@ -1,0 +1,4 @@
+-r requirements.txt
+
+# Test-only. Not installed on the Pi — the board does not need them to run.
+pytest

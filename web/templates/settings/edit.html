@@ -1,0 +1,112 @@
+{% extends "settings/base.html" %}
+{% import "settings/_icons.html" as icons %}
+{% block title %}{{ item.name or item.title or item.label or section.singular }}{% endblock %}
+
+{% block appbar %}
+<a class="action muted" href="{{ url_for('settings.section_list', section_name=section_name) }}">Cancel</a>
+<h1 style="text-align:center;">{{ item.name or item.title or item.label or ("New " ~ section.singular) }}</h1>
+<button class="action" type="submit" form="edit-form" name="action" value="save">Save</button>
+{% endblock %}
+
+{% block content %}
+{% if problems %}
+<div class="problems"><ul>{% for problem in problems %}<li>{{ problem }}</li>{% endfor %}</ul></div>
+{% endif %}
+
+{% if checked %}
+<div class="flash {{ 'ok' if checked.ok else 'error' }}">{{ checked.message }}</div>
+{% endif %}
+
+<form id="edit-form" method="post" class="card pad" style="display:flex;flex-direction:column;gap:16px;">
+    {% for name, label, kind, required, help in section.fields %}
+    <div class="field">
+        {% if kind != 'checkbox' %}<label for="f-{{ name }}">{{ label }}</label>{% endif %}
+
+        {% if kind == 'text' %}
+            <input type="text" id="f-{{ name }}" name="{{ name }}" value="{{ item.get(name, '') }}" {{ 'required' if required }}>
+
+        {% elif kind == 'url' %}
+            <input type="url" id="f-{{ name }}" name="{{ name }}" value="{{ item.get(name, '') }}" {{ 'required' if required }} placeholder="https://calendar.google.com/…/basic.ics">
+
+        {% elif kind == 'date' %}
+            <input type="date" id="f-{{ name }}" name="{{ name }}" value="{{ item.get(name, '') }}" {{ 'required' if required }}>
+
+        {% elif kind == 'textarea' %}
+            <textarea id="f-{{ name }}" name="{{ name }}">{{ item.get(name, '') }}</textarea>
+
+        {% elif kind == 'checkbox' %}
+            <div class="checkline">
+                <input type="checkbox" id="f-{{ name }}" name="{{ name }}" {{ 'checked' if item.get(name) }}>
+                <span>{{ label }}</span>
+            </div>
+
+        {% elif kind == 'monthday' %}
+            {% set parts = (item.get(name) or '/').split('/') %}
+            <div style="display:flex;gap:10px;">
+                <select name="{{ name }}_day" style="flex:0 0 32%;">
+                    {% for day in range(1, 32) %}
+                    <option value="{{ day }}" {{ 'selected' if parts[1] and day == parts[1] | int }}>{{ day }}</option>
+                    {% endfor %}
+                </select>
+                <select name="{{ name }}_month" style="flex:1;">
+                    {% for month in months %}
+                    <option value="{{ loop.index }}" {{ 'selected' if parts[0] and loop.index == parts[0] | int }}>{{ month }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+        {% elif kind == 'emoji' %}
+            <div class="picker">
+                {% for choice in emoji %}
+                <input type="radio" id="e-{{ name }}-{{ loop.index }}" name="{{ name }}" value="{{ choice }}" {{ 'checked' if item.get(name) == choice }}>
+                <label for="e-{{ name }}-{{ loop.index }}">{{ choice }}</label>
+                {% endfor %}
+                {% if item.get(name) and item.get(name) not in emoji %}
+                <input type="radio" id="e-{{ name }}-own" name="{{ name }}" value="{{ item.get(name) }}" checked>
+                <label for="e-{{ name }}-own">{{ item.get(name) }}</label>
+                {% endif %}
+                <input type="radio" id="e-{{ name }}-none" name="{{ name }}" value="" {{ 'checked' if not item.get(name) }}>
+                <label for="e-{{ name }}-none" style="font-size:0.75rem;font-weight:700;color:var(--text-muted);">None</label>
+            </div>
+
+        {% elif kind == 'color' %}
+            <div class="picker colors">
+                {% for choice in colors %}
+                <input type="radio" id="c-{{ choice }}" name="{{ name }}" value="{{ choice }}" {{ 'checked' if item.get(name) == choice or (not item.get(name) and loop.first) }}>
+                <label for="c-{{ choice }}"><span class="swatch avatar {{ choice }}" style="width:34px;height:34px;"></span></label>
+                {% endfor %}
+            </div>
+
+        {% elif kind == 'people' %}
+            {% if people %}
+            <div style="display:flex;flex-direction:column;gap:8px;">
+                {% for person in people %}
+                <div class="checkline">
+                    <input type="checkbox" id="p-{{ loop.index }}" name="{{ name }}" value="{{ person }}" {{ 'checked' if person in (item.get(name) or []) }}>
+                    <span>{{ person }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="hint">Add someone under People first.</div>
+            {% endif %}
+        {% endif %}
+
+        {% if help %}<div class="hint">{{ help }}</div>{% endif %}
+    </div>
+    {% endfor %}
+
+    {% if section_name == 'calendars' %}
+    <button class="btn outline" type="submit" name="action" value="check">Check this link</button>
+    {% endif %}
+
+    <button class="btn" type="submit" name="action" value="save">Save</button>
+</form>
+
+{% if not is_new %}
+<form method="post" action="{{ url_for('settings.section_delete', section_name=section_name, index=item_id) }}"
+      onsubmit="return confirm('Remove this for good?');">
+    <button class="btn danger" type="submit">Remove this {{ section.singular }}</button>
+</form>
+{% endif %}
+{% endblock %}

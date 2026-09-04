@@ -1,0 +1,53 @@
+{% extends "settings/base.html" %}
+{% import "settings/_icons.html" as icons %}
+{% block title %}Family &amp; system{% endblock %}
+
+{% block appbar %}
+<a class="back" href="{{ url_for('settings.home') }}">{{ icons.back() }}</a>
+<h1>Family &amp; system</h1>
+<button class="action" type="submit" form="system-form">Save</button>
+{% endblock %}
+
+{% block content %}
+<form id="system-form" method="post" class="card pad" style="display:flex;flex-direction:column;gap:16px;">
+    <div class="field">
+        <label for="family_name">Name on the board</label>
+        <input type="text" id="family_name" name="family_name" value="{{ config.family_name or '' }}">
+    </div>
+
+    <div class="field">
+        <label for="timezone">Time zone</label>
+        <select id="timezone" name="timezone">
+            {% for zone in zones %}
+            <option value="{{ zone }}" {{ 'selected' if zone == config.timezone }}>{{ zone }}</option>
+            {% endfor %}
+        </select>
+        <div class="hint">
+            Decides when &ldquo;today&rdquo; rolls over and how calendar times are shown. Set this
+            even on a Pi whose clock is already local — the engine works from it, not the server clock.
+        </div>
+    </div>
+
+    <div class="field">
+        <label for="location">Where you live</label>
+        <input type="text" id="location" name="location" value="{{ config.location or '' }}" placeholder="Berlin, Germany">
+        <div class="hint">Gives the daily line some local flavour. Optional.</div>
+    </div>
+
+    <div class="field">
+        <label for="claude_model">Model</label>
+        <input type="text" id="claude_model" name="claude_model" value="{{ config.claude_model or '' }}">
+        <div class="hint">
+            <strong>claude-haiku-4-5</strong> costs roughly $0.13 a month at one board a day.
+            <strong>claude-sonnet-5</strong> writes better for about three times that.
+        </div>
+    </div>
+
+    <button class="btn" type="submit">Save</button>
+</form>
+
+<div class="note-box">
+    The API key is read from <strong>ANTHROPIC_API_KEY</strong> in your <strong>.env</strong> file,
+    not from here — a key does not belong in a config file that gets committed.
+</div>
+{% endblock %}
