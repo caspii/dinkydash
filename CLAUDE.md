@@ -141,8 +141,18 @@ in under a second, so there is no excuse for skipping them.
 
 **Testing without spending money.** `generate.py --date 2026-12-24` generates for any date, which is
 how to check a countdown or a quiet day. It still costs one API call. To exercise the board with no
-call at all, edit `dashboard_data.json` by hand — change `generated_for_date` to an older date to
-see the stale state, or move it aside entirely to see the first-run screen.
+call at all, run `python sample_board.py`, which writes a plausible payload for today and calls no
+API. It refuses to overwrite a real one, so delete `dashboard_data.json` first if that is what you
+want. Then edit the file by hand — change `generated_for_date` to an older date to see the stale
+state, or move it aside entirely to see the first-run screen.
+
+**Local data in a new workspace.** `config.yaml`, `dashboard_data.json` and `content_history.json`
+are gitignored, so a new Conductor workspace only receives them through Files to copy, which reads
+`.worktreeinclude` **from the main checkout on disk** — having it on the branch is not enough. If
+the main checkout is parked on an old commit that predates that file, Conductor falls back to its
+default `.env*` pattern: `.env` arrives, the rest does not. `.conductor/settings.toml` covers the
+gap by falling back to `config.example.yaml` and seeding a sample board, so a workspace always opens
+on something real. Copied data still wins over both.
 
 **Adding a field to a settings section.** Add a tuple to the section's `fields` list in
 `web/routes/settings.py` — `(name, label, kind, required, help)`. The list template and the edit
