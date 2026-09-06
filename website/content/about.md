@@ -7,7 +7,7 @@ description: DinkyDash is a free, open-source digital family calendar that runs 
 
 DinkyDash is a free, open-source **digital family calendar for screens you already own**. Point a TV, an old tablet, or a Raspberry Pi at it and your family gets one glanceable screen with today's calendar, a self-rotating chore chart, countdowns to the big days — and a daily brief written fresh every morning by AI.
 
-It was built by [Caspar](https://casparwre.de), an indie developer in Berlin, for his own kids — and open-sourced because a family calendar shouldn't cost $629 plus a subscription.
+It was built by [Caspar](https://casparwre.de), an indie developer in Berlin, for his own kids — and open-sourced because a family calendar shouldn't cost $600 plus a subscription.
 
 ## Why an AI-written dashboard?
 
