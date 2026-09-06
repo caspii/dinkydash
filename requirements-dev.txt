@@ -1,15 +1,15 @@
 -r requirements.txt
 
 # Not installed on the Pi — deploy_to_pi.sh installs requirements.txt only, and
-# the board needs none of this to run.
+# the board needs none of this to run. Pinned for the same reason.
 
 # The test suite.
-pytest
+pytest==9.1.1
 
 # The marketing site generator: website/build.py (jinja2, markdown, pyyaml) and
 # website/generate_favicon.py (Pillow). Build-time only, never imported by the
 # board or the engine.
-jinja2
-markdown
-pyyaml
-Pillow
+jinja2==3.1.6
+markdown==3.10.3
+pyyaml==6.0.3
+Pillow==12.3.0

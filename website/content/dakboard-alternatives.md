@@ -32,7 +32,7 @@ This page compares six alternatives on the things that actually decide it: what 
 | **MagicMirror²** | $0 | Bring your own | Yes | Yes (MIT) |
 | **Home Assistant** | $0 | Bring your own | Yes | Yes (Apache 2.0) |
 | **Mango Display** | Free tier; Pro $5.99/mo | Bring your own | No | No |
-| **Skylight Calendar** | Optional $79/yr | $329.99–$599.99 | No | No |
+| **Skylight Calendar** | Optional $79/yr | $299.99–$599.99 | No | No |
 | **Hearth Display** | $86.40/yr required | $699 | No | No |
 | *DAKboard, for reference* | *Free tier; $5–10/mo* | *Bring your own, or ~$80 CPU* | *No* | *No* |
 
@@ -46,7 +46,7 @@ Three reasons come up repeatedly, and they point at different replacements.
 
 **It is not open source.** You can run the display on your own Raspberry Pi, which reads like self-hosting, but the service runs on DAKboard's servers and the source is not published. If your reason for building a wall display was keeping the family's schedule on your own hardware, that is the wrong shape.
 
-**It is a dashboard, not a family organizer.** DAKboard's strength is arranging many data sources on one screen. If what you wanted was "whose turn is it to feed the dog", you are configuring a general tool into a specific one.
+**It is a dashboard first, a family organizer second.** DAKboard does now market a chore chart — a column per family member, one tap to check something off, points that convert into rewards you set, and a child lock so siblings can't clear each other's lists. It is on Essential and Plus, not the free tier. But the product underneath is still a way of arranging many data sources on one screen, so "whose turn is it to feed the dog" means pointing a general tool at a specific job.
 
 ## 1. DinkyDash — free, open source, family-shaped
 
@@ -90,7 +90,7 @@ One thing worth knowing before you sign up: **the free plan does not include the
 
 ## 5. Skylight Calendar — buy the screen too
 
-If the real answer is that you want a finished object on the wall rather than a project, Skylight sells the hardware: $329.99 for the 15″ Calendar 2, $599.99 for the 27″ Calendar Max, with an optional Plus subscription at $79/year for chore rewards and meal planning.
+If the real answer is that you want a finished object on the wall rather than a project, Skylight sells the hardware: $299.99 for the 15″ Calendar 2, $599.99 for the 27″ Calendar Max, with an optional Plus subscription at $79/year for chore rewards and meal planning.
 
 It is the opposite trade to DAKboard — you spend money instead of time, and you get a touchscreen your family can actually tap. See our [Skylight alternatives page](/skylight-calendar-alternatives/) for the wider comparison, or the [subscription breakdown](/skylight-calendar-subscription/) for what Plus actually costs.
 

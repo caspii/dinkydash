@@ -1,0 +1,56 @@
+# Runs on every push and pull request. Two independent jobs, so a secret in a
+# commit and a broken test are separate red X's rather than one.
+name: Tests
+
+on: [push, pull_request]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: pytest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          # The version the Pi runs and the version the tests are written
+          # against. strftime("%-d") is glibc-specific, so this must stay Linux.
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+
+      # requirements-dev.txt pulls in requirements.txt, so this installs both.
+      - run: pip install -r requirements-dev.txt
+
+      - run: python -m pytest tests/ -q
+
+  gitleaks:
+    name: gitleaks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # Full history. gitleaks scans commits, not the working tree, so a
+          # shallow clone would only ever look at the tip.
+          fetch-depth: 0
+
+      # The upstream gitleaks-action is a bundled JavaScript blob under a
+      # commercial licence. gitleaks itself is MIT and ships a static binary,
+      # so run that instead — one fewer thing with a token in our CI. Pinned,
+      # for the same reason requirements.txt is.
+      - name: Install gitleaks
+        env:
+          GITLEAKS_VERSION: "8.30.1"
+        run: |
+          curl -fsSL -o /tmp/gitleaks.tar.gz \
+            "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          tar -xzf /tmp/gitleaks.tar.gz -C /usr/local/bin gitleaks
+          gitleaks version
+
+      # Rules and the one allowlisted public value live in .gitleaks.toml.
+      - run: gitleaks git --redact --exit-code 1 --config .gitleaks.toml .
