@@ -116,11 +116,72 @@ class TestStaleBoard:
         assert view["note"] == "An octopus fact"
 
 
+class TestTomorrow:
+    """Tomorrow tops up the agenda, but only with the rows today did not use."""
+
+    def test_a_quiet_today_is_topped_up_from_tomorrow(self):
+        data = payload("2026-09-03", [
+            event("2026-09-04", "09:00", "Term starts"),
+            event("2026-09-04", "14:15", "Dentist"),
+        ])
+        view = build_view(CONFIG, data, TODAY)
+        assert view["events"] == []
+        assert [e["title"] for e in view["tomorrow"]] == ["Term starts", "Dentist"]
+
+    def test_today_takes_the_rows_first(self):
+        data = payload("2026-09-03", [
+            event("2026-09-03", "08:20", "School run"),
+            event("2026-09-03", "15:45", "Swimming"),
+            event("2026-09-03", "18:00", "Football"),
+            event("2026-09-04", "09:00", "Term starts"),
+            event("2026-09-04", "14:15", "Dentist"),
+            event("2026-09-04", "16:30", "Piano"),
+        ])
+        view = build_view(CONFIG, data, TODAY)
+        assert len(view["events"]) == 3
+        # Two rows left in the budget of five, so only two of tomorrow's three.
+        assert [e["title"] for e in view["tomorrow"]] == ["Term starts", "Dentist"]
+
+    def test_a_full_today_crowds_tomorrow_out(self):
+        data = payload("2026-09-03", [
+            event("2026-09-03", f"{hour:02d}:00", f"Thing {hour}")
+            for hour in range(8, 13)
+        ] + [event("2026-09-04", "09:00", "Term starts")])
+        view = build_view(CONFIG, data, TODAY)
+        assert len(view["events"]) == 5
+        assert view["tomorrow"] == []
+
+    def test_tomorrow_stays_a_footnote_on_a_completely_empty_day(self):
+        # Nothing today and a packed tomorrow still reads as today's agenda.
+        data = payload("2026-09-03", [
+            event("2026-09-04", f"{hour:02d}:00", f"Thing {hour}")
+            for hour in range(8, 13)
+        ])
+        view = build_view(CONFIG, data, TODAY)
+        assert len(view["tomorrow"]) == 3
+
+    def test_the_day_after_tomorrow_is_not_included(self):
+        data = payload("2026-09-03", [
+            event("2026-09-04", "09:00", "Term starts"),
+            event("2026-09-05", "09:00", "Too far off"),
+        ])
+        view = build_view(CONFIG, data, TODAY)
+        assert [e["title"] for e in view["tomorrow"]] == ["Term starts"]
+
+    def test_a_stale_payload_still_knows_tomorrow(self):
+        # Yesterday's fetch reached 14 days ahead, so tomorrow is in it too.
+        data = payload("2026-09-02", [event("2026-09-04", "09:00", "Term starts")])
+        view = build_view(CONFIG, data, TODAY)
+        assert view["stale"] is True
+        assert [e["title"] for e in view["tomorrow"]] == ["Term starts"]
+
+
 class TestEmptyStates:
     def test_no_payload_at_all_is_the_waiting_screen(self):
         view = build_view(CONFIG, None, TODAY)
         assert view["state"] == "waiting"
         assert view["events"] == []
+        assert view["tomorrow"] == []
         # Chores and countdowns still work — they never needed the model.
         assert view["chores"]
         assert view["countdowns"]

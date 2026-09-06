@@ -7,12 +7,18 @@ generation fails, the times and turns on the wall are still today's — only the
 written line is yesterday's, and it says so.
 """
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from .calendars import events_on
 from .context import build_countdowns, compute_chore_assignments
 
+# The agenda's row budget, not just today's cap. Today fills it first and
+# tomorrow tops up whatever is left, so a quiet day stops leaving the column
+# half empty while a busy one is never made to shrink to fit.
 MAX_EVENTS = 5
+# Tomorrow stays a footnote even when today is empty, so the agenda always
+# reads as today's first.
+MAX_TOMORROW = 3
 MAX_COUNTDOWNS = 3
 
 
@@ -46,6 +52,7 @@ def build_view(config, payload, today):
         "chores": chores,
         "countdowns": countdowns,
         "events": [],
+        "tomorrow": [],
         "headline": "",
         "note": "",
         "stale": False,
@@ -55,8 +62,14 @@ def build_view(config, payload, today):
     if not payload:
         return view
 
-    events = events_on(payload.get("events") or [], today)[:MAX_EVENTS]
+    fetched = payload.get("events") or []
+    events = events_on(fetched, today)[:MAX_EVENTS]
     view["events"] = events
+    # The fetch reaches 14 days ahead, so tomorrow is in the payload even when
+    # it is a day old. Slots are what today did not use, which is why a busy
+    # day silently drops tomorrow rather than overflowing the panel.
+    slots = min(MAX_TOMORROW, MAX_EVENTS - len(events))
+    view["tomorrow"] = events_on(fetched, today + timedelta(days=1))[:slots] if slots else []
 
     stale = payload.get("generated_for_date") != today.isoformat()
     view["stale"] = stale
