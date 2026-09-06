@@ -169,9 +169,18 @@ If it can, it belongs in `board.build_view`, not the payload — that is what ke
 honest. The payload is for things only the generator can know.
 
 **Changing the board layout.** Everything is sized in `rem` off one root value, so check all three
-sizes at `/preview` rather than just the one you are looking at. Headless screenshots of a
-fixed-height board can drop the bottom of the frame; measure `scrollHeight` against the viewport
-before believing a clipping bug.
+sizes at `/preview` rather than just the one you are looking at.
+
+That root value is now *measured*, not guessed. A short script at the foot of `board.html` binary-
+searches the largest `html { font-size }` whose content still fits the viewport, capped at
+`min(26px, vh/24)`. The CSS `clamp()` stays as the no-JS fallback. Because `body` is
+`height:100vh;overflow:hidden`, nothing ever reports an overflow — so the script lets the page lay
+out freely for one measurement (`height:auto`) and puts it straight back.
+
+In two-column mode the body is a grid, and **the note sits under the agenda, not across the
+bottom**. The agenda is short on a quiet day while chores plus countdowns are not, so a full-width
+note left the lower left quarter of an 800x480 panel empty. Under the agenda it balances the two
+columns instead: on a five-event day the left column measures 311px against the side column's 312.
 
 ## Conventions
 
@@ -199,8 +208,15 @@ before believing a clipping bug.
 - Self-hosted mode has **no authentication**. Anyone who can reach the port can edit the config.
   That is the same trust model as the file it writes, but keep the port off the public internet.
 - `strftime("%-d")` is glibc-specific. Fine on a Pi and in CI; would need changing for Windows.
-- Headless-Chrome screenshots of the board can drop the bottom ~20% of the frame. It is a capture
-  artifact, not a layout bug — measure `scrollHeight` against the viewport before chasing it.
+- **Headless Chrome lies about the viewport.** `--window-size=800,480` renders into 800x393 — 87px
+  short — while `--screenshot` still writes an 800x480 PNG, so the bottom fifth looks empty when it
+  is simply not there. Add 87 to the height you want (`--window-size=800,567` gives a true 480), and
+  confirm it by reading `window.innerHeight` out of the page rather than trusting the flag. Chrome
+  also reuses a running instance unless each run gets its own `--user-data-dir`, which silently
+  makes every size in a loop return the first one's numbers.
+- The honest check is `scrot` over SSH on the Pi itself: a real 800x480 panel, a real kiosk browser,
+  no capture artifacts. The board refreshes itself every 5 minutes, so a change takes one refresh to
+  appear.
 
 ## Raspberry Pi Deployment
 

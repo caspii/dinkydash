@@ -18,7 +18,7 @@ This page covers the hardware side — which Pi, which screen, what it draws, wh
 - **Today's events**, pulled from Google Calendar or any calendar with an iCal link
 - **A chore chart** that rotates between family members automatically each day
 - **Countdowns** to birthdays, holidays and vacations
-- **A daily brief written by Claude** — a fresh greeting, fun fact and family challenge every morning, written around your actual family
+- **A daily brief written by Claude** — a fresh greeting and fun fact every morning, written around your actual family
 
 No touch interaction is required. It's a display, not an app — which is the point, and also why a modest Pi is plenty.
 

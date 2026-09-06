@@ -19,8 +19,8 @@ Every morning, DinkyDash merges your calendars into one agenda, works out whose 
 - Today's agenda, in time order, merged from as many iCal feeds as you like
 - Whose turn each chore is — rotated daily, nothing to tick off
 - Countdowns to birthdays, holidays and special dates
-- An AI-written headline, and one line that is some days a fact, some days a
-  challenge, some days about the dog
+- An AI-written headline, and one line that is some days a fact, some days
+  about the dog
 - Light or dark, chosen in the settings UI
 
 Configure all of it from your phone at `/settings`, or by editing `config.yaml` directly — they are

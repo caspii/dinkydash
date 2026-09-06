@@ -16,7 +16,7 @@ That means:
 
 - **No manual updates.** The dashboard writes itself.
 - **Always relevant.** It knows what day it is, who has events, and whose turn it is for chores.
-- **Genuinely fun.** Kids actually want to look at it because there's always something new — a fun fact, a daily challenge, a personalized message.
+- **Genuinely fun.** Kids actually want to look at it because there's always something new — a fun fact, a line about the pet, a personalized message.
 
 ## A typical DinkyDash morning
 
@@ -27,7 +27,7 @@ Imagine it's a Tuesday in November. Your family wakes up and walks past the dash
 - A [countdown](/birthday-countdown/): 28 days until Christmas, 5 days until Dad's birthday
 - Today's calendar in time order, merged from both parents' feeds: school pickup at 3pm, swimming at 5pm, dinner at grandma's at 7pm
 - A fun fact about space that Sam will probably talk about all day
-- A daily challenge: "Try to make someone laugh before breakfast"
+- A line about the dog: "Buddy has claimed the warm patch by the radiator again"
 
 All of this was written by AI at 6am, specifically for your family, for this exact day.
 
@@ -47,7 +47,7 @@ By pulling events from Google Calendar, the dashboard shows what everyone has go
 
 **4. It brings a little joy**
 
-The AI-generated fun facts and daily challenges give your family something to talk about at breakfast. It's a small thing, but it makes mornings a bit more interesting.
+The AI-generated fun facts give your family something to talk about at breakfast. It's a small thing, but it makes mornings a bit more interesting.
 
 **5. It's completely private**
 
