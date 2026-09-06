@@ -373,7 +373,7 @@
       "name": "Can I keep my family's data on my own machine?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "With a self-hosted option, yes. DinkyDash, MagicMirror\u00b2 and Home Assistant all run on your own hardware, so your calendar and family details stay there. DAKboard, Mango Display, Skylight and Hearth all store your data on their servers."
+        "text": "With a self-hosted option, yes. DinkyDash, MagicMirror\u00b2 and Home Assistant all run on your own hardware, so your config and family details stay there. One exception worth knowing: DinkyDash sends the day's agenda to Anthropic each morning to write the daily note. DAKboard, Mango Display, Skylight and Hearth all store your data on their servers."
       }
     }
   ]
@@ -420,7 +420,7 @@
 <tbody>
 <tr>
 <td><strong>DinkyDash</strong></td>
-<td>$0</td>
+<td>$0 self-hosted; $39/yr hosted</td>
 <td>Bring your own</td>
 <td>Yes</td>
 <td>Yes (MIT)</td>
@@ -478,10 +478,11 @@
 <h2>1. DinkyDash — free, open source, family-shaped</h2>
 <p>Full disclosure: DinkyDash is our project, so treat this entry accordingly — the rest of the page is written to be useful whether or not you pick it.</p>
 <p>DinkyDash turns any TV, tablet, Raspberry Pi or spare monitor into a family calendar. It shows today's events from any iCal link, a chore chart that rotates between kids automatically, countdowns to birthdays and holidays, and <strong>a daily brief written by AI every morning</strong> — a fresh greeting written around your family's actual day. No other option on this page does that last one.</p>
-<p><img alt="The DinkyDash board on an 800x480 panel, showing today's agenda, whose turn each chore is, countdowns, and the AI-written daily note" src="/images/dinkydash-board-screenshot.webp" width="1600" height="960" decoding="async" loading="lazy" /></p>
-<p>It is MIT-licensed and free, with no paid tier and no screen limit for the self-hosted version. Your calendar and your family's details stay on your own machine; nothing is stored on our servers because there are no servers.</p>
-<p>The trade-off is real: you set it up yourself, which means an afternoon and some comfort with a terminal. Our <a href="/getting-started/">getting started guide</a> has copy-paste commands, and a zero-setup hosted version is <a href="https://fffwryhvses.typeform.com/to/yxMMhmFs">in the works</a>.</p>
-<p><strong>Best for:</strong> families who want $0, the source, and a calendar that is already family-shaped out of the box.</p>
+<p><img alt="The DinkyDash board showing today's agenda, whose turn each chore is, countdowns to birthdays and holidays, and the AI-written daily note" src="/images/family-dashboard-board.webp" width="1600" height="960" decoding="async" loading="lazy" /></p>
+<p>It is MIT-licensed, and self-hosting it is free forever, with no paid tier and no screen limit. Run it yourself and your config — names, birthdays, calendar links — stays on your own machine. To be precise about the one thing that does leave: the day's agenda is sent to Anthropic each morning to write the note. You can try the whole thing without an API key first — there is a no-key preview in the <a href="/getting-started/">setup guide</a> — but the daily brief is the part that needs one.</p>
+<p>The trade-off is real: self-hosting means an afternoon and some comfort with a terminal. Our <a href="/getting-started/">getting started guide</a> has copy-paste commands. The only running cost is your own Anthropic key for the daily brief — about $0.13 a month, and well under $1.</p>
+<p>If that is the wrong trade for you, a hosted version is in build at <strong>$39/year or $6/month</strong>, with a 14-day trial and no card up front. The first 100 people on the waiting list pay $29/year, locked in for as long as they stay subscribed — <a href="https://fffwryhvses.typeform.com/to/yxMMhmFs">join the list</a>.</p>
+<p><strong>Best for:</strong> families who want the source and a calendar that is already family-shaped out of the box — free if you run it yourself, cheap if you would rather not.</p>
 <h2>2. MagicMirror² — the open-source module platform</h2>
 <p>MagicMirror² is the other big open-source name in this space, MIT-licensed and built around a large community module ecosystem. Calendar, weather, transit, news, photos — if somebody wanted it on a wall, a module probably exists.</p>
 <p>It is the closest thing to DAKboard in philosophy: a general display you compose yourself. That also means it asks more of you than DinkyDash does, because a fresh install is a blank frame and the useful part is choosing and configuring modules. It runs happily on a Raspberry Pi and has done for years.</p>
@@ -513,11 +514,15 @@
 <tbody>
 <tr>
 <td><strong>DinkyDash (self-hosted)</strong></td>
-<td><strong>~$7–14</strong> — the Anthropic API key for the daily brief, about $0.20–0.40/month. $0 without it</td>
+<td><strong>~$5</strong> — your own Anthropic key for the daily brief, about $0.13/month</td>
 </tr>
 <tr>
 <td><strong>MagicMirror² / Home Assistant</strong></td>
 <td><strong>$0</strong></td>
+</tr>
+<tr>
+<td>DinkyDash (hosted)</td>
+<td>~$117, or ~$87 at the waiting-list price</td>
 </tr>
 <tr>
 <td>DAKboard Essential</td>
@@ -553,10 +558,11 @@
 <p>If those matter more than price or source, stay where you are. That is a reasonable answer.</p>
 <h2>Which one should you pick?</h2>
 <ul>
-<li><strong>Want $0, the source code, and a family calendar that works out of the box:</strong> <a href="/getting-started/">DinkyDash</a></li>
+<li><strong>Want $0, the source code, and a family calendar that works out of the box:</strong> <a href="/getting-started/">DinkyDash, self-hosted</a></li>
 <li><strong>Want DAKboard's flexibility for free, and enjoy configuring things:</strong> MagicMirror²</li>
 <li><strong>Already running Home Assistant:</strong> add a dashboard, don't add a service</li>
-<li><strong>Want zero setup and will pay for it:</strong> Mango Display Pro — budget for Pro, not the free tier</li>
+<li><strong>Want the same board without the terminal:</strong> <a href="https://fffwryhvses.typeform.com/to/yxMMhmFs">the hosted DinkyDash waiting list</a> — $39/year, or $29 for the first 100</li>
+<li><strong>Want zero setup today, and will pay for it:</strong> Mango Display Pro — budget for Pro, not the free tier, which has no calendar</li>
 <li><strong>Want a finished touchscreen on the wall:</strong> Skylight, or Hearth if mornings are the problem</li>
 <li><strong>Want maximum layout control with support behind it:</strong> stay on DAKboard</li>
 </ul>

@@ -15,7 +15,7 @@ faq:
   - q: "What is the best DAKboard alternative for a Raspberry Pi?"
     a: "DinkyDash and MagicMirror² both run on a Raspberry Pi and are free and open source. DinkyDash is a family calendar with a chore rotation and countdowns and needs no modules to be useful. MagicMirror² is a general module platform, so it is more flexible and takes longer to set up."
   - q: "Can I keep my family's data on my own machine?"
-    a: "With a self-hosted option, yes. DinkyDash, MagicMirror² and Home Assistant all run on your own hardware, so your calendar and family details stay there. DAKboard, Mango Display, Skylight and Hearth all store your data on their servers."
+    a: "With a self-hosted option, yes. DinkyDash, MagicMirror² and Home Assistant all run on your own hardware, so your config and family details stay there. One exception worth knowing: DinkyDash sends the day's agenda to Anthropic each morning to write the daily note. DAKboard, Mango Display, Skylight and Hearth all store your data on their servers."
 ---
 
 DAKboard has been the go-to wall display for tinkerers for years, and it earned that. But plenty of people go looking for something else — usually because the free tier is tighter than expected, because they want the source, or because they want a family calendar rather than a general-purpose dashboard.
@@ -28,7 +28,7 @@ This page compares six alternatives on the things that actually decide it: what 
 
 | Alternative | Software cost | Hardware | Self-hosted? | Open source? |
 |---|---|---|---|---|
-| **DinkyDash** | $0 | Bring your own | Yes | Yes (MIT) |
+| **DinkyDash** | $0 self-hosted; $39/yr hosted | Bring your own | Yes | Yes (MIT) |
 | **MagicMirror²** | $0 | Bring your own | Yes | Yes (MIT) |
 | **Home Assistant** | $0 | Bring your own | Yes | Yes (Apache 2.0) |
 | **Mango Display** | Free tier; Pro $5.99/mo | Bring your own | No | No |
@@ -54,13 +54,15 @@ Full disclosure: DinkyDash is our project, so treat this entry accordingly — t
 
 DinkyDash turns any TV, tablet, Raspberry Pi or spare monitor into a family calendar. It shows today's events from any iCal link, a chore chart that rotates between kids automatically, countdowns to birthdays and holidays, and **a daily brief written by AI every morning** — a fresh greeting written around your family's actual day. No other option on this page does that last one.
 
-![The DinkyDash board on an 800x480 panel, showing today's agenda, whose turn each chore is, countdowns, and the AI-written daily note](/images/dinkydash-board-screenshot.webp)
+![The DinkyDash board showing today's agenda, whose turn each chore is, countdowns to birthdays and holidays, and the AI-written daily note](/images/family-dashboard-board.webp)
 
-It is MIT-licensed and free, with no paid tier and no screen limit for the self-hosted version. Your calendar and your family's details stay on your own machine; nothing is stored on our servers because there are no servers.
+It is MIT-licensed, and self-hosting it is free forever, with no paid tier and no screen limit. Run it yourself and your config — names, birthdays, calendar links — stays on your own machine. To be precise about the one thing that does leave: the day's agenda is sent to Anthropic each morning to write the note. You can try the whole thing without an API key first — there is a no-key preview in the [setup guide](/getting-started/) — but the daily brief is the part that needs one.
 
-The trade-off is real: you set it up yourself, which means an afternoon and some comfort with a terminal. Our [getting started guide](/getting-started/) has copy-paste commands, and a zero-setup hosted version is [in the works](https://fffwryhvses.typeform.com/to/yxMMhmFs).
+The trade-off is real: self-hosting means an afternoon and some comfort with a terminal. Our [getting started guide](/getting-started/) has copy-paste commands. The only running cost is your own Anthropic key for the daily brief — about $0.13 a month, and well under $1.
 
-**Best for:** families who want $0, the source, and a calendar that is already family-shaped out of the box.
+If that is the wrong trade for you, a hosted version is in build at **$39/year or $6/month**, with a 14-day trial and no card up front. The first 100 people on the waiting list pay $29/year, locked in for as long as they stay subscribed — [join the list](https://fffwryhvses.typeform.com/to/yxMMhmFs).
+
+**Best for:** families who want the source and a calendar that is already family-shaped out of the box — free if you run it yourself, cheap if you would rather not.
 
 ## 2. MagicMirror² — the open-source module platform
 
@@ -106,8 +108,9 @@ Software only, assuming you already own a screen. Annual billing where offered.
 
 | | Three-year software cost |
 |---|---|
-| **DinkyDash (self-hosted)** | **~$7–14** — the Anthropic API key for the daily brief, about $0.20–0.40/month. $0 without it |
+| **DinkyDash (self-hosted)** | **~$5** — your own Anthropic key for the daily brief, about $0.13/month |
 | **MagicMirror² / Home Assistant** | **$0** |
+| DinkyDash (hosted) | ~$117, or ~$87 at the waiting-list price |
 | DAKboard Essential | ~$180 |
 | Mango Display Pro | ~$180 |
 | DAKboard Plus | ~$288 |
@@ -128,10 +131,11 @@ If those matter more than price or source, stay where you are. That is a reasona
 
 ## Which one should you pick?
 
-- **Want $0, the source code, and a family calendar that works out of the box:** [DinkyDash](/getting-started/)
+- **Want $0, the source code, and a family calendar that works out of the box:** [DinkyDash, self-hosted](/getting-started/)
 - **Want DAKboard's flexibility for free, and enjoy configuring things:** MagicMirror²
 - **Already running Home Assistant:** add a dashboard, don't add a service
-- **Want zero setup and will pay for it:** Mango Display Pro — budget for Pro, not the free tier
+- **Want the same board without the terminal:** [the hosted DinkyDash waiting list](https://fffwryhvses.typeform.com/to/yxMMhmFs) — $39/year, or $29 for the first 100
+- **Want zero setup today, and will pay for it:** Mango Display Pro — budget for Pro, not the free tier, which has no calendar
 - **Want a finished touchscreen on the wall:** Skylight, or Hearth if mornings are the problem
 - **Want maximum layout control with support behind it:** stay on DAKboard
 
