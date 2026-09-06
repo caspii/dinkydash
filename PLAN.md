@@ -158,7 +158,7 @@ Roughly 2,500 input / 350 output tokens per family per day:
 | Sonnet 5 | ~$0.39 | ~$0.19 |
 | Opus 5 | ~$0.64 | ~$0.32 |
 
-At $5/mo, AI is 4–8% of revenue on Sonnet. Three notes:
+At $6/mo, AI is 3–7% of revenue on Sonnet. Three notes:
 
 - ~~Config still pins `claude-sonnet-4-5-20250929`~~ — now `claude-haiku-4-5`
 - **Sonnet 5 runs adaptive thinking by default**, which eats into `max_tokens: 2048` and can truncate the JSON. Set `thinking` explicitly.
