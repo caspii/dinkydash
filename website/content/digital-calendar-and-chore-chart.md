@@ -25,12 +25,13 @@ Nobody negotiates with a screen. The rotation is provably fair (it cycles throug
 | Option | Cost | Chore features |
 |---|---|---|
 | **DinkyDash** (screen you own) | Free, open source | Automatic daily rotation |
-| **Skylight Calendar** | $329.99–$599.99 | Chore chart free; rewards need Plus ($79/yr) |
+| **DAKboard** (screen you own) | Free tier; $6–10/mo | Chore columns per child, points and rewards — paid plans only |
+| **Skylight Calendar** | $299.99–$599.99 | Chore chart free; rewards need Plus ($79/yr) |
 | **Hearth Display** | $699 + $9/mo ($86.40/yr) | Routines and task assignments |
 
-*Prices checked September 2026.*
+*Prices checked 6 September 2026.*
 
-Skylight and Hearth both do chores well — that's part of why families pay for them. But if the hardware price is the obstacle, the free route gets you the core loop (visible chores, fair rotation, zero nagging) on a screen you already own. Our [DIY guide](/diy-skylight-calendar/) shows the whole build, and the [getting started guide](/getting-started/) has the copy-paste setup.
+Skylight, Hearth and DAKboard all do chores well — that's part of why families pay for them. But if the price is the obstacle, the free route gets you the core loop (visible chores, fair rotation, zero nagging) on a screen you already own. Our [DIY guide](/diy-skylight-calendar/) shows the whole build, and the [getting started guide](/getting-started/) has the copy-paste setup.
 
 ## The countdown trick
 
