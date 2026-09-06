@@ -16,7 +16,7 @@ The good news: you have real options — including some that cost nothing becaus
 |---|---|---|---|
 | **DinkyDash** | $0 | None — open source | Yes |
 | **Mango Display** | $0 | Free tier; Pro $5.99/mo | Yes |
-| **DAKboard** | $0 | Free tier; $5–8/mo | Yes |
+| **DAKboard** | $0 | Free tier; $6–10/mo | Yes |
 | **Hearth Display** | $699 | $9/mo | No |
 | **Cozyla** | Varies by size | Advertises no monthly fees | No |
 | **Cozi** | $0 (phone app) | Free with ads | No wall display |
@@ -40,7 +40,7 @@ Mango Display is a commercial take on the same idea: install their app on a smar
 
 ## 3. DAKboard — the customizable wall display veteran
 
-DAKboard has been the DIY wall-display favorite for years — calendars, photos, weather, and news on any screen, with deep layout customization. Free for a basic screen; $5–8/month unlocks custom layouts and multiple screens. It's more "information display" than "family organizer" — there's no chore system aimed at kids.
+DAKboard has been the DIY wall-display favorite for years — calendars, photos, weather, and news on any screen, with deep layout customization. Free for one predefined screen with two calendars; $6/month (or $5 billed annually) unlocks custom layouts, and $10/month adds unlimited calendars. It's more "information display" than "family organizer." If it's the one you're weighing up, we compared it properly on the [DAKboard alternatives page](/dakboard-alternatives/).
 
 **Best for:** data-dense household dashboards and tinkerers who want full layout control.
 

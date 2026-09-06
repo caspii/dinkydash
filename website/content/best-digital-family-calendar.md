@@ -27,7 +27,7 @@ A family calendar display is, mechanically, a screen showing a web page. If a sp
 
 **Mango Display (free tier; Pro $5.99/mo)** — commercial BYO-screen software with polished apps for smart TVs and tablets. The no-DIY version of this path.
 
-**DAKboard (free tier; $5–8/mo)** — the veteran customizable wall display. Enormous flexibility, more "information dashboard" than "family organizer."
+**DAKboard (free tier; $6–10/mo)** — the veteran customizable wall display. Enormous flexibility, more "information dashboard" than "family organizer." The free tier is narrower than it looks — one predefined screen and two calendars — so see the [DAKboard alternatives comparison](/dakboard-alternatives/) before committing.
 
 ## How to decide
 
@@ -45,8 +45,8 @@ A family calendar display is, mechanically, a screen showing a web page. If a sp
 | Cozyla | Varies | $0 | Pay-once hardware |
 | DinkyDash | $0 (your screen) | $0 | AI daily brief, open source |
 | Mango Display | $0 (your screen) | $0–72/yr | Easiest BYO-screen |
-| DAKboard | $0 (your screen) | $0–96/yr | Deep customization |
+| DAKboard | $0 (your screen) | $0–120/yr | Deep customization |
 
-*Prices checked July 2026.*
+*Skylight, Hearth, Cozyla and Mango prices checked July 2026; DAKboard checked September 2026.*
 
 Whichever path you take: the win isn't the gadget, it's the behavior change — the family checking one shared screen instead of asking one exhausted parent. The cheapest way to test whether that works in your house is [the free one](/getting-started/).

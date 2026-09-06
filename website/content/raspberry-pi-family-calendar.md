@@ -110,4 +110,6 @@ Everything you need is in the [setup guide](/getting-started/) — install, conf
 
 The code is on [GitHub](https://github.com/caspii/dinkydash) under an MIT licence. Stars and issues welcome.
 
+Weighing this up against DAKboard or MagicMirror² on the same Pi? We compared them on price, self-hosting and licence on the [DAKboard alternatives page](/dakboard-alternatives/).
+
 Want the dashboard without the Pi? A hosted version is coming — [join the waitlist](https://fffwryhvses.typeform.com/to/yxMMhmFs).

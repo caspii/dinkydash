@@ -103,6 +103,9 @@ There's nothing to tap. It's a read-only display — events are edited in Google
 **Is DIY actually worth it versus just buying one?**
 If your time is worth more than about $500 an evening, no. If you already own a spare screen, enjoy this sort of project, or specifically want your family's data staying on your own hardware, yes. Both are reasonable — see [all the Skylight alternatives](/skylight-calendar-alternatives/) including no-setup options.
 
+**What about DAKboard or MagicMirror²?**
+Both are established ways to put a dashboard on a wall, and both are worth a look if you want more layout control than DinkyDash gives you. The short version: MagicMirror² is free and open source but starts as a blank frame, and DAKboard is polished but is a paid hosted service rather than something you self-host. We compared all of them on the [DAKboard alternatives page](/dakboard-alternatives/).
+
 ## Start here
 
 If you can copy commands into a terminal, you can have this on your kitchen wall by Sunday: **[the complete setup guide](/getting-started/)**. Buying hardware for it? Start with the [Raspberry Pi build guide](/raspberry-pi-family-calendar/).
