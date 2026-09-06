@@ -1,10 +1,10 @@
 ---
 title: The 7 Best Skylight Calendar Alternatives in 2026
 template: page.html
-description: Looking for a Skylight Calendar alternative without the $299–$629 price tag or the $79/year subscription? Here are 7 options — including free ones that run on screens you already own.
+description: Looking for a Skylight Calendar alternative without the $329.99–$599.99 price tag or the $79/year subscription? Here are 7 options — including free ones that run on screens you already own.
 ---
 
-The Skylight Calendar is a lovely idea: your family's schedule, big and glanceable, on the kitchen wall. But between the hardware ($299 for the 15″ Calendar 2, $629 for the 27″ Calendar Max) and the optional $79/year Plus subscription for features like meal planning and chore rewards, plenty of families go looking for alternatives before checking out.
+The Skylight Calendar is a lovely idea: your family's schedule, big and glanceable, on the kitchen wall. But between the hardware ($329.99 for the 15″ Calendar 2, $599.99 for the 27″ Calendar Max) and the optional $79/year Plus subscription for features like meal planning and chore rewards, plenty of families go looking for alternatives before checking out.
 
 The good news: you have real options — including some that cost nothing because they run on a screen you already own.
 
@@ -16,13 +16,13 @@ The good news: you have real options — including some that cost nothing becaus
 |---|---|---|---|
 | **DinkyDash** | $0 | None — open source | Yes |
 | **Mango Display** | $0 | Free tier; Pro $5.99/mo | Yes |
-| **DAKboard** | $0 | Free tier; $5–8/mo | Yes |
-| **Hearth Display** | $699 | $9/mo | No |
-| **Cozyla** | Varies by size | Advertises no monthly fees | No |
+| **DAKboard** | $0 | Free tier; $5–10/mo | Yes |
+| **Hearth Display** | $699 | $9/mo ($86.40/yr) | No |
+| **Cozyla** | From $169.99 | Advertises no monthly fees | No |
 | **Cozi** | $0 (phone app) | Free with ads | No wall display |
 | **Google Calendar on an old tablet** | $0 | None | Yes |
 
-*Prices checked July 2026 — always confirm current pricing before buying.*
+*Prices checked September 2026 — always confirm current pricing before buying.*
 
 ## 1. DinkyDash — free, open source, and AI-powered
 
@@ -34,25 +34,25 @@ It's MIT-licensed and free. The trade-off: today you set it up yourself, which m
 
 ## 2. Mango Display — polished BYO-screen software
 
-Mango Display is a commercial take on the same idea: install their app on a smart TV, Fire TV, or tablet and it renders a calendar-centric smart display with widgets for photos, weather, and to-dos. There's a free tier, and the Pro plan is $5.99/month.
+Mango Display is a commercial take on the same idea: install their app on a smart TV, Fire TV, or tablet and it renders a calendar-centric smart display with widgets for photos, weather, and to-dos. There's a free tier (two screens), and the Pro plan is $5.99/month, or $59.99 a year.
 
 **Best for:** families who want bring-your-own-screen without any DIY at all.
 
 ## 3. DAKboard — the customizable wall display veteran
 
-DAKboard has been the DIY wall-display favorite for years — calendars, photos, weather, and news on any screen, with deep layout customization. Free for a basic screen; $5–8/month unlocks custom layouts and multiple screens. It's more "information display" than "family organizer" — there's no chore system aimed at kids.
+DAKboard has been the DIY wall-display favorite for years — calendars, photos, weather, and news on any screen, with deep layout customization. Free for a basic screen; $5–10/month unlocks custom layouts and multiple screens. It's more "information display" than "family organizer" — there's no chore system aimed at kids.
 
 **Best for:** data-dense household dashboards and tinkerers who want full layout control.
 
 ## 4. Hearth Display — the premium hardware rival
 
-If what you actually want is *nicer* dedicated hardware, Hearth's 27″ portrait display ($699 + $9/month membership) focuses on routines and visual schedules — it's especially popular with ADHD and neurodivergent families. It costs more than Skylight over time, but the routine-building features are genuinely different. See our full [Hearth vs Skylight comparison](/hearth-vs-skylight/).
+If what you actually want is *nicer* dedicated hardware, Hearth's 27″ portrait display ($699 + $9/month, or $86.40 a year) focuses on routines and visual schedules — it's especially popular with ADHD and neurodivergent families. It costs more than Skylight over time, but the routine-building features are genuinely different. See our full [Hearth vs Skylight comparison](/hearth-vs-skylight/).
 
 **Best for:** families who want routines and to-dos front and center, and don't mind the price.
 
 ## 5. Cozyla — hardware without the monthly fee
 
-Cozyla sells digital calendar displays that advertise no monthly fees — the feature set that Skylight puts behind Plus (like AI-assisted event import) is included. Build quality and app polish get mixed reviews compared to Skylight, but "pay once" is a compelling pitch.
+Cozyla sells digital calendar displays from $169.99 that advertise no monthly fees — the feature set that Skylight puts behind Plus (like AI-assisted event import) is included. Build quality and app polish get mixed reviews compared to Skylight, but "pay once" is a compelling pitch.
 
 **Best for:** families set on dedicated hardware who refuse subscriptions.
 

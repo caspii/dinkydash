@@ -5,7 +5,7 @@ template: page.html
 description: How to build your own Skylight-style digital family calendar with a Raspberry Pi or an old tablet — free, open-source software, no subscription, about $100 in hardware (or $0 if you have a spare screen).
 ---
 
-A Skylight Calendar Max costs $629, plus $79 a year if you want the Plus features. The thing is, a digital family calendar is fundamentally *a screen showing a web page* — and that's something you can build yourself for about $100 with a Raspberry Pi, or for **$0** with a tablet you already own.
+A Skylight Calendar Max costs $599.99, plus $79 a year if you want the Plus features. The thing is, a digital family calendar is fundamentally *a screen showing a web page* — and that's something you can build yourself for about $100 with a Raspberry Pi, or for **$0** with a tablet you already own.
 
 Here's exactly how, using [DinkyDash](https://github.com/caspii/dinkydash), our free and open-source family calendar software.
 
@@ -20,7 +20,7 @@ Your DIY calendar shows everything on one glanceable screen, refreshed automatic
 - **Countdowns** to birthdays, holidays, and vacations
 - **A daily brief written by AI** — a fresh greeting and fun fact every single morning, personalized to your family
 
-That last one is something even the $629 hardware doesn't do.
+That last one is something even the $600 hardware doesn't do.
 
 Want to see the countdown part before you build anything? Our [birthday countdown](/birthday-countdown/) runs in a browser tab, free and without a sign-up.
 
@@ -42,7 +42,7 @@ Before spending anything, prop up an old tablet or spare monitor in the kitchen 
 
 This sounds like a hedge, but it's the single most useful thing you can do. A family calendar only works if it's somewhere everyone walks past at the right time of day, and you will almost certainly get that spot wrong on the first try. Finding out with a tablet on a cookbook stand costs nothing. Finding out after mounting a Pi behind drywall is annoying.
 
-If it sticks, buy the hardware. If it doesn't, you've lost an evening instead of $629.
+If it sticks, buy the hardware. If it doesn't, you've lost an evening instead of $600.
 
 ## The build, in five steps
 
@@ -74,14 +74,14 @@ A cheap tablet wall mount, a picture ledge, or a small easel stand all work. Non
 
 | | Skylight Calendar Max | DIY with DinkyDash |
 |---|---|---|
-| Hardware | $629 | $0–130 |
+| Hardware | $599.99 | $0–130 |
 | Subscription | $79/yr for Plus features | None |
-| Three-year cost | ~$866 | ~$0–130 |
+| Three-year cost | ~$837 | ~$0–130 |
 | Your data | Their cloud | Your device |
 | AI daily brief | No | Yes |
 | Fixable/customizable | No | It's your code |
 
-*Prices checked July 2026.*
+*Prices checked September 2026.*
 
 ## Questions people ask
 
