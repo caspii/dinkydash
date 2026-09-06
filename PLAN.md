@@ -10,7 +10,7 @@ Companion to [STRATEGY.md](STRATEGY.md), which covers positioning, pricing ancho
 
 Turn DinkyDash from a single-family Raspberry Pi app into a hosted product a non-technical parent can sign up for and have running on a kitchen screen in under five minutes — without giving up the open-source repo that feeds the funnel.
 
-**Target:** ~$5/month or $39/year, 14-day trial, no card up front.
+**Target:** $39/year (or $6/month), 14-day trial, no card up front. Full structure and reasoning in [STRATEGY.md](STRATEGY.md#pricing-structure-settled-september-2026).
 
 ---
 
@@ -23,7 +23,7 @@ Turn DinkyDash from a single-family Raspberry Pi app into a hosted product a non
 | 3 | **No Google OAuth.** iCal URL paste only, with **multiple calendars per family**. | OAuth needs a Google verification review measured in weeks. Multiple feeds (one per parent) also replaces the broken attendee filter properly. |
 | 4 | **Screen access via unguessable URL.** No pairing code. | Simplicity. Constrains token length — see Architecture below. |
 | 5 | **Dashboard renders to landing-page parity.** Person cards + real time-ordered agenda. Emoji/color avatars, no photo uploads. | It's what waitlist signups were shown. Emoji avatars delete storage, moderation, EXIF-stripping, and image resizing from the MVP. |
-| 6 | **14-day trial, no card up front.** Then $5/mo or $39/yr. No permanent free tier. | Every free family costs real Anthropic money daily, forever. |
+| 6 | **14-day trial, no card up front.** Then $39/yr, or $6/mo for the month-to-month case. One plan, unlimited people, chores, calendars and screens. No permanent free tier. | Annual is the shape of the purchase and pays one Stripe fee instead of twelve; $39 is half of Skylight Plus. Every free family costs real Anthropic money daily, forever. |
 | 7 | **Stripe direct.** | Reuse of existing KeepTheScore setup. See open questions re: EU VAT. |
 | 8 | **Fork KeepTheScore's privacy policy and ToS** as the starting point. | Faster than drafting; same jurisdiction and entity. |
 | 9 | **Self-hosting stays, community-supported only.** | See below. |
