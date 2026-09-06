@@ -553,7 +553,6 @@ tail -f /home/pi/dinkydash/generate.log   # last night's generation
 | `dashboard_data.json` | The generated payload (not in git) |
 | `content_history.json` | Recent notes, so the model doesn't repeat itself (not in git) |
 | `PLAN.md` | Hosted MVP architecture and build phases |
-| `STRATEGY.md` | Positioning, pricing, and SEO |
 
 ## Contributing
 

@@ -21,7 +21,9 @@ it, with self-hosting as the second mode of one codebase. Both facts constrain e
 Before making structural changes, read:
 
 - [PLAN.md](PLAN.md) — hosted MVP architecture, phases, settled decisions, open questions
-- [STRATEGY.md](STRATEGY.md) — positioning, pricing, SEO
+- the strategy document — positioning, pricing, SEO. Not in the repo by policy: it is a Linear
+  document on the Dinky Dash team. See [Strategy and marketing live in
+  Linear](#strategy-and-marketing-live-in-linear).
 - [design/](design/) — mockups for the settings UI and the board, with the reasoning
 
 ## This is a public repo
@@ -55,6 +57,36 @@ in every clone and fork after the commit that removes it, so the fix is rotation
   Pi, because `deploy_to_pi.sh` rsyncs it — rotating a key means changing it in both places.
 - **A new dependency is a supply-chain decision** in an app holding other families' calendars.
   Prefer the standard library; justify anything else in the PR.
+
+### Strategy and marketing live in Linear
+
+**Commercial intent is not repo content.** Positioning, pricing reasoning, SEO and keyword research,
+competitor analysis, funnel thinking and launch plans live as Linear documents on the **Dinky Dash
+(`DIN`)** team. This holds for features and documentation too: *what* something does and *how* it is
+built is written here; *why it earns money* is written there. A feature note that argues for a
+conversion rate is in the wrong place, whatever file it is in.
+
+The line to hold:
+
+- **Here** — architecture, the two modes, code, tests, what a self-hoster needs to run it, and the
+  marketing site's own source in `website/`. Shipped public artefacts, and the engineering behind
+  them.
+- **In Linear** — prices and the argument for them, keyword volumes and competitor tables, revenue
+  targets, cost-per-family models, and anything framing this repo as top of a funnel.
+
+The shop window is the exception, and only the window. The README may state the hosted price and
+link the waitlist, and `website/` is a marketing site by definition. What must not appear is the
+*reasoning* behind either — the number is public, the case for the number is not.
+
+New strategy docs are written to a temporary file and pushed straight to Linear, never through the
+working tree where a stray `git add` can catch them:
+
+```bash
+linear document create --team DIN --title "..." --content-file /tmp/note.md
+```
+
+Relative links like `[PLAN.md](PLAN.md)` break once a document is in Linear. Rewrite them to full
+`https://github.com/caspii/dinkydash/blob/main/...` URLs before uploading.
 
 ### Handling other people's data
 
