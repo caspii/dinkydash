@@ -169,6 +169,8 @@ Yesterday's fetch reached 14 days ahead, so today's agenda is still in it. The s
 replaced by a computed one (`"3 things on today, starting at 08:20."`) because a day-old AI headline
 can be actively wrong.
 
+That same 14-day window is where **tomorrow's** agenda comes from, so it survives a failed run too.
+
 ### The daily cycle
 
 ```
@@ -280,6 +282,27 @@ searches the largest `html { font-size }` whose content still fits the viewport,
 `height:100vh;overflow:hidden`, nothing ever reports an overflow — so the script lets the page lay
 out freely for one measurement (`height:auto`) and puts it straight back.
 
+It re-fits on `document.fonts.ready` as well as on resize, and that is not optional. Nunito arrives
+after the first paint and sets taller lines than the system fallback, so a size measured before it
+lands can overflow once it swaps in — measured at 557px of content in a 480px panel. The board only
+looks right because it re-measures when the font arrives.
+
+**The agenda's row budget.** `MAX_EVENTS = 5` is the budget for the whole agenda, not today's cap.
+Today fills it first; tomorrow tops up whatever is left, capped again at `MAX_TOMORROW = 3` so it
+stays a footnote even on an empty day. A five-event day therefore renders exactly as it did before
+tomorrow existed. This is what "if there is space" means in code — a fixed row count, decided by a
+pure function, rather than a layout measurement.
+
+What those rows cost depends on which column is taller, so measure against a real config rather
+than `config.example.yaml`. In two-column mode the side column (chores plus countdowns) usually
+sets the page height, and the agenda grows into slack it was already wasting. On a config with
+three chores and four birthdays the 800x480 root moves 14.23px -> 14.10px on a three-event day —
+under 1% — and 14.23px -> 13.32px on a quiet one. The two-chore example config has a shorter side
+column, so there the agenda *is* the constraint and the same change costs 8% and 13%. The stacked
+single-column layout (an iPad in portrait) has no side column to hide behind and always pays the
+full price, around 13-18%. Everything fits at all three sizes in every case. Raising either
+constant spends more type size, so measure at `/preview` before you do.
+
 In two-column mode the body is a grid, and **the note sits under the agenda, not across the
 bottom**. The agenda is short on a quiet day while chores plus countdowns are not, so a full-width
 note left the lower left quarter of an 800x480 panel empty. Under the agenda it balances the two
@@ -337,6 +360,14 @@ written steps are what people see.
   confirm it by reading `window.innerHeight` out of the page rather than trusting the flag. Chrome
   also reuses a running instance unless each run gets its own `--user-data-dir`, which silently
   makes every size in a loop return the first one's numbers.
+- **Do not trust `--window-size` for layout work at all.** Even with the +87 correction it has been
+  seen to ignore the flag and report a 756x469 viewport, which silently puts the board on the wrong
+  side of the `3/2` media query. Size the page with an **iframe of exactly the target dimensions**
+  instead, the way `/preview` already does, and read the numbers out of `iframe.contentWindow`. That
+  is deterministic; the flag is not.
+- **The board's `<meta http-equiv="refresh">` stops headless Chrome ever exiting.** `--screenshot`
+  and `--dump-dom` both hang until the timeout, though they do write their output first. Strip the
+  tag when rendering a copy for measurement, and wrap the call in `timeout` regardless.
 - The honest check is `scrot` over SSH on the Pi itself: a real 800x480 panel, a real kiosk browser,
   no capture artifacts. The board refreshes itself every 5 minutes, so a change takes one refresh to
   appear.

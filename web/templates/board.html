@@ -1,3 +1,12 @@
+{% macro event_row(event) %}
+<div class="event">
+    <div class="event-time{{ ' all-day' if event.all_day }}">{{ "All day" if event.all_day else event.time }}</div>
+    <div class="event-title">
+        {{ event.title }}
+        {% if event.location %}<span class="event-where">&mdash; {{ event.location }}</span>{% endif %}
+    </div>
+</div>
+{% endmacro -%}
 <!doctype html>
 <html lang="en" data-theme="{{ view.theme }}">
 <head>
@@ -148,6 +157,8 @@
             margin-bottom: 0.75rem;
         }
 
+        .agenda { display: flex; flex-direction: column; }
+
         .events { display: flex; flex-direction: column; gap: 0.6rem; }
         .event { display: flex; gap: 1.1rem; align-items: baseline; }
         .event-time {
@@ -160,6 +171,15 @@
         .event-time.all-day { font-size: 1rem; }
         .event-title { font-size: 1.5rem; font-weight: 700; }
         .event-where { color: var(--text-muted); font-weight: 600; }
+
+        /* Tomorrow only appears when today left room. It reads a step back from
+           today — smaller and muted — so a time is never taken for today's. The
+           time column keeps its 5.2rem width, so both days share a left edge. */
+        .tomorrow { margin-top: 1.5rem; }
+        .tomorrow .events { gap: 0.45rem; }
+        .tomorrow .event-time { font-size: 1.15rem; color: var(--text-muted); }
+        .tomorrow .event-time.all-day { font-size: 0.82rem; }
+        .tomorrow .event-title { font-size: 1.15rem; color: var(--text-mid); }
 
         .empty {
             background: var(--box);
@@ -277,21 +297,22 @@
             {% if view.events %}
             <div class="label">Today</div>
             <div class="events">
-                {% for event in view.events %}
-                <div class="event">
-                    <div class="event-time{{ ' all-day' if event.all_day }}">{{ "All day" if event.all_day else event.time }}</div>
-                    <div class="event-title">
-                        {{ event.title }}
-                        {% if event.location %}<span class="event-where">&mdash; {{ event.location }}</span>{% endif %}
-                    </div>
-                </div>
-                {% endfor %}
+                {% for event in view.events %}{{ event_row(event) }}{% endfor %}
             </div>
             {% else %}
             <div class="empty">
                 <div class="label">Today</div>
                 <div class="empty-head">The calendar is empty.</div>
                 <div class="empty-sub">Nothing between now and bedtime.</div>
+            </div>
+            {% endif %}
+
+            {% if view.tomorrow %}
+            <div class="tomorrow">
+                <div class="label">Tomorrow</div>
+                <div class="events">
+                    {% for event in view.tomorrow %}{{ event_row(event) }}{% endfor %}
+                </div>
             </div>
             {% endif %}
         </div>
@@ -378,6 +399,10 @@
 
     fit();
     window.addEventListener("resize", fit);
+    /* Nunito arrives after the first paint and sets taller lines than the
+       fallback, so a size measured before it lands can overflow once it swaps
+       in — measured at 557px of content in a 480px panel. Re-fit when it does. */
+    if (document.fonts && document.fonts.ready) { document.fonts.ready.then(fit); }
 })();
 </script>
 </body>

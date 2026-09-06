@@ -19,6 +19,7 @@ Every morning, DinkyDash merges your calendars into one agenda, works out whose 
 ## What the board shows
 
 - Today's agenda, in time order, merged from as many iCal feeds as you like
+- A look at tomorrow underneath it, on the days today leaves room
 - Whose turn each chore is — rotated daily, nothing to tick off
 - Countdowns to birthdays, holidays and special dates
 - An AI-written headline, and one line that is some days a fact, some days
