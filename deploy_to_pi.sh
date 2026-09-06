@@ -1,31 +1,72 @@
-#!/bin/bash
+#!/usr/bin/env bash
+# Deploy DinkyDash to the Raspberry Pi.
+#
+#   ./deploy_to_pi.sh              # deploy
+#   ./deploy_to_pi.sh --dry-run    # show what would change, do nothing
+#
+# Host, user and directory can be overridden from the environment:
+#   PI_HOST=192.168.178.164 ./deploy_to_pi.sh
+set -euo pipefail
 
-# Deploy DinkyDash to Raspberry Pi
+PI_USER="${PI_USER:-pi}"
+PI_HOST="${PI_HOST:-raspberrypi.local}"   # plain 'raspberrypi' can resolve to a stale IP
+PI_DIR="${PI_DIR:-/home/pi/dinkydash}"
+REMOTE="$PI_USER@$PI_HOST"
+SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/"   # the repo, not your current directory
+SSH="ssh -o ConnectTimeout=8"
 
-REMOTE_USER="pi"
-REMOTE_HOST="raspberrypi"
-REMOTE_DIR="/home/pi/dinkydash"
+DRY_RUN=""
+[ "${1:-}" = "--dry-run" ] && DRY_RUN="--dry-run"
 
-set -e
+echo "Deploying to $REMOTE:$PI_DIR ..."
 
-echo "Deploying to $REMOTE_HOST..."
+# Fail early with a clear message if the Pi isn't reachable.
+if ! $SSH "$REMOTE" true 2>/dev/null; then
+    echo "Can't reach $REMOTE. Check it's on, or run: PI_HOST=<its IP> $0" >&2
+    exit 1
+fi
 
-# Ensure remote directory exists
-ssh -q $REMOTE_USER@$REMOTE_HOST "mkdir -p $REMOTE_DIR"
+$SSH "$REMOTE" "mkdir -p '$PI_DIR'"
 
-# Sync files (quiet mode)
-rsync -az --exclude='venv' \
-          --exclude='.git' \
-          --exclude='__pycache__' \
-          --exclude='*.pyc' \
-          --exclude='*.log' \
-          --exclude='*.swp' \
-          "$(pwd)/" "$REMOTE_USER@$REMOTE_HOST:$REMOTE_DIR/"
+# Copy the code. Everything the Pi owns is protected from being overwritten and,
+# with --delete, from being removed: the settings and data written on the Pi
+# (config.yaml, dashboard_data.json, content_history.json, generate.log), the
+# API key (.env), the virtualenv, and the build- and dev-only trees.
+rsync -az --info=stats1 --delete $DRY_RUN \
+    --exclude='.git/' \
+    --exclude='venv/' \
+    --exclude='__pycache__/' \
+    --exclude='*.pyc' \
+    --exclude='*.swp' \
+    --exclude='.pytest_cache/' \
+    --exclude='.conductor/' \
+    --exclude='.context/' \
+    --exclude='.env' \
+    --exclude='config.yaml' \
+    --exclude='dashboard_data.json' \
+    --exclude='content_history.json' \
+    --exclude='*.log' \
+    --exclude='website/' \
+    --exclude='docs/' \
+    --exclude='design/' \
+    --exclude='tests/' \
+    "$SRC" "$REMOTE:$PI_DIR/"
 
-# Install dependencies quietly
-ssh -q $REMOTE_USER@$REMOTE_HOST "cd $REMOTE_DIR && source venv/bin/activate && pip install -q -r requirements.txt"
+if [ -n "$DRY_RUN" ]; then
+    echo "Dry run only; nothing changed."
+    exit 0
+fi
 
-# Restart service
-ssh -q $REMOTE_USER@$REMOTE_HOST "sudo systemctl restart dinkydash.service"
+# A fresh Pi has no virtualenv yet; create it on first deploy.
+$SSH "$REMOTE" "cd '$PI_DIR' && [ -d venv ] || python3 -m venv venv"
+$SSH "$REMOTE" "cd '$PI_DIR' && venv/bin/pip install -q -r requirements.txt"
+
+# Restart the app if the service is installed; otherwise point at the setup guide.
+if $SSH "$REMOTE" "test -f /etc/systemd/system/dinkydash.service"; then
+    $SSH "$REMOTE" "sudo systemctl restart dinkydash.service"
+    echo "Restarted dinkydash.service."
+else
+    echo "Note: dinkydash.service isn't installed yet. See the setup guide, Part 2 step 5."
+fi
 
 echo "Done."

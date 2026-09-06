@@ -14,6 +14,28 @@ This directory contains the static site generator for the DinkyDash website.
 The build writes to `../docs/`, which is what GitHub Pages serves. There is no `output/` directory —
 `build.py` deletes and rewrites `../docs/` on every run.
 
+## Images
+
+`images/` holds two kinds of file, and the difference matters.
+
+**Product screenshots** are the real board and the real settings page, captured from the app running
+against an *invented* family — `config.example.yaml`, or a copy of it, plus a payload from
+`sample_board.py` or a one-off `generate()` call. Never a real config. Names, birthdays and calendar
+URLs are the entire content of this app, and a screenshot published here is as public and as
+permanent as a commit. Capture them the way `/preview` does, with a wrapper page holding an iframe
+of exactly the target size: `--window-size` is not trustworthy for layout work, and the board's
+`<meta http-equiv="refresh">` stops headless Chrome exiting, so wrap the call in `timeout`. Both
+gotchas are written up in the root `CLAUDE.md`.
+
+**Room photographs** are generated, by handing the image model a real screenshot and asking it to
+reproduce the screen pixel-for-pixel inside a described scene. The screen is therefore the product;
+the kitchen around it is not a real kitchen, and copy on the site must not claim it is.
+
+Everything is WebP except `og-*.jpg` — Open Graph scrapers are still patchy with WebP and a share
+card is not worth the risk. `build.py` reads intrinsic dimensions out of images referenced from
+Markdown, but an image used directly in a template needs `width` and `height` on the tag by hand, or
+the text below it jumps when the image lands.
+
 ## Building the Website
 
 ### Prerequisites

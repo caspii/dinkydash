@@ -222,7 +222,7 @@ These are latent on a single Pi and actively harmful hosted.
 
 **Still open:**
 
-6. **Stale `.env` keys.** `DATABASE_URL`, `SECRET_KEY`, `UPLOAD_FOLDER`, `MAX_CONTENT_LENGTH` are leftovers from an abandoned plan. No code reads any of them, so removing them changes nothing — but `.env` is not in git, so each copy has to be edited where it lives: the main checkout, and the Pi, which `deploy_to_pi.sh` rsyncs to. There is still no `.env.example`.
+6. **Stale `.env` keys.** `DATABASE_URL`, `SECRET_KEY`, `UPLOAD_FOLDER`, `MAX_CONTENT_LENGTH` are leftovers from an abandoned plan. No code reads any of them, so removing them changes nothing — but `.env` is not in git, so each copy has to be edited where it lives: the main checkout, and the Pi, whose `.env` `deploy_to_pi.sh` no longer overwrites. There is still no `.env.example`.
 7. **No CI.** The suite runs in under a second and nothing runs it on push.
 
 ---
