@@ -1,6 +1,8 @@
 # DinkyDash Hosted MVP — Plan
 
-*Last updated: September 5, 2026. Supersedes `HOSTING_ANALYSIS.md` (deleted — it predated both the AI generation feature and the July 2026 calendar-display repositioning, and its recommended stack and data model no longer matched the product).*
+*Last updated: September 6, 2026. Supersedes `HOSTING_ANALYSIS.md` (deleted — it predated both the AI generation feature and the July 2026 calendar-display repositioning, and its recommended stack and data model no longer matched the product).*
+
+*September 6 changes: decision 11 (the refresh cadence is a setting), a storage seam for the payload and history, a hosting and deployment recommendation, the Batch API deferred, and the phases re-sequenced so the Docker Compose file arrives first rather than last.*
 
 This document covers **how the hosted version gets built and launched**. Its companion — positioning, pricing anchors, and SEO — is kept outside this repo, as a Linear document on the Dinky Dash team.
 
@@ -28,6 +30,7 @@ Turn DinkyDash from a single-family Raspberry Pi app into a hosted product a non
 | 8 | **Fork KeepTheScore's privacy policy and ToS** as the starting point. | Faster than drafting; same jurisdiction and entity. |
 | 9 | **Self-hosting stays, community-supported only.** | See below. |
 | 10 | **The config dict is the storage contract.** `config.yaml` in single mode, a `jsonb` column in cloud mode. Not SQLite on the Pi. | The engine already takes a plain dict, so both modes can produce the same one. Self-hosters expect a file they can edit and copy, and a Pi should not have to run migrations to gain a field. One shape means one settings UI. |
+| 11 | **The refresh cadence is a setting in the UI.** How often the calendars are re-fetched, and when the daily brief is written, are chosen by the family — not hard-coded in a cron line. | A calendar product whose board only learns about a new appointment the next morning is a support ticket waiting to happen. See [Three clocks, one setting](#three-clocks-one-setting). |
 
 ### On self-hosting (decision 9)
 
@@ -54,8 +57,8 @@ Currently MIT, and the website says "MIT-licensed and free forever" in two place
 ### One app, two modes
 
 ```
-DINKYDASH_MODE=single   config.yaml · auth off · billing off · one family · local cron
-DINKYDASH_MODE=cloud    Postgres · magic links · Stripe · many families · worker + scheduler
+DINKYDASH_MODE=single   config.yaml · auth off · billing off · one family · cron ticks
+DINKYDASH_MODE=cloud    Postgres · magic links · Stripe · many families · worker ticks
 ```
 
 The generation engine, dashboard template, CSS, and calendar handling are shared verbatim. Mode only gates auth, billing, storage backend, and how the scheduler is driven.
@@ -79,9 +82,97 @@ a YAML list without knowing the difference — and it fixes a real single-mode
 bug on the way, where deleting anyone shifted everybody below onto somebody
 else's edit form.
 
+### The storage seam
+
+Decision 10 covers the config. The runtime writes two more things — the
+payload and the note history — and today those are file calls scattered across
+`web/__init__.py` (`load_payload`), `runner.py` (`write_payload`) and
+`history.py` (`load_history`, `record`). Cloud mode needs the same operations
+against Postgres, so name them before Phase 1 rather than discovering them
+during it:
+
+```
+load_config   / save_config
+load_payload  / save_payload
+recent_notes  / record_note
+```
+
+One object with those six methods. `FileStore` is what exists now, just
+gathered up; `PostgresStore` is the cloud one. `board.build_view`, the runner
+and the settings routes take a store and never learn which. In single mode the
+payload is `dashboard_data.json`. In cloud mode it is composed from two rows —
+the brief in `generations`, the fetched calendar window in `agendas` — and
+comes back as the same dict.
+
+`data_file` and `content_history_file` are storage-layer keys that have been
+living in the family's config dict. They mean nothing in cloud mode. The store
+owns them; they stay in `config.yaml` for compatibility and nothing else reads
+them.
+
+### Three clocks, one setting
+
+The board changes on three cadences, and until decision 11 only one of them was
+anybody's choice:
+
+| Clock | What it does | Today | Cost |
+|---|---|---|---|
+| The screen reload | Re-renders from what is stored: rolls the date over at midnight, picks up a config edit, shows a new brief | Every 5 minutes, hard-coded in `board.html` (every minute before the first run) | Nothing |
+| The calendar refresh | Re-fetches every enabled feed, so a change made in Google Calendar reaches the wall | Once a day, inside the 6am run | A few HTTP requests |
+| The daily brief | Asks Claude for the headline and the note | Once a day, at 6am | One API call |
+
+The gap is the middle row. A dentist appointment added at 09:00 for 15:00 is
+not on the board until tomorrow, because today's agenda is a slice of a window
+fetched once at dawn. For a product whose category is "family calendar", that
+is the complaint every competitor solved first.
+
+**The requirement.** Two new keys in the config dict, so they exist in both
+modes and migrate through `with_defaults` like everything else:
+
+- `refresh_minutes` — how often the calendars are re-fetched. Offered in the UI
+  as every 15 minutes, every 30 minutes, every hour, every 6 hours, once a day.
+  **Default: every hour.**
+- `brief_time` — when the daily brief is written, in the family's own
+  timezone. **Default: `06:00`.**
+
+One row under **This screen** on the settings home, reading "Calendars every
+hour · brief at 06:00", with a page behind it holding the two controls.
+
+What it deliberately is not:
+
+- The brief stays **once a day**. Every extra call is real money in cloud mode,
+  and "Rewrite now" already covers the manual case. A second daily brief is a
+  lever for later, not a setting now.
+- The screen reload is derived, not chosen: 5 minutes, or the refresh interval
+  if that is shorter. A parent wants "how soon does a change show up", not a
+  browser knob.
+- Fetching more often than the provider updates buys nothing. Google's secret
+  `.ics` feed is itself cached and can lag by hours; the help text says so, so
+  "every 15 minutes" is not read as a promise.
+
+**How each mode drives it.** `runner.run` splits into two operations —
+`refresh_calendars` (fetch, merge, write the events into the stored payload,
+stamp `calendars_fetched_at`) and `write_brief` (the Claude call, the history
+record). A pure `due(config, payload, now)` in `dinkydash/` decides which of
+the two is owed. Then:
+
+```
+single   */5 * * * *  generate.py --tick     # cron ticks often; the config decides
+cloud    worker loop, every 5 minutes        # the same tick, over every family that is due
+```
+
+That is the "what drives the scheduler" gate from decision 2 doing exactly its
+job, and nothing else differs between the modes. The old `0 6 * * *
+generate.py` keeps working — a plain run is a refresh plus a brief — so nobody's
+Pi breaks on upgrade; it just never sees a same-day change.
+
+Two things fall out for free. A brief that fails at 06:00 is retried on the next
+tick instead of leaving the board stale all day, which is the retry logic the
+cloud pipeline needed anyway. And "Rewrite now" gains a cheaper sibling,
+"Refresh calendars", which is what most people pressing it actually want.
+
 ### Repository layout
 
-Built (as of #28):
+Built (as of #45):
 
 ```
 dinkydash/                  # the engine — pure, no clock, no file reads
@@ -97,6 +188,7 @@ dinkydash/                  # the engine — pure, no clock, no file reads
 
 web/
 ├── __init__.py             # create_app()
+├── manifest.py             # the two home-screen manifests
 ├── routes/board.py         # the board and the preview harness
 ├── routes/settings.py      # the settings UI (one table drives every list section)
 └── templates/              # board.html, preview.html, settings/*.html
@@ -108,11 +200,14 @@ website/                    # marketing site generator (unchanged)
 Still to come:
 
 ```
+dinkydash/store.py          # the storage seam: FileStore now, PostgresStore in cloud
+dinkydash/schedule.py       # due(config, payload, now) — pure
 web/models.py               # cloud mode only — families, users, generations
-web/routes/                 # auth, billing, admin
-worker/                     # scheduler + generation runner (cloud mode)
-migrations/
-selfhost/                   # docker-compose and Pi docs
+web/routes/                 # auth, billing, admin, the tokenised screen
+worker/                     # the tick loop (cloud mode)
+migrations/                 # plain SQL, applied in order
+Dockerfile, docker-compose.yml   # one image; both modes; also the deploy unit
+selfhost/                   # Pi and Compose docs
 ```
 
 No `selfhost/` config loader: single and cloud mode both go through
@@ -138,18 +233,42 @@ Dropping the pairing code makes token length a UX constraint — a 32-character 
 - `app.dinkydash.co/s/<10–12 chars>` from an unambiguous alphabet (no `0`/`O`/`1`/`l`) — ~50 bits
 - Rate-limit the route; enumeration is the only attack and it's slow
 - Rotatable from the settings page, invalidating the old URL
-- `noindex`, no referrer leakage
+- `noindex`, `Referrer-Policy: no-referrer`, and **no third-party requests from the page** — the
+  board currently loads Nunito from Google Fonts, which would hand the token URL to Google in the
+  `Referer` header. Self-host the font (see Phase 0).
 - Display as a QR code as well, for tablets and phones
 
-### Generation scheduling
+### URL map
 
-- Each family stores an IANA timezone
-- Hourly worker tick selects families whose local time just passed **04:30**
-- Fan out via the **Batch API** (50% cheaper, and this is a textbook batch workload)
-- Synchronous fallback if a batch hasn't landed by the family's 06:00 local
+The board template is shared; only the route that reaches it differs.
+
+```
+                        single                  cloud
+/                       the board               → /settings if signed in, else /login
+/login                  —                       magic-link request and landing
+/settings/…             as today                as today, scoped to the session's family
+/s/<token>              —                       the board
+/preview                three sizes of /        under /settings, framing /s/<token>
+/healthz                ok                      ok
+/webhooks/stripe        —                       Stripe events
+```
+
+### Scheduling (cloud mode)
+
+- Each family's timezone, `refresh_minutes` and `brief_time` live in its config; the worker
+  selects on `config->>'timezone'` and friends through expression indexes.
+- The worker ticks every **5 minutes**. Each tick refreshes calendars for every family whose
+  `agendas.fetched_at` is older than its interval, and writes the brief for every family whose
+  local clock has passed `brief_time` and has no generation for today.
+- Synchronous Claude calls; a small thread pool for the fetches. At 1,000 families on the hourly
+  default that is 17 fetches a minute and 1,000 API calls a day, spread across the timezones.
+- ~~Fan out via the Batch API~~ — deferred; see the cost model and open questions.
 - **"Generate now"** on signup — a new family sees their dashboard in seconds, not tomorrow
 - Idempotency: unique on `(family_id, generated_for_date)`
-- On failure: keep last-good payload, mark stale, email the parent after N consecutive failures
+- On failure: keep last-good payload, mark stale, retry on later ticks with backoff, email the
+  parent after N consecutive failures
+- **The worker pings a dead-man's switch every tick.** A worker that quietly stops is the one
+  failure that hits every family at once, and nothing else in this plan would notice.
 
 ### Cost model
 
@@ -161,11 +280,20 @@ Roughly 2,500 input / 350 output tokens per family per day:
 | Sonnet 5 | ~$0.39 | ~$0.19 |
 | Opus 5 | ~$0.64 | ~$0.32 |
 
-At $6/mo, AI is 3–7% of revenue on Sonnet. Three notes:
+How that relates to the price is the strategy document's business. What matters here: on Haiku —
+the default — the Batch discount is a few cents a family a month, bought with a second pipeline
+(submit, poll, match results, fall back to a synchronous call by 06:00). **Not in the MVP.** It
+earns its complexity if the model moves to Sonnet.
 
-- ~~Config still pins `claude-sonnet-4-5-20250929`~~ — now `claude-haiku-4-5`
-- **Sonnet 5 runs adaptive thinking by default**, which eats into `max_tokens: 2048` and can truncate the JSON. Set `thinking` explicitly.
-- Switch to structured outputs (`output_config.format`) and the three-attempt JSON-parse retry loop can be deleted
+Three notes:
+
+- **`claude_model` and `max_tokens` are per-family keys** in the config dict, editable today under
+  Settings → Family & system. In cloud mode the worker ignores them and uses the platform's model,
+  or a family picks Opus on the flat plan. That is a billing gate, so it is allowed; the field
+  hides in cloud mode.
+- **Sonnet 5 runs adaptive thinking by default**, which eats into `max_tokens` and can truncate
+  the JSON. Set `thinking` explicitly before moving off Haiku.
+- ~~Switch to structured outputs~~ — done in #28; there is no JSON-repair loop to delete.
 
 ### Data model sketch
 
@@ -179,29 +307,99 @@ dict the engine already takes.
 families         id, plan, status, trial_ends_at, stripe_customer_id,
                  screen_token, screen_token_rotated_at,
                  config (jsonb)     -- the same dict config.yaml holds
-users            id, family_id, email, email_verified_at, last_login_at
+users            id, family_id, email, last_login_at
 login_tokens     id, user_id, token_hash, expires_at, used_at
+agendas          family_id (pk), events (jsonb), fetched_at, statuses (jsonb)
+                                    -- the fetched window; overwritten every refresh
 calendar_health  id, family_id, calendar_id, last_fetch_at, last_fetch_status,
                  consecutive_failures    -- calendar_id is the id inside config
 generations      id, family_id, generated_for_date, generated_at, status,
-                 payload (jsonb), input_tokens, output_tokens, cost_cents,
+                 brief (jsonb), input_tokens, output_tokens, cost_cents,
                  model, error       -- unique (family_id, generated_for_date)
 content_history  id, family_id, date, headline, note, note_kind
 ```
 
-Three notes:
+Four notes:
 
 - **The scheduler selects on `config->>'timezone'`.** An expression index on
   that path is as fast as a column and leaves no second copy to drift.
 - **`calendar_health` is keyed on the calendar's config id**, which exists
   precisely because list items now carry stable ids. Fetch state is something
   the platform writes, so it does not belong in the parent's config.
+- **Calendar contents never accumulate.** `agendas` holds one row per family
+  and is overwritten on every refresh, and `generations.brief` holds only the
+  model's words. So the retention question in Phase 5 has a short answer: the
+  most calendar data ever stored about a family is one fourteen-day window.
 - **A config change needs no migration.** `with_defaults` already migrates old
   shapes on load, and it runs in both modes.
 
 What this gives up: no database constraints on config contents, and no SQL
 across them without a jsonb query. Both are analytics conveniences, not product
 needs, and jsonb answers them when they arise.
+
+### Hosting and deployment
+
+*Recommended, not yet settled — see open questions.*
+
+What has to run: the Flask app, one worker process, Postgres, TLS, and the
+5-minute tick. Traffic is small — a screen reloading every 5 minutes is 288
+requests a day, so 1,000 families is about 3 requests a second. The data is EU
+consumers' calendars held by a German entity, so EU residency is a line worth
+being able to write in the privacy policy.
+
+**Recommendation: one Hetzner cloud box in Falkenstein, Docker Compose,
+Cloudflare in front.**
+
+```
+docker-compose.yml      web (gunicorn)  ·  worker (the tick)  ·  postgres  ·  caddy
+```
+
+- **The Compose file is the Phase 7 self-host deliverable.** Self-hosting is
+  the same file with `DINKYDASH_MODE=single` and the worker service left out.
+  One artefact, two modes — decision 2's argument again, and it is literally
+  true that the hosted version runs what anyone can run at home.
+- The smallest box (2 vCPU, 4 GB) costs about €5 a month and carries the first
+  few thousand families without noticing.
+- Cloudflare gives DNS, TLS at the edge, and a rate-limiting rule on `/s/*` and
+  `/login` with no dependency in the app. If `dinkydash.co`'s DNS is there
+  already this is a toggle; if not, moving it is an afternoon.
+- **Deploy:** GitHub Actions on merge to `main` runs the tests, builds the
+  image, pushes it to GHCR, then over SSH runs `docker compose pull && up -d`
+  and the migrations. Staging is a second Compose project on the same box at
+  `staging.app.dinkydash.co`. The Pi keeps `deploy_to_pi.sh`; it is a
+  self-hoster, not a tenant.
+- **Backups:** a nightly `pg_dump` to Hetzner Object Storage (S3-compatible),
+  and a restore drill scripted so it runs monthly into a scratch container.
+  Phase 6 asks for a *tested* restore. On a VPS that is a script you keep; on a
+  PaaS it is a button.
+
+**The alternative: Render, Frankfurt region.** A web service, a background
+worker, managed Postgres — the same Dockerfile, about $30 a month. What it buys
+is never running a database: backups, point-in-time recovery and upgrades are
+theirs. Take this if the honest answer to "will I run the restore drill" is no.
+Either way the Dockerfile is the unit, so moving between the two later is an
+afternoon, not a migration.
+
+**The one input that overrides both:** if KeepTheScore already runs on a host
+with managed Postgres and a transactional email provider, put DinkyDash next to
+it. Shared operational knowledge beats any comparison table.
+
+**Not Cloudflare Workers**, though the tooling is to hand. It would be a
+rewrite of a Flask app that leans on ruamel, icalendar and a long-running
+worker. Decision 1 already answered that.
+
+**Inside the app:**
+
+- `psycopg` (v3) and plain SQL. Six tables and one jsonb document do not need
+  an ORM; a forty-line runner applies `migrations/*.sql` in order and records
+  each in a `schema_migrations` table. One new dependency rather than three.
+- Gunicorn with a handful of workers. The app is I/O-light and the worker is a
+  separate process, so there is nothing to tune.
+- `/healthz` for the uptime check and as the deploy's readiness gate.
+- Sentry is already connected; the worker gets the same DSN.
+- Secrets are environment variables in a root-only `.env` on the box —
+  `DINKYDASH_SECRET_KEY`, `DATABASE_URL`, `ANTHROPIC_API_KEY`, the Stripe keys,
+  the email key. Cloud mode refuses to start if any is missing.
 
 ---
 
@@ -224,6 +422,27 @@ These are latent on a single Pi and actively harmful hosted.
 
 6. **Stale `.env` keys.** `DATABASE_URL`, `SECRET_KEY`, `UPLOAD_FOLDER`, `MAX_CONTENT_LENGTH` are leftovers from an abandoned plan. No code reads any of them, so removing them changes nothing — but `.env` is not in git, so each copy has to be edited where it lives: the main checkout, and the Pi, whose `.env` `deploy_to_pi.sh` no longer overwrites. There is still no `.env.example`.
 7. **No CI.** The suite runs in under a second and nothing runs it on push.
+8. **A failed fetch puts the secret URL in the error text.** `requests` formats both `raise_for_status()` and connection errors with the full URL, and `fetch_feed` wraps `{exc}` straight into `FeedError`. That string reaches `generate.log` and the calendar status on the settings page. Scrub it to the exception class and the status code.
+9. **`generated_at` is the server's clock.** `generate.py` stamps `datetime.now().astimezone()` and the settings home prints `stamp[11:16]` as "written 06:02". On a UTC host that is the wrong time for every family. Stamp in UTC; render in the family's timezone.
+10. **`describe_feed` falls back to `date.today()`.** Never reached — the settings route passes the date — but it is the one clock left inside `dinkydash/`.
+11. **No CSRF protection on any form.** Harmless with no accounts; the moment a session exists, a page elsewhere can submit "Rewrite now" or a delete on the parent's behalf. Every POST needs a token in cloud mode.
+
+---
+
+## Small jobs, big return
+
+Each of these is under an hour, needs no database, and ships to the Pi as well as the cloud. Do them before anything in Phase 1.
+
+1. **CI.** A GitHub Actions workflow that runs `pytest` on push and pull request; a `gitleaks` step beside it; push protection switched on in the repo settings. About twenty lines and one toggle.
+2. **`.env.example`** — one line: `ANTHROPIC_API_KEY=`.
+3. **Pin `requirements.txt`.** An unpinned dependency in an app holding other families' calendars is the supply-chain decision CLAUDE.md warns about, made by omission.
+4. **Rotate the Anthropic key.** Five minutes, no code, overdue. Edit it on the Pi in place — `deploy_to_pi.sh` no longer copies `.env`.
+5. **Self-host Nunito.** Four font files in `web/static/`. This removes a third-party request from every screen, a GDPR sub-processor (a Munich court ruled against dynamically loaded Google Fonts in 2022), the `Referer` path for screen tokens, and it makes a Pi's board render the same when the internet is down.
+6. **Scrub the URL out of `FeedError`** (bug 8), with a test that a 404 message contains the label and not the URL.
+7. **`Referrer-Policy: no-referrer`** on the board and the settings pages. One header each.
+8. **`/healthz`.** Returns `ok` and the git SHA; every host and uptime checker wants it.
+9. **`generated_at` in UTC**, rendered in the family's timezone (bug 9).
+10. **A `Dockerfile`.** Fifteen lines; both modes; the deploy unit for everything below.
 
 ---
 
@@ -237,12 +456,14 @@ Critical path is 0 → 1 → 2 → 3. Phases 4–6 can run alongside 3. Nothing 
 - [x] Refactor the engine to `generate(config, today, events, recent_notes) -> dict` *(#28)*
 - [x] Fix the five issues listed above; add tests around date/timezone, calendar parsing, chore rotation *(#28, #29)*
 - [x] Update the Claude model; switch to structured outputs *(#28 — `claude-haiku-4-5` takes no `thinking` parameter, so leaving it unset is the explicit choice)*
-- [ ] Postgres + migrations; CI running the test suite
-- [ ] Staging deploy on `app.dinkydash.co` (apex stays on GitHub Pages)
-- [ ] Enable GitHub push protection; add `gitleaks` pre-commit hook; ship `.env.example`
-- [ ] Rotate the Anthropic API key (it has lived on a Pi and been rsynced)
+- [ ] The small jobs above: CI, `gitleaks`, push protection, `.env.example`, pinned requirements, key rotation *(DIN-16)*; self-hosted font, URL scrub, referrer policy, `/healthz`, Dockerfile
+- [ ] **Decision 11, single-mode half:** `refresh_minutes` and `brief_time` in `DEFAULTS`; `runner.run` split into `refresh_calendars` and `write_brief`; a pure `due()`; `generate.py --tick`; the settings page under *This screen*; the board's reload derived from the interval; README cron line updated. Ships to the Pi at once and needs no database. *(DIN-17 for the engine and cron, DIN-18 for the page)*
+- [ ] Name the storage seam: `FileStore` gathering the six operations that exist today, and the settings routes, runner and board taking a store *(DIN-19)*
+- [ ] `docker-compose.yml` for single mode (`web` only) — the self-host path is real from here on, and every later phase reuses the file
+- [ ] Postgres + plain-SQL migrations; CI running the suite against a Postgres service container
+- [ ] Choose the host (open question) and stand up staging on `app.dinkydash.co` (apex stays on GitHub Pages)
 
-**Done when:** the engine runs from a dict with an injected date, tests pass in CI, and staging serves a hardcoded family.
+**Done when:** the engine runs from a dict with an injected date, tests pass in CI on Postgres, `docker compose up` serves a board in single mode, a same-day calendar change reaches a Pi within its chosen interval, and staging serves a hardcoded family.
 
 ### Phase 1 — Multi-tenant core
 
@@ -251,33 +472,37 @@ lists with stable ids, add/label/enable/remove for iCal feeds with live validati
 timezone, family name and location under `/system`. The boxes below stay unticked because what is
 missing is the multi-tenant half — a schema, auth, and scoping every read and write to a `family_id`.
 
-- [ ] Schema + migrations per the sketch above
-- [ ] Magic-link auth, email verification required before first generation
+- [ ] Schema + migrations per the sketch above; `PostgresStore` behind the seam
+- [ ] Magic-link auth: token hashed at rest, single use, 15-minute expiry, request endpoint rate-limited. Signing in through the link *is* email verification — there is no second step.
+- [ ] Session hygiene: `Secure`, `HttpOnly`, `SameSite=Lax`; a CSRF token on every form; cloud mode refuses to start without `DINKYDASH_SECRET_KEY`
+- [ ] `fetch_feed` hardening before any stranger's URL is fetched: `https` only, redirects that cannot land on a private range, a response size cap beside the timeout. The settings page's "Check this link" is the interactive way in, so it goes through the same function.
 - [ ] Family setup wizard: people + DOBs, emoji/color avatars, pets, chores, special dates
 - [ ] Multi-calendar management: add/label/enable/remove iCal feeds, with live validation on paste
 - [ ] Per-provider help content — Google, iCloud, Outlook each expose iCal URLs differently
-- [ ] Settings: timezone, family name, screen URL display + rotation, account deletion
+- [ ] Settings: timezone, family name, refresh cadence, screen URL display + rotation, account deletion. `claude_model` hidden in cloud mode.
+- [ ] The URL map above: `/` redirects, `/login`, `/s/<token>`
 
-**Done when:** two different families can be configured independently through the UI.
+**Done when:** two different families can be configured independently through the UI, and a request carrying the wrong family's id in a URL gets a 404, never a row.
 
 ### Phase 2 — Generation pipeline
 
-- [ ] Worker process + hourly scheduler tick keyed on family local time
-- [ ] Batch API fan-out with synchronous fallback
-- [ ] "Generate now" for onboarding and manual refresh
-- [ ] Per-family daily idempotency
+- [ ] Worker process: the 5-minute tick over every family that is due, per the scheduling section
+- [ ] Calendar refresh and daily brief as separate operations, each recorded (`agendas`, `generations`)
+- [ ] "Generate now" and "Refresh calendars" for onboarding and manual use
+- [ ] Per-family daily idempotency on the brief
 - [ ] Per-family and **global** spend caps with a hard breaker
-- [ ] Keep-last-good on failure; consecutive-failure tracking; parent notification after N
+- [ ] Keep-last-good on failure; retry with backoff on later ticks; consecutive-failure tracking; parent notification after N
 - [ ] Per-generation token/cost recording
+- [ ] Dead-man's switch pinged from the tick, alerting if it stops
 
-**Done when:** families in three timezones each get a correct dashboard at their own 6am, and killing the Anthropic key degrades gracefully instead of blanking screens.
+**Done when:** families in three timezones each get a correct dashboard at their own brief time, a calendar change reaches each screen within its interval, and killing the Anthropic key degrades gracefully instead of blanking screens.
 
 ### Phase 3 — The screen
 
-- [ ] Public tokenized dashboard route, rate-limited, `noindex`
+- [ ] Public tokenized dashboard route, rate-limited at the edge, `noindex`, no referrer, no third-party requests
 - [ ] Token rotation; QR code display
 - [ ] Renderer to landing-page parity: person cards with ages, time-ordered agenda for today
-- [ ] Staleness indicator when the payload isn't from today
+- [ ] Staleness indicator when the brief isn't from today *(built for single mode in #28; confirm it reads the same from `PostgresStore`)*
 - [ ] Offline tolerance and sensible cache headers
 - [ ] Verify on the target surfaces: TV browser, old iPad, Pi kiosk
 
@@ -285,8 +510,10 @@ missing is the multi-tenant half — a schema, auth, and scoping every read and 
 
 ### Phase 4 — Money
 
-- [ ] Stripe Checkout + Customer Portal + webhooks
-- [ ] Trial state machine; decide and implement lapse behavior *(see open questions)*
+- [ ] The trial lives in the app (`families.trial_ends_at`); Stripe enters only when the family chooses to pay. No Stripe customer for a family that never converts, and none of the "trial without a payment method" edge cases.
+- [ ] Stripe Checkout at conversion + Customer Portal; webhooks verified by signature and idempotent on the event id
+- [ ] Stripe Tax on from the first charge, with tax-inclusive prices *(see open questions)*
+- [ ] Lapse behaviour *(see open questions; recommendation is freeze)*
 - [ ] Dunning: trial ending, payment failed, subscription canceled
 - [ ] Pricing page on the marketing site
 
@@ -295,19 +522,19 @@ missing is the multi-tenant half — a schema, auth, and scoping every read and 
 ### Phase 5 — Legal & trust
 
 - [ ] Privacy policy and ToS, forked from KeepTheScore
-- [ ] Sub-processor list — Anthropic, host, Stripe, email provider
+- [ ] Sub-processor list — Anthropic, the host, Stripe, the email provider, Cloudflare. Not Google Fonts, once Phase 0 is done.
 - [ ] Plain statement that calendar contents are sent to Anthropic for generation
-- [ ] Data export and hard delete
-- [ ] Retention policy for calendar data and generation payloads
+- [ ] Data export and hard delete — the delete cascades through users, tokens, agendas, generations, history and calendar health; the Stripe customer record stays, as accounting requires
+- [ ] Retention, with numbers: `agendas` is one overwritten row; `content_history` keeps 30 entries of the model's words; `generations` keeps token counts indefinitely and drops the `brief` column after 90 days; a lapsed family is deleted 90 days after lapse
 - [ ] Cookie/analytics review
 
 **Done when:** you could take money from an EU customer without wincing.
 
 ### Phase 6 — Ops
 
-- [ ] Sentry (already connected), uptime checks
-- [ ] Generation-success dashboard; alerts on failure rate, calendar-fetch failures, spend breaker, Stripe webhook failures
-- [ ] Database backups **with a tested restore**
+- [ ] Sentry (already connected) in both processes; uptime check on `/healthz`
+- [ ] Generation-success dashboard; alerts on failure rate, calendar-fetch failures, spend breaker, Stripe webhook failures, and the dead-man's switch
+- [ ] Database backups nightly to object storage, **with a scripted, scheduled restore drill**
 - [ ] Transactional email provider wired up *(see open questions)*
 - [ ] Support inbox and a basic admin view (find family, inspect last generation, re-run)
 
@@ -315,7 +542,7 @@ missing is the multi-tenant half — a schema, auth, and scoping every read and 
 
 ### Phase 7 — Launch
 
-- [ ] Docker Compose + community-supported self-host docs; smoke-test single mode before release
+- [ ] Community-supported self-host docs around the Compose file that has existed since Phase 0; smoke-test single mode before release
 - [ ] Private beta: ~10 waitlist families, two weeks
 - [ ] Waitlist email sequence
 - [ ] Swap Typeform links for real signup across homepage, FAQ, and all six satellite pages
@@ -326,15 +553,17 @@ missing is the multi-tenant half — a schema, auth, and scoping every read and 
 
 ## Explicitly out of scope for MVP
 
-Photo uploads · Google/Apple OAuth · native or mobile apps · multiple dashboards per family · shared edit access between parents · themes and customization · weather and other widgets · template gallery · drag-and-drop layout editing · public/shareable dashboards · i18n.
+Photo uploads · Google/Apple OAuth · native or mobile apps · multiple dashboards per family · shared edit access between parents · themes and customization · weather and other widgets · template gallery · drag-and-drop layout editing · public/shareable dashboards · i18n · more than one brief a day.
 
 ---
 
 ## Open questions
 
-| Question | Blocks | Notes |
+| Question | Blocks | Recommendation |
 |---|---|---|
+| Which host? | Phase 0 staging | Hetzner + Compose + Cloudflare, as above. Render in Frankfurt if you would rather never run Postgres. If KeepTheScore's host has managed Postgres and email already, use that and skip the question. |
+| Transactional email provider? | Phase 1 (magic links) | Whatever KeepTheScore sends its transactional mail with, for the shared sender reputation. Failing that, Postmark. The Customer.io connector that is configured is a marketing tool wearing a transactional hat — right for the waitlist sequence, heavy for magic links. |
+| EU VAT handling with Stripe direct? | Phase 4 | Stripe Tax from the first charge, using KeepTheScore's registration. Consumer prices in the EU are displayed VAT-inclusive, so Checkout is configured with tax-inclusive prices; what that does to the margin is the strategy document's line to update. |
+| Lapse behaviour — blank, freeze on last-good, or degrade to a no-AI calendar? | Phase 4 | Freeze. The screen keeps its last board with a quiet "subscription ended" line; fetches and briefs stop. After 30 days the board is that line alone; after 90 the family is deleted, as the privacy policy will say. A blank kitchen screen is a bad churn experience, and a no-AI tier is a product decision for the strategy document, not a lapse state. |
+| Batch API? | Phase 2 | Not in the MVP. Revisit when the model moves to Sonnet, or when the strategy document's cost line says the discount is worth a second pipeline. |
 | How many Typeform waitlist signups? | Phase 7 sizing | Determines whether the private beta is viable and whether there's consent to email them |
-| Transactional email provider? | Phase 1 (magic links) | A Customer.io MCP connector is configured but unauthorized — if that's the stack it needs authorizing |
-| EU VAT handling with Stripe direct? | Phase 4 | Stripe Tax if already VAT-registered via KeepTheScore; otherwise this needs resolving before charging EU consumers |
-| Lapse behavior — blank, freeze on last-good, or degrade to a no-AI calendar? | Phase 4 | Freeze-with-a-nudge is probably kindest; a blank kitchen screen is a bad churn experience |
