@@ -362,10 +362,41 @@
 <h2>What you need</h2>
 <ul>
 <li><strong>Python 3.11 or newer.</strong></li>
-<li><strong>One or more calendar links</strong> in iCal format. In Google Calendar: <strong>Settings and sharing</strong> for a calendar, then <strong>Secret address in iCal format</strong>. Treat that link like a password — anyone who has it can read that calendar.</li>
+<li><strong>One or more calendar links</strong> in iCal format. Google Calendar, Apple iCloud Calendar and Outlook all give you one — see <a href="#find-your-calendar-link">find your calendar link</a> below for the steps. Treat that link like a password: anyone who has it can read that calendar.</li>
 <li><strong>An Anthropic API key</strong> (<a href="https://console.anthropic.com/settings/keys">get one here</a>) — only for the daily headline and one line of copy. You can run the whole board without it first.</li>
 <li><strong>A Raspberry Pi</strong> with a small screen, for the permanent version. A Pi 4 with 2GB of RAM and the official 7-inch display (800×480) is the easy path. Hardware details are on the <a href="/raspberry-pi-family-calendar/">Raspberry Pi build guide</a>.</li>
 </ul>
+<hr />
+<h2 id="find-your-calendar-link">Find your calendar link</h2>
+
+<p>DinkyDash reads calendars over iCal, the sharing format every calendar app speaks. <strong>Google Calendar, Apple iCloud Calendar and Outlook all give you an iCal link</strong>, and any of the three works. Add one per person and they merge into a single agenda.</p>
+<p>This is a link, not a login. DinkyDash never signs in to your Google, Apple or Microsoft account — it fetches the link on a schedule, and can only read.</p>
+<h3>Google Calendar</h3>
+<ol>
+<li>Open <a href="https://calendar.google.com/">Google Calendar</a> in a browser on a computer. The phone apps do not expose this.</li>
+<li>In the left sidebar, hover over the calendar, then open its menu (⋮) → <strong>Settings and sharing</strong>.</li>
+<li>Scroll down to <strong>Integrate calendar</strong>.</li>
+<li>Copy the address under <strong>Secret address in iCal format</strong>.</li>
+</ol>
+<p>If the address ever leaks, <strong>Reset</strong> on that same screen issues a new one and kills the old. On a work or school account an administrator can switch secret addresses off altogether — if the section is missing, that is why, and a personal calendar is the way round it.</p>
+<h3>Apple iCloud Calendar</h3>
+<ol>
+<li>Open <a href="https://www.icloud.com/calendar/">iCloud Calendar</a> in a browser and sign in. You can also do this from the Calendar app on a Mac, iPhone or iPad.</li>
+<li>Hover over the calendar in the sidebar and open its share options.</li>
+<li>Switch on <strong>Public Calendar</strong>, then <strong>Copy Link</strong>.</li>
+<li><strong>Change the <code>webcal://</code> at the front to <code>https://</code>.</strong> The rest of the address stays exactly as it is. DinkyDash fetches over https, so a <code>webcal://</code> link fails.</li>
+</ol>
+<p>"Public" here means a long random address rather than a listed page, but anyone holding it can read that calendar — keep it to yourself. Turning sharing off and on again issues a <em>different</em> link, and the old one stops working, so the board will need the new one.</p>
+<h3>Outlook and Microsoft 365</h3>
+<ol>
+<li>Open <a href="https://outlook.live.com/calendar/">Outlook on the web</a> and go to <strong>Settings</strong> (the gear) → <strong>Calendar</strong> → <strong>Shared calendars</strong>.</li>
+<li>Under <strong>Publish a calendar</strong>, choose the calendar you want.</li>
+<li>Set the permission to <strong>Can view all details</strong>. The lesser options hide event titles, and titles are what the board shows.</li>
+<li>Press <strong>Publish</strong>. Two links appear — copy the <strong>ICS</strong> one, not the HTML one.</li>
+</ol>
+<h3>Then paste it in</h3>
+<p>Put the link in <code>config.yaml</code> under <code>calendars:</code> (step 2 below), or add it later from the settings page: <strong>Settings → Calendars → Add a calendar</strong>, then press <strong>Check this link</strong> to confirm it works before you save.</p>
+<p>Whichever provider it came from, treat the link like a password. Anyone who has it can read that calendar, for as long as it exists, and there is no way to see who has.</p>
 <hr />
 <h2>Part 1 — Run it on your computer</h2>
 <h3>Step 1: Get the code</h3>
@@ -426,7 +457,7 @@ special_dates:                # repeat every year, so no year to set
 claude_model: &quot;claude-haiku-4-5&quot;
 max_tokens: 1024
 </code></pre>
-<p>The example URL above is deliberately fake. Paste your own secret iCal address in its place. Add one calendar entry per person, and they all merge into a single agenda.</p>
+<p>The example URL above is deliberately fake. Paste your own iCal address in its place — <a href="#find-your-calendar-link">find your calendar link</a> has the steps for Google, Apple and Outlook. Add one calendar entry per person, and they all merge into a single agenda.</p>
 <h3>Step 3: See the board with no API key</h3>
 <p>You can look at the real board before you get an API key. This costs nothing and calls no service:</p>
 <pre><code class="language-bash">python sample_board.py     # writes a board for today, with a canned headline

@@ -18,7 +18,8 @@ Every morning, DinkyDash merges your calendars into one agenda, works out whose 
 
 ## What the board shows
 
-- Today's agenda, in time order, merged from as many iCal feeds as you like
+- Today's agenda, in time order, merged from as many Google, Apple iCloud and Outlook
+  calendars as you like — anything with an iCal link, pasted in, no account sign-in
 - A look at tomorrow underneath it, on the days today leaves room
 - Whose turn each chore is — rotated daily, nothing to tick off
 - Countdowns to birthdays, holidays and special dates
@@ -53,7 +54,9 @@ are still today's — the board just labels the written line as older.
 - Python 3.11+
 - An [Anthropic API key](https://console.anthropic.com/settings/keys) — for the daily headline and
   written line only; you can run the board without one, see step 2
-- One or more iCal URLs (Google Calendar → Settings and sharing → Secret address in iCal format)
+- One or more iCal URLs. Google, Apple iCloud and Outlook all publish one — the
+  [getting started guide](https://dinkydash.co/getting-started/#find-your-calendar-link) has the
+  steps for each
 
 ### 1. Clone and install
 
@@ -124,11 +127,18 @@ max_tokens: 1024
 
 ### 3. Add your API key
 
-Create a `.env` file:
+```bash
+cp .env.example .env
+```
+
+Then put your key in it. That one line is the whole file:
 
 ```
 ANTHROPIC_API_KEY=sk-ant-...
 ```
+
+`.env` is gitignored, and `deploy_to_pi.sh` does not copy it — so a Pi keeps its own, and rotating
+a key means editing each copy where it lives.
 
 ### 4. Generate and run
 
@@ -153,6 +163,11 @@ python -m pytest tests/ -q
 
 157 tests, well under a second. They cover leap years, timezone conversion, event ordering, chore
 rotation, the stale-board logic, the config round-trip, and the settings routes that write it.
+
+GitHub Actions runs the same command on every push and pull request, on Python 3.11
+(`.github/workflows/test.yml`), alongside a [gitleaks](https://github.com/gitleaks/gitleaks) scan of
+the full history. Both dependency files are pinned with `==`, so a clean `pip install` gets the
+versions CI passed on. A pull request that fails either check shows a red X.
 
 ---
 
@@ -204,10 +219,21 @@ full screen with no browser around it.
 
 ### Adding a calendar
 
-Settings → Calendars → Add a calendar. In Google Calendar: **Settings and sharing** → the calendar
-in the left sidebar → **Secret address in iCal format**. Paste it and press **Check this link** —
-it will tell you how many events it found and what the next one is, rather than silently accepting
-a URL that returns nothing.
+Settings → Calendars → Add a calendar. Paste an iCal link and press **Check this link** — it will
+tell you how many events it found and what the next one is, rather than silently accepting a URL
+that returns nothing.
+
+Where the link lives, per provider:
+
+| Provider | Where to find the iCal link |
+|---|---|
+| **Google Calendar** | Settings and sharing → **Integrate calendar** → **Secret address in iCal format** |
+| **Apple iCloud** | iCloud Calendar → share the calendar → **Public Calendar** → Copy Link, then change `webcal://` to `https://` |
+| **Outlook / Microsoft 365** | Settings → Calendar → **Shared calendars** → **Publish a calendar**, permission **Can view all details**, then copy the **ICS** link |
+
+Nothing here signs you in to an account. DinkyDash fetches the link on a schedule and can only read.
+The [getting started guide](https://dinkydash.co/getting-started/#find-your-calendar-link) has the
+full steps and the gotchas.
 
 Add one feed per person. A feed that stops answering is reported on the settings home page and is
 skipped rather than emptying the board.
@@ -550,6 +576,9 @@ tail -f /home/pi/dinkydash/generate.log   # last night's generation
 | `design/` | Mockups for the board and settings UI, with the reasoning |
 | `deploy_to_pi.sh` | Deployment (rsync + service restart) |
 | `.env` | `ANTHROPIC_API_KEY` (not in git) |
+| `.env.example` | The template for it — copy to `.env` |
+| `.github/workflows/test.yml` | CI: pytest and gitleaks, on every push and pull request |
+| `.gitleaks.toml` | Secret-scanning rules, including one for iCal secret addresses |
 | `dashboard_data.json` | The generated payload (not in git) |
 | `content_history.json` | Recent notes, so the model doesn't repeat itself (not in git) |
 | `PLAN.md` | Hosted MVP architecture and build phases |

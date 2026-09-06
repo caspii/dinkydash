@@ -11,9 +11,48 @@ You do not need an Anthropic API key to try it — there is a no-key preview in 
 ## What you need
 
 - **Python 3.11 or newer.**
-- **One or more calendar links** in iCal format. In Google Calendar: **Settings and sharing** for a calendar, then **Secret address in iCal format**. Treat that link like a password — anyone who has it can read that calendar.
+- **One or more calendar links** in iCal format. Google Calendar, Apple iCloud Calendar and Outlook all give you one — see [find your calendar link](#find-your-calendar-link) below for the steps. Treat that link like a password: anyone who has it can read that calendar.
 - **An Anthropic API key** ([get one here](https://console.anthropic.com/settings/keys)) — only for the daily headline and one line of copy. You can run the whole board without it first.
 - **A Raspberry Pi** with a small screen, for the permanent version. A Pi 4 with 2GB of RAM and the official 7-inch display (800×480) is the easy path. Hardware details are on the [Raspberry Pi build guide](/raspberry-pi-family-calendar/).
+
+---
+
+<h2 id="find-your-calendar-link">Find your calendar link</h2>
+
+DinkyDash reads calendars over iCal, the sharing format every calendar app speaks. **Google Calendar, Apple iCloud Calendar and Outlook all give you an iCal link**, and any of the three works. Add one per person and they merge into a single agenda.
+
+This is a link, not a login. DinkyDash never signs in to your Google, Apple or Microsoft account — it fetches the link on a schedule, and can only read.
+
+### Google Calendar
+
+1. Open [Google Calendar](https://calendar.google.com/) in a browser on a computer. The phone apps do not expose this.
+2. In the left sidebar, hover over the calendar, then open its menu (⋮) → **Settings and sharing**.
+3. Scroll down to **Integrate calendar**.
+4. Copy the address under **Secret address in iCal format**.
+
+If the address ever leaks, **Reset** on that same screen issues a new one and kills the old. On a work or school account an administrator can switch secret addresses off altogether — if the section is missing, that is why, and a personal calendar is the way round it.
+
+### Apple iCloud Calendar
+
+1. Open [iCloud Calendar](https://www.icloud.com/calendar/) in a browser and sign in. You can also do this from the Calendar app on a Mac, iPhone or iPad.
+2. Hover over the calendar in the sidebar and open its share options.
+3. Switch on **Public Calendar**, then **Copy Link**.
+4. **Change the `webcal://` at the front to `https://`.** The rest of the address stays exactly as it is. DinkyDash fetches over https, so a `webcal://` link fails.
+
+"Public" here means a long random address rather than a listed page, but anyone holding it can read that calendar — keep it to yourself. Turning sharing off and on again issues a *different* link, and the old one stops working, so the board will need the new one.
+
+### Outlook and Microsoft 365
+
+1. Open [Outlook on the web](https://outlook.live.com/calendar/) and go to **Settings** (the gear) → **Calendar** → **Shared calendars**.
+2. Under **Publish a calendar**, choose the calendar you want.
+3. Set the permission to **Can view all details**. The lesser options hide event titles, and titles are what the board shows.
+4. Press **Publish**. Two links appear — copy the **ICS** one, not the HTML one.
+
+### Then paste it in
+
+Put the link in `config.yaml` under `calendars:` (step 2 below), or add it later from the settings page: **Settings → Calendars → Add a calendar**, then press **Check this link** to confirm it works before you save.
+
+Whichever provider it came from, treat the link like a password. Anyone who has it can read that calendar, for as long as it exists, and there is no way to see who has.
 
 ---
 
@@ -87,7 +126,7 @@ claude_model: "claude-haiku-4-5"
 max_tokens: 1024
 ```
 
-The example URL above is deliberately fake. Paste your own secret iCal address in its place. Add one calendar entry per person, and they all merge into a single agenda.
+The example URL above is deliberately fake. Paste your own iCal address in its place — [find your calendar link](#find-your-calendar-link) has the steps for Google, Apple and Outlook. Add one calendar entry per person, and they all merge into a single agenda.
 
 ### Step 3: See the board with no API key
 

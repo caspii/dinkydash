@@ -1,0 +1,43 @@
+# Gitleaks configuration.
+#
+# Extends the default rule set rather than replacing it, so new provider
+# patterns arrive with each gitleaks release, and adds the one secret shape the
+# defaults do not know about: an iCal "secret address", which is a password in
+# a URL (see CLAUDE.md, "Handling other people's data").
+#
+# The allowlist is only for values that are public by design. A real secret
+# that reached a commit is fixed by rotating it, not by allowlisting it.
+
+title = "DinkyDash"
+
+[extend]
+useDefault = true
+
+# --- iCal secret addresses -------------------------------------------------
+# Whoever holds one of these reads that family's whole calendar, indefinitely,
+# and there is no way to see who has. The example URLs in the docs and in
+# config.example.yaml are visibly fake (`private-xxxx`, `private-8f3c1a`) and
+# are too short to match; the real thing is 32 hex characters.
+
+[[rules]]
+id = "google-calendar-private-ical"
+description = "Google Calendar secret address — grants permanent read access to a whole calendar"
+regex = '''calendar\.google\.com/calendar/ical/[^/\s"']+/private-[0-9a-f]{20,}/'''
+keywords = ["calendar.google.com"]
+
+[[rules]]
+id = "icloud-published-calendar"
+description = "iCloud published-calendar URL — grants permanent read access to a whole calendar"
+regex = '''caldav\.icloud\.com/published/2/[A-Za-z0-9_\-]{40,}'''
+keywords = ["caldav.icloud.com"]
+
+# --- Allowlist -------------------------------------------------------------
+
+[[allowlists]]
+description = """
+The Ahrefs Web Analytics site key. It is served in the <head> of every page on
+dinkydash.co, identifies the site to Ahrefs and grants nothing, so it is public
+by design — but it trips the generic-api-key rule in website/templates/base.html
+and in every page build.py renders into docs/, which is 4,000+ findings.
+"""
+regexes = ['''NInZX5cjFNqKC44BBPaEBA''']
