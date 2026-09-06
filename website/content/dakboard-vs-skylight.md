@@ -33,6 +33,7 @@ Comparing the two best-known ways to put your family's calendar on a wall? Here 
 | **Screen** | Bring your own, or their ~$80 CPU stick | Included — 15″ or 27″ touchscreen | Bring your own |
 | **Hardware cost** | $0–80 | **$299.99** (15″ Calendar 2) / **$599.99** (27″ Calendar Max) | $0, or ~$100–130 for a Raspberry Pi build |
 | **Subscription** | Free tier; Essential **$6/mo** ($5 annually); Plus **$10/mo** ($8 annually) | Optional Plus, **$79/yr** | **None** self-hosted. Hosted tier $39/yr or $6/mo |
+| **Calendars it reads** | Google, iCloud, Microsoft 365, Facebook Events, ICS files | Google, Apple and Outlook | Google, iCloud and Outlook — you paste a sharing link, there is no sign-in |
 | **Open source** | No | No | **Yes, MIT** |
 | **Runs on your own hardware** | The display does; the service does not | No | **Yes, entirely** |
 | **Chore chart** | Yes — on Essential and Plus, not free | Yes; rewards need Plus | Yes, free — rotates between kids automatically |
@@ -64,7 +65,9 @@ What you are paying for is that a family can walk up and tap it. No other option
 
 ### DinkyDash — free, open source, family-shaped
 
-DinkyDash turns any TV, tablet, Raspberry Pi or spare monitor into a family calendar: today's events from any iCal link, a chore chart that rotates between kids automatically, countdowns to birthdays and holidays, and a daily brief written by AI each morning around the family's actual day.
+DinkyDash turns any TV, tablet, Raspberry Pi or spare monitor into a family calendar: today's events, a chore chart that rotates between kids automatically, countdowns to birthdays and holidays, and a daily brief written by AI each morning around the family's actual day.
+
+It reads the calendars you already keep — **Google Calendar, Apple iCloud and Outlook** all publish a sharing link, and DinkyDash merges as many as you like into one agenda in time order. That is a link, not a login: it never signs in to your Google, Apple or Microsoft account, and it can only read. The [getting started guide](/getting-started/#find-your-calendar-link) has the steps for each of the three.
 
 ![The DinkyDash board showing today's agenda, whose turn each chore is, countdowns to birthdays and holidays, and the AI-written daily note](/images/family-dashboard-board.webp)
 
