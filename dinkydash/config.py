@@ -6,6 +6,7 @@ round-trip mode: your comments and key order survive an edit made from a phone.
 
 import logging
 import os
+import secrets
 import tempfile
 from datetime import datetime
 from pathlib import Path
@@ -39,6 +40,14 @@ THEMES = ("light", "dark")
 # Avatar colours the board and the settings UI both understand. Names rather
 # than hex so a theme change doesn't strand a colour nobody can read.
 AVATAR_COLORS = ("purple", "blue", "green", "pink", "orange", "amber", "teal")
+
+# The lists the settings UI edits. Every item in them carries a stable `id`.
+LIST_KEYS = ("people", "pets", "recurring", "special_dates", "calendars")
+
+# Ids are short and typed by nobody, but they end up in URLs and get read aloud
+# when something goes wrong, so leave out the characters that look like others.
+ID_ALPHABET = "23456789abcdefghjkmnpqrstuvwxyz"
+ID_LENGTH = 8
 
 
 def _yaml():
@@ -106,6 +115,62 @@ def with_defaults(raw):
         config["theme"] = "light"
 
     return config
+
+
+def new_id(taken=()):
+    """A short id for a list item, avoiding any already in `taken`."""
+    taken = set(taken)
+    while True:
+        value = "".join(secrets.choice(ID_ALPHABET) for _ in range(ID_LENGTH))
+        if value not in taken:
+            return value
+
+
+def ensure_ids(config):
+    """Give every list item an id. True if any were added.
+
+    A position is not an identity: delete the first person and everyone below
+    renumbers, so an edit form opened a moment earlier now points at somebody
+    else. Ids make the settings UI address a person rather than a slot, which
+    is also what lets the same routes run over a database row later.
+
+    Deliberately not part of load_config — loading must not rewrite the file,
+    and the engine never looks at ids. The settings UI calls this and saves.
+    """
+    added = False
+    for key in LIST_KEYS:
+        items = config.get(key) or []
+        taken = {item.get("id") for item in items if isinstance(item, dict)}
+        for item in items:
+            if not isinstance(item, dict) or item.get("id"):
+                continue
+            _add_id(item, new_id(taken))
+            taken.add(item["id"])
+            added = True
+    return added
+
+
+def _add_id(item, value):
+    """Put the id first in the mapping.
+
+    Appending looks tidier but breaks the file: ruamel hangs the blank line and
+    comment that introduce the *next* section off the last item of this one, so
+    an appended key lands underneath somebody else's heading. First is safe
+    everywhere, and it is where a database would put it anyway.
+    """
+    insert = getattr(item, "insert", None)  # ruamel's CommentedMap has one
+    if callable(insert):
+        insert(0, "id", value)
+    else:
+        item["id"] = value
+
+
+def find_item(items, item_id):
+    """(index, item) for the item with this id, or (None, None)."""
+    for index, item in enumerate(items or []):
+        if isinstance(item, dict) and item.get("id") == item_id:
+            return index, item
+    return None, None
 
 
 def tzinfo_for(config):

@@ -43,7 +43,7 @@ dinkydash/
 ├── claude_client.py   the API call, with structured outputs
 ├── generate.py        orchestrator: config + date + events -> payload
 ├── board.py           payload + config -> what the template renders
-├── config.py          config.yaml load/save (ruamel round-trip)
+├── config.py          config.yaml load/save (ruamel round-trip), item ids
 ├── history.py         rolling record of recent notes, to avoid repeats
 └── runner.py          the one place that does I/O around the engine
 
@@ -88,6 +88,17 @@ changes exactly the lines it means to.
 
 `config.example.yaml` documents every key. Two are migrated on load: a single `calendar_url` becomes
 the first entry in `calendars`, and `calendar_filter_emails` is dropped with a warning.
+
+Every item in the five edited lists — people, pets, recurring, special_dates, calendars — carries a
+short `id`. The settings UI addresses items by it, because a position is not an identity: delete the
+first person and everyone below renumbers onto somebody else's edit form. Ids are backfilled by
+`ensure_ids`, which the settings UI calls on load and saves once if it added any. Deliberately not
+part of `load_config` — loading must not rewrite the file, and the engine never reads ids.
+`_add_id` puts the id *first* in the mapping: ruamel hangs the comment introducing the next section
+off the last item of the previous one, so an appended key lands under the wrong heading.
+
+Ids are also what lets one settings UI serve both modes later. `PLAN.md` decision 10: the config
+dict is the storage contract, a file in self-hosted mode and a `jsonb` column when hosted.
 
 ## Development Commands
 

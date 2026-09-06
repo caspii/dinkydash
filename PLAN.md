@@ -1,6 +1,6 @@
 # DinkyDash Hosted MVP — Plan
 
-*Last updated: August 10, 2026. Supersedes `HOSTING_ANALYSIS.md` (deleted — it predated both the AI generation feature and the July 2026 calendar-display repositioning, and its recommended stack and data model no longer matched the product).*
+*Last updated: September 5, 2026. Supersedes `HOSTING_ANALYSIS.md` (deleted — it predated both the AI generation feature and the July 2026 calendar-display repositioning, and its recommended stack and data model no longer matched the product).*
 
 Companion to [STRATEGY.md](STRATEGY.md), which covers positioning, pricing anchors, and SEO. This document covers **how the hosted version gets built and launched**.
 
@@ -27,6 +27,7 @@ Turn DinkyDash from a single-family Raspberry Pi app into a hosted product a non
 | 7 | **Stripe direct.** | Reuse of existing KeepTheScore setup. See open questions re: EU VAT. |
 | 8 | **Fork KeepTheScore's privacy policy and ToS** as the starting point. | Faster than drafting; same jurisdiction and entity. |
 | 9 | **Self-hosting stays, community-supported only.** | See below. |
+| 10 | **The config dict is the storage contract.** `config.yaml` in single mode, a `jsonb` column in cloud mode. Not SQLite on the Pi. | The engine already takes a plain dict, so both modes can produce the same one. Self-hosters expect a file they can edit and copy, and a Pi should not have to run migrations to gain a field. One shape means one settings UI. |
 
 ### On self-hosting (decision 9)
 
@@ -53,33 +54,69 @@ Currently MIT, and the website says "MIT-licensed and free forever" in two place
 ### One app, two modes
 
 ```
-DINKYDASH_MODE=single   SQLite · auth off · billing off · one family · local cron
+DINKYDASH_MODE=single   config.yaml · auth off · billing off · one family · local cron
 DINKYDASH_MODE=cloud    Postgres · magic links · Stripe · many families · worker + scheduler
 ```
 
 The generation engine, dashboard template, CSS, and calendar handling are shared verbatim. Mode only gates auth, billing, storage backend, and how the scheduler is driven.
 
+### Where the config lives
+
+`dinkydash.config.load_config` returns a plain dict, and everything above the
+engine takes that dict. The file is one way to write it down; a database row is
+another. Neither the engine, the board, nor the settings UI is told which.
+
+So single mode keeps `config.yaml` — an editable, diffable, copy-to-back-it-up
+file is most of why anyone self-hosts, and ruamel round-trip mode means an edit
+made from a phone leaves the comments alone. Cloud mode stores the same dict in
+a `jsonb` column. `with_defaults` and its migrations then run once for both.
+
+The one thing this needs is that list items have identities rather than
+positions. Every person, pet, chore, date and calendar carries a short `id`,
+backfilled the first time the settings UI opens a file without them. That is
+what lets one set of settings routes address a row in Postgres and an entry in
+a YAML list without knowing the difference — and it fixes a real single-mode
+bug on the way, where deleting anyone shifted everybody below onto somebody
+else's edit form.
+
 ### Repository layout
 
+Built (as of #28):
+
 ```
-dinkydash/
-├── dinkydash/              # the engine — pure, no I/O side effects
-│   ├── context.py          # ages, birthdays, countdowns, chore rotation
-│   ├── calendar.py         # iCal fetch, parse, recurring expansion, merge feeds
-│   ├── prompt.py           # system + user prompt construction
-│   ├── claude.py           # API call, structured output, retry
-│   └── generate.py         # orchestrator: config dict + date → payload dict
-├── web/                    # Flask app (both modes)
-│   ├── routes/             # dashboard, auth, config UI, billing, admin
-│   ├── models.py
-│   ├── templates/
-│   └── static/
-├── worker/                 # scheduler + generation runner (cloud mode)
-├── selfhost/               # docker-compose, config.yaml loader, Pi docs
-├── migrations/
-├── tests/
-└── website/                # marketing site generator (unchanged)
+dinkydash/                  # the engine — pure, no clock, no file reads
+├── context.py              # ages, birthdays, countdowns, chore rotation
+├── calendars.py            # iCal fetch, parse, recurrence expansion, merge feeds
+├── prompt.py               # system + user prompt, note kinds, response schema
+├── claude_client.py        # the API call, with structured outputs
+├── generate.py             # orchestrator: config + date + events -> payload
+├── board.py                # payload + config -> what the template renders
+├── config.py               # the config dict: load, save, defaults, migrations, ids
+├── history.py              # rolling record of recent notes, to avoid repeats
+└── runner.py               # the one place that does I/O around the engine
+
+web/
+├── __init__.py             # create_app()
+├── routes/board.py         # the board and the preview harness
+├── routes/settings.py      # the settings UI (one table drives every list section)
+└── templates/              # board.html, preview.html, settings/*.html
+
+tests/
+website/                    # marketing site generator (unchanged)
 ```
+
+Still to come:
+
+```
+web/models.py               # cloud mode only — families, users, generations
+web/routes/                 # auth, billing, admin
+worker/                     # scheduler + generation runner (cloud mode)
+migrations/
+selfhost/                   # docker-compose and Pi docs
+```
+
+No `selfhost/` config loader: single and cloud mode both go through
+`dinkydash/config.py`, which is the point of decision 10.
 
 ### The engine boundary
 
@@ -129,35 +166,61 @@ At $5/mo, AI is 4–8% of revenue on Sonnet. Three notes:
 
 ### Data model sketch
 
+Config is one document, not five tables. Nothing in the product ever asks which
+families have a child born in March, so a table each for people, pets, chores,
+dates and calendars buys five sets of CRUD code and no answers. Real columns are
+for what the *platform* queries or writes; the parent's own settings stay in the
+dict the engine already takes.
+
 ```
-families         id, name, timezone, location, plan, status, trial_ends_at,
-                 stripe_customer_id, screen_token, screen_token_rotated_at
+families         id, plan, status, trial_ends_at, stripe_customer_id,
+                 screen_token, screen_token_rotated_at,
+                 config (jsonb)     -- the same dict config.yaml holds
 users            id, family_id, email, email_verified_at, last_login_at
 login_tokens     id, user_id, token_hash, expires_at, used_at
-people           id, family_id, name, date_of_birth, avatar_emoji, avatar_color,
-                 interests, position
-pets             id, family_id, name, type, avatar_emoji
-chores           id, family_id, title, emoji, choices (jsonb), position
-special_dates    id, family_id, title, emoji, month, day
-calendars        id, family_id, label, ical_url, enabled, last_fetch_at,
-                 last_fetch_status, consecutive_failures
+calendar_health  id, family_id, calendar_id, last_fetch_at, last_fetch_status,
+                 consecutive_failures    -- calendar_id is the id inside config
 generations      id, family_id, generated_for_date, generated_at, status,
                  payload (jsonb), input_tokens, output_tokens, cost_cents,
                  model, error       -- unique (family_id, generated_for_date)
-content_history  id, family_id, date, fun_fact, daily_challenge, pet_corner, headline
+content_history  id, family_id, date, headline, note, note_kind
 ```
+
+Three notes:
+
+- **The scheduler selects on `config->>'timezone'`.** An expression index on
+  that path is as fast as a column and leaves no second copy to drift.
+- **`calendar_health` is keyed on the calendar's config id**, which exists
+  precisely because list items now carry stable ids. Fetch state is something
+  the platform writes, so it does not belong in the parent's config.
+- **A config change needs no migration.** `with_defaults` already migrates old
+  shapes on load, and it runs in both modes.
+
+What this gives up: no database constraints on config contents, and no SQL
+across them without a jsonb query. Both are analytics conveniences, not product
+needs, and jsonb answers them when they arise.
 
 ---
 
 ## Bugs to fix before multi-tenancy
 
-These are latent on a single Pi and actively harmful hosted:
+These are latent on a single Pi and actively harmful hosted.
 
-1. **`generate.py:119` sorts events by formatted string.** `events.sort(key=lambda e: e["date"])` sorts `"Friday, August 15 at 03:30 PM"` alphabetically by weekday name. Today's 8:30am school run can land after next Tuesday. Sort on the underlying datetime.
-2. **`date.today()` / `datetime.now()` use server local time.** On a UTC host a family in Auckland gets the wrong day. The engine must take an injected, timezone-aware date.
-3. **`calendar_filter_emails` requires all listed emails as `ATTENDEE`s.** Most personal Google Calendar events have no `ATTENDEE` property at all, so this silently returns zero events. Remove it — multiple calendars replaces it.
-4. **No tests.** A nightly unattended job that costs money needs at least date/timezone, calendar parsing, and chore rotation covered.
-5. **Stale `.env` keys.** `DATABASE_URL`, `SECRET_KEY`, `UPLOAD_FOLDER`, `MAX_CONTENT_LENGTH` are leftovers from an abandoned plan.
+**Fixed in #28:**
+
+1. ~~**`generate.py:119` sorts events by formatted string.**~~ `events.sort(key=lambda e: e["date"])` sorted `"Friday, August 15 at 03:30 PM"` alphabetically by weekday name, so today's 8:30am school run could land after next Tuesday. Now sorted on `(date, all_day, start)` in `calendars.py`.
+2. ~~**`date.today()` / `datetime.now()` use server local time.**~~ On a UTC host a family in Auckland got the wrong day. The engine now takes an injected date, from `config_module.today_for(config)`.
+3. ~~**`calendar_filter_emails` requires all listed emails as `ATTENDEE`s.**~~ Most personal Google Calendar events have no `ATTENDEE` property at all, so it silently returned zero events. Dropped on load, with a warning; multiple calendars replaces it.
+4. ~~**No tests.**~~ 145 of them, in under a second.
+
+**Also fixed, found while settling decision 10:**
+
+5. ~~**The settings UI addressed list items by position.**~~ `items[int(item_id)]`, so removing anyone renumbered everybody below and an open edit form silently pointed at the wrong person. Items now carry stable ids.
+
+**Still open:**
+
+6. **Stale `.env` keys.** `DATABASE_URL`, `SECRET_KEY`, `UPLOAD_FOLDER`, `MAX_CONTENT_LENGTH` are leftovers from an abandoned plan. There is still no `.env.example`.
+7. **No CI.** The suite runs in under a second and nothing runs it on push.
 
 ---
 
