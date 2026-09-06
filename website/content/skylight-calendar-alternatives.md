@@ -29,6 +29,8 @@ The good news: you have real options — including some that cost nothing becaus
 
 Full disclosure: DinkyDash is our project, so we're biased — but it exists precisely because we wanted a Skylight without the hardware bill. DinkyDash turns any TV, tablet, Raspberry Pi, or spare monitor into a family calendar with a daily chore rotation, birthday countdowns, and something no other option here has: **a daily brief written by AI every morning**, personalized to your family's actual day.
 
+It works with the calendars you already keep: **Google Calendar, Apple iCloud Calendar and Outlook** each publish a sharing link, and DinkyDash reads all three into one agenda in time order. You paste the link — there's no account to sign in to.
+
 It's MIT-licensed and free. The trade-off: today you set it up yourself, which means being comfortable with a terminal for an afternoon. Our [getting started guide](/getting-started/) walks you through it, and a zero-setup hosted version is in the works.
 
 **Best for:** families with a tinkerer in the house who want $0 hardware and no subscription.

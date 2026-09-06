@@ -25,7 +25,7 @@ You're paying for plug-and-play: unbox, connect Wi-Fi, done. As of September 202
 
 A family calendar display is, mechanically, a screen showing a web page. If a spare tablet, a TV, or a $100 Raspberry Pi is available, software gets you there:
 
-**DinkyDash (free, open source)** — our project, and the reason this site exists. Any screen with a browser becomes a family calendar with automatic chore rotation, birthday countdowns, and an AI-written daily brief — a fresh greeting and fun fact every morning, written around your own family, which no hardware calendar offers. Setup takes an afternoon and a bit of terminal comfort ([guide](/getting-started/)); a zero-setup hosted version is [in the works](https://fffwryhvses.typeform.com/to/yxMMhmFs).
+**DinkyDash (free, open source)** — our project, and the reason this site exists. Any screen with a browser becomes a family calendar with automatic chore rotation, birthday countdowns, and an AI-written daily brief — a fresh greeting and fun fact every morning, written around your own family, which no hardware calendar offers. It reads Google, Apple iCloud and Outlook calendars (paste each one's sharing link; there's no sign-in) and merges them into a single agenda. Setup takes an afternoon and a bit of terminal comfort ([guide](/getting-started/)); a zero-setup hosted version is [in the works](https://fffwryhvses.typeform.com/to/yxMMhmFs).
 
 **Mango Display (free tier; Pro $5.99/mo or $59.99/yr)** — commercial BYO-screen software with polished apps for smart TVs and tablets. The no-DIY version of this path — but budget for Pro, because the free plan has no calendar.
 

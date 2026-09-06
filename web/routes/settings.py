@@ -90,7 +90,10 @@ SECTIONS = {
         "fields": [
             ("label", "Call it", "text", True, ""),
             ("url", "iCal link", "url", True,
-             "Google Calendar → Settings and sharing → Secret address in iCal format."),
+             "Google → Settings and sharing → Integrate calendar → Secret address in iCal format. "
+             "iCloud → share the calendar → Public Calendar → Copy Link, then change webcal:// to "
+             "https://. Outlook → Settings → Calendar → Shared calendars → Publish a calendar, "
+             "then the ICS link."),
             ("enabled", "Show on the board", "checkbox", False, ""),
         ],
     },

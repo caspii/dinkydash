@@ -19,7 +19,10 @@ location: "Berlin, Germany"
 theme: light
 
 # One entry per iCal feed; they are merged into a single agenda.
-# Google Calendar → Settings and sharing → Secret address in iCal format.
+# Google, Apple iCloud and Outlook all publish an iCal link:
+#   Google   → Settings and sharing → Integrate calendar → Secret address in iCal format
+#   iCloud   → share the calendar → Public Calendar → Copy Link, then webcal:// → https://
+#   Outlook  → Settings → Calendar → Shared calendars → Publish a calendar → the ICS link
 calendars:
   - label: "Family"
     url: "https://calendar.google.com/calendar/ical/you%40gmail.com/private-xxxx/basic.ics"

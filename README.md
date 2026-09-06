@@ -18,7 +18,8 @@ Every morning, DinkyDash merges your calendars into one agenda, works out whose 
 
 ## What the board shows
 
-- Today's agenda, in time order, merged from as many iCal feeds as you like
+- Today's agenda, in time order, merged from as many Google, Apple iCloud and Outlook
+  calendars as you like — anything with an iCal link, pasted in, no account sign-in
 - A look at tomorrow underneath it, on the days today leaves room
 - Whose turn each chore is — rotated daily, nothing to tick off
 - Countdowns to birthdays, holidays and special dates
@@ -53,7 +54,9 @@ are still today's — the board just labels the written line as older.
 - Python 3.11+
 - An [Anthropic API key](https://console.anthropic.com/settings/keys) — for the daily headline and
   written line only; you can run the board without one, see step 2
-- One or more iCal URLs (Google Calendar → Settings and sharing → Secret address in iCal format)
+- One or more iCal URLs. Google, Apple iCloud and Outlook all publish one — the
+  [getting started guide](https://dinkydash.co/getting-started/#find-your-calendar-link) has the
+  steps for each
 
 ### 1. Clone and install
 
@@ -216,10 +219,21 @@ full screen with no browser around it.
 
 ### Adding a calendar
 
-Settings → Calendars → Add a calendar. In Google Calendar: **Settings and sharing** → the calendar
-in the left sidebar → **Secret address in iCal format**. Paste it and press **Check this link** —
-it will tell you how many events it found and what the next one is, rather than silently accepting
-a URL that returns nothing.
+Settings → Calendars → Add a calendar. Paste an iCal link and press **Check this link** — it will
+tell you how many events it found and what the next one is, rather than silently accepting a URL
+that returns nothing.
+
+Where the link lives, per provider:
+
+| Provider | Where to find the iCal link |
+|---|---|
+| **Google Calendar** | Settings and sharing → **Integrate calendar** → **Secret address in iCal format** |
+| **Apple iCloud** | iCloud Calendar → share the calendar → **Public Calendar** → Copy Link, then change `webcal://` to `https://` |
+| **Outlook / Microsoft 365** | Settings → Calendar → **Shared calendars** → **Publish a calendar**, permission **Can view all details**, then copy the **ICS** link |
+
+Nothing here signs you in to an account. DinkyDash fetches the link on a schedule and can only read.
+The [getting started guide](https://dinkydash.co/getting-started/#find-your-calendar-link) has the
+full steps and the gotchas.
 
 Add one feed per person. A feed that stops answering is reported on the settings home page and is
 skipped rather than emptying the board.
