@@ -40,7 +40,7 @@ Mango Display is a commercial take on the same idea: install their app on a smar
 
 ## 3. DAKboard — the customizable wall display veteran
 
-DAKboard has been the DIY wall-display favorite for years — calendars, photos, weather, and news on any screen, with deep layout customization. Free for a basic screen; $5–10/month unlocks custom layouts and multiple screens. It's more "information display" than "family organizer" — there's no chore system aimed at kids.
+DAKboard has been the DIY wall-display favorite for years — calendars, photos, weather, and news on any screen, with deep layout customization. Free for one predefined screen with two calendars; $6/month (or $5 billed annually) unlocks custom layouts, and $10/month adds unlimited calendars. It's more "information display" than "family organizer." If it's the one you're weighing up, we compared it properly on the [DAKboard alternatives page](/dakboard-alternatives/).
 
 **Best for:** data-dense household dashboards and tinkerers who want full layout control.
 
