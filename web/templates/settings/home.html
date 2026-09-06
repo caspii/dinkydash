@@ -92,4 +92,60 @@
         </a>
     </div>
 </div>
+
+{# Hidden until the script below decides it is worth showing: not already saved,
+   and not waved away before. #}
+<div class="card pad" id="install-nudge" hidden style="display:flex;flex-direction:column;gap:0.75rem;">
+    <div>
+        <div style="font-size:0.9375rem;font-weight:800;">Keep this on your home screen</div>
+        <div class="hint" style="margin-top:0.1875rem;">
+            It opens like an app, so swapping whose turn it is takes two taps — not typing
+            this address in again.
+        </div>
+    </div>
+    <div class="note-box" id="install-how">
+        On an iPhone, tap <strong>Share</strong>, then <strong>Add to Home Screen</strong>.
+        On Android, open the <strong>⋮</strong> menu, then <strong>Add to home screen</strong>.
+    </div>
+    <button class="btn" type="button" id="install-go" hidden>Add to home screen</button>
+    <button class="btn small" type="button" id="install-no"
+            style="background:transparent;color:var(--text-muted);box-shadow:none;align-self:center;">
+        Not now
+    </button>
+</div>
+
+<script>
+    // The nudge is only useful in a browser tab. Once the page is running from
+    // the home screen it has done its job, and once it has been waved away it
+    // should stay away — a settings page you visit weekly should not nag.
+    (function () {
+        var box = document.getElementById('install-nudge');
+        var saved = window.matchMedia('(display-mode: standalone)').matches
+            || window.navigator.standalone === true;
+        var dismissed = false;
+        try {
+            dismissed = localStorage.getItem('dinkydash-install-nudge') === 'dismissed';
+        } catch (e) { /* private mode: show it, and let it be dismissed for this visit */ }
+        if (saved || dismissed) return;
+        box.hidden = false;
+
+        // Chrome offers to do the saving itself, but only over https — so on a
+        // home network served over plain http this never fires, and neither does
+        // it in Safari. The written steps are the default for that reason.
+        var offer = null;
+        window.addEventListener('beforeinstallprompt', function (event) {
+            event.preventDefault();
+            offer = event;
+            document.getElementById('install-how').hidden = true;
+            document.getElementById('install-go').hidden = false;
+        });
+        document.getElementById('install-go').addEventListener('click', function () {
+            if (offer) { offer.prompt(); offer = null; }
+        });
+        document.getElementById('install-no').addEventListener('click', function () {
+            try { localStorage.setItem('dinkydash-install-nudge', 'dismissed'); } catch (e) {}
+            box.hidden = true;
+        });
+    })();
+</script>
 {% endblock %}

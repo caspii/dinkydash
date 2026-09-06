@@ -182,6 +182,19 @@ bottom**. The agenda is short on a quiet day while chores plus countdowns are no
 note left the lower left quarter of an 800x480 panel empty. Under the agenda it balances the two
 columns instead: on a five-event day the left column measures 311px against the side column's 312.
 
+**Saving a page to a home screen.** `/` and `/settings/` each serve their own web app manifest
+(`web/manifest.py` holds what they share), so a saved link gets the mark and a name instead of a
+URL — the board full screen for a tablet used as the panel, the settings UI standalone on a phone.
+They must keep **different `id`s**: share one and the phone treats them as a single app, so saving
+the board would replace the settings icon. iOS reads none of the manifest; its icon and label come
+from the `apple-touch-icon` link and `apple-mobile-web-app-title` in the page head, which is why
+both are set on both pages. The PNGs in `web/static/` are drawn by `website/generate_favicon.py`,
+which renders the same mark as the favicon at every size the site and the app need — the outputs
+are committed, so Pillow stays out of `requirements.txt`. The settings page offers this once and
+remembers a "Not now" in `localStorage`; it hides itself when already running from a home screen.
+Note that Chrome's own install prompt needs https, so on a home network it never fires and the
+written steps are what people see.
+
 ## Conventions
 
 - **British English** throughout — UI copy, the model's system prompt, and `%-d %B` date formatting

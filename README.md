@@ -177,6 +177,15 @@ Config changes show up on the next page load. They do **not** re-run generation:
 note are from this morning. Press **Rewrite now** if you want fresh copy immediately — each press is
 one API call.
 
+### Keeping settings on your phone
+
+Save `/settings` to your phone's home screen and it opens like an app, with the DinkyDash icon and
+name rather than a bare URL. On an iPhone: **Share** → **Add to Home Screen**. On Android: the **⋮**
+menu → **Add to home screen**. The settings page offers this itself the first time, until you say no.
+
+The board does the same at `/` — worth doing if a tablet is your panel, because a saved board opens
+full screen with no browser around it.
+
 ### Adding a calendar
 
 Settings → Calendars → Add a calendar. In Google Calendar: **Settings and sharing** → the calendar
@@ -520,7 +529,7 @@ tail -f /home/pi/dinkydash/generate.log   # last night's generation
 | `app.py` | Flask entry point |
 | `config.yaml` | All configuration. The settings UI writes this same file |
 | `config.example.yaml` | Template config, documenting every key |
-| `tests/` | 145 tests. Run them before committing |
+| `tests/` | 151 tests. Run them before committing |
 | `design/` | Mockups for the board and settings UI, with the reasoning |
 | `deploy_to_pi.sh` | Deployment (rsync + service restart) |
 | `.env` | `ANTHROPIC_API_KEY` (not in git) |

@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
-  <!-- DinkyDash marketing-site mark. Same 2x2 dashboard grid as the Pi app's
-       icon, recoloured to the site palette: warm orange (#e85d24) on cream
-       (#fffaf5) rather than the app's purple gradient. -->
+  <!-- The DinkyDash mark: a 2x2 dashboard grid, warm orange (#e85d24) on cream
+       (#fffaf5). The app in `web/static/` now carries the same one, so the tab
+       icon is the same wherever you are. -->
   <rect width="128" height="128" rx="26" ry="26" fill="#e85d24"/>
   <g fill="#fffaf5">
     <rect x="20" y="20" width="40" height="40" rx="9"/>

@@ -143,3 +143,49 @@ class TestReordering:
         client.get("/settings/recurring")
         assert client.post("/settings/recurring/nosuchid/move",
                            data={"direction": "up"}).status_code == 404
+
+
+class TestHomeScreen:
+    """Saving either page to a phone: the icon, the name, and the two manifests.
+
+    The board's manifest lives on the board blueprint, but it is tested here
+    because this is where the Flask client is.
+    """
+
+    def test_the_manifest_is_not_swallowed_by_the_section_routes(self, client):
+        # `/settings/<section_name>` would happily match "manifest.webmanifest"
+        # and 404 it, if Werkzeug preferred the dynamic rule.
+        response = client.get("/settings/manifest.webmanifest")
+        assert response.status_code == 200
+        assert response.mimetype == "application/manifest+json"
+
+    def test_the_saved_settings_link_has_a_name_and_opens_at_settings(self, client):
+        manifest = client.get("/settings/manifest.webmanifest").get_json(force=True)
+        assert manifest["short_name"] == "DinkyDash"
+        assert manifest["start_url"] == "/settings/"
+        assert "The Wilsons" in manifest["description"]
+
+    def test_the_board_is_a_second_app_not_the_same_one(self, client):
+        # Share an id and the phone treats them as one app: saving the board
+        # would quietly replace the settings icon.
+        board = client.get("/manifest.webmanifest").get_json(force=True)
+        settings = client.get("/settings/manifest.webmanifest").get_json(force=True)
+        assert board["id"] != settings["id"]
+        assert board["start_url"] == "/"
+        assert board["name"] == "The Wilsons"
+        assert board["display"] == "fullscreen"
+
+    def test_every_icon_the_manifest_promises_is_really_there(self, client):
+        manifest = client.get("/settings/manifest.webmanifest").get_json(force=True)
+        assert {icon["purpose"] for icon in manifest["icons"]} == {"any", "maskable"}
+        for icon in manifest["icons"]:
+            assert client.get(icon["src"]).status_code == 200, icon["src"]
+
+    def test_the_settings_page_points_at_its_icon_and_manifest(self, client):
+        page = client.get("/settings/").get_data(as_text=True)
+        assert '<link rel="manifest" href="/settings/manifest.webmanifest">' in page
+        # iOS reads none of the manifest; this link and the title meta are all
+        # it has to go on.
+        assert 'rel="apple-touch-icon"' in page
+        assert '<meta name="apple-mobile-web-app-title" content="DinkyDash">' in page
+        assert client.get("/static/apple-touch-icon.png").status_code == 200
