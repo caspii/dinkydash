@@ -1,8 +1,5 @@
 flask
-pyyaml
 ruamel.yaml
-jinja2
-markdown
 anthropic
 python-dotenv
 icalendar

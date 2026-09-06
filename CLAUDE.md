@@ -39,9 +39,9 @@ Two consequences, pulling the same way:
 
 ### What must never be committed
 
-`.gitignore` covers `.env`, `config.yaml`, `dashboard_data.json`, `content_history.json`,
-`generate.log` and `static/*.jpg|png` (except `icon.png`). That is the safety net, not the plan:
-read `git status` before staging and never `git add -f` one of them. A secret in history survives
+`.gitignore` covers `.env`, `config.yaml`, `dashboard_data.json`, `content_history.json` and
+`generate.log`. That is the safety net, not the plan: read `git status` before staging and never
+`git add -f` one of them. A secret in history survives
 in every clone and fork after the commit that removes it, so the fix is rotation, not a revert.
 
 - **An iCal "secret address" is a password in a URL.** Whoever holds it reads that family's whole
@@ -91,14 +91,24 @@ mode is a different product on the same code.
 
 ### Hygiene still owed
 
-Phase 0 of PLAN.md is mostly this, and none of it is done: no CI, no `gitleaks` hook, GitHub push
-protection not enabled, and no `.env.example`. `.env` now holds `ANTHROPIC_API_KEY` and nothing
-else — `FLASK_ENV`, `SECRET_KEY`, `DATABASE_URL`, `UPLOAD_FOLDER` and `MAX_CONTENT_LENGTH` were
-leftovers from an abandoned plan and none of them was read by any code. Do not put `SECRET_KEY`
-back: nothing calls `from_prefixed_env`, so Flask never sees it, and the session key comes from
-`DINKYDASH_SECRET_KEY` or the hardcoded fallback whatever `.env` says. The Anthropic key is still
-not rotated after living on a Pi and being rsynced. `requirements.txt` pins no versions. There is no
-`LICENSE` file, though the README and the website both say MIT.
+Phase 0 of PLAN.md is mostly this, and most of it is still undone: no CI, no `gitleaks` hook, GitHub
+push protection not enabled, and no `.env.example`.
+
+**`.env` should hold `ANTHROPIC_API_KEY` and nothing else.** `FLASK_ENV`, `SECRET_KEY`,
+`DATABASE_URL`, `UPLOAD_FOLDER` and `MAX_CONTENT_LENGTH` are leftovers from an abandoned plan and
+none of them is read by any code. They have been stripped from this worktree's copy, but `.env` is
+not in git, so every other copy has to be edited where it lives — the main checkout, and the Pi that
+`deploy_to_pi.sh` rsyncs to. Do not put `SECRET_KEY` back: nothing calls `from_prefixed_env`, so
+Flask never sees it, and the session key comes from `DINKYDASH_SECRET_KEY` or the hardcoded fallback
+whatever `.env` says.
+
+The Anthropic key is still not rotated after living on a Pi and being rsynced. `requirements.txt`
+pins no versions.
+
+**`requirements.txt` is runtime only** — it is what `deploy_to_pi.sh` installs on the Pi. The site
+generator's dependencies (`jinja2`, `markdown`, `pyyaml`) and the favicon script's (`Pillow`) live
+in `requirements-dev.txt`, because `website/` never runs on the board. A new import in `website/`
+goes there, not in `requirements.txt`.
 
 ## Architecture
 
@@ -212,7 +222,7 @@ dict is the storage contract, a file in self-hosted mode and a `jsonb` column wh
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
-pip install -r requirements-dev.txt   # pytest; not deployed to the Pi
+pip install -r requirements-dev.txt   # pytest + the website build; not deployed to the Pi
 cp config.example.yaml config.yaml
 ```
 
@@ -316,7 +326,9 @@ the board would replace the settings icon. iOS reads none of the manifest; its i
 from the `apple-touch-icon` link and `apple-mobile-web-app-title` in the page head, which is why
 both are set on both pages. The PNGs in `web/static/` are drawn by `website/generate_favicon.py`,
 which renders the same mark as the favicon at every size the site and the app need — the outputs
-are committed, so Pillow stays out of `requirements.txt`. The settings page offers this once and
+are committed, so Pillow stays out of `requirements.txt` (it is declared in `requirements-dev.txt`).
+**Editing `favicon.svg` means re-running that script**, or the `.ico` and the PNGs keep serving the
+old mark: `website/static/favicon.ico` sat two weeks behind its own SVG that way. The settings page offers this once and
 remembers a "Not now" in `localStorage`; it hides itself when already running from a home screen.
 Note that Chrome's own install prompt needs https, so on a home network it never fires and the
 written steps are what people see.

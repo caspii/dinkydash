@@ -120,11 +120,14 @@ No `selfhost/` config loader: single and cloud mode both go through
 
 ### The engine boundary
 
-The single most important refactor. `dinkydash.generate` becomes:
+The single most important refactor. Done in #28; `dinkydash.generate` is now:
 
 ```python
-def generate(config: dict, today: date, recent_content: list) -> dict
+def generate(config: dict, today: date, events: list, recent_notes: list = ()) -> dict
 ```
+
+Events are fetched by the caller rather than by the engine, which is what keeps `calendars.py` the
+only module that touches the network.
 
 No `SCRIPT_DIR`, no `config.yaml` read, no JSON write, no `sys.exit`, no `date.today()` — the caller injects the date. This is what lets one code path serve a Pi and a multi-tenant scheduler, and it's what makes the engine testable.
 
@@ -211,7 +214,7 @@ These are latent on a single Pi and actively harmful hosted.
 1. ~~**`generate.py:119` sorts events by formatted string.**~~ `events.sort(key=lambda e: e["date"])` sorted `"Friday, August 15 at 03:30 PM"` alphabetically by weekday name, so today's 8:30am school run could land after next Tuesday. Now sorted on `(date, all_day, start)` in `calendars.py`.
 2. ~~**`date.today()` / `datetime.now()` use server local time.**~~ On a UTC host a family in Auckland got the wrong day. The engine now takes an injected date, from `config_module.today_for(config)`.
 3. ~~**`calendar_filter_emails` requires all listed emails as `ATTENDEE`s.**~~ Most personal Google Calendar events have no `ATTENDEE` property at all, so it silently returned zero events. Dropped on load, with a warning; multiple calendars replaces it.
-4. ~~**No tests.**~~ 145 of them, in under a second.
+4. ~~**No tests.**~~ 157 of them, in under a second.
 
 **Also fixed, found while settling decision 10:**
 
@@ -219,7 +222,7 @@ These are latent on a single Pi and actively harmful hosted.
 
 **Still open:**
 
-6. **Stale `.env` keys.** `DATABASE_URL`, `SECRET_KEY`, `UPLOAD_FOLDER`, `MAX_CONTENT_LENGTH` are leftovers from an abandoned plan. There is still no `.env.example`.
+6. **Stale `.env` keys.** `DATABASE_URL`, `SECRET_KEY`, `UPLOAD_FOLDER`, `MAX_CONTENT_LENGTH` are leftovers from an abandoned plan. No code reads any of them, so removing them changes nothing — but `.env` is not in git, so each copy has to be edited where it lives: the main checkout, and the Pi, which `deploy_to_pi.sh` rsyncs to. There is still no `.env.example`.
 7. **No CI.** The suite runs in under a second and nothing runs it on push.
 
 ---
@@ -230,10 +233,10 @@ Critical path is 0 → 1 → 2 → 3. Phases 4–6 can run alongside 3. Nothing 
 
 ### Phase 0 — Foundations
 
-- [ ] Restructure into the monorepo layout above
-- [ ] Refactor the engine to `generate(config, today, recent_content) -> dict`
-- [ ] Fix the five issues listed above; add tests around date/timezone, calendar parsing, chore rotation
-- [ ] Update the Claude model; set `thinking` explicitly; switch to structured outputs
+- [x] Restructure into the monorepo layout above *(#28)*
+- [x] Refactor the engine to `generate(config, today, events, recent_notes) -> dict` *(#28)*
+- [x] Fix the five issues listed above; add tests around date/timezone, calendar parsing, chore rotation *(#28, #29)*
+- [x] Update the Claude model; switch to structured outputs *(#28 — `claude-haiku-4-5` takes no `thinking` parameter, so leaving it unset is the explicit choice)*
 - [ ] Postgres + migrations; CI running the test suite
 - [ ] Staging deploy on `app.dinkydash.co` (apex stays on GitHub Pages)
 - [ ] Enable GitHub push protection; add `gitleaks` pre-commit hook; ship `.env.example`
@@ -242,6 +245,11 @@ Critical path is 0 → 1 → 2 → 3. Phases 4–6 can run alongside 3. Nothing 
 **Done when:** the engine runs from a dict with an injected date, tests pass in CI, and staging serves a hardcoded family.
 
 ### Phase 1 — Multi-tenant core
+
+Some of this is already built for one family, in `web/routes/settings.py` (#28–#31): the five edited
+lists with stable ids, add/label/enable/remove for iCal feeds with live validation on paste, and
+timezone, family name and location under `/system`. The boxes below stay unticked because what is
+missing is the multi-tenant half — a schema, auth, and scoping every read and write to a `family_id`.
 
 - [ ] Schema + migrations per the sketch above
 - [ ] Magic-link auth, email verification required before first generation
