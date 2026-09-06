@@ -124,11 +124,18 @@ max_tokens: 1024
 
 ### 3. Add your API key
 
-Create a `.env` file:
+```bash
+cp .env.example .env
+```
+
+Then put your key in it. That one line is the whole file:
 
 ```
 ANTHROPIC_API_KEY=sk-ant-...
 ```
+
+`.env` is gitignored, and `deploy_to_pi.sh` does not copy it — so a Pi keeps its own, and rotating
+a key means editing each copy where it lives.
 
 ### 4. Generate and run
 
@@ -153,6 +160,11 @@ python -m pytest tests/ -q
 
 157 tests, well under a second. They cover leap years, timezone conversion, event ordering, chore
 rotation, the stale-board logic, the config round-trip, and the settings routes that write it.
+
+GitHub Actions runs the same command on every push and pull request, on Python 3.11
+(`.github/workflows/test.yml`), alongside a [gitleaks](https://github.com/gitleaks/gitleaks) scan of
+the full history. Both dependency files are pinned with `==`, so a clean `pip install` gets the
+versions CI passed on. A pull request that fails either check shows a red X.
 
 ---
 
@@ -550,6 +562,9 @@ tail -f /home/pi/dinkydash/generate.log   # last night's generation
 | `design/` | Mockups for the board and settings UI, with the reasoning |
 | `deploy_to_pi.sh` | Deployment (rsync + service restart) |
 | `.env` | `ANTHROPIC_API_KEY` (not in git) |
+| `.env.example` | The template for it — copy to `.env` |
+| `.github/workflows/test.yml` | CI: pytest and gitleaks, on every push and pull request |
+| `.gitleaks.toml` | Secret-scanning rules, including one for iCal secret addresses |
 | `dashboard_data.json` | The generated payload (not in git) |
 | `content_history.json` | Recent notes, so the model doesn't repeat itself (not in git) |
 | `PLAN.md` | Hosted MVP architecture and build phases |
