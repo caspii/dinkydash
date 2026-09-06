@@ -160,7 +160,7 @@ Roughly 2,500 input / 350 output tokens per family per day:
 
 At $5/mo, AI is 4–8% of revenue on Sonnet. Three notes:
 
-- Config still pins `claude-sonnet-4-5-20250929` — update it
+- ~~Config still pins `claude-sonnet-4-5-20250929`~~ — now `claude-haiku-4-5`
 - **Sonnet 5 runs adaptive thinking by default**, which eats into `max_tokens: 2048` and can truncate the JSON. Set `thinking` explicitly.
 - Switch to structured outputs (`output_config.format`) and the three-attempt JSON-parse retry loop can be deleted
 
