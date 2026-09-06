@@ -1,7 +1,14 @@
-flask
-ruamel.yaml
-anthropic
-python-dotenv
-icalendar
-recurring-ical-events
-requests
+# Runtime only. This is what deploy_to_pi.sh installs on the Pi, so the site
+# generator and the test suite are not here — see requirements-dev.txt.
+#
+# Pinned so a clean venv installs what CI passed on. Bump deliberately: this
+# app holds other families' calendars, so an unpinned upgrade is a supply-chain
+# decision made by accident.
+
+flask==3.1.3
+ruamel.yaml==0.19.1
+anthropic==1.4.0          # >=1.0 for output_config structured outputs
+python-dotenv==1.2.3
+icalendar==7.3.0
+recurring-ical-events==3.8.2
+requests==2.34.2

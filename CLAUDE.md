@@ -49,7 +49,8 @@ in every clone and fork after the commit that removes it, so the fix is rotation
 - **An iCal "secret address" is a password in a URL.** Whoever holds it reads that family's whole
   calendar, indefinitely, and there is no way to see who has. It never goes in a commit, a test
   fixture, an issue, a log line, a screenshot, or a prompt to any model. Example URLs in the docs
-  and in `config.example.yaml` are visibly fake (`private-xxxx`); keep new ones that way.
+  and in `config.example.yaml` are visibly fake (`private-xxxx`); keep new ones that way, because
+  `.gitleaks.toml` has a rule for the real shape and CI fails on it.
 - **Real family data.** Names, dates of birth and children's faces are the entire content of this
   app. Screenshots for the README or the marketing site come from `python sample_board.py`, which
   invents people. Tests invent people too.
@@ -122,10 +123,35 @@ mode is a different product on the same code.
 - **Spend caps are a security control.** The per-family and global breaker (PLAN.md phase 2) is what
   stops a bug or an abusive account becoming an unbounded Anthropic bill.
 
-### Hygiene still owed
+### The safety net, and what it does not cover
 
-Phase 0 of PLAN.md is mostly this, and most of it is still undone: no CI, no `gitleaks` hook, GitHub
-push protection not enabled, and no `.env.example`.
+Phase 0 of PLAN.md is mostly this. Three of the four pieces are now in place.
+
+`.github/workflows/test.yml` runs on every push and pull request, as two independent jobs so a
+secret and a broken test are separate red X's: **pytest** on Python 3.11, and **gitleaks** over the
+full history — `fetch-depth: 0`, because gitleaks scans commits rather than the working tree.
+GitHub's own secret scanning and push protection are enabled on the repo, so a recognised key is
+rejected at `git push` rather than needing rotation afterwards.
+
+The gitleaks job runs the MIT-licensed binary directly, pinned, rather than the upstream
+`gitleaks-action` — that action is a bundled JavaScript blob under a commercial licence, and this is
+one fewer thing holding a token in our CI. Rules live in `.gitleaks.toml`, which extends the default
+set with the one shape the defaults do not know: **an iCal secret address**. Google
+(`private-` + 32 hex) and iCloud (`/published/2/` + a long token) both have a rule; the visibly fake
+examples in the docs (`private-xxxx`, `private-8f3c1a`) are too short to match, so keep new ones
+that way. The single allowlist entry is the Ahrefs Web Analytics site key, which is served in the
+`<head>` of every page on dinkydash.co and so trips `generic-api-key` 4,000+ times across `docs/`.
+**Allowlisting is for values that are public by design.** A real secret that reached a commit is
+fixed by rotating it.
+
+Two things the net does not catch, both worth knowing before trusting it:
+
+- **The defaults have no rule for a calendar URL**, which is why we wrote our own. Anything else
+  shaped like a password in a URL needs the same treatment.
+- **`config.yaml` is in the history**, nine commits from before it was gitignored. It holds two
+  children's first names; it holds no credential, no calendar URL and no key, so there is nothing to
+  rotate — but it is public and permanent, and rewriting a published history is not a fix worth the
+  breakage. It is the reason the rules above exist.
 
 **`.env` should hold `ANTHROPIC_API_KEY` and nothing else.** `FLASK_ENV`, `SECRET_KEY`,
 `DATABASE_URL`, `UPLOAD_FOLDER` and `MAX_CONTENT_LENGTH` are leftovers from an abandoned plan and
@@ -135,8 +161,14 @@ whose `.env` `deploy_to_pi.sh` no longer overwrites. Do not put `SECRET_KEY` bac
 Flask never sees it, and the session key comes from `DINKYDASH_SECRET_KEY` or the hardcoded fallback
 whatever `.env` says.
 
-The Anthropic key is still not rotated after living on a Pi and having been rsynced. `requirements.txt`
-pins no versions.
+The Anthropic key is still not rotated after living on a Pi and having been rsynced. That is the
+one Phase 0 item still open, and CI cannot do it: revoke the key in the Anthropic console, then
+write the new one into `.env` in the main checkout and on the Pi, in place. `deploy_to_pi.sh`
+excludes `.env`, so pushing one copy over the other is not an option and is not meant to be.
+
+**`requirements.txt` and `requirements-dev.txt` are pinned with `==`** to the versions CI passes on,
+so a clean venv gets what was tested. Bump deliberately, and check the release notes: `anthropic`
+must stay at 1.x or later, because `claude_client.py` calls `output_config` structured outputs.
 
 **`requirements.txt` is runtime only** — it is what `deploy_to_pi.sh` installs on the Pi. The site
 generator's dependencies (`jinja2`, `markdown`, `pyyaml`) and the favicon script's (`Pillow`) live
