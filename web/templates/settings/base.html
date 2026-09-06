@@ -6,6 +6,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex, nofollow">
     <link rel="icon" href="{{ url_for('static', filename='favicon.svg') }}" type="image/svg+xml">
+    <!-- Saved to a phone's home screen this opens like an app. The manifest is
+         what Android reads; iOS ignores it and goes by the four lines below. -->
+    <link rel="manifest" href="{{ url_for('settings.manifest') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
+    <meta name="apple-mobile-web-app-title" content="DinkyDash">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#fffaf5">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -29,6 +37,8 @@
             --danger: #c0392b;
         }
         *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        /* An inline `display` beats the browser's own [hidden] rule, so say it here. */
+        [hidden] { display: none !important; }
         /* Everything below is sized in rem off this one value, like the board. A phone gets the
            mockup's 16px; a desktop browser gets up to 20px, so the same layout reads at arm's
            length instead of phone distance. Stated in rem, not px, so a raised browser default

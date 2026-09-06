@@ -7,6 +7,14 @@
     <meta name="robots" content="noindex, nofollow">
     <meta http-equiv="refresh" content="{{ 60 if view.state == 'waiting' else 300 }}">
     <link rel="icon" href="{{ url_for('static', filename='favicon.svg') }}" type="image/svg+xml">
+    <!-- On a tablet used as the panel, saving this to the home screen gives a
+         full-screen board with no browser around it. -->
+    <link rel="manifest" href="{{ url_for('board.manifest') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
+    <meta name="apple-mobile-web-app-title" content="{{ view.family_name or 'DinkyDash' }}">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="{{ '#17120f' if view.theme == 'dark' else '#ffffff' }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">

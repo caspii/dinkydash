@@ -19,6 +19,7 @@ from dinkydash.calendars import FeedError, describe_feed
 from dinkydash.claude_client import GenerationError
 from dinkydash.context import compute_birthday_info, upcoming_for
 from dinkydash.runner import run as run_generation
+from web import manifest as manifest_module
 
 log = logging.getLogger(__name__)
 
@@ -196,6 +197,28 @@ def home():
 def _clock(payload):
     stamp = payload.get("generated_at", "")
     return stamp[11:16] if len(stamp) >= 16 else "earlier"
+
+
+@bp.route("/manifest.webmanifest")
+def manifest():
+    """The name and icon a phone gives this page on its home screen.
+
+    Loaded straight from the file rather than through `current_config`: fetching
+    a manifest must not be able to write config.yaml.
+    """
+    config = config_module.load_config(current_app.config["CONFIG_PATH"])
+    family = config.get("family_name")
+    return manifest_module.response(
+        id=url_for("settings.home"),
+        name="DinkyDash settings",
+        # What fits under the icon. Not "Settings" — that is already an app.
+        short_name="DinkyDash",
+        description=f"Change what {family} sees on the board." if family
+                    else "Change what the board shows.",
+        start_url=url_for("settings.home"),
+        background_color="#fffaf5",
+        theme_color="#fffaf5",
+    )
 
 
 @bp.route("/generate", methods=["POST"])
