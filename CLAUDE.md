@@ -52,7 +52,8 @@ in every clone and fork after the commit that removes it, so the fix is rotation
   app. Screenshots for the README or the marketing site come from `python sample_board.py`, which
   invents people. Tests invent people too.
 - **Secrets come from the environment**, never a literal in code or config. `.env` also lives on the
-  Pi, because `deploy_to_pi.sh` rsyncs it — rotating a key means changing it in both places.
+  Pi, and `deploy_to_pi.sh` deliberately excludes it — rotating a key means editing it on the Pi in
+  place, and in the main checkout, rather than pushing one over the other.
 - **A new dependency is a supply-chain decision** in an app holding other families' calendars.
   Prefer the standard library; justify anything else in the PR.
 
@@ -97,12 +98,12 @@ push protection not enabled, and no `.env.example`.
 **`.env` should hold `ANTHROPIC_API_KEY` and nothing else.** `FLASK_ENV`, `SECRET_KEY`,
 `DATABASE_URL`, `UPLOAD_FOLDER` and `MAX_CONTENT_LENGTH` are leftovers from an abandoned plan and
 none of them is read by any code. They have been stripped from this worktree's copy, but `.env` is
-not in git, so every other copy has to be edited where it lives — the main checkout, and the Pi that
-`deploy_to_pi.sh` rsyncs to. Do not put `SECRET_KEY` back: nothing calls `from_prefixed_env`, so
+not in git, so every other copy has to be edited where it lives — the main checkout, and the Pi,
+whose `.env` `deploy_to_pi.sh` no longer overwrites. Do not put `SECRET_KEY` back: nothing calls `from_prefixed_env`, so
 Flask never sees it, and the session key comes from `DINKYDASH_SECRET_KEY` or the hardcoded fallback
 whatever `.env` says.
 
-The Anthropic key is still not rotated after living on a Pi and being rsynced. `requirements.txt`
+The Anthropic key is still not rotated after living on a Pi and having been rsynced. `requirements.txt`
 pins no versions.
 
 **`requirements.txt` is runtime only** — it is what `deploy_to_pi.sh` installs on the Pi. The site
@@ -386,8 +387,11 @@ written steps are what people see.
 
 ## Raspberry Pi Deployment
 
-`deploy_to_pi.sh` rsyncs the tree (including `.env`), installs dependencies, and restarts the
-`dinkydash.service` systemd unit.
+`deploy_to_pi.sh` rsyncs the code to the Pi — protecting the Pi's own `config.yaml`, generated data
+and `.env`, and with `--delete` clearing anything dropped from the repo — creates the virtualenv if
+it is missing, installs dependencies, and restarts the `dinkydash.service` systemd unit when it is
+installed. Host, user and target directory are overridable with the `PI_HOST`, `PI_USER` and
+`PI_DIR` environment variables; `--dry-run` shows what a deploy would change without touching the Pi.
 
 Daily generation runs via cron:
 ```

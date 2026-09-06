@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Getting Started with DinkyDash — DinkyDash</title>
-    <meta name="description" content="Step-by-step guide to setting up DinkyDash on your Raspberry Pi — from first install to a working family dashboard.">
+    <meta name="description" content="Set up DinkyDash from scratch — first on your computer, then as a permanent wall dashboard on a Raspberry Pi running the current Raspberry Pi OS.">
     <link rel="canonical" href="https://dinkydash.co/getting-started/">
     
     <link rel="icon" href="/favicon.ico" sizes="any">
@@ -15,7 +15,7 @@
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://dinkydash.co/getting-started/">
     <meta property="og:image" content="https://dinkydash.co/images/og-hero.jpg">
-    <meta property="og:description" content="Step-by-step guide to setting up DinkyDash on your Raspberry Pi — from first install to a working family dashboard.">
+    <meta property="og:description" content="Set up DinkyDash from scratch — first on your computer, then as a permanent wall dashboard on a Raspberry Pi running the current Raspberry Pi OS.">
     <meta name="twitter:card" content="summary_large_image">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -315,7 +315,7 @@
   "@context": "https://schema.org",
   "@type": "Article",
   "headline": "Getting Started with DinkyDash",
-  "description": "Step-by-step guide to setting up DinkyDash on your Raspberry Pi \u2014 from first install to a working family dashboard.",
+  "description": "Set up DinkyDash from scratch \u2014 first on your computer, then as a permanent wall dashboard on a Raspberry Pi running the current Raspberry Pi OS.",
   "mainEntityOfPage": "https://dinkydash.co/getting-started/",
   "dateModified": "2026-09-06",
   "author": { "@type": "Person", "name": "Caspar Wrede", "url": "https://casparwre.de" },
@@ -347,33 +347,37 @@
     
 <div class="container page-content">
     <h1>Getting Started with DinkyDash</h1>
-    <p>This guide walks you through setting up DinkyDash from scratch — first on your computer, then on a Raspberry Pi as a permanent family dashboard.</p>
+    <p>This guide takes you from nothing to a working family dashboard. You start on your own computer, see the board, then move it onto a Raspberry Pi that shows it on the wall and refreshes itself every morning.</p>
+<p>You do not need an Anthropic API key to try it — there is a no-key preview in step 3. You only need a key for the AI-written daily line, which runs once a day.</p>
 <h2>What you need</h2>
 <ul>
-<li><strong>Python 3.11+</strong></li>
-<li><strong>An Anthropic API key</strong> — <a href="https://console.anthropic.com/settings/keys">get one here</a></li>
-<li><strong>A Google Calendar iCal URL</strong> — In Google Calendar, go to Settings, find your calendar under "Integrate calendar", and copy the public iCal URL</li>
-<li><strong>A Raspberry Pi 4</strong> (2GB+ RAM) with a small display (800x480 recommended) — for the permanent dashboard</li>
+<li><strong>Python 3.11 or newer.</strong></li>
+<li><strong>One or more calendar links</strong> in iCal format. In Google Calendar: <strong>Settings and sharing</strong> for a calendar, then <strong>Secret address in iCal format</strong>. Treat that link like a password — anyone who has it can read that calendar.</li>
+<li><strong>An Anthropic API key</strong> (<a href="https://console.anthropic.com/settings/keys">get one here</a>) — only for the daily headline and one line of copy. You can run the whole board without it first.</li>
+<li><strong>A Raspberry Pi</strong> with a small screen, for the permanent version. A Pi 4 with 2GB of RAM and the official 7-inch display (800×480) is the easy path. Hardware details are on the <a href="/raspberry-pi-family-calendar/">Raspberry Pi build guide</a>.</li>
 </ul>
-<h2>Step 1: Clone and install</h2>
+<hr />
+<h2>Part 1 — Run it on your computer</h2>
+<h3>Step 1: Get the code</h3>
 <pre><code class="language-bash">git clone https://github.com/caspii/dinkydash.git
 cd dinkydash
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 </code></pre>
-<h2>Step 2: Create your config</h2>
+<p>The <code>venv</code> is a private folder for DinkyDash's Python packages, so they do not touch the rest of your system. Recent Raspberry Pi OS and macOS both block installing packages without one.</p>
+<h3>Step 2: Make your config</h3>
 <pre><code class="language-bash">cp config.example.yaml config.yaml
 </code></pre>
-<p>Open <code>config.yaml</code> and fill in your family's details — or skip ahead, start the app, and do the whole thing from your phone at <code>/settings</code>. Here's what a typical config looks like:</p>
+<p><code>config.yaml</code> is the single source of truth. You can edit it by hand now, or leave it and do everything from the settings page in step 5 — they write the same file. A typical config looks like this:</p>
 <pre><code class="language-yaml">family_name: &quot;The Wilsons&quot;
 timezone: &quot;Europe/Berlin&quot;     # decides when &quot;today&quot; rolls over
 location: &quot;Berlin, Germany&quot;   # optional, flavours the daily line
 theme: light                  # or dark
 
 calendars:                    # as many as you like; merged into one agenda
-  - label: &quot;Alice's Google&quot;
-    url: &quot;https://calendar.google.com/calendar/ical/your-email/basic.ics&quot;
+  - label: &quot;Alice's calendar&quot;
+    url: &quot;https://calendar.google.com/calendar/ical/you%40gmail.com/private-xxxx/basic.ics&quot;
     enabled: true
 
 people:
@@ -412,73 +416,126 @@ special_dates:                # repeat every year, so no year to set
 claude_model: &quot;claude-haiku-4-5&quot;
 max_tokens: 1024
 </code></pre>
-<h3>Config fields explained</h3>
+<p>The example URL above is deliberately fake. Paste your own secret iCal address in its place. Add one calendar entry per person, and they all merge into a single agenda.</p>
+<h3>Step 3: See the board with no API key</h3>
+<p>You can look at the real board before you get an API key. This costs nothing and calls no service:</p>
+<pre><code class="language-bash">python sample_board.py     # writes a board for today, with a canned headline
+python app.py              # starts the server
+</code></pre>
+<p>Open <strong>http://localhost:5000</strong>. The chore turns, ages and countdowns are computed from the <code>config.yaml</code> you just wrote, so edit it, reload, and you see your own family. Only the headline and the one written line are fake. <code>sample_board.py</code> refuses to overwrite a real board, so it is safe to leave in place.</p>
+<p>Stop the server with <code>Ctrl+C</code> when you are done looking.</p>
+<h3>Step 4: Add your Anthropic API key</h3>
+<p>The daily line comes from the Claude API. Create a file called <code>.env</code> in the project folder:</p>
+<pre><code class="language-bash">echo &quot;ANTHROPIC_API_KEY=sk-ant-...&quot; &gt; .env
+</code></pre>
+<p><code>.env</code> holds the key and nothing else. The key never goes in <code>config.yaml</code>, because that file is meant to be shared and edited.</p>
+<h3>Step 5: Generate the real board and run it</h3>
+<pre><code class="language-bash">python generate.py        # fetches calendars, calls Claude, writes today's board
+python app.py             # starts the server
+</code></pre>
+<p>Now these three pages are live:</p>
 <ul>
-<li><strong>family_name</strong> — Shown in the corner of the board.</li>
-<li><strong>timezone</strong> — IANA name, like <code>Europe/Berlin</code>. Decides when "today" rolls over and how event times are shown. Set it even on a Pi whose clock is already local.</li>
-<li><strong>location</strong> — Your city and country. Optional; gives the daily line some local flavour.</li>
-<li><strong>theme</strong> — <code>light</code> or <code>dark</code>.</li>
-<li><strong>calendars</strong> — One entry per iCal feed, each with a <code>label</code>, a <code>url</code> and <code>enabled</code>. Add one per parent; they are merged into a single agenda.</li>
-<li><strong>people</strong> — Name, date of birth (YYYY-MM-DD), an <code>avatar_emoji</code>, an <code>avatar_color</code>, and <code>interests</code> that feed the daily line.</li>
-<li><strong>pets</strong> — Name, type, and an <code>avatar_emoji</code>.</li>
-<li><strong>recurring</strong> — Daily chores that rotate automatically. Each chore lists the people it rotates between, in order.</li>
-<li><strong>special_dates</strong> — Countdowns to holidays and other yearly events (MM/DD, no year).</li>
-<li><strong>claude_model</strong> — <code>claude-haiku-4-5</code> costs roughly $0.13 a month. <code>claude-sonnet-5</code> writes better for about three times that.</li>
-<li><strong>max_tokens</strong> — Maximum length of the AI response.</li>
+<li><strong>http://localhost:5000</strong> — the board.</li>
+<li><strong>http://localhost:5000/settings</strong> — change people, chores, calendars, colours and the timezone from a phone. It writes <code>config.yaml</code> and keeps your comments.</li>
+<li><strong>http://localhost:5000/preview</strong> — the board at the Pi, TV and tablet sizes at once, handy for a layout change.</li>
 </ul>
-<p>The settings UI adds a short <code>id</code> to each person, pet, chore, date and calendar the first time you open it. Leave them alone — they are how the UI tells one entry from another.</p>
-<p>Upgrading from an older config? A single <code>calendar_url</code> becomes the first entry in <code>calendars</code> automatically. <code>calendar_filter_emails</code> is dropped, because it required every listed address to appear as an <code>ATTENDEE</code> and most personal calendar events have none — use one feed per person instead. Photos are gone; the board uses an emoji and a colour.</p>
-<h2>Step 3: Add your API key</h2>
-<p>Create a <code>.env</code> file in the project root:</p>
-<pre><code>ANTHROPIC_API_KEY=sk-ant-...
-</code></pre>
-<h2>Step 4: Generate and run</h2>
-<pre><code class="language-bash">python generate.py        # Generate today's dashboard
-python app.py             # Start the server
-</code></pre>
-<p>Open <strong>http://localhost:5000</strong> to see your dashboard. <strong>http://localhost:5000/settings</strong> is the settings UI — it writes the same <code>config.yaml</code>, keeps your comments, and works from a phone. <strong>http://localhost:5000/preview</strong> shows the board at all three screen sizes at once.</p>
+<h4>Config fields explained</h4>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>family_name</code></td>
+<td>Shown in the corner of the board.</td>
+</tr>
+<tr>
+<td><code>timezone</code></td>
+<td>An IANA name like <code>Europe/Berlin</code>. Decides when "today" rolls over and how event times read. Set it even on a Pi whose clock is already local — the engine works from this, not the machine clock.</td>
+</tr>
+<tr>
+<td><code>location</code></td>
+<td>Your city and country. Optional; gives the daily line local flavour.</td>
+</tr>
+<tr>
+<td><code>theme</code></td>
+<td><code>light</code> or <code>dark</code>.</td>
+</tr>
+<tr>
+<td><code>calendars</code></td>
+<td>One entry per iCal feed: a <code>label</code>, a <code>url</code> (the secret iCal address) and <code>enabled</code>. Merged into one agenda.</td>
+</tr>
+<tr>
+<td><code>people</code></td>
+<td><code>name</code>, <code>date_of_birth</code> (YYYY-MM-DD), an <code>avatar_emoji</code>, an <code>avatar_color</code>, and <code>interests</code> that feed the daily line.</td>
+</tr>
+<tr>
+<td><code>pets</code></td>
+<td><code>name</code>, <code>type</code> and an <code>avatar_emoji</code>.</td>
+</tr>
+<tr>
+<td><code>recurring</code></td>
+<td>Chores that rotate one person per day, in the order you list under <code>choices</code>.</td>
+</tr>
+<tr>
+<td><code>special_dates</code></td>
+<td>Countdowns to yearly events, as <code>MM/DD</code> with no year.</td>
+</tr>
+<tr>
+<td><code>claude_model</code></td>
+<td><code>claude-haiku-4-5</code> costs roughly $0.13 a month at one board a day. <code>claude-sonnet-5</code> writes better for about three times that.</td>
+</tr>
+<tr>
+<td><code>max_tokens</code></td>
+<td>Maximum length of the AI response.</td>
+</tr>
+</tbody>
+</table>
+<p>The settings page adds a short <code>id</code> to each person, pet, chore, date and calendar the first time you open it. Leave those alone — they are how the page tells one entry from another.</p>
+<p><strong>Upgrading an old config?</strong> A single <code>calendar_url</code> becomes the first entry in <code>calendars</code> automatically. <code>calendar_filter_emails</code> is dropped, because it needed every listed address to appear as an event guest and most personal events have none — use one feed per person instead. Photos are gone; the board uses an emoji and a colour.</p>
+<h4>Editing from your phone</h4>
+<p>Everything on the board is editable at <code>/settings</code>. Two things worth knowing:</p>
+<ul>
+<li><strong>A saved board is from this morning.</strong> Editing a chore or a person shows up on the next page load, but the headline and daily line are only rewritten each morning. Press <strong>Rewrite now</strong> on the settings home page to get fresh copy immediately. Each press is one API call.</li>
+<li><strong>Adding a calendar checks the link.</strong> Paste an iCal address and press <strong>Check this link</strong>. It tells you how many events it found and what the next one is, so you are not left guessing whether the URL works.</li>
+</ul>
+<p>The board can be in one of three states: the normal board, a first-run "waiting" screen before anything is generated, or a stale state after a failed or missing run. When stale, the times, turns and countdowns are still today's — only the written line is old, and the board says so.</p>
 <hr />
-<h2>Deploying to a Raspberry Pi</h2>
-<p>Once you've confirmed it works locally, here's how to set it up as a permanent dashboard on a Raspberry Pi.</p>
-<h3>What you need</h3>
-<ul>
-<li>Raspberry Pi 4 (2GB+ RAM)</li>
-<li>MicroSD card (16GB+)</li>
-<li>DSI touchscreen display or HDMI monitor (800x480 recommended)</li>
-<li>Power supply</li>
-<li>Wi-Fi connection</li>
-</ul>
-<h3>Pi setup: Install the OS</h3>
-<p>Install <strong>Raspberry Pi OS</strong> (Debian Bookworm) using the <a href="https://www.raspberrypi.com/software/">Raspberry Pi Imager</a>. Enable SSH and configure Wi-Fi during the setup process.</p>
-<p>After first boot, SSH in and install the required system packages:</p>
-<pre><code class="language-bash">ssh pi@raspberrypi
-sudo apt update &amp;&amp; sudo apt upgrade -y
-sudo apt install fonts-noto-color-emoji unclutter -y
+<h2>Part 2 — Put it on a Raspberry Pi</h2>
+<p>This turns a Pi with a small screen into a wall dashboard that boots straight into the board and refreshes itself. The examples use the username <code>pi</code> and the folder <code>/home/pi</code>. If you chose a different username in Raspberry Pi Imager, substitute it everywhere.</p>
+<h3>Step 1: Install Raspberry Pi OS</h3>
+<p>Install <strong>Raspberry Pi OS</strong> with the <a href="https://www.raspberrypi.com/software/">Raspberry Pi Imager</a>. In the imager's settings, set your username, enable SSH, and enter your Wi-Fi name and password. The current release is Trixie (Debian 13), which boots into a Wayland desktop — the kiosk steps below cover that, with an X11 alternative.</p>
+<h3>Step 2: First boot — connect and install packages</h3>
+<p>SSH in from your computer, update, and install what the board and the browser need:</p>
+<pre><code class="language-bash">ssh pi@raspberrypi.local
+sudo apt update &amp;&amp; sudo apt full-upgrade -y
+sudo apt install -y git python3-venv chromium fonts-noto-color-emoji
 </code></pre>
-<p>The emoji font package is essential — without it, the dashboard won't render emoji.</p>
-<h3>Pi setup: Install DinkyDash</h3>
-<p>From your local machine, copy the project files to the Pi:</p>
-<pre><code class="language-bash">rsync -az --exclude='venv' --exclude='.git' --exclude='__pycache__' \
-  ./ pi@raspberrypi:/home/pi/dinkydash/
-</code></pre>
-<p>Or use the included deploy script:</p>
-<pre><code class="language-bash">./deploy_to_pi.sh
-</code></pre>
-<p>Then on the Pi, set up the virtual environment:</p>
-<pre><code class="language-bash">cd /home/pi/dinkydash
+<p>The emoji font is not optional — without it, every avatar and chore marker shows as an empty box.</p>
+<h3>Step 3: Copy DinkyDash onto the Pi</h3>
+<p>Clone it directly on the Pi:</p>
+<pre><code class="language-bash">cd /home/pi
+git clone https://github.com/caspii/dinkydash.git
+cd dinkydash
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
+cp config.example.yaml config.yaml
 </code></pre>
-<p>Create the <code>.env</code> file on the Pi:</p>
+<p>Then edit <code>config.yaml</code> with your family's details, or fill it in later from the settings page. For updating the Pi after the first time, see <a href="#updating-later">Updating later</a>.</p>
+<h3>Step 4: Add your API key on the Pi</h3>
 <pre><code class="language-bash">echo &quot;ANTHROPIC_API_KEY=sk-ant-...&quot; &gt; /home/pi/dinkydash/.env
 </code></pre>
-<p>Test that everything works:</p>
+<p>Check it works:</p>
 <pre><code class="language-bash">python generate.py
-flask run --host=0.0.0.0
+python app.py
 </code></pre>
-<h3>Pi setup: Create the systemd service</h3>
-<p>This makes DinkyDash start automatically on boot.</p>
+<p>Open <code>http://raspberrypi.local:5000</code> from another device on the same network to confirm the board appears, then stop it with <code>Ctrl+C</code>.</p>
+<h3>Step 5: Run it as a service</h3>
+<p>A systemd service starts the board on boot and restarts it if it ever stops. <code>run_app.sh</code> ships with the repo and is what the service runs.</p>
 <p>Create <code>/etc/systemd/system/dinkydash.service</code>:</p>
 <pre><code class="language-ini">[Unit]
 Description=DinkyDash Family Dashboard
@@ -493,54 +550,61 @@ Restart=always
 [Install]
 WantedBy=multi-user.target
 </code></pre>
-<p>Create <code>/home/pi/dinkydash/run_app.sh</code>:</p>
-<pre><code class="language-bash">#!/bin/bash
-cd /home/pi/dinkydash
-source venv/bin/activate
-export FLASK_APP=app.py
-flask run --host=0.0.0.0
-</code></pre>
+<p>The board serves on port 5000. To use another port, add a line like <code>Environment=DINKYDASH_PORT=5123</code> under <code>[Service]</code> and use that port everywhere below.</p>
 <p>Enable and start it:</p>
 <pre><code class="language-bash">chmod +x /home/pi/dinkydash/run_app.sh
 sudo systemctl daemon-reload
 sudo systemctl enable dinkydash.service
 sudo systemctl start dinkydash.service
 </code></pre>
-<h3>Pi setup: Daily generation cron job</h3>
-<p>This generates a fresh dashboard every morning at 6am:</p>
+<h3>Step 6: Generate a fresh board every morning</h3>
+<p>A cron job writes a new board at 6am. If a run fails, the previous board stays up and labels itself stale — the screen never goes blank.</p>
 <pre><code class="language-bash">crontab -e
 </code></pre>
 <p>Add this line:</p>
-<pre><code>0 6 * * * cd /home/pi/dinkydash &amp;&amp; source venv/bin/activate &amp;&amp; python generate.py &gt;&gt; generate.log 2&gt;&amp;1
+<pre><code class="language-cron">0 6 * * * cd /home/pi/dinkydash &amp;&amp; venv/bin/python generate.py &gt;&gt; generate.log 2&gt;&amp;1
 </code></pre>
-<h3>Pi setup: Kiosk mode</h3>
-<p>This launches Chromium in fullscreen on boot so the Pi shows nothing but the dashboard.</p>
-<p>Create <code>/home/pi/run.sh</code>:</p>
+<h3>Step 7: Show the board full screen at boot (kiosk)</h3>
+<p>Kiosk mode launches Chromium full screen with nothing around it. Current Raspberry Pi OS uses the Wayland desktop by default, so that is the main path. A classic X11 alternative follows for people who want the older, simpler tools.</p>
+<p>First, save this launcher as <code>/home/pi/run.sh</code>. It waits for the board to answer before opening the browser, which avoids the "localhost refused to connect" screen at boot:</p>
 <pre><code class="language-bash">#!/bin/sh
-# Wait for Flask to be ready (max 60 seconds)
+# Wait up to 60 seconds for DinkyDash to answer, then open it full screen.
 echo 'Waiting for DinkyDash...'
 i=0
 while [ $i -lt 60 ]; do
-    if curl -s -o /dev/null -w '' http://localhost:5000/ 2&gt;/dev/null; then
-        echo 'Ready!'
+    if curl -s -o /dev/null http://localhost:5000/ 2&gt;/dev/null; then
         break
     fi
     i=$((i + 1))
     sleep 1
 done
 
-/usr/bin/chromium-browser \
+chromium \
   --kiosk \
   --password-store=basic \
   --disable-infobars \
-  --enable-features=OverlayScrollbar \
   --disable-restore-session-state \
   --noerrdialogs \
+  --no-first-run \
+  --enable-features=OverlayScrollbar \
   http://localhost:5000/
 </code></pre>
+<p>Make it executable:</p>
 <pre><code class="language-bash">chmod +x /home/pi/run.sh
 </code></pre>
-<p>Then edit <code>/home/pi/.config/lxsession/LXDE-pi/autostart</code>:</p>
+<p>Turn screen blanking off so the board does not disappear after ten minutes: run <code>sudo raspi-config</code>, then <strong>Display Options → Screen Blanking → No</strong>. (Non-interactively: <code>sudo raspi-config nonint do_blanking 1</code>.)</p>
+<h4>The Wayland desktop (the default)</h4>
+<p>Create the file <code>/home/pi/.config/labwc/autostart</code> and put one line in it:</p>
+<pre><code class="language-sh">/home/pi/run.sh &amp;
+</code></pre>
+<p>Reboot. The Pi logs in, the desktop starts, and the board opens full screen once the service is up.</p>
+<p>One rough edge on Wayland: the mouse pointer does not hide itself when idle. If a mouse is plugged in, park the pointer in a corner, or unplug it — a wall panel needs no mouse. If that bothers you, use the X11 alternative below, which hides the pointer properly.</p>
+<h4>The X11 alternative (classic tools)</h4>
+<p>X11 is the older desktop. It is a little more work to switch to, but the mature tools for hiding the pointer and controlling the screen all work. This is what the DinkyDash Pi runs.</p>
+<p>Switch the desktop to X11:</p>
+<pre><code class="language-bash">sudo raspi-config nonint do_wayland W1
+</code></pre>
+<p>Then edit <code>/home/pi/.config/lxsession/LXDE-pi/autostart</code> so it reads:</p>
 <pre><code>@lxpanel --profile LXDE-pi
 @pcmanfm --desktop --profile LXDE-pi
 @unclutter
@@ -549,54 +613,76 @@ done
 @xset s noblank
 @/home/pi/run.sh
 </code></pre>
-<p>This disables the screensaver, hides the mouse cursor, and launches the dashboard in kiosk mode on every boot.</p>
-<h3>Pi setup: Display rotation (optional)</h3>
-<p>If your screen is mounted upside down, add to <code>/boot/firmware/config.txt</code>:</p>
-<pre><code class="language-ini">[all]
-lcd_rotate=2
-display_rotate=2
-</code></pre>
-<p>On Bookworm, the boot config lives at <code>/boot/firmware/config.txt</code> (not <code>/boot/config.txt</code>).</p>
-<h3>Pi setup: Screen power schedule (optional)</h3>
-<p>Turn the display off at night and back on in the morning to save power.</p>
-<p>Create <code>/home/pi/screen_control.sh</code>:</p>
+<p>That hides the pointer (<code>unclutter</code>), stops the screen blanking (<code>xset</code>), and launches the board. Reboot to apply. On the newest OS the X11 session differs and this file may not exist — if so, prefer the Wayland path above.</p>
+<h3>Step 8: Turn the screen off at night (optional)</h3>
+<p>Save power by switching the panel's backlight off overnight. Save this as <code>/home/pi/screen_control.sh</code>:</p>
 <pre><code class="language-bash">#!/bin/bash
-if [ &quot;$1&quot; = &quot;off&quot; ]; then
-    vcgencmd display_power 0
-elif [ &quot;$1&quot; = &quot;on&quot; ]; then
-    vcgencmd display_power 1
-fi
+# Turn the display backlight off or on. This works with the current graphics
+# driver, where the older `vcgencmd display_power` command no longer does.
+BL=/sys/class/backlight/*/bl_power
+case &quot;$1&quot; in
+    off) echo 1 | sudo tee $BL &gt;/dev/null ;;
+    on)  echo 0 | sudo tee $BL &gt;/dev/null ;;
+    *)   echo &quot;Usage: $0 [on|off]&quot;; exit 1 ;;
+esac
 </code></pre>
+<p>Make it executable and schedule it in <code>crontab -e</code>:</p>
 <pre><code class="language-bash">chmod +x /home/pi/screen_control.sh
 </code></pre>
-<p>Add to crontab:</p>
-<pre><code>0 22 * * * /home/pi/screen_control.sh off
+<pre><code class="language-cron">0 22 * * * /home/pi/screen_control.sh off
 0 7 * * * /home/pi/screen_control.sh on
 </code></pre>
+<p>The Pi keeps running; only the panel sleeps. This uses the backlight file directly, so it works the same on Wayland and X11. It relies on the default user's passwordless <code>sudo</code>, which Raspberry Pi Imager sets up.</p>
+<h3>Step 9: Rotate the display (optional)</h3>
+<p>If the screen is mounted upside down:</p>
+<ul>
+<li><strong>Simplest:</strong> open <strong>Screens</strong> in the desktop's settings (the Control Centre on Trixie), right-click the display and set its orientation.</li>
+<li><strong>On Wayland, from a script:</strong> add a line above the browser launch in <code>/home/pi/.config/labwc/autostart</code>, for example <code>wlr-randr --output DSI-1 --transform 180 &amp;</code>.</li>
+<li><strong>On X11:</strong> add <code>@xrandr --output DSI-1 --rotate inverted</code> to the autostart file from step 7.</li>
+</ul>
+<p>The old <code>lcd_rotate</code> and <code>display_rotate</code> lines in <code>config.txt</code> no longer apply with the current graphics driver — use one of the methods above instead. If you have a touchscreen and the touch points end up mirrored, add <code>dtoverlay=vc4-kms-dsi-7inch,invx,invy</code> to <code>/boot/firmware/config.txt</code>.</p>
 <hr />
 <h2>Troubleshooting</h2>
-<p><strong>"localhost refused to connect" on boot</strong> — Chromium starts before Flask is ready. The <code>run.sh</code> script handles this by waiting up to 60 seconds, but if you wrote your own startup script, make sure it includes the wait loop.</p>
-<p><strong>GNOME Keyring password dialog</strong> — Chromium tries to use GNOME keyring on auto-login. The <code>--password-store=basic</code> flag in the kiosk script prevents this.</p>
-<p><strong>Emoji not displaying</strong> — You need the emoji font package: <code>sudo apt install fonts-noto-color-emoji &amp;&amp; fc-cache -fv</code></p>
-<p><strong>Wayland switch dialog on boot</strong> — Bookworm may prompt to switch from X11 to Wayland. Fix it with: <code>sudo raspi-config nonint do_wayland W1</code></p>
-<p><strong>Wi-Fi blocked after fresh install</strong> — Bookworm soft-blocks Wi-Fi until you set a country: <code>sudo raspi-config nonint do_wifi_country DE &amp;&amp; sudo rfkill unblock wifi</code></p>
+<p><strong>Emoji show as empty boxes.</strong> Install the font and refresh the cache: <code>sudo apt install fonts-noto-color-emoji &amp;&amp; fc-cache -fv</code>.</p>
+<p><strong>"localhost refused to connect" at boot.</strong> Chromium started before the board was ready. The <code>run.sh</code> above waits up to 60 seconds; make sure your autostart calls it rather than launching Chromium directly.</p>
+<p><strong>The board is a day behind.</strong> A generation run failed. Look at <code>generate.log</code> in the project folder. The usual causes are an expired API key, no network at 6am, or a calendar link that stopped working. Fix it, then press <strong>Rewrite now</strong> on the settings page.</p>
+<p><strong>Times are off by an hour.</strong> The timezone under Settings → Family &amp; system is what the engine uses, not the machine clock. Set it even if the clock is already local.</p>
+<p><strong>A calendar shows nothing.</strong> Check it under Settings → Calendars — a failed feed says so. Apple regenerates iCloud links when a calendar stops being shared, so a link that worked last month may need replacing.</p>
+<p><strong>A GNOME keyring password box appears.</strong> The <code>--password-store=basic</code> flag in <code>run.sh</code> prevents this. Make sure it is present.</p>
+<p><strong>The screen still blanks.</strong> Confirm you set <strong>Screen Blanking → No</strong> (Wayland) or that the <code>@xset</code> lines are present (X11).</p>
+<p><strong>Wi-Fi is blocked after a fresh install.</strong> Some images soft-block Wi-Fi until you set a country: <code>sudo raspi-config nonint do_wifi_country DE &amp;&amp; sudo rfkill unblock wifi</code> (use your own country code).</p>
+<hr />
+<h2>Updating later</h2>
+<p>To push a code change from your computer to the Pi, the repo includes <code>deploy_to_pi.sh</code>. It copies the code across and leaves the Pi's own <code>config.yaml</code>, board data and <code>.env</code> untouched, then installs any new dependencies and restarts the service. It creates the virtualenv on a first deploy, so it works for the initial install as well as later updates.</p>
+<pre><code class="language-bash">./deploy_to_pi.sh                          # deploy
+./deploy_to_pi.sh --dry-run                # preview the changes, touch nothing
+PI_HOST=192.168.1.50 ./deploy_to_pi.sh     # if raspberrypi.local doesn't resolve
+</code></pre>
+<p>By default it talks to <code>raspberrypi.local</code>. If that name does not resolve, pass the Pi's address with <code>PI_HOST</code> as shown above.</p>
+<p>To update by hand on the Pi instead:</p>
+<pre><code class="language-bash">cd /home/pi/dinkydash
+git pull
+venv/bin/pip install -r requirements.txt
+sudo systemctl restart dinkydash.service
+</code></pre>
 <hr />
 <h2>Quick reference</h2>
-<pre><code class="language-bash"># Local development
+<pre><code class="language-bash"># On your computer
 source venv/bin/activate
-python generate.py                    # today's board (one API call)
-python generate.py --date 2026-12-24  # any date, for testing a countdown
+python sample_board.py                # a board with no API call, for a first look
+python generate.py                    # today's real board (one API call)
+python generate.py --date 2026-12-24  # any date, for checking a countdown
 python app.py                         # board at /, settings at /settings
-python -m pytest tests/ -q            # the test suite
 
 # On the Raspberry Pi
-sudo systemctl status dinkydash      # Check service
-sudo systemctl restart dinkydash     # Restart
-journalctl -u dinkydash -f           # View logs
-/home/pi/screen_control.sh on        # Screen on
-/home/pi/screen_control.sh off       # Screen off
+sudo systemctl status dinkydash       # is it running
+sudo systemctl restart dinkydash      # restart after a change
+journalctl -u dinkydash -f            # the app's log
+tail -f /home/pi/dinkydash/generate.log   # last night's generation
+/home/pi/screen_control.sh off        # screen off
+/home/pi/screen_control.sh on         # screen on
 </code></pre>
-<p>That's it. Once everything is set up, your family gets a brand new dashboard every morning — no maintenance required.</p>
+<p>Once it is set up, the family gets a fresh dashboard every morning, and there is nothing to tap and nothing to maintain.</p>
     <p class="page-updated">Last updated 2026-09-06.</p>
 </div>
 
