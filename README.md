@@ -2,6 +2,8 @@
 
 The digital family calendar for screens you already own — a TV, an old tablet, or a Raspberry Pi.
 
+![The DinkyDash board: today's agenda, whose turn each chore is, and the countdowns](screenshot.png)
+
 Website: [dinkydash.co](https://dinkydash.co)
 
 Every morning, DinkyDash merges your calendars into one agenda, works out whose turn each chore is, counts down to the next birthday, and asks Claude for a headline and one line of copy. Then it puts the lot on a screen at home — light or dark, sized to read from across the kitchen.
@@ -12,7 +14,7 @@ Every morning, DinkyDash merges your calendars into one agenda, works out whose 
 
 > Self-hosting is **community-supported**. Issues and pull requests are welcome, but there is no support commitment — if you need it to just work, use the hosted version.
 
-**Hosted (in development).** Zero setup, $5/month or $39/year. [Join the waitlist.](https://fffwryhvses.typeform.com/to/yxMMhmFs) Built from this same repo — see [PLAN.md](PLAN.md).
+**Hosted (in development).** Zero setup, $39/year or $6/month. [Join the waitlist.](https://fffwryhvses.typeform.com/to/yxMMhmFs) Built from this same repo — see [PLAN.md](PLAN.md).
 
 ## What the board shows
 
@@ -48,7 +50,8 @@ are still today's — the board just labels the written line as older.
 ### Prerequisites
 
 - Python 3.11+
-- An [Anthropic API key](https://console.anthropic.com/settings/keys)
+- An [Anthropic API key](https://console.anthropic.com/settings/keys) — for the daily headline and
+  written line only; you can run the board without one, see step 2
 - One or more iCal URLs (Google Calendar → Settings and sharing → Secret address in iCal format)
 
 ### 1. Clone and install
@@ -106,6 +109,18 @@ claude_model: "claude-haiku-4-5"
 max_tokens: 1024
 ```
 
+> **Want to see it before you fetch an API key?**
+>
+> ```bash
+> python sample_board.py    # writes a board for today; calls no API, costs nothing
+> python app.py
+> ```
+>
+> Open http://localhost:5000. That is the real board: the chore turns, ages and countdowns are
+> computed from the `config.yaml` you just made, so editing it and reloading shows your own family.
+> Only the headline and the one written line are canned. `sample_board.py` refuses to overwrite a
+> board a real run produced, so it is safe to leave in place.
+
 ### 3. Add your API key
 
 Create a `.env` file:
@@ -135,7 +150,7 @@ pip install -r requirements-dev.txt   # adds pytest; not needed on the Pi
 python -m pytest tests/ -q
 ```
 
-145 tests, well under a second. They cover leap years, timezone conversion, event ordering, chore
+146 tests, well under a second. They cover leap years, timezone conversion, event ordering, chore
 rotation, the stale-board logic, the config round-trip, and the settings routes that write it.
 
 ---
@@ -537,4 +552,4 @@ Known rough edges are listed under "Known issues" in [CLAUDE.md](CLAUDE.md).
 
 ## License
 
-MIT
+MIT — see [LICENSE](LICENSE).
