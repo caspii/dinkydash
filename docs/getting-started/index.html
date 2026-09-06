@@ -365,76 +365,78 @@ pip install -r requirements.txt
 <h2>Step 2: Create your config</h2>
 <pre><code class="language-bash">cp config.example.yaml config.yaml
 </code></pre>
-<p>Open <code>config.yaml</code> and fill in your family's details. Here's what a typical config looks like:</p>
-<pre><code class="language-yaml">location: &quot;Berlin, Germany&quot;
+<p>Open <code>config.yaml</code> and fill in your family's details — or skip ahead, start the app, and do the whole thing from your phone at <code>/settings</code>. Here's what a typical config looks like:</p>
+<pre><code class="language-yaml">family_name: &quot;The Wilsons&quot;
+timezone: &quot;Europe/Berlin&quot;     # decides when &quot;today&quot; rolls over
+location: &quot;Berlin, Germany&quot;   # optional, flavours the daily line
+theme: light                  # or dark
 
-calendar_url: &quot;https://calendar.google.com/calendar/ical/your-email/basic.ics&quot;
-
-calendar_filter_emails:
-  - &quot;spouse@example.com&quot;
+calendars:                    # as many as you like; merged into one agenda
+  - label: &quot;Alice's Google&quot;
+    url: &quot;https://calendar.google.com/calendar/ical/your-email/basic.ics&quot;
+    enabled: true
 
 people:
   - name: &quot;Alice&quot;
     date_of_birth: &quot;2015-03-15&quot;
-    sex: &quot;female&quot;
-    image: &quot;alice.jpg&quot;
-    email: &quot;alice@example.com&quot;
+    avatar_emoji: &quot;🦖&quot;
+    avatar_color: purple
     interests: &quot;drawing, dinosaurs&quot;
   - name: &quot;Bob&quot;
     date_of_birth: &quot;2017-06-20&quot;
-    sex: &quot;male&quot;
-    image: &quot;bob.jpg&quot;
-    interests: &quot;legos, soccer&quot;
+    avatar_emoji: &quot;⚽&quot;
+    avatar_color: blue
+    interests: &quot;lego, football&quot;
 
 pets:
   - name: &quot;Buddy&quot;
     type: &quot;dog&quot;
-    image: &quot;pet.jpg&quot;
+    avatar_emoji: &quot;🐕&quot;
 
-recurring:
-  - title: &quot;Set Table&quot;
+recurring:                    # rotated one person per day, in this order
+  - title: &quot;Set the table&quot;
     emoji: &quot;🍽&quot;
     choices: [&quot;Alice&quot;, &quot;Bob&quot;]
-  - title: &quot;Feed Pet&quot;
-    emoji: &quot;🐕&quot;
+  - title: &quot;Feed Buddy&quot;
+    emoji: &quot;🦴&quot;
     choices: [&quot;Bob&quot;, &quot;Alice&quot;]
 
-special_dates:
+special_dates:                # repeat every year, so no year to set
   - title: &quot;Christmas&quot;
     emoji: &quot;🎄&quot;
     date: &quot;12/25&quot;
-  - title: &quot;Summer Vacation&quot;
+  - title: &quot;Summer holidays&quot;
     emoji: &quot;☀️&quot;
     date: &quot;07/01&quot;
 
-claude_model: &quot;claude-sonnet-4-5-20250929&quot;
-max_tokens: 2048
-data_file: &quot;dashboard_data.json&quot;
-anthropic_api_key_env: &quot;ANTHROPIC_API_KEY&quot;
+claude_model: &quot;claude-haiku-4-5&quot;
+max_tokens: 1024
 </code></pre>
 <h3>Config fields explained</h3>
 <ul>
-<li><strong>location</strong> — Your city and country. The AI uses this for context.</li>
-<li><strong>calendar_url</strong> — Your Google Calendar's public iCal URL.</li>
-<li><strong>calendar_filter_emails</strong> — Only show events where these people are attendees.</li>
-<li><strong>people</strong> — Each family member with their name, date of birth (YYYY-MM-DD), sex, photo filename, email, and interests.</li>
-<li><strong>pets</strong> — Your family pets with name, type, and photo filename.</li>
-<li><strong>recurring</strong> — Daily chores that rotate automatically. Each chore lists the people it rotates between.</li>
-<li><strong>special_dates</strong> — Countdowns to holidays, vacations, and other events (MM/DD format).</li>
-<li><strong>claude_model</strong> — Which Claude model generates your dashboard.</li>
+<li><strong>family_name</strong> — Shown in the corner of the board.</li>
+<li><strong>timezone</strong> — IANA name, like <code>Europe/Berlin</code>. Decides when "today" rolls over and how event times are shown. Set it even on a Pi whose clock is already local.</li>
+<li><strong>location</strong> — Your city and country. Optional; gives the daily line some local flavour.</li>
+<li><strong>theme</strong> — <code>light</code> or <code>dark</code>.</li>
+<li><strong>calendars</strong> — One entry per iCal feed, each with a <code>label</code>, a <code>url</code> and <code>enabled</code>. Add one per parent; they are merged into a single agenda.</li>
+<li><strong>people</strong> — Name, date of birth (YYYY-MM-DD), an <code>avatar_emoji</code>, an <code>avatar_color</code>, and <code>interests</code> that feed the daily line.</li>
+<li><strong>pets</strong> — Name, type, and an <code>avatar_emoji</code>.</li>
+<li><strong>recurring</strong> — Daily chores that rotate automatically. Each chore lists the people it rotates between, in order.</li>
+<li><strong>special_dates</strong> — Countdowns to holidays and other yearly events (MM/DD, no year).</li>
+<li><strong>claude_model</strong> — <code>claude-haiku-4-5</code> costs roughly $0.13 a month. <code>claude-sonnet-5</code> writes better for about three times that.</li>
 <li><strong>max_tokens</strong> — Maximum length of the AI response.</li>
 </ul>
+<p>The settings UI adds a short <code>id</code> to each person, pet, chore, date and calendar the first time you open it. Leave them alone — they are how the UI tells one entry from another.</p>
+<p>Upgrading from an older config? A single <code>calendar_url</code> becomes the first entry in <code>calendars</code> automatically. <code>calendar_filter_emails</code> is dropped, because it required every listed address to appear as an <code>ATTENDEE</code> and most personal calendar events have none — use one feed per person instead. Photos are gone; the board uses an emoji and a colour.</p>
 <h2>Step 3: Add your API key</h2>
 <p>Create a <code>.env</code> file in the project root:</p>
 <pre><code>ANTHROPIC_API_KEY=sk-ant-...
 </code></pre>
-<h2>Step 4: Add family photos</h2>
-<p>Copy photos into the <code>static/</code> directory. The filenames must match the <code>image</code> field in your config — for example, if you set <code>image: "alice.jpg"</code>, there should be a <code>static/alice.jpg</code>.</p>
-<h2>Step 5: Generate and run</h2>
+<h2>Step 4: Generate and run</h2>
 <pre><code class="language-bash">python generate.py        # Generate today's dashboard
-flask run --host=0.0.0.0  # Start the server
+python app.py             # Start the server
 </code></pre>
-<p>Open <strong>http://localhost:5000</strong> to see your dashboard. Use <strong>http://localhost:5000/preview</strong> for an 800x480 preview that matches the Raspberry Pi display size.</p>
+<p>Open <strong>http://localhost:5000</strong> to see your dashboard. <strong>http://localhost:5000/settings</strong> is the settings UI — it writes the same <code>config.yaml</code>, keeps your comments, and works from a phone. <strong>http://localhost:5000/preview</strong> shows the board at all three screen sizes at once.</p>
 <hr />
 <h2>Deploying to a Raspberry Pi</h2>
 <p>Once you've confirmed it works locally, here's how to set it up as a permanent dashboard on a Raspberry Pi.</p>
@@ -582,8 +584,10 @@ fi
 <h2>Quick reference</h2>
 <pre><code class="language-bash"># Local development
 source venv/bin/activate
-python generate.py
-flask run --host=0.0.0.0
+python generate.py                    # today's board (one API call)
+python generate.py --date 2026-12-24  # any date, for testing a countdown
+python app.py                         # board at /, settings at /settings
+python -m pytest tests/ -q            # the test suite
 
 # On the Raspberry Pi
 sudo systemctl status dinkydash      # Check service

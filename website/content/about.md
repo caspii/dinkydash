@@ -25,12 +25,10 @@ The result is a screen that feels alive. It knows it's someone's birthday week. 
 ## What the dashboard shows
 
 - **A daily headline** — a cheerful, AI-written greeting for your family
-- **Person cards** — each family member with their photo and key info
+- **Today's agenda** — what's happening today, in time order, merged from every calendar you add
 - **Chore rotation** — who does what today, rotated automatically and fairly
 - **Countdowns** — days until birthdays, holidays, vacations, and special events
-- **Calendar events** — what's happening today, pulled from your shared calendar
-- **Fun facts and challenges** — something new to read every morning
-- **Pet corner** — because pets are family too
+- **A daily line** — a fun fact, a family challenge, or something about the pet, different every morning
 
 ## The principles
 

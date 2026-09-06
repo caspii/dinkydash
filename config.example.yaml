@@ -1,6 +1,8 @@
 # DinkyDash configuration
 # Copy this file to config.yaml and make it yours. The settings UI at
-# /settings writes this same file, and keeps your comments.
+# /settings writes this same file, and keeps your comments. It also adds a
+# short `id` to each person, pet, chore, date and calendar the first time you
+# open it — leave those alone, they are how it tells one entry from another.
 
 # Shown in the corner of the board.
 family_name: "Our family"

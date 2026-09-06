@@ -135,8 +135,8 @@ pip install -r requirements-dev.txt   # adds pytest; not needed on the Pi
 python -m pytest tests/ -q
 ```
 
-122 tests, well under a second. They cover leap years, timezone conversion, event ordering, chore
-rotation, the stale-board logic, and the config round-trip.
+145 tests, well under a second. They cover leap years, timezone conversion, event ordering, chore
+rotation, the stale-board logic, the config round-trip, and the settings routes that write it.
 
 ---
 
@@ -254,6 +254,7 @@ Nothing to do to your config — it is migrated on load. But be aware:
 | `history_days` | Days of past notes sent back so the model doesn't repeat itself |
 | `data_file` | Path for the generated JSON |
 | `content_history_file` | Path for the rolling note history |
+| `id` | Added to each `people[]`, `pets[]`, `recurring[]`, `special_dates[]` and `calendars[]` entry the first time you open `/settings`. Leave it alone — it is how the settings UI tells one entry from another, so deleting somebody does not renumber everyone below onto the wrong edit form |
 
 Upgrading from an older config? A single `calendar_url` is migrated into `calendars` automatically,
 and `calendar_filter_emails` is dropped — it required every listed address to appear as an
@@ -519,7 +520,7 @@ tail -f /home/pi/dinkydash/generate.log   # last night's generation
 | `app.py` | Flask entry point |
 | `config.yaml` | All configuration. The settings UI writes this same file |
 | `config.example.yaml` | Template config, documenting every key |
-| `tests/` | 122 tests. Run them before committing |
+| `tests/` | 145 tests. Run them before committing |
 | `design/` | Mockups for the board and settings UI, with the reasoning |
 | `deploy_to_pi.sh` | Deployment (rsync + service restart) |
 | `.env` | `ANTHROPIC_API_KEY` (not in git) |
