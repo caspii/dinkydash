@@ -285,6 +285,15 @@
             .nav-links.open { display: flex; }
             .footer-row { flex-direction: column; gap: 8px; text-align: center; }
             .footer-guides { justify-content: center; }
+            /* Comparison tables are three to five columns of prose and cannot
+               fit 375px, so on a phone the table scrolls sideways rather than
+               the whole page: without this the body is ~450px wide and every
+               paragraph runs off the right edge. Desktop keeps width:100%. */
+            .page-content table {
+                display: block;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
         }
     </style>
     <script type="application/ld+json">
@@ -421,7 +430,7 @@
 <p>Mango Display is a commercial take on the same idea: install their app on a smart TV, Fire TV, or tablet and it renders a calendar-centric smart display with widgets for photos, weather, and to-dos. There's a free tier, but read it before you rely on it: the free plan gives you two screens with a clock, weather, news headlines and background images, and <strong>no calendar at all</strong>. Calendars — along with chores, meal plans and photos — start on Pro, at $5.99/month or $59.99 a year.</p>
 <p><strong>Best for:</strong> families who want bring-your-own-screen without any DIY at all.</p>
 <h2>3. DAKboard — the customizable wall display veteran</h2>
-<p>DAKboard has been the DIY wall-display favorite for years — calendars, photos, weather, and news on any screen, with deep layout customization. Free for one predefined screen with two calendars; $6/month (or $5 billed annually) unlocks custom layouts, and $10/month adds unlimited calendars. It leans "information display" rather than "family organizer," though it now markets a chore chart with points and rewards on the paid plans. If it's the one you're weighing up, we compared it properly on the <a href="/dakboard-alternatives/">DAKboard alternatives page</a>.</p>
+<p>DAKboard has been the DIY wall-display favorite for years — calendars, photos, weather, and news on any screen, with deep layout customization. Free for one predefined screen with two calendars; $6/month (or $5 billed annually) unlocks custom layouts, and $10/month adds unlimited calendars. It leans "information display" rather than "family organizer," though it now markets a chore chart with points and rewards on the paid plans. If it's the one you're weighing up, we compared it properly on the <a href="/dakboard-alternatives/">DAKboard alternatives page</a>, and put it directly against Skylight in <a href="/dakboard-vs-skylight/">DAKboard vs Skylight vs DinkyDash</a>.</p>
 <p><strong>Best for:</strong> data-dense household dashboards and tinkerers who want full layout control.</p>
 <h2>4. Hearth Display — the premium hardware rival</h2>
 <p>If what you actually want is <em>nicer</em> dedicated hardware, Hearth's 27″ portrait display ($699 + $9/month, or $86.40 a year) focuses on routines and visual schedules — it's especially popular with ADHD and neurodivergent families. It costs more than Skylight over time, but the routine-building features are genuinely different. See our full <a href="/hearth-vs-skylight/">Hearth vs Skylight comparison</a>.</p>
@@ -458,6 +467,7 @@
         <div class="footer-guides">
             <a href="/skylight-calendar-alternatives/">Skylight alternatives</a>
             <a href="/dakboard-alternatives/">DAKboard alternatives</a>
+            <a href="/dakboard-vs-skylight/">DAKboard vs Skylight</a>
             <a href="/hearth-vs-skylight/">Hearth vs Skylight</a>
             <a href="/skylight-calendar-subscription/">Skylight subscription costs</a>
             <a href="/diy-skylight-calendar/">DIY digital calendar</a>

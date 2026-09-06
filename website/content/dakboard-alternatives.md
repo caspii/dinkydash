@@ -92,7 +92,7 @@ One thing worth knowing before you sign up: **the free plan does not include the
 
 If the real answer is that you want a finished object on the wall rather than a project, Skylight sells the hardware: $299.99 for the 15″ Calendar 2, $599.99 for the 27″ Calendar Max, with an optional Plus subscription at $79/year for chore rewards and meal planning.
 
-It is the opposite trade to DAKboard — you spend money instead of time, and you get a touchscreen your family can actually tap. See our [Skylight alternatives page](/skylight-calendar-alternatives/) for the wider comparison, or the [subscription breakdown](/skylight-calendar-subscription/) for what Plus actually costs.
+It is the opposite trade to DAKboard — you spend money instead of time, and you get a touchscreen your family can actually tap. If those two are the ones you are weighing up, we put them head to head in [DAKboard vs Skylight vs DinkyDash](/dakboard-vs-skylight/). See also our [Skylight alternatives page](/skylight-calendar-alternatives/) for the wider comparison, or the [subscription breakdown](/skylight-calendar-subscription/) for what Plus actually costs.
 
 **Best for:** people who would rather buy the problem away.
 

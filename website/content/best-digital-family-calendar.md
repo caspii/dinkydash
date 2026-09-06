@@ -29,7 +29,7 @@ A family calendar display is, mechanically, a screen showing a web page. If a sp
 
 **Mango Display (free tier; Pro $5.99/mo or $59.99/yr)** — commercial BYO-screen software with polished apps for smart TVs and tablets. The no-DIY version of this path — but budget for Pro, because the free plan has no calendar.
 
-**DAKboard (free tier; $5–10/mo)** — the veteran customizable wall display. Enormous flexibility, and a chore chart with points and rewards on the paid plans, though it is still a dashboard first. The free tier is narrower than it looks — one predefined screen and two calendars — so see the [DAKboard alternatives comparison](/dakboard-alternatives/) before committing.
+**DAKboard (free tier; $5–10/mo)** — the veteran customizable wall display. Enormous flexibility, and a chore chart with points and rewards on the paid plans, though it is still a dashboard first. The free tier is narrower than it looks — one predefined screen and two calendars — so see the [DAKboard alternatives comparison](/dakboard-alternatives/) before committing, or [DAKboard vs Skylight vs DinkyDash](/dakboard-vs-skylight/) if those are the two you are choosing between.
 
 ## How to decide
 

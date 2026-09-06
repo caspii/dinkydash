@@ -285,6 +285,15 @@
             .nav-links.open { display: flex; }
             .footer-row { flex-direction: column; gap: 8px; text-align: center; }
             .footer-guides { justify-content: center; }
+            /* Comparison tables are three to five columns of prose and cannot
+               fit 375px, so on a phone the table scrolls sideways rather than
+               the whole page: without this the body is ~450px wide and every
+               paragraph runs off the right edge. Desktop keeps width:100%. */
+            .page-content table {
+                display: block;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
         }
     </style>
     <script type="application/ld+json">
@@ -338,6 +347,7 @@
         <div class="footer-guides">
             <a href="/skylight-calendar-alternatives/">Skylight alternatives</a>
             <a href="/dakboard-alternatives/">DAKboard alternatives</a>
+            <a href="/dakboard-vs-skylight/">DAKboard vs Skylight</a>
             <a href="/hearth-vs-skylight/">Hearth vs Skylight</a>
             <a href="/skylight-calendar-subscription/">Skylight subscription costs</a>
             <a href="/diy-skylight-calendar/">DIY digital calendar</a>
