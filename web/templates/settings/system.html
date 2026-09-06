@@ -9,7 +9,7 @@
 {% endblock %}
 
 {% block content %}
-<form id="system-form" method="post" class="card pad" style="display:flex;flex-direction:column;gap:16px;">
+<form id="system-form" method="post" class="card pad" style="display:flex;flex-direction:column;gap:1rem;">
     <div class="field">
         <label for="family_name">Name on the board</label>
         <input type="text" id="family_name" name="family_name" value="{{ config.family_name or '' }}">

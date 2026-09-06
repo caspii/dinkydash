@@ -3,20 +3,20 @@
 {% block title %}Settings{% endblock %}
 
 {% block appbar %}
-<h1 style="padding-left:4px;color:var(--accent);font-size:1.15rem;">DinkyDash</h1>
+<h1 style="padding-left:0.25rem;color:var(--accent);font-size:1.15rem;">DinkyDash</h1>
 <a class="action muted" href="{{ url_for('board.index') }}">Board</a>
 {% endblock %}
 
 {% block content %}
-<div class="card pad" style="display:flex;flex-direction:column;gap:14px;">
+<div class="card pad" style="display:flex;flex-direction:column;gap:0.875rem;">
     <div>
         <div style="font-size:1.125rem;font-weight:800;">{{ config.family_name or "Your board" }}</div>
-        <div style="display:flex;align-items:center;gap:7px;margin-top:3px;">
+        <div style="display:flex;align-items:center;gap:0.4375rem;margin-top:0.1875rem;">
             <span class="dot {{ status.state }}"></span>
             <span style="font-size:0.8125rem;color:var(--text-mid);">{{ status.detail }}</span>
         </div>
     </div>
-    <div style="display:flex;gap:10px;">
+    <div style="display:flex;gap:0.625rem;">
         <a class="btn outline" style="flex:1;" href="{{ url_for('board.index') }}">{{ icons.screen() }} View board</a>
         <form class="inline-form" method="post" action="{{ url_for('settings.generate_now') }}" style="flex:1;">
             <button class="btn" type="submit">{{ icons.refresh() }} Rewrite now</button>

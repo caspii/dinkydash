@@ -141,8 +141,18 @@ in under a second, so there is no excuse for skipping them.
 
 **Testing without spending money.** `generate.py --date 2026-12-24` generates for any date, which is
 how to check a countdown or a quiet day. It still costs one API call. To exercise the board with no
-call at all, edit `dashboard_data.json` by hand — change `generated_for_date` to an older date to
-see the stale state, or move it aside entirely to see the first-run screen.
+call at all, run `python sample_board.py`, which writes a plausible payload for today and calls no
+API. It refuses to overwrite a real one, so delete `dashboard_data.json` first if that is what you
+want. Then edit the file by hand — change `generated_for_date` to an older date to see the stale
+state, or move it aside entirely to see the first-run screen.
+
+**Local data in a new workspace.** `config.yaml`, `dashboard_data.json` and `content_history.json`
+are gitignored, so a new Conductor workspace only receives them through Files to copy, which reads
+`.worktreeinclude` **from the main checkout on disk** — having it on the branch is not enough. If
+the main checkout is parked on an old commit that predates that file, Conductor falls back to its
+default `.env*` pattern: `.env` arrives, the rest does not. `.conductor/settings.toml` covers the
+gap by falling back to `config.example.yaml` and seeding a sample board, so a workspace always opens
+on something real. Copied data still wins over both.
 
 **Adding a field to a settings section.** Add a tuple to the section's `fields` list in
 `web/routes/settings.py` — `(name, label, kind, required, help)`. The list template and the edit
@@ -170,6 +180,11 @@ before believing a clipping bug.
 - **Times are 24-hour** on the board (`08:20`).
 - The board is sized in `rem` off one root `clamp(11px, 2.4vh, 26px)`, so the same layout reads on a
   480px-tall Pi panel and a living-room TV. Two columns above a 3:2 aspect ratio, one below.
+- The settings UI does the same off one root `clamp(1rem, 0.75rem + 0.625vw, 1.25rem)`: the mockup's
+  16px on a phone, up to 20px on a desktop browser, so the phone layout reads at desk distance
+  without becoming a second layout. Every length in `web/templates/settings/` is therefore in `rem`
+  or `em` — a new `px` value there stops scaling and drifts out of proportion. Borders, focus rings
+  and shadows are the exception and stay in `px`; hairlines should not scale.
 - Light and dark are the same rules with a different set of CSS custom properties. Never hard-code a
   colour in a board rule; add a token.
 - Icons are inline SVG, never emoji. Emoji in *content* (avatars, chore markers) are the brand.

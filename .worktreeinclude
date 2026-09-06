@@ -1,5 +1,6 @@
 .env
 config.yaml
 dashboard_data.json
+content_history.json
 static/*.jpg
 static/*.png

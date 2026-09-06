@@ -3,14 +3,17 @@
 [scripts]
 run_mode = "concurrent"
 
-# config.yaml is gitignored, so it only lands in a new workspace if Files to
-# copy brought it across. Fall back to the example, otherwise the board raises
-# FileNotFoundError on the first request.
+# config.yaml and dashboard_data.json are gitignored, so they only land in a new
+# workspace if Files to copy brought them across from the main checkout — which
+# needs `.worktreeinclude` to exist there on disk, not just on the branch. Both
+# fall back to something workable, otherwise the board raises FileNotFoundError
+# on the first request, or opens on the first-run screen with nothing to look at.
 setup = """
 set -e
 python3 -m venv venv
 venv/bin/pip install -q -r requirements-dev.txt
 [ -f config.yaml ] || cp config.example.yaml config.yaml
+venv/bin/python sample_board.py
 """
 
 [scripts.run.dashboard]

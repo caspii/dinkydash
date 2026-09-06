@@ -17,7 +17,7 @@
 <div class="flash {{ 'ok' if checked.ok else 'error' }}">{{ checked.message }}</div>
 {% endif %}
 
-<form id="edit-form" method="post" class="card pad" style="display:flex;flex-direction:column;gap:16px;">
+<form id="edit-form" method="post" class="card pad" style="display:flex;flex-direction:column;gap:1rem;">
     {% for name, label, kind, required, help in section.fields %}
     <div class="field">
         {% if kind != 'checkbox' %}<label for="f-{{ name }}">{{ label }}</label>{% endif %}
@@ -42,7 +42,7 @@
 
         {% elif kind == 'monthday' %}
             {% set parts = (item.get(name) or '/').split('/') %}
-            <div style="display:flex;gap:10px;">
+            <div style="display:flex;gap:0.625rem;">
                 <select name="{{ name }}_day" style="flex:0 0 32%;">
                     {% for day in range(1, 32) %}
                     <option value="{{ day }}" {{ 'selected' if parts[1] and day == parts[1] | int }}>{{ day }}</option>
@@ -73,13 +73,13 @@
             <div class="picker colors">
                 {% for choice in colors %}
                 <input type="radio" id="c-{{ choice }}" name="{{ name }}" value="{{ choice }}" {{ 'checked' if item.get(name) == choice or (not item.get(name) and loop.first) }}>
-                <label for="c-{{ choice }}"><span class="swatch avatar {{ choice }}" style="width:34px;height:34px;"></span></label>
+                <label for="c-{{ choice }}"><span class="swatch avatar {{ choice }}"></span></label>
                 {% endfor %}
             </div>
 
         {% elif kind == 'people' %}
             {% if people %}
-            <div style="display:flex;flex-direction:column;gap:8px;">
+            <div style="display:flex;flex-direction:column;gap:0.5rem;">
                 {% for person in people %}
                 <div class="checkline">
                     <input type="checkbox" id="p-{{ loop.index }}" name="{{ name }}" value="{{ person }}" {{ 'checked' if person in (item.get(name) or []) }}>
