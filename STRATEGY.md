@@ -1,6 +1,6 @@
 # DinkyDash Strategy
 
-*Last updated: August 10, 2026. Positioning based on Ahrefs keyword/competitor research (July 2026) — see data summary below. Hosted-version build plan lives in [PLAN.md](PLAN.md).*
+*Last updated: September 6, 2026. Positioning based on Ahrefs keyword/competitor research (July 2026) — see data summary below. Hosted-version build plan lives in [PLAN.md](PLAN.md).*
 
 ## The decision
 
@@ -30,7 +30,7 @@ Two directions were considered and rejected:
 ## Product model: one public monorepo, hosted SaaS as the business
 
 1. **Open-source repo (now)** — the credibility wedge and top of funnel. Free, MIT, self-hosted, bring your own Anthropic API key. Feeds HN/Reddit launches, GitHub stars, and referring domains (dinkydash.co is DR 11 with 84 ref domains; needs ~DR 30 for the wedge terms).
-2. **Hosted version (next)** — the business. Signup, family config form, paste one or more iCal URLs, per-family screen URL, central 6am generation in the family's own timezone, Stripe. Category-anchored pricing: **$5/mo or $39/yr**, 14-day trial, no card up front (vs Skylight Plus $79/yr, Hearth $9/mo). AI cost per family is $0.19–0.39/month. Collect emails via a waitlist link until it exists.
+2. **Hosted version (next)** — the business. Signup, family config form, paste one or more iCal URLs, per-family screen URL, central 6am generation in the family's own timezone, Stripe. Category-anchored pricing: **$39/yr or $6/mo**, 14-day trial, no card up front (vs Skylight Plus $79/yr, Hearth $9/mo). See [Pricing structure](#pricing-structure-settled-september-2026). AI cost per family is $0.19–0.39/month. Collect emails via a waitlist link until it exists.
 
 **Both ship from a single public monorepo.** The hosted app and the self-host build are one codebase in two modes, so self-hosting is "the same app with one family in it" rather than a second product to maintain. Billing and auth code being public is an accepted trade — the moat is the SEO position and the brand, not the source.
 
@@ -47,7 +47,47 @@ Explicitly skipped: monetizing self-hosting (license keys/paid repo) — keeps t
 | Hearth Display (27") | $699 ($599 promo) | $9/mo after first month |
 | DAKboard (BYO screen) | — | Free tier; $5–8/mo |
 | Mango Display (BYO screen) | — | Free tier; Pro $5.99/mo |
-| **DinkyDash (BYO screen)** | — | **Free, open source (hosted tier $5/mo or $39/yr, 14-day trial)** |
+| **DinkyDash (BYO screen)** | — | **Free, open source (hosted tier $39/yr or $6/mo, 14-day trial)** |
+
+## Pricing structure (settled September 2026)
+
+| Tier | Price | What it includes |
+|---|---|---|
+| **Self-hosted** | **Free forever**, MIT | The whole app. Bring your own Anthropic key (~$0.20–0.40/mo of usage). Community-supported. |
+| **Hosted — annual** *(the headline price)* | **$39/year** (works out at $3.25/mo) | Everything, unlimited |
+| **Hosted — monthly** | **$6/month** | The same thing, for people who won't commit to a year |
+| Trial | 14 days, no card up front | |
+| Launch offer | First 100 waitlist families: **$29/yr**, locked for as long as they stay subscribed | |
+
+"Everything, unlimited" means people, chores, countdowns, calendar feeds and screens. There is no
+per-child and no per-screen pricing: charging a family by the number of children in it reads as
+punitive, and the ceiling it buys is worth less than the goodwill it costs.
+
+**Why these numbers**
+
+1. **The annual price is the product's price; monthly is a hedge.** A screen on the kitchen wall is
+   an annual-shaped purchase — nobody re-evaluates a family calendar every month. Annual takes the
+   cash up front to cover a year of Anthropic spend, and pays one Stripe fee instead of twelve
+   (~96% of revenue net, against ~91% on monthly). The 46% discount is deliberately aggressive:
+   the target is an 80%+ annual mix.
+2. **$39 does the marketing on its own** — half of Skylight Plus's $79/yr, and no $299 screen to
+   buy first. The comparison pages already state that anchor, so the price and the SEO argue the
+   same point.
+3. **$6/mo, not $5.** It sits below Hearth's $9, it makes the annual saving obvious, and at $5 the
+   Stripe fee is 9% of revenue. Not matching Mango Display's $5.99 also avoids reading as a clone.
+4. **No permanent hosted free tier.** Every free family costs real Anthropic money daily, forever,
+   and the free row on every comparison table is already filled by the open-source self-host —
+   which is the one line Mango Display and DAKboard cannot copy.
+5. **Grandfather on any future increase.** Consumer subscriptions at this size churn on the price
+   change, not the price.
+
+Gross margin at $39/yr: roughly $2.30–4.70 of Anthropic cost, $1.43 of Stripe fees, and a little
+hosting — about 85%.
+
+**Deliberately not in the MVP, kept as a lever:** a hosted *Lite* tier — calendar and chores, no AI
+brief — which costs almost nothing to serve and would be the obvious conversion funnel if
+trial-to-paid comes in weak. Left out at launch for the support load, and because the self-host
+already occupies that position.
 
 ## SEO plan
 
