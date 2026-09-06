@@ -172,9 +172,14 @@ class TestNoteKind:
         assert "pet" in kinds
 
     def test_each_kind_produces_its_own_instruction(self):
-        assert "challenge" in note_instruction("challenge", CONFIG).lower()
         assert "Biscuit" in note_instruction("pet", CONFIG)
         assert "fact" in note_instruction("fact", CONFIG).lower()
+
+    def test_a_petless_house_always_gets_a_fact(self):
+        # "fact" and "pet" are the only kinds left, so this is the whole
+        # rotation for a family without an animal.
+        petless = dict(CONFIG, pets=[])
+        assert {choose_note_kind(petless) for _ in range(40)} == {"fact"}
 
 
 class TestGenerate:

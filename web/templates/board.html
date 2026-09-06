@@ -116,9 +116,19 @@
            portrait, a phone) stack instead. */
         .body { display: flex; flex-direction: column; gap: 1.4rem; flex-grow: 1; min-height: 0; }
         @media (min-aspect-ratio: 3/2) {
-            .body { flex-direction: row; gap: 3rem; align-items: flex-start; }
-            .agenda { flex-grow: 1; flex-basis: 0; }
-            .side { width: 34%; flex-shrink: 0; }
+            /* The agenda is short on a quiet day and the side column is not, so
+               the note sits under the agenda rather than across the bottom —
+               otherwise the lower left quarter of the panel is dead space. */
+            .body {
+                display: grid;
+                grid-template-columns: 1fr 34%;
+                grid-template-rows: auto 1fr;
+                column-gap: 3rem;
+                row-gap: 1.4rem;
+            }
+            .agenda { grid-column: 1; grid-row: 1; }
+            .side { grid-column: 2; grid-row: 1 / span 2; }
+            .note { grid-column: 1; grid-row: 2; align-self: start; }
         }
 
         .label {
@@ -312,17 +322,55 @@
             </div>
             {% endif %}
         </div>
-    </div>
 
-    {% if view.note %}
-    <div class="note{{ ' is-stale' if view.stale }}">
-        {% if view.stale %}<div class="note-label">Yesterday&rsquo;s line</div>{% endif %}
-        {{ view.note }}
+        {% if view.note %}
+        <div class="note{{ ' is-stale' if view.stale }}">
+            {% if view.stale %}<div class="note-label">Yesterday&rsquo;s line</div>{% endif %}
+            {{ view.note }}
+        </div>
+        {% endif %}
     </div>
-    {% endif %}
 </div>
 
 {% endif %}
 
+<script>
+/* One root value still drives every size — it is just measured now instead of
+   guessed. The CSS clamp above stays as the no-JS fallback.
+
+   Body is height:100vh;overflow:hidden, so nothing ever reports an overflow.
+   To find the content's natural height we let it lay out freely for one
+   measurement, then put it back. */
+(function () {
+    var root = document.documentElement, body = document.body;
+
+    function naturalHeight() {
+        var h = body.style.height, o = body.style.overflow;
+        body.style.height = "auto";
+        body.style.overflow = "visible";
+        var n = body.scrollHeight;
+        body.style.height = h;
+        body.style.overflow = o;
+        return n;
+    }
+
+    function fit() {
+        var room = window.innerHeight;
+        var lo = 9, hi = Math.min(26, room / 24);   // same ceiling as the clamp
+        root.style.fontSize = hi + "px";
+        if (naturalHeight() > room) {
+            for (var i = 0; i < 14; i++) {          // ~0.001px, imperceptible cost
+                var mid = (lo + hi) / 2;
+                root.style.fontSize = mid + "px";
+                if (naturalHeight() > room) { hi = mid; } else { lo = mid; }
+            }
+            root.style.fontSize = lo + "px";
+        }
+    }
+
+    fit();
+    window.addEventListener("resize", fit);
+})();
+</script>
 </body>
 </html>

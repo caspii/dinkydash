@@ -15,7 +15,7 @@ DinkyDash runs a cron job at 6am every morning. By the time your family walks in
 - **What's happening today** — all calendar events at a glance, so everyone knows the plan
 - **Whose turn for chores** — no arguments, the dashboard says so
 - **Countdowns** — how many days until the things everyone keeps asking about
-- **Something fun** — a fact, a challenge, or a personalized message to start the day right
+- **Something fun** — a fact, a line about the pet, or a personalized message to start the day right
 
 ## Five ways DinkyDash improves mornings
 
@@ -33,7 +33,7 @@ Swimming practice at 4pm? Dentist at 3:30? It's all on the dashboard, pulled dir
 
 **4. The fun stuff gets everyone engaged**
 
-Every morning there's a new fun fact or daily challenge written by AI. "Did you know that honey never spoils?" or "Challenge: try to make someone laugh before breakfast." It gives the family something to talk about and gets kids excited to check the dashboard.
+Every morning there's a new fun fact written by AI. "Did you know that honey never spoils?" — or, on a day it picks the pet, "The cat has decided the printer is hers now." It gives the family something to talk about and gets kids excited to check the dashboard.
 
 **5. The mental load gets lighter**
 
@@ -45,7 +45,7 @@ Instead of keeping everyone's schedule and chore assignments in your head, it's 
 
 **7:15am** — Your daughter walks into the kitchen and checks the screen. "Only 12 days until my birthday!" She sees it's her brother's turn to feed the cat. No arguments.
 
-**7:30am** — Over breakfast, your son reads out the fun fact: "A group of flamingos is called a flamboyance." Everyone laughs. Today's daily challenge is to compliment a stranger.
+**7:30am** — Over breakfast, your son reads out the fun fact: "A group of flamingos is called a flamboyance." Everyone laughs.
 
 **7:45am** — Before heading out, you glance at the calendar section. Right — your son has a dentist appointment at 4pm. Almost forgot.
 

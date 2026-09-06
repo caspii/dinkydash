@@ -1,16 +1,16 @@
 """Prompt construction.
 
 The board shows one written line a day plus a headline, so that is all we ask
-for. Which *kind* of line — a fact, a challenge, or something about the pet —
-is chosen here in Python rather than left to the model, so the rotation is even
-and the history can tell whether today repeats last Tuesday.
+for. Which *kind* of line — a fact, or something about the pet — is chosen here
+in Python rather than left to the model, so the rotation is even and the
+history can tell whether today repeats last Tuesday.
 """
 
 import random
 
-# Rotated each day to push the model off its default "safe" answers (the
-# clowder-of-cats fact, the build-it-in-Minecraft challenge) and give the line a
-# fresh anchor even before any history exists.
+# Rotated each day to push the model off its default "safe" answer (the
+# clowder-of-cats fact) and give the line a fresh anchor even before any
+# history exists.
 FUN_FACT_THEMES = [
     "animals", "outer space", "the ocean", "dinosaurs", "the human body",
     "weather and seasons", "insects and bugs", "plants and trees",
@@ -22,21 +22,6 @@ FUN_FACT_THEMES = [
     "deserts", "snow and ice", "how everyday things work",
 ]
 
-CHALLENGE_CATEGORIES = [
-    "being creative or making art",
-    "a small act of kindness",
-    "moving and being active",
-    "exploring outdoors or in nature",
-    "learning something new or being curious",
-    "using imagination and pretend play",
-    "helping out around the house",
-    "music, singing, or dancing",
-    "building or inventing something (not on a screen)",
-    "a silly or funny dare",
-    "teamwork with the whole family",
-    "storytelling or writing",
-]
-
 PET_ANGLES = [
     "what they are probably up to right now",
     "an opinion they seem to hold",
@@ -45,7 +30,7 @@ PET_ANGLES = [
     "a small triumph of theirs",
 ]
 
-NOTE_KINDS = ("fact", "challenge", "pet")
+NOTE_KINDS = ("fact", "pet")
 
 RESPONSE_SCHEMA = {
     "type": "object",
@@ -91,12 +76,6 @@ def choose_note_kind(config, rng=None):
 def note_instruction(kind, config, rng=None):
     """The one-line brief for today's note, with a rotating anchor."""
     rng = rng or random
-    if kind == "challenge":
-        return (
-            f"Write a challenge for the family to do today, about "
-            f"{rng.choice(CHALLENGE_CATEGORIES)}. One sentence, doable in a day, "
-            f"no screens, no shopping."
-        )
     if kind == "pet":
         pets = config.get("pets") or []
         names = ", ".join(p.get("name", "") for p in pets if p.get("name"))

@@ -12,7 +12,7 @@ The idea is simple: a small screen that displays AI-generated, always-fresh cont
 
 Static office dashboards get ignored. Someone puts up a screen with a Google Calendar and a motivational quote, and after a week nobody looks at it.
 
-DinkyDash is different because the content changes completely every day. The AI writes new headlines, new facts, new challenges. People actually stop and read it because there's always something they haven't seen before.
+DinkyDash is different because the content changes completely every day. The AI writes new headlines and a new fact every morning. People actually stop and read it because there's always something they haven't seen before.
 
 ## Four ways to use DinkyDash in shared spaces
 
@@ -30,7 +30,7 @@ A DinkyDash in a co-working lobby can show community events, rotating "member sp
 
 **4. Family business or workshop**
 
-Small businesses with a shared break room can use DinkyDash to show the day's schedule, whose turn it is for various tasks, and inject a bit of fun into the workday with daily facts and challenges.
+Small businesses with a shared break room can use DinkyDash to show the day's schedule, whose turn it is for various tasks, and inject a bit of fun into the workday with a daily fact.
 
 ## Adapting DinkyDash for your space
 

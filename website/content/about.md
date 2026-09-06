@@ -20,7 +20,7 @@ Every morning at 6am, DinkyDash automatically:
 - Calculates countdowns to birthdays, holidays, and special dates
 - Sends all of this to Claude, which writes a personalized dashboard
 
-The result is a screen that feels alive. It knows it's someone's birthday week. It writes a different fun fact and family challenge every day, tuned to your kids' interests. Kids check it voluntarily — which is the entire battle.
+The result is a screen that feels alive. It knows it's someone's birthday week. It writes a different fun fact every day, tuned to your kids' interests. Kids check it voluntarily — which is the entire battle.
 
 ## What the dashboard shows
 
@@ -28,7 +28,7 @@ The result is a screen that feels alive. It knows it's someone's birthday week. 
 - **Today's agenda** — what's happening today, in time order, merged from every calendar you add
 - **Chore rotation** — who does what today, rotated automatically and fairly
 - **Countdowns** — days until birthdays, holidays, vacations, and special events
-- **A daily line** — a fun fact, a family challenge, or something about the pet, different every morning
+- **A daily line** — a fun fact, or something about the pet, different every morning
 
 ## The principles
 
