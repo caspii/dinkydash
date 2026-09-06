@@ -29,6 +29,11 @@
             --danger: #c0392b;
         }
         *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        /* Everything below is sized in rem off this one value, like the board. A phone gets the
+           mockup's 16px; a desktop browser gets up to 20px, so the same layout reads at arm's
+           length instead of phone distance. Stated in rem, not px, so a raised browser default
+           still wins. Borders and focus rings stay in px — hairlines should not scale. */
+        html { font-size: clamp(1rem, 0.75rem + 0.625vw, 1.25rem); }
         body {
             font-family: 'Nunito', system-ui, -apple-system, sans-serif;
             background: var(--bg);
@@ -37,30 +42,30 @@
             -webkit-font-smoothing: antialiased;
         }
         /* Built for a phone; on anything wider it just centres. */
-        .shell { max-width: 460px; margin: 0 auto; min-height: 100vh; background: var(--bg); }
+        .shell { max-width: 28.75rem; margin: 0 auto; min-height: 100vh; background: var(--bg); }
         a { color: var(--accent); text-decoration: none; }
 
         .appbar {
-            display: flex; align-items: center; gap: 4px;
-            height: 56px; padding: 0 12px;
+            display: flex; align-items: center; gap: 0.25rem;
+            height: 3.5rem; padding: 0 0.75rem;
             border-bottom: 1px solid var(--border);
             position: sticky; top: 0; background: var(--bg); z-index: 5;
         }
         .appbar h1 { font-size: 1.0625rem; font-weight: 800; letter-spacing: -0.01em; flex-grow: 1; }
         .appbar .back, .appbar .action {
             display: inline-flex; align-items: center; justify-content: center;
-            min-width: 44px; height: 44px; color: var(--text-mid);
+            min-width: 2.75rem; height: 2.75rem; color: var(--text-mid);
         }
-        .appbar .action { font-size: 0.9375rem; font-weight: 800; color: var(--accent); padding: 0 6px; }
+        .appbar .action { font-size: 0.9375rem; font-weight: 800; color: var(--accent); padding: 0 0.375rem; }
         .appbar .action.muted { color: var(--text-muted); font-weight: 700; }
 
-        .content { padding: 16px; display: flex; flex-direction: column; gap: 16px; }
+        .content { padding: 1rem; display: flex; flex-direction: column; gap: 1rem; }
 
-        .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; }
-        .card.pad { padding: 15px; }
+        .card { background: var(--surface); border: 1px solid var(--border); border-radius: 1rem; }
+        .card.pad { padding: 0.9375rem; }
         .row {
-            display: flex; align-items: center; gap: 13px;
-            padding: 12px 14px; min-height: 62px;
+            display: flex; align-items: center; gap: 0.8125rem;
+            padding: 0.75rem 0.875rem; min-height: 3.875rem;
             color: inherit;
         }
         .row + .row { border-top: 1px solid var(--border); }
@@ -70,7 +75,7 @@
         .chev { flex-shrink: 0; color: var(--faint); }
 
         .avatar {
-            width: 46px; height: 46px; border-radius: 50%;
+            width: 2.875rem; height: 2.875rem; border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
             font-size: 1.4rem; flex-shrink: 0; background: rgba(154, 134, 119, 0.12);
         }
@@ -81,79 +86,79 @@
         .avatar.orange { background: rgba(232, 93, 36, 0.11); }
         .avatar.amber  { background: rgba(217, 119, 6, 0.13); }
         .avatar.teal   { background: rgba(13, 148, 136, 0.13); }
-        .avatar.square { border-radius: 13px; }
+        .avatar.square { border-radius: 0.8125rem; }
 
         .label {
             font-size: 0.6875rem; font-weight: 800; letter-spacing: 0.08em;
             text-transform: uppercase; color: var(--text-muted);
-            padding: 0 4px 8px;
+            padding: 0 0.25rem 0.5rem;
         }
 
         .btn {
-            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-            width: 100%; height: 48px; border-radius: 12px; border: none;
+            display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+            width: 100%; height: 3rem; border-radius: 0.75rem; border: none;
             font-family: inherit; font-size: 0.9375rem; font-weight: 700;
             background: var(--accent); color: #fff; cursor: pointer;
             box-shadow: 0 2px 8px rgba(232, 93, 36, 0.25);
         }
         .btn.outline { background: transparent; color: var(--text); border: 2px solid var(--border); box-shadow: none; }
-        .btn.dashed { background: transparent; color: var(--text-mid); border: 2px dashed var(--border-strong); box-shadow: none; height: 52px; }
+        .btn.dashed { background: transparent; color: var(--text-mid); border: 2px dashed var(--border-strong); box-shadow: none; height: 3.25rem; }
         .btn.danger { background: transparent; color: var(--danger); box-shadow: none; font-weight: 700; }
-        .btn.small { height: 40px; font-size: 0.875rem; width: auto; padding: 0 16px; }
+        .btn.small { height: 2.5rem; font-size: 0.875rem; width: auto; padding: 0 1rem; }
 
-        .field { display: flex; flex-direction: column; gap: 6px; }
+        .field { display: flex; flex-direction: column; gap: 0.375rem; }
         .field > label { font-size: 0.6875rem; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; color: var(--text-muted); }
         .field input[type=text], .field input[type=url], .field input[type=date],
         .field select, .field textarea {
-            width: 100%; min-height: 48px; padding: 12px 14px;
-            border: 1.5px solid var(--border); border-radius: 12px;
+            width: 100%; min-height: 3rem; padding: 0.75rem 0.875rem;
+            border: 1.5px solid var(--border); border-radius: 0.75rem;
             background: var(--surface); color: var(--text);
             font-family: inherit; font-size: 0.9375rem; font-weight: 600;
         }
-        .field textarea { min-height: 76px; resize: vertical; }
+        .field textarea { min-height: 4.75rem; resize: vertical; }
         .field input:focus, .field select:focus, .field textarea:focus {
             outline: none; border-color: var(--accent);
         }
         .hint { font-size: 0.75rem; color: var(--text-muted); line-height: 1.5; }
 
-        .picker { display: flex; flex-wrap: wrap; gap: 7px; }
+        .picker { display: flex; flex-wrap: wrap; gap: 0.4375rem; }
         .picker input { position: absolute; opacity: 0; pointer-events: none; }
         .picker label {
             display: flex; align-items: center; justify-content: center;
-            min-width: 46px; height: 46px; padding: 0 10px;
-            border: 1.5px solid var(--border); border-radius: 12px;
+            min-width: 2.875rem; height: 2.875rem; padding: 0 0.625rem;
+            border: 1.5px solid var(--border); border-radius: 0.75rem;
             font-size: 1.3rem; cursor: pointer; background: var(--surface);
         }
         .picker input:checked + label { border: 2px solid var(--accent); background: rgba(232, 93, 36, 0.06); }
-        .swatch { width: 34px; height: 34px; border-radius: 50%; display: block; }
-        .picker.colors label { min-width: 46px; height: 46px; border-radius: 50%; border: none; padding: 0; }
+        .swatch { width: 2.125rem; height: 2.125rem; border-radius: 50%; display: block; }
+        .picker.colors label { min-width: 2.875rem; height: 2.875rem; border-radius: 50%; border: none; padding: 0; }
         .picker.colors input:checked + label { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent); }
 
-        .checkline { display: flex; align-items: center; gap: 11px; padding: 6px 2px; }
-        .checkline input { width: 22px; height: 22px; accent-color: var(--accent); }
+        .checkline { display: flex; align-items: center; gap: 0.6875rem; padding: 0.375rem 0.125rem; }
+        .checkline input { width: 1.375rem; height: 1.375rem; accent-color: var(--accent); }
         .checkline span { font-size: 0.9375rem; font-weight: 700; }
 
-        .note-box { background: var(--warm); border-radius: 14px; padding: 13px 15px; font-size: 0.8125rem; color: var(--text-mid); line-height: 1.55; }
-        .flash { border-radius: 14px; padding: 13px 15px; font-size: 0.875rem; font-weight: 700; }
+        .note-box { background: var(--warm); border-radius: 0.875rem; padding: 0.8125rem 0.9375rem; font-size: 0.8125rem; color: var(--text-mid); line-height: 1.55; }
+        .flash { border-radius: 0.875rem; padding: 0.8125rem 0.9375rem; font-size: 0.875rem; font-weight: 700; }
         .flash.ok { background: rgba(22, 163, 74, 0.1); color: #15803d; }
         .flash.error { background: rgba(192, 57, 43, 0.09); color: var(--danger); }
-        .problems { background: rgba(192, 57, 43, 0.07); border-radius: 14px; padding: 13px 15px; color: var(--danger); font-size: 0.8125rem; }
-        .problems li { margin-left: 18px; }
+        .problems { background: rgba(192, 57, 43, 0.07); border-radius: 0.875rem; padding: 0.8125rem 0.9375rem; color: var(--danger); font-size: 0.8125rem; }
+        .problems li { margin-left: 1.125rem; }
 
-        .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; display: inline-block; }
+        .dot { width: 0.5rem; height: 0.5rem; border-radius: 50%; flex-shrink: 0; display: inline-block; }
         .dot.ready { background: var(--green); }
         .dot.stale { background: var(--amber); }
         .dot.waiting { background: var(--faint); }
 
-        .pill { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; font-size: 0.6875rem; font-weight: 800; }
+        .pill { display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.1875rem 0.625rem; border-radius: 999px; font-size: 0.6875rem; font-weight: 800; }
         .pill.warm { background: rgba(232, 93, 36, 0.1); color: var(--accent-dark); }
         .pill.muted { background: rgba(154, 134, 119, 0.12); color: var(--text-mid); }
 
         .inline-form { display: inline; }
-        .move { display: flex; flex-direction: column; gap: 2px; }
+        .move { display: flex; flex-direction: column; gap: 0.125rem; }
         .move button {
-            width: 30px; height: 24px; border: 1px solid var(--border); background: var(--surface);
-            border-radius: 7px; cursor: pointer; color: var(--text-muted); font-size: 0.7rem; line-height: 1;
+            width: 1.875rem; height: 1.5rem; border: 1px solid var(--border); background: var(--surface);
+            border-radius: 0.4375rem; cursor: pointer; color: var(--text-muted); font-size: 0.7rem; line-height: 1;
         }
     </style>
 </head>

@@ -170,6 +170,11 @@ before believing a clipping bug.
 - **Times are 24-hour** on the board (`08:20`).
 - The board is sized in `rem` off one root `clamp(11px, 2.4vh, 26px)`, so the same layout reads on a
   480px-tall Pi panel and a living-room TV. Two columns above a 3:2 aspect ratio, one below.
+- The settings UI does the same off one root `clamp(1rem, 0.75rem + 0.625vw, 1.25rem)`: the mockup's
+  16px on a phone, up to 20px on a desktop browser, so the phone layout reads at desk distance
+  without becoming a second layout. Every length in `web/templates/settings/` is therefore in `rem`
+  or `em` — a new `px` value there stops scaling and drifts out of proportion. Borders, focus rings
+  and shadows are the exception and stay in `px`; hairlines should not scale.
 - Light and dark are the same rules with a different set of CSS custom properties. Never hard-code a
   colour in a board rule; add a token.
 - Icons are inline SVG, never emoji. Emoji in *content* (avatars, chore markers) are the brand.

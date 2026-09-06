@@ -10,21 +10,21 @@
 {% block content %}
 <form method="post">
     <div class="label">Board colours</div>
-    <div style="display:flex;gap:10px;">
+    <div style="display:flex;gap:0.625rem;">
         {% for theme in themes %}
         <label style="flex:1;cursor:pointer;">
             <input type="radio" name="theme" value="{{ theme }}" {{ 'checked' if config.theme == theme }}
                    style="position:absolute;opacity:0;" onchange="this.form.submit()">
             <div style="border:{{ '2px solid var(--accent)' if config.theme == theme else '1.5px solid var(--border)' }};
-                        border-radius:14px;background:var(--surface);padding:9px 9px 10px;
-                        display:flex;flex-direction:column;gap:8px;">
+                        border-radius:0.875rem;background:var(--surface);padding:0.5625rem 0.5625rem 0.625rem;
+                        display:flex;flex-direction:column;gap:0.5rem;">
                 {# A miniature of the real board, in that theme's actual palette. #}
-                <div style="height:64px;border-radius:9px;padding:9px 10px;display:flex;flex-direction:column;gap:5px;
+                <div style="height:4rem;border-radius:0.5625rem;padding:0.5625rem 0.625rem;display:flex;flex-direction:column;gap:0.3125rem;
                             {% if theme == 'dark' %}background:#17120f;{% else %}background:#ffffff;border:1px solid #f0e6da;{% endif %}">
-                    <div style="width:34px;height:4px;border-radius:2px;background:{{ '#ff7a45' if theme == 'dark' else '#e85d24' }};"></div>
-                    <div style="width:100%;height:8px;border-radius:3px;background:{{ '#f6efe7' if theme == 'dark' else '#2d2319' }};"></div>
-                    <div style="width:72%;height:5px;border-radius:3px;background:{{ '#6f6053' if theme == 'dark' else '#c4b3a3' }};"></div>
-                    <div style="width:86%;height:5px;border-radius:3px;background:{{ '#6f6053' if theme == 'dark' else '#c4b3a3' }};"></div>
+                    <div style="width:2.125rem;height:0.25rem;border-radius:0.125rem;background:{{ '#ff7a45' if theme == 'dark' else '#e85d24' }};"></div>
+                    <div style="width:100%;height:0.5rem;border-radius:0.1875rem;background:{{ '#f6efe7' if theme == 'dark' else '#2d2319' }};"></div>
+                    <div style="width:72%;height:0.3125rem;border-radius:0.1875rem;background:{{ '#6f6053' if theme == 'dark' else '#c4b3a3' }};"></div>
+                    <div style="width:86%;height:0.3125rem;border-radius:0.1875rem;background:{{ '#6f6053' if theme == 'dark' else '#c4b3a3' }};"></div>
                 </div>
                 <div style="text-align:center;font-size:0.875rem;font-weight:800;
                             color:{{ 'var(--accent-dark)' if config.theme == theme else 'var(--text-mid)' }};">
@@ -34,10 +34,10 @@
         </label>
         {% endfor %}
     </div>
-    <div class="hint" style="padding:9px 4px 0;">
+    <div class="hint" style="padding:0.5625rem 0.25rem 0;">
         Applies to every screen showing this board. Dark suits a kitchen that stays lit in the evening.
     </div>
-    <noscript><button class="btn" type="submit" style="margin-top:12px;">Save</button></noscript>
+    <noscript><button class="btn" type="submit" style="margin-top:0.75rem;">Save</button></noscript>
 </form>
 
 <div class="note-box">
