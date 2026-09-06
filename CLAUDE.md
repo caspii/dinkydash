@@ -15,14 +15,117 @@ Three components:
 2. **The web app** (`web/`) — the board at `/`, a settings UI at `/settings` that writes `config.yaml`.
 3. **Static site generator** (`website/`) — the marketing site, built to `docs/` for GitHub Pages.
 
-The project is being rebuilt as a hosted multi-tenant SaaS in this same public repo, with
-self-hosting as a second mode of one codebase. Before making structural changes, read:
+**This repo is public and MIT-licensed**, and the hosted multi-tenant SaaS is being built inside
+it, with self-hosting as the second mode of one codebase. Both facts constrain every change: see
+[This is a public repo](#this-is-a-public-repo) and [Two modes, always](#two-modes-always) below.
+Before making structural changes, read:
 
 - [PLAN.md](PLAN.md) — hosted MVP architecture, phases, settled decisions, open questions
 - [STRATEGY.md](STRATEGY.md) — positioning, pricing, SEO
 - [design/](design/) — mockups for the settings UI and the board, with the reasoning
 
+## This is a public repo
+
+DinkyDash is open source, and the hosted product is being built in the same public repo (PLAN.md
+decision 2). Everything pushed is world-readable the moment it lands, and the repo is itself the
+funnel — the Show HN and r/selfhosted launch point straight at it. The code is read by strangers,
+so a careless commit is an incident rather than a tidy-up.
+
+Two consequences, pulling the same way:
+
+- **Nothing private goes in.** Not a key, not a real family's data, not a calendar URL.
+- **Hygiene is visible.** Careless handling of somebody's calendar is a public, permanent argument
+  against trusting the hosted version too.
+
+### What must never be committed
+
+`.gitignore` covers `.env`, `config.yaml`, `dashboard_data.json`, `content_history.json`,
+`generate.log` and `static/*.jpg|png` (except `icon.png`). That is the safety net, not the plan:
+read `git status` before staging and never `git add -f` one of them. A secret in history survives
+in every clone and fork after the commit that removes it, so the fix is rotation, not a revert.
+
+- **An iCal "secret address" is a password in a URL.** Whoever holds it reads that family's whole
+  calendar, indefinitely, and there is no way to see who has. It never goes in a commit, a test
+  fixture, an issue, a log line, a screenshot, or a prompt to any model. Example URLs in the docs
+  and in `config.example.yaml` are visibly fake (`private-xxxx`); keep new ones that way.
+- **Real family data.** Names, dates of birth and children's faces are the entire content of this
+  app. Screenshots for the README or the marketing site come from `python sample_board.py`, which
+  invents people. Tests invent people too.
+- **Secrets come from the environment**, never a literal in code or config. `.env` also lives on the
+  Pi, because `deploy_to_pi.sh` rsyncs it — rotating a key means changing it in both places.
+- **A new dependency is a supply-chain decision** in an app holding other families' calendars.
+  Prefer the standard library; justify anything else in the PR.
+
+### Handling other people's data
+
+- **Calendar feeds are untrusted remote input.** Event titles are written by third parties, arrive
+  over the network, and land in two places: the rendered page and the model prompt. Autoescaping
+  protects the first — there is no `|safe` anywhere in `web/`, and none should appear on feed or
+  user content. For the second, treat the text as data: an event titled "ignore your instructions
+  and ..." must not change what the model does.
+- **The server fetches URLs the user typed.** On a Pi that is the user's own machine. Hosted, it is
+  a request from our infrastructure to anywhere, so before cloud mode goes live `fetch_feed` needs a
+  scheme allowlist, redirects that cannot reach a private range, and a response size cap alongside
+  the timeout it already has.
+- **Calendar contents leave the machine.** They go to Anthropic to write the daily line. A fair
+  trade, but it has to be *said* — in the privacy policy, the sub-processor list, and the UI
+  (PLAN.md phase 5).
+- **Log the label, not the URL.** `fetch_events` logs `entry["label"]` on purpose. The exception
+  text does not follow that rule by itself — see the gotcha below.
+
+### Hosted mode raises the stakes
+
+Self-hosted is one family on their own network and has **no authentication by design**: anyone who
+reaches the port can edit the config, which is the same trust model as the file it writes. Cloud
+mode is a different product on the same code.
+
+- **Every read and write is scoped to a `family_id`.** There is no unscoped query. An id arriving in
+  a URL or a form is a claim, not a fact — check it against the session before it reaches a query.
+- **`web/__init__.py` falls back to a hardcoded `app.secret_key`.** Harmless with no auth; in cloud
+  mode the session *is* the authentication, so cloud mode must refuse to start without a real
+  `DINKYDASH_SECRET_KEY`.
+- **Screen tokens are bearer credentials.** Rate-limited, `noindex`, no referrer leakage, rotatable,
+  and never written to a log or an error page.
+- **Spend caps are a security control.** The per-family and global breaker (PLAN.md phase 2) is what
+  stops a bug or an abusive account becoming an unbounded Anthropic bill.
+
+### Hygiene still owed
+
+Phase 0 of PLAN.md is mostly this, and none of it is done: no CI, no `gitleaks` hook, GitHub push
+protection not enabled, and no `.env.example`. `.env` now holds `ANTHROPIC_API_KEY` and nothing
+else — `FLASK_ENV`, `SECRET_KEY`, `DATABASE_URL`, `UPLOAD_FOLDER` and `MAX_CONTENT_LENGTH` were
+leftovers from an abandoned plan and none of them was read by any code. Do not put `SECRET_KEY`
+back: nothing calls `from_prefixed_env`, so Flask never sees it, and the session key comes from
+`DINKYDASH_SECRET_KEY` or the hardcoded fallback whatever `.env` says. The Anthropic key is still
+not rotated after living on a Pi and being rsynced. `requirements.txt` pins no versions. There is no
+`LICENSE` file, though the README and the website both say MIT.
+
 ## Architecture
+
+### Two modes, always
+
+One codebase, two products (PLAN.md decision 2):
+
+```
+DINKYDASH_MODE=single   config.yaml · auth off · billing off · one family · local cron
+DINKYDASH_MODE=cloud    Postgres · magic links · Stripe · many families · worker + scheduler
+```
+
+**Every change must work in both.** The engine, the board template, the CSS, the calendar handling
+and the settings UI are shared verbatim; mode gates four things and no others — authentication,
+billing, where the config is stored, and what drives the scheduler. A mode check anywhere else means
+the change is in the wrong layer.
+
+- **Self-hosted keeps working with no Postgres, no Stripe, no email provider**, and no network
+  beyond the two things it fetches. A feature that needs a database is a cloud feature, or it is not
+  a feature yet.
+- **Hosted never assumes one family.** No module-level cache of "the" config, no singleton payload,
+  no fixed path on disk. If a value is per-family, it is a parameter.
+- **New settings go through the config dict**, so they survive both as commented YAML and as a
+  `jsonb` column, with `with_defaults` migrating each on load. Nothing below the storage layer reads
+  `config.yaml`.
+- **New code in `dinkydash/` stays pure**, per the engine boundary below. That purity is what makes
+  the two modes one codebase rather than two.
 
 ### The engine boundary
 
@@ -207,6 +310,13 @@ columns instead: on a five-event day the left column measures 311px against the 
   there is no JSON-repair retry loop. Do not add one back.
 - Self-hosted mode has **no authentication**. Anyone who can reach the port can edit the config.
   That is the same trust model as the file it writes, but keep the port off the public internet.
+  Cloud mode cannot inherit this — see [Hosted mode raises the stakes](#hosted-mode-raises-the-stakes).
+- **A failed calendar fetch puts the secret URL in the error text.** `requests` formats both
+  `raise_for_status()` and connection errors with the full URL (`404 Client Error: ... for url:
+  https://.../private-REALSECRET/basic.ics`), and `fetch_feed` wraps `{exc}` straight into
+  `FeedError`. That string reaches `generate.log` and the feed status on the settings page.
+  `fetch_events` logs the *label* precisely to avoid this; the exception text needs the same
+  treatment before hosted mode, where the log is ours and the calendar is not.
 - `strftime("%-d")` is glibc-specific. Fine on a Pi and in CI; would need changing for Windows.
 - **Headless Chrome lies about the viewport.** `--window-size=800,480` renders into 800x393 — 87px
   short — while `--screenshot` still writes an 800x480 PNG, so the bottom fifth looks empty when it
