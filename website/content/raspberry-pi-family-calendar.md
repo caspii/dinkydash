@@ -98,9 +98,9 @@ Both are covered, with fixes, in the [troubleshooting section](/getting-started/
 
 ## Why build one instead of buying
 
-A Skylight Calendar Max is $629, plus $79 a year for the Plus features. A Hearth Display is $699 plus $9 a month. They're nicely made, and if you want something that works out of the box with a support line, they're reasonable purchases.
+A Skylight Calendar Max is $599.99, plus $79 a year for the Plus features. A Hearth Display is $699 plus $9 a month. They're nicely made, and if you want something that works out of the box with a support line, they're reasonable purchases.
 
-But a digital family calendar is fundamentally a screen showing a web page. If you're comfortable with a terminal, the Pi version costs about a sixth as much, has no subscription, keeps your family's data on your own device, and does one thing the $629 hardware doesn't: writes you a fresh daily brief every morning.
+But a digital family calendar is fundamentally a screen showing a web page. If you're comfortable with a terminal, the Pi version costs about a sixth as much, has no subscription, keeps your family's data on your own device, and does one thing the $600 hardware doesn't: writes you a fresh daily brief every morning.
 
 The full cost comparison is on the [DIY Skylight calendar page](/diy-skylight-calendar/).
 

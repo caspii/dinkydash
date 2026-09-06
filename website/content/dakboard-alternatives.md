@@ -32,9 +32,9 @@ This page compares six alternatives on the things that actually decide it: what 
 | **MagicMirror²** | $0 | Bring your own | Yes | Yes (MIT) |
 | **Home Assistant** | $0 | Bring your own | Yes | Yes (Apache 2.0) |
 | **Mango Display** | Free tier; Pro $5.99/mo | Bring your own | No | No |
-| **Skylight Calendar** | Optional $79/yr | $299–$629 | No | No |
-| **Hearth Display** | $9/mo required | $699 | No | No |
-| *DAKboard, for reference* | *Free tier; $6–10/mo* | *Bring your own, or ~$80 CPU* | *No* | *No* |
+| **Skylight Calendar** | Optional $79/yr | $329.99–$599.99 | No | No |
+| **Hearth Display** | $86.40/yr required | $699 | No | No |
+| *DAKboard, for reference* | *Free tier; $5–10/mo* | *Bring your own, or ~$80 CPU* | *No* | *No* |
 
 *Prices checked 6 September 2026. Always confirm current pricing before buying.*
 
@@ -90,7 +90,7 @@ One thing worth knowing before you sign up: **the free plan does not include the
 
 ## 5. Skylight Calendar — buy the screen too
 
-If the real answer is that you want a finished object on the wall rather than a project, Skylight sells the hardware: $299 for the 15″ Calendar 2, $629 for the 27″ Calendar Max, with an optional Plus subscription at $79/year for chore rewards and meal planning.
+If the real answer is that you want a finished object on the wall rather than a project, Skylight sells the hardware: $329.99 for the 15″ Calendar 2, $599.99 for the 27″ Calendar Max, with an optional Plus subscription at $79/year for chore rewards and meal planning.
 
 It is the opposite trade to DAKboard — you spend money instead of time, and you get a touchscreen your family can actually tap. See our [Skylight alternatives page](/skylight-calendar-alternatives/) for the wider comparison, or the [subscription breakdown](/skylight-calendar-subscription/) for what Plus actually costs.
 
@@ -98,7 +98,7 @@ It is the opposite trade to DAKboard — you spend money instead of time, and yo
 
 ## 6. Hearth Display — routines rather than dashboards
 
-Hearth's 27″ portrait display ($699 plus a required $9/month membership) is built around routines and visual schedules rather than data panels, and is popular with ADHD and neurodivergent families. It is the most expensive option here over three years, and the least like DAKboard — which for some households is the point. Our [Hearth vs Skylight comparison](/hearth-vs-skylight/) goes into it.
+Hearth's 27″ portrait display ($699 plus a required membership at $9/month, or $86.40 billed annually) is built around routines and visual schedules rather than data panels, and is popular with ADHD and neurodivergent families. It is the most expensive option here over three years, and the least like DAKboard — which for some households is the point. Our [Hearth vs Skylight comparison](/hearth-vs-skylight/) goes into it.
 
 **Best for:** families whose problem is mornings, not information.
 
@@ -114,8 +114,8 @@ Software only, assuming you already own a screen. Annual billing where offered.
 | DAKboard Essential | ~$180 |
 | Mango Display Pro | ~$180 |
 | DAKboard Plus | ~$288 |
-| Skylight Calendar Max + Plus | ~$866 |
-| Hearth Display | ~$1,023 |
+| Skylight Calendar Max + Plus | ~$837 |
+| Hearth Display | ~$958 |
 
 ## Where DAKboard is genuinely better
 
