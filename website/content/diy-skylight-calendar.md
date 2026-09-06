@@ -81,7 +81,7 @@ A cheap tablet wall mount, a picture ledge, or a small easel stand all work. Non
 | AI daily brief | No | Yes |
 | Fixable/customizable | No | It's your code |
 
-*Prices checked September 2026.*
+*Skylight prices checked 6 September 2026; the Raspberry Pi part prices above are approximate and were last checked August 2026.*
 
 ## Questions people ask
 
