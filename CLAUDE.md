@@ -130,8 +130,14 @@ Phase 0 of PLAN.md is mostly this. Three of the four pieces are now in place.
 `.github/workflows/test.yml` runs on every push and pull request, as two independent jobs so a
 secret and a broken test are separate red X's: **pytest** on Python 3.11, and **gitleaks** over the
 full history — `fetch-depth: 0`, because gitleaks scans commits rather than the working tree.
-GitHub's own secret scanning and push protection are enabled on the repo, so a recognised key is
-rejected at `git push` rather than needing rotation afterwards.
+GitHub's own secret scanning and push protection are switched on for the repo as a second layer.
+**Do not rely on that layer yet.** Minutes after enabling it, a correctly shaped fake
+`sk-ant-api03-` key and a correctly shaped fake AWS key pair were both pushed to a scratch branch
+without being blocked, and neither raised an alert — so the settings report enabled while nothing
+observably enforces. GitHub rescans a repo from scratch when the feature is turned on, so this may
+simply be the backfill; it is worth re-testing on a scratch branch before treating a rejected push
+as the safety net. **gitleaks is the layer that was actually observed to work**: it failed the build
+on that same fake key, and `--redact` kept the value out of the CI log.
 
 The gitleaks job runs the MIT-licensed binary directly, pinned, rather than the upstream
 `gitleaks-action` — that action is a bundled JavaScript blob under a commercial licence, and this is
