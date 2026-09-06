@@ -18,7 +18,7 @@
         <div class="avatar square">{{ item.emoji }}</div>
         {% endif %}
 
-        <a class="row-main" href="{{ url_for('settings.section_edit', section_name=section_name, item_id=loop.index0) }}">
+        <a class="row-main" href="{{ url_for('settings.section_edit', section_name=section_name, item_id=item.id) }}">
             <div class="row-title">{{ item.name or item.title or item.label }}</div>
             <div class="row-sub">
                 {% if section_name == 'people' %}
@@ -45,10 +45,10 @@
         {% endif %}
 
         <div class="move">
-            <form class="inline-form" method="post" action="{{ url_for('settings.section_move', section_name=section_name, index=loop.index0) }}">
+            <form class="inline-form" method="post" action="{{ url_for('settings.section_move', section_name=section_name, item_id=item.id) }}">
                 <input type="hidden" name="direction" value="up"><button type="submit" title="Move up">&#9650;</button>
             </form>
-            <form class="inline-form" method="post" action="{{ url_for('settings.section_move', section_name=section_name, index=loop.index0) }}">
+            <form class="inline-form" method="post" action="{{ url_for('settings.section_move', section_name=section_name, item_id=item.id) }}">
                 <input type="hidden" name="direction" value="down"><button type="submit" title="Move down">&#9660;</button>
             </form>
         </div>

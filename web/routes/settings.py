@@ -107,7 +107,12 @@ MONTHS = ["January", "February", "March", "April", "May", "June", "July",
 
 
 def current_config():
-    return config_module.load_config(current_app.config["CONFIG_PATH"])
+    config = config_module.load_config(current_app.config["CONFIG_PATH"])
+    if config_module.ensure_ids(config):
+        # A config written by hand, or before ids existed. Give its items ids
+        # once, so the links on this page keep meaning the same thing.
+        save(config)
+    return config
 
 
 def save(config):
@@ -238,10 +243,8 @@ def section_edit(section_name, item_id):
         item = {"enabled": True} if section_name == "calendars" else {}
         index = None
     else:
-        try:
-            index = int(item_id)
-            item = items[index]
-        except (ValueError, IndexError):
+        index, item = config_module.find_item(items, item_id)
+        if item is None:
             abort(404)
 
     problems, checked = [], None
@@ -258,8 +261,12 @@ def section_edit(section_name, item_id):
             problems = validate(section, submitted)
             if not problems:
                 if is_new:
+                    submitted["id"] = config_module.new_id(
+                        i.get("id") for i in items if isinstance(i, dict)
+                    )
                     items.append(submitted)
                 else:
+                    submitted["id"] = item_id
                     items[index] = submitted
                 save(config)
                 flash(f"Saved {submitted.get('name') or submitted.get('title') or submitted.get('label') or 'it'}.", "ok")
@@ -299,27 +306,31 @@ def check_feed(item, config):
             f"Next up: {nxt['title']}, {nxt['date']} at {when}."}
 
 
-@bp.route("/<section_name>/<int:index>/delete", methods=["POST"])
-def section_delete(section_name, index):
+@bp.route("/<section_name>/<item_id>/delete", methods=["POST"])
+def section_delete(section_name, item_id):
     section = section_or_404(section_name)
     config = current_config()
     items = config.get(section["key"]) or []
-    if not 0 <= index < len(items):
+    index, removed = config_module.find_item(items, item_id)
+    if removed is None:
         abort(404)
-    removed = items.pop(index)
+    items.pop(index)
     save(config)
     flash(f"Removed {removed.get('name') or removed.get('title') or removed.get('label') or 'it'}.", "ok")
     return redirect(url_for("settings.section_list", section_name=section_name))
 
 
-@bp.route("/<section_name>/<int:index>/move", methods=["POST"])
-def section_move(section_name, index):
+@bp.route("/<section_name>/<item_id>/move", methods=["POST"])
+def section_move(section_name, item_id):
     """Reorder within a list — chore rotation order is the reason this exists."""
     section = section_or_404(section_name)
     config = current_config()
     items = config.get(section["key"]) or []
+    index, item = config_module.find_item(items, item_id)
+    if item is None:
+        abort(404)
     target = index + (-1 if request.form.get("direction") == "up" else 1)
-    if 0 <= index < len(items) and 0 <= target < len(items):
+    if 0 <= target < len(items):
         items[index], items[target] = items[target], items[index]
         save(config)
     return redirect(url_for("settings.section_list", section_name=section_name))

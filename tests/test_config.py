@@ -142,6 +142,81 @@ class TestRoundTrip:
         assert config_file.read_text() == original
 
 
+class TestIds:
+    """Positions renumber; ids do not. The settings UI addresses items by id."""
+
+    def test_every_list_item_gets_one(self, config_file):
+        config = config_module.load_config(config_file)
+        assert config_module.ensure_ids(config) is True
+        assert config["people"][0]["id"]
+        assert config["calendars"][0]["id"]
+
+    def test_running_twice_changes_nothing(self, config_file):
+        config = config_module.load_config(config_file)
+        config_module.ensure_ids(config)
+        before = config["people"][0]["id"]
+        assert config_module.ensure_ids(config) is False
+        assert config["people"][0]["id"] == before
+
+    def test_hand_written_ids_are_left_alone(self, tmp_path):
+        path = tmp_path / "config.yaml"
+        path.write_text('people:\n  - name: "Mia"\n    id: "mia"\n')
+        config = config_module.load_config(path)
+        assert config_module.ensure_ids(config) is False
+        assert config["people"][0]["id"] == "mia"
+
+    def test_ids_within_a_list_are_unique(self):
+        config = {"people": [{"name": str(n)} for n in range(50)]}
+        config_module.ensure_ids(config)
+        assert len({p["id"] for p in config["people"]}) == 50
+
+    def test_no_lookalike_characters(self):
+        # Ids show up in URLs and get read aloud when something breaks.
+        assert not set("01lOI") & set(config_module.ID_ALPHABET)
+
+    def test_loading_does_not_add_them(self, config_file):
+        # load_config must not mutate the file on disk, and the engine never
+        # looks at ids — so backfilling is the settings UI's job, not load's.
+        config = config_module.load_config(config_file)
+        assert "id" not in config["people"][0]
+
+    def test_find_item_returns_the_position_and_the_item(self):
+        items = [{"id": "a", "name": "Mia"}, {"id": "b", "name": "Theo"}]
+        assert config_module.find_item(items, "b") == (1, items[1])
+
+    def test_find_item_on_a_stranger(self):
+        assert config_module.find_item([{"id": "a"}], "zzz") == (None, None)
+
+    def test_an_id_does_not_land_under_the_next_heading(self, tmp_path):
+        # ruamel hangs the comment introducing the next section off the last
+        # item of the previous one, so an id appended there ends up beneath
+        # somebody else's heading. Valid YAML, unreadable file.
+        path = tmp_path / "config.yaml"
+        path.write_text(
+            'calendars:\n'
+            '  - label: "Family"\n'
+            '    url: "https://example.com/basic.ics"\n'
+            '\n'
+            '# Birthdays here become countdowns.\n'
+            'people:\n'
+            '  - name: "Mia"\n'
+        )
+        config = config_module.load_config(path)
+        config_module.ensure_ids(config)
+        config_module.save_config(config, path)
+
+        lines = [line for line in path.read_text().splitlines() if line.strip()]
+        heading = lines.index("# Birthdays here become countdowns.")
+        assert lines[heading + 1] == "people:"
+
+    def test_an_inline_comment_stays_with_its_key(self, config_file):
+        config = config_module.load_config(config_file)
+        config_module.ensure_ids(config)
+        config_module.save_config(config, config_file)
+        written = config_file.read_text()
+        assert 'name: "Mia"          # the eldest' in written
+
+
 class TestTimezone:
     def test_today_uses_the_family_timezone(self, tmp_path):
         path = tmp_path / "config.yaml"
