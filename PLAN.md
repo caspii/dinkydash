@@ -2,7 +2,7 @@
 
 *Last updated: September 5, 2026. Supersedes `HOSTING_ANALYSIS.md` (deleted — it predated both the AI generation feature and the July 2026 calendar-display repositioning, and its recommended stack and data model no longer matched the product).*
 
-Companion to [STRATEGY.md](STRATEGY.md), which covers positioning, pricing anchors, and SEO. This document covers **how the hosted version gets built and launched**.
+This document covers **how the hosted version gets built and launched**. Its companion — positioning, pricing anchors, and SEO — is kept outside this repo, as a Linear document on the Dinky Dash team.
 
 ---
 
@@ -10,7 +10,7 @@ Companion to [STRATEGY.md](STRATEGY.md), which covers positioning, pricing ancho
 
 Turn DinkyDash from a single-family Raspberry Pi app into a hosted product a non-technical parent can sign up for and have running on a kitchen screen in under five minutes — without giving up the open-source repo that feeds the funnel.
 
-**Target:** $39/year (or $6/month), 14-day trial, no card up front. Full structure and reasoning in [STRATEGY.md](STRATEGY.md#pricing-structure-settled-september-2026).
+**Target:** $39/year (or $6/month), 14-day trial, no card up front. Full structure and reasoning live in the strategy document.
 
 ---
 
