@@ -32,12 +32,12 @@ the same file, and the UI keeps your comments.
 ## How it works
 
 ```
-[cron @ 6am] → generate.py → merges every enabled iCal feed, in time order
-                           → builds the prompt, calls Claude
-                           → saves dashboard_data.json
+[cron @ 6am] → generate.py         → merges every enabled iCal feed, in time order
+                                   → builds the prompt, calls Claude
+                                   → saves dashboard_data.json
 
-[browser]    → app.py      → recomputes chores, countdowns and today's agenda
-                           → renders the board
+[browser]    → web/routes/board.py → recomputes chores, countdowns and today's agenda
+                                   → renders the board
 ```
 
 Only the headline and the written line come from the model. Ages, countdowns, chore turns and the
@@ -147,11 +147,11 @@ UI to fill it in.
 ### Running the tests
 
 ```bash
-pip install -r requirements-dev.txt   # adds pytest; not needed on the Pi
+pip install -r requirements-dev.txt   # adds pytest and the website build; not needed on the Pi
 python -m pytest tests/ -q
 ```
 
-146 tests, well under a second. They cover leap years, timezone conversion, event ordering, chore
+157 tests, well under a second. They cover leap years, timezone conversion, event ordering, chore
 rotation, the stale-board logic, the config round-trip, and the settings routes that write it.
 
 ---
@@ -250,8 +250,9 @@ Nothing to do to your config — it is migrated on load. But be aware:
   on an event, which most personal calendar entries do not have — so it silently returned zero
   events. Add one feed per person instead. It is ignored with a warning in the log.
 - **Photos are no longer used.** The board shows an agenda rather than person cards, so the `image:`
-  fields and the JPEGs in `static/` do nothing. `avatar_emoji` and `avatar_color` replace them, and
-  are used in the settings UI. Old keys are harmless if left in place.
+  fields do nothing, and the root `static/` folder that held the JPEGs is gone. `avatar_emoji` and
+  `avatar_color` replace them, and are used in the settings UI. Old keys are harmless if left in
+  place, but the photos themselves can be deleted.
 - **Dates read as `25 December`,** not `December 25`.
 - **The model default is now `claude-haiku-4-5`.** If your config pins
   `claude-sonnet-4-5-20250929`, it will keep using it — that model is dated, and newer models run
@@ -545,7 +546,7 @@ tail -f /home/pi/dinkydash/generate.log   # last night's generation
 | `app.py` | Flask entry point |
 | `config.yaml` | All configuration. The settings UI writes this same file |
 | `config.example.yaml` | Template config, documenting every key |
-| `tests/` | 151 tests. Run them before committing |
+| `tests/` | 157 tests. Run them before committing |
 | `design/` | Mockups for the board and settings UI, with the reasoning |
 | `deploy_to_pi.sh` | Deployment (rsync + service restart) |
 | `.env` | `ANTHROPIC_API_KEY` (not in git) |
@@ -556,7 +557,7 @@ tail -f /home/pi/dinkydash/generate.log   # last night's generation
 
 ## Contributing
 
-Pull requests are welcome. Note that the codebase is mid-restructure into a monorepo that serves both the self-hosted and hosted builds — check [PLAN.md](PLAN.md) before starting anything structural, and open an issue first for larger changes.
+Pull requests are welcome. The codebase is one monorepo serving both the self-hosted and the hosted build, so a change has to work in both modes — check [PLAN.md](PLAN.md) before starting anything structural, and open an issue first for larger changes.
 
 Known rough edges are listed under "Known issues" in [CLAUDE.md](CLAUDE.md).
 

@@ -7,17 +7,22 @@ This directory contains the static site generator for the DinkyDash website.
 - `content/` - Markdown source files for the website pages
 - `templates/` - Jinja2 HTML templates
 - `images/` - Static images
+- `static/` - Root files copied to the site verbatim (favicons, `CNAME`)
 - `build.py` - Static site generator script
-- `output/` - Generated HTML files (local testing only)
+- `generate_favicon.py` - Redraws the favicons from `static/favicon.svg`; run only when that changes
+
+The build writes to `../docs/`, which is what GitHub Pages serves. There is no `output/` directory —
+`build.py` deletes and rewrites `../docs/` on every run.
 
 ## Building the Website
 
 ### Prerequisites
 
-Ensure you have the required Python packages installed:
+The site generator's dependencies are in the repo's `requirements-dev.txt`, not `requirements.txt`
+— they are build-time only and are never installed on the Pi:
 
 ```bash
-pip install jinja2 markdown pyyaml
+pip install -r ../requirements-dev.txt
 ```
 
 ### Build Process
