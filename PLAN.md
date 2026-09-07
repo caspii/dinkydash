@@ -1,6 +1,8 @@
 # DinkyDash Hosted MVP — Plan
 
-*Last updated: September 6, 2026. Supersedes `HOSTING_ANALYSIS.md` (deleted — it predated both the AI generation feature and the July 2026 calendar-display repositioning, and its recommended stack and data model no longer matched the product).*
+*Last updated: September 7, 2026. Supersedes `HOSTING_ANALYSIS.md` (deleted — it predated both the AI generation feature and the July 2026 calendar-display repositioning, and its recommended stack and data model no longer matched the product).*
+
+*September 7 changes: the host is settled — decision 12, DigitalOcean App Platform in Frankfurt with DigitalOcean Managed Postgres and Cloudflare in front. The "Which host?" open question is closed, the hosting section is rewritten around it, DNS gets its own Phase 0 line, and the Compose file's job changes: the shared artefact between the two modes is now the **Dockerfile**, not `docker-compose.yml`.*
 
 *September 6 changes: decision 11 (the refresh cadence is a setting), a storage seam for the payload and history, a hosting and deployment recommendation, the Batch API deferred, and the phases re-sequenced so the Docker Compose file arrives first rather than last.*
 
@@ -31,6 +33,7 @@ Turn DinkyDash from a single-family Raspberry Pi app into a hosted product a non
 | 9 | **Self-hosting stays, community-supported only.** | See below. |
 | 10 | **The config dict is the storage contract.** `config.yaml` in single mode, a `jsonb` column in cloud mode. Not SQLite on the Pi. | The engine already takes a plain dict, so both modes can produce the same one. Self-hosters expect a file they can edit and copy, and a Pi should not have to run migrations to gain a field. One shape means one settings UI. |
 | 11 | **The refresh cadence is a setting in the UI.** How often the calendars are re-fetched, and when the daily brief is written, are chosen by the family — not hard-coded in a cron line. | A calendar product whose board only learns about a new appointment the next morning is a support ticket waiting to happen. See [Three clocks, one setting](#three-clocks-one-setting). |
+| 12 | **DigitalOcean App Platform (Frankfurt) + DigitalOcean Managed Postgres, with Cloudflare in front.** Not Hetzner and a box, which is what this plan recommended until 7 September. | Quickest route to a deployed app: no SSH, no firewall, no Docker daemon to patch, and the worker is a second component off the same image. A managed database deletes the backup, upgrade and failover work a box would have added. About $25 a month against roughly €5 for the box — the difference buys the ops. See [Hosting and deployment](#hosting-and-deployment). |
 
 ### On self-hosting (decision 9)
 
@@ -206,7 +209,10 @@ web/models.py               # cloud mode only — families, users, generations
 web/routes/                 # auth, billing, admin, the tokenised screen
 worker/                     # the tick loop (cloud mode)
 migrations/                 # plain SQL, applied in order
-Dockerfile, docker-compose.yml   # one image; both modes; also the deploy unit
+Dockerfile                  # one image, both modes — what App Platform builds
+docker-compose.yml          # local dev, CI, and the self-host deliverable
+.do/app.yaml                # the App Platform spec: components, health check,
+                            #   pre-deploy migration job. No secrets in it.
 selfhost/                   # Pi and Compose docs
 ```
 
@@ -339,7 +345,7 @@ needs, and jsonb answers them when they arise.
 
 ### Hosting and deployment
 
-*Recommended, not yet settled — see open questions.*
+*Settled 7 September 2026 — decision 12.*
 
 What has to run: the Flask app, one worker process, Postgres, TLS, and the
 5-minute tick. Traffic is small — a screen reloading every 5 minutes is 288
@@ -347,57 +353,115 @@ requests a day, so 1,000 families is about 3 requests a second. The data is EU
 consumers' calendars held by a German entity, so EU residency is a line worth
 being able to write in the privacy policy.
 
-**Recommendation: one Hetzner cloud box in Falkenstein, Docker Compose,
-Cloudflare in front.**
+**DigitalOcean App Platform in Frankfurt (FRA), with DigitalOcean Managed
+Postgres, and Cloudflare in front.**
 
 ```
-docker-compose.yml      web (gunicorn)  ·  worker (the tick)  ·  postgres  ·  caddy
+App Platform app                            Managed Postgres cluster (FRA1)
+├── web       service   gunicorn, HTTP      ├── dinkydash
+├── worker    worker    the 5-minute tick   └── dinkydash_staging
+└── migrate   pre-deploy job                Cloudflare — DNS, edge TLS, rate limits
+        all three from the one Dockerfile
 ```
 
-- **The Compose file is the Phase 7 self-host deliverable.** Self-hosting is
-  the same file with `DINKYDASH_MODE=single` and the worker service left out.
-  One artefact, two modes — decision 2's argument again, and it is literally
-  true that the hosted version runs what anyone can run at home.
-- The smallest box (2 vCPU, 4 GB) costs about €5 a month and carries the first
-  few thousand families without noticing.
-- Cloudflare gives DNS, TLS at the edge, and a rate-limiting rule on `/s/*` and
-  `/login` with no dependency in the app. If `dinkydash.co`'s DNS is there
-  already this is a toggle; if not, moving it is an afternoon.
-- **Deploy:** GitHub Actions on merge to `main` runs the tests, builds the
-  image, pushes it to GHCR, then over SSH runs `docker compose pull && up -d`
-  and the migrations. Staging is a second Compose project on the same box at
-  `staging.app.dinkydash.co`. The Pi keeps `deploy_to_pi.sh`; it is a
-  self-hoster, not a tenant.
-- **Backups:** a nightly `pg_dump` to Hetzner Object Storage (S3-compatible),
-  and a restore drill scripted so it runs monthly into a scratch container.
-  Phase 6 asks for a *tested* restore. On a VPS that is a script you keep; on a
-  PaaS it is a button.
+All three are built from the same `Dockerfile`, so `web`, `worker` and the
+migration job are one image with three commands. That is decision 2's "one
+artefact" argument arriving where it actually pays.
 
-**The alternative: Render, Frankfurt region.** A web service, a background
-worker, managed Postgres — the same Dockerfile, about $30 a month. What it buys
-is never running a database: backups, point-in-time recovery and upgrades are
-theirs. Take this if the honest answer to "will I run the restore drill" is no.
-Either way the Dockerfile is the unit, so moving between the two later is an
-afternoon, not a migration.
+**What the Compose file is now for.** It stops being what production runs, and
+that is the honest cost of this choice. It stays the Phase 7 self-host
+deliverable, the local development stack, and what CI runs the suite against —
+web, worker and a `postgres` container, `DINKYDASH_MODE=single`. Production
+runs the same *image* with that container swapped for a managed cluster. "The
+hosted version runs the same file you run at home" is no longer literally true;
+"the same image" is, and that was the part that mattered.
 
-**The one input that overrides both:** if KeepTheScore already runs on a host
-with managed Postgres and a transactional email provider, put DinkyDash next to
-it. Shared operational knowledge beats any comparison table.
+**Region and residency.** App and database both in Frankfurt, so the calendar
+data never leaves the EU and sits in the same country as the entity holding it.
+Amsterdam (AMS3) is the equivalent fallback if any component turns out to be
+missing in FRA1 — check the availability matrix when provisioning; the choice
+between the two is not load-bearing.
+
+One thing the switch away from Hetzner costs: **DigitalOcean is a US company**
+with EU data centres, where Hetzner is a German entity. That means signing
+DigitalOcean's DPA with standard contractual clauses and naming them plainly in
+the sub-processor list. Paperwork, not a blocker, but it belongs in Phase 5
+rather than being discovered there.
+
+**The database.** The cheapest single-node cluster — 1 GiB RAM, 10 GiB disk,
+$15.15/month — carries the first few thousand families. Four things it changes
+in the app:
+
+- `sslmode=require`, against DigitalOcean's CA certificate. `DATABASE_URL`
+  carries it; nothing else in the app needs to know.
+- **Connection limits are small** on the cheap node — **22**, and that is the
+  whole cluster. Gunicorn workers plus the tick worker will exhaust it by
+  accident, and the failure is a 500 on the board, not a slow page. Either bound
+  a `psycopg_pool` in each process, or use DigitalOcean's own connection pool
+  (their hosted PgBouncer) and point `DATABASE_URL` at that. Decide before
+  Phase 1, not when it breaks.
+- Daily backups and 7-day point-in-time recovery are on by default and are
+  theirs. **The restore drill is still ours** — see Phase 6.
+- One cluster, two databases: `dinkydash` and `dinkydash_staging`. A second
+  cluster for staging is $15 a month to learn nothing.
+
+**Deploy.** Push to `main`; App Platform builds the Dockerfile and rolls the
+components out with a health check on `/healthz`. Migrations run as a
+**pre-deploy job** in the app spec, so the schema is always ahead of the code
+that needs it and a failed migration fails the deploy instead of half-updating
+a live app. GitHub Actions keeps running the test suite — App Platform deploys,
+it does not gate. Staging is a second App Platform app off the `staging` branch
+against `dinkydash_staging`. The Pi keeps `deploy_to_pi.sh`; a self-hoster is
+not a tenant.
+
+**The app spec lives in the repo** as `.do/app.yaml`, so the components,
+instance sizes, health checks and the pre-deploy job are reviewed like code.
+**No secrets in it.** App Platform's encrypted environment variables are set
+with `doctl` or in the dashboard, and the spec references them by name.
+
+**Cloudflare** gives DNS, TLS at the edge, a rate-limiting rule on `/s/*` and
+`/login` with no dependency in the app, and — once DIN-27 moves the marketing
+pages onto the app — a cache in front of pages that currently cost nothing to
+serve. `dinkydash.co` is on DNSimple today with the apex pointing at GitHub
+Pages, so this is a nameserver move and an afternoon of re-entering records,
+not a toggle.
+
+> **The cert gotcha.** App Platform issues its own Let's Encrypt certificate
+> for a custom domain and validates it through the CNAME. A proxied
+> (orange-cloud) Cloudflare record breaks that validation. Add the domain in
+> App Platform with the record **unproxied**, wait for the certificate, then
+> turn the proxy on and set Cloudflare's SSL mode to **Full (strict)**.
 
 **Not Cloudflare Workers**, though the tooling is to hand. It would be a
 rewrite of a Flask app that leans on ruamel, icalendar and a long-running
 worker. Decision 1 already answered that.
 
+**What it costs.** Two $5 instances (1 vCPU, 512 MiB each — the app is
+I/O-light) plus the $15.15 database is **about $25/month** for production.
+Staging adds two more $5 components and shares the cluster, so call it $35 all
+in. Verified against DigitalOcean's pricing pages on 7 September 2026.
+
+**What was considered and dropped.** One Hetzner box in Falkenstein running
+Compose — cheaper (about €5 a month), a German entity, and production would
+have run literally the self-host file. It loses on time: a box means SSH
+hardening, a firewall, Caddy, a Docker daemon to patch, GHCR credentials in CI
+and a deploy key, before anything of the product exists. Render in Frankfurt is
+the same shape as the choice made and was close to a coin toss. Neither is hard
+to leave: the Dockerfile is the unit, so moving is an afternoon, not a
+migration.
+
 **Inside the app:**
 
 - `psycopg` (v3) and plain SQL. Six tables and one jsonb document do not need
   an ORM; a forty-line runner applies `migrations/*.sql` in order and records
-  each in a `schema_migrations` table. One new dependency rather than three.
+  each in a `schema_migrations` table. One new dependency rather than three —
+  plus `psycopg_pool` if the app-side pool is the answer to the connection
+  limit above.
 - Gunicorn with a handful of workers. The app is I/O-light and the worker is a
-  separate process, so there is nothing to tune.
-- `/healthz` for the uptime check and as the deploy's readiness gate.
-- Sentry is already connected; the worker gets the same DSN.
-- Secrets are environment variables in a root-only `.env` on the box —
+  separate process, so there is nothing to tune — but see the connection limit.
+- `/healthz` for the uptime check and as App Platform's readiness gate.
+- Sentry is already connected; the worker component gets the same DSN.
+- Secrets are App Platform encrypted environment variables —
   `DINKYDASH_SECRET_KEY`, `DATABASE_URL`, `ANTHROPIC_API_KEY`, the Stripe keys,
   the email key. Cloud mode refuses to start if any is missing.
 
@@ -442,7 +506,7 @@ Each of these is under an hour, needs no database, and ships to the Pi as well a
 7. **`Referrer-Policy: no-referrer`** on the board and the settings pages. One header each.
 8. **`/healthz`.** Returns `ok` and the git SHA; every host and uptime checker wants it.
 9. **`generated_at` in UTC**, rendered in the family's timezone (bug 9).
-10. **A `Dockerfile`.** Fifteen lines; both modes; the deploy unit for everything below.
+10. **A `Dockerfile`.** Fifteen lines; both modes. It is what App Platform builds and what the Compose file runs, so it is the deploy unit for everything below *(DIN-30)*.
 
 ---
 
@@ -456,14 +520,15 @@ Critical path is 0 → 1 → 2 → 3. Phases 4–6 can run alongside 3. Nothing 
 - [x] Refactor the engine to `generate(config, today, events, recent_notes) -> dict` *(#28)*
 - [x] Fix the five issues listed above; add tests around date/timezone, calendar parsing, chore rotation *(#28, #29)*
 - [x] Update the Claude model; switch to structured outputs *(#28 — `claude-haiku-4-5` takes no `thinking` parameter, so leaving it unset is the explicit choice)*
-- [ ] The small jobs above: CI, `gitleaks`, push protection, `.env.example`, pinned requirements, key rotation *(DIN-16)*; self-hosted font, URL scrub, referrer policy, `/healthz`, Dockerfile
+- [ ] The small jobs above: CI, `gitleaks`, push protection, `.env.example`, pinned requirements, key rotation *(DIN-16)*; self-hosted font, URL scrub, referrer policy, `/healthz`. The `Dockerfile` has its own line below.
 - [x] **Decision 11, single-mode half:** `refresh_minutes` and `brief_time` in `DEFAULTS`; `runner.run` split into `refresh_calendars` and `write_brief`; a pure `due()`; `generate.py --tick`; the settings page under *This screen*; the board's reload derived from the interval; README cron line updated. Ships to the Pi at once and needs no database. *(DIN-17 for the engine and cron, DIN-18 for the page)*
 - [ ] Name the storage seam: `FileStore` gathering the six operations that exist today, and the settings routes, runner and board taking a store *(DIN-19)*
-- [ ] `docker-compose.yml` for single mode (`web` only) — the self-host path is real from here on, and every later phase reuses the file
-- [ ] Postgres + plain-SQL migrations; CI running the suite against a Postgres service container
-- [ ] Choose the host (open question) and stand up staging on `app.dinkydash.co` (apex stays on GitHub Pages)
+- [ ] `Dockerfile` and `docker-compose.yml` for single mode (`web` only) — the self-host path is real from here on, the image is what App Platform builds, and every later phase reuses both *(DIN-30)*
+- [ ] Postgres + plain-SQL migrations; CI running the suite against a Postgres service container *(DIN-31)*
+- [ ] Move DNS to Cloudflare and add the `app` and `staging.app` records *(DIN-29)*. The apex keeps pointing at GitHub Pages until DIN-27 moves the marketing pages onto the app.
+- [ ] Stand up the App Platform app and the Managed Postgres cluster in Frankfurt; staging live on `staging.app.dinkydash.co` *(DIN-26)*
 
-**Done when:** the engine runs from a dict with an injected date, tests pass in CI on Postgres, `docker compose up` serves a board in single mode, a same-day calendar change reaches a Pi within its chosen interval, and staging serves a hardcoded family.
+**Done when:** the engine runs from a dict with an injected date, tests pass in CI on Postgres, `docker compose up` serves a board in single mode, a same-day calendar change reaches a Pi within its chosen interval, and staging serves a hardcoded family over TLS.
 
 ### Phase 1 — Multi-tenant core
 
@@ -522,7 +587,8 @@ missing is the multi-tenant half — a schema, auth, and scoping every read and 
 ### Phase 5 — Legal & trust
 
 - [ ] Privacy policy and ToS, forked from KeepTheScore
-- [ ] Sub-processor list — Anthropic, the host, Stripe, the email provider, Cloudflare. Not Google Fonts, once Phase 0 is done.
+- [ ] Sub-processor list — Anthropic, DigitalOcean, Stripe, the email provider, Cloudflare. Not Google Fonts, once Phase 0 is done.
+- [ ] **DigitalOcean's DPA signed, with standard contractual clauses.** They are a US company; the app and database sit in Frankfurt. Say both — where the data lives, and who the company is. Cloudflare needs the same treatment.
 - [ ] Plain statement that calendar contents are sent to Anthropic for generation
 - [ ] Data export and hard delete — the delete cascades through users, tokens, agendas, generations, history and calendar health; the Stripe customer record stays, as accounting requires
 - [ ] Retention, with numbers: `agendas` is one overwritten row; `content_history` keeps 30 entries of the model's words; `generations` keeps token counts indefinitely and drops the `brief` column after 90 days; a lapsed family is deleted 90 days after lapse
@@ -534,7 +600,7 @@ missing is the multi-tenant half — a schema, auth, and scoping every read and 
 
 - [ ] Sentry (already connected) in both processes; uptime check on `/healthz`
 - [ ] Generation-success dashboard; alerts on failure rate, calendar-fetch failures, spend breaker, Stripe webhook failures, and the dead-man's switch
-- [ ] Database backups nightly to object storage, **with a scripted, scheduled restore drill**
+- [ ] **The restore drill.** DigitalOcean takes daily backups and keeps 7 days of point-in-time recovery, so the *dump* is no longer a job. Restoring into a scratch database on a schedule still is, and an untested backup is a hope. Script it; run it monthly.
 - [ ] Transactional email provider wired up *(see open questions)*
 - [ ] Support inbox and a basic admin view (find family, inspect last generation, re-run)
 
@@ -559,9 +625,11 @@ Photo uploads · Google/Apple OAuth · native or mobile apps · multiple dashboa
 
 ## Open questions
 
+*Which host? — closed on 7 September 2026. Decision 12: DigitalOcean App
+Platform in Frankfurt, DigitalOcean Managed Postgres, Cloudflare in front.*
+
 | Question | Blocks | Recommendation |
 |---|---|---|
-| Which host? | Phase 0 staging | Hetzner + Compose + Cloudflare, as above. Render in Frankfurt if you would rather never run Postgres. If KeepTheScore's host has managed Postgres and email already, use that and skip the question. |
 | Transactional email provider? | Phase 1 (magic links) | Whatever KeepTheScore sends its transactional mail with, for the shared sender reputation. Failing that, Postmark. The Customer.io connector that is configured is a marketing tool wearing a transactional hat — right for the waitlist sequence, heavy for magic links. |
 | EU VAT handling with Stripe direct? | Phase 4 | Stripe Tax from the first charge, using KeepTheScore's registration. Consumer prices in the EU are displayed VAT-inclusive, so Checkout is configured with tax-inclusive prices; what that does to the margin is the strategy document's line to update. |
 | Lapse behaviour — blank, freeze on last-good, or degrade to a no-AI calendar? | Phase 4 | Freeze. The screen keeps its last board with a quiet "subscription ended" line; fetches and briefs stop. After 30 days the board is that line alone; after 90 the family is deleted, as the privacy policy will say. A blank kitchen screen is a bad churn experience, and a no-AI tier is a product decision for the strategy document, not a lapse state. |
