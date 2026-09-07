@@ -404,15 +404,73 @@ in the app:
 - `sslmode=require`, against DigitalOcean's CA certificate. `DATABASE_URL`
   carries it; nothing else in the app needs to know.
 - **Connection limits are small** on the cheap node — **22**, and that is the
-  whole cluster. Gunicorn workers plus the tick worker will exhaust it by
-  accident, and the failure is a 500 on the board, not a slow page. Either bound
-  a `psycopg_pool` in each process, or use DigitalOcean's own connection pool
-  (their hosted PgBouncer) and point `DATABASE_URL` at that. Decide before
-  Phase 1, not when it breaks.
+  whole cluster (25 per GiB of RAM, less 3 reserved for maintenance). Gunicorn
+  workers plus the tick worker would exhaust it by accident, and the failure is
+  a 500 on the board, not a slow page. **Settled: both, with a division of
+  labour** — see [Connection pooling](#connection-pooling) below.
 - Daily backups and 7-day point-in-time recovery are on by default and are
   theirs. **The restore drill is still ours** — see Phase 6.
 - One cluster, two databases: `dinkydash` and `dinkydash_staging`. A second
   cluster for staging is $15 a month to learn nothing.
+
+#### Connection pooling
+
+*Settled 7 September 2026, after reading how KeepTheScore does it.*
+
+**DigitalOcean's own connection pool (their hosted PgBouncer) in transaction
+mode makes exhaustion impossible; a small `psycopg_pool` in each process makes
+the common case fast.** One decides safety, the other decides speed, and
+getting the second one wrong then costs latency rather than an outage.
+
+```python
+pool = ConnectionPool(
+    os.environ["DATABASE_URL"],      # DigitalOcean's pool, transaction mode
+    min_size=1, max_size=3,
+    configure=lambda conn: setattr(conn, "prepare_threshold", None),
+)
+```
+
+**Why not the app-side pool alone.** Production web, production worker, staging
+web and staging worker is four processes sharing one cluster from the first day
+DIN-26 stands staging up, before the migration job or a `psql` window. The
+arithmetic is tight enough that a third gunicorn worker tips it over. PgBouncer
+turns "connection refused" into "wait a moment", and that change of failure mode
+is the whole reason it is there.
+
+**Why not the DigitalOcean pool alone.** KeepTheScore is the natural experiment:
+same host, same managed Postgres, pool on the DigitalOcean side, no client-side
+pool, and `db.close()` on every request — so every request pays a fresh TCP and
+TLS handshake to the pool endpoint. It has never broken, and nobody has ever
+measured what it costs. Filed as LBD-685. We get the client-side half for free
+by writing it once, before `PostgresStore` exists.
+
+**Transaction mode, not session mode.** DigitalOcean recommends session mode for
+applications that use prepared statements, advisory locks or listen/notify. We
+use none of them — the daily idempotency is a unique constraint on
+`(family_id, generated_for_date)`, not a lock. Session mode holds a backend
+connection for a client's whole session, so it barely multiplexes and the
+arithmetic above comes straight back.
+
+**`prepare_threshold=None`, everywhere, including local development and CI.**
+psycopg 3 prepares a statement server-side once it repeats, and under
+transaction-mode pooling the next execution can land on a different backend
+connection: `prepared statement "..." does not exist`, intermittently, under
+load, after staging looked fine. This is the one line that differs from
+KeepTheScore, which is on psycopg2 and never auto-prepares — their clean record
+does not transfer. Setting it unconditionally means one behaviour rather than
+two. The cost is nil at this query volume.
+
+**Two connection strings.** `DATABASE_URL` (pooled) for `web` and `worker`;
+`DATABASE_URL_DIRECT` (the cluster, port 25060) for the pre-deploy migration job
+and for `pg_dump`. DigitalOcean documents that `pg_dump` errors against a
+transaction-mode pool, and `CREATE INDEX CONCURRENTLY` cannot run inside a
+transaction block. Both are named in `.do/app.yaml`. KeepTheScore has exactly
+this shape already, arrived at by accident and written down as a naming quirk.
+
+**Always `with pool.connection() as conn:`.** The connection returns to the pool
+on the error path too. Skipping that is how KEEPTHESCORE-28A happened next door:
+a view raised, the connection was never released, and the next request on that
+thread got a dead one.
 
 **Deploy.** Push to `main`; App Platform builds the Dockerfile and rolls the
 components out with a health check on `/healthz`. Migrations run as a
