@@ -31,6 +31,9 @@ DEFAULTS = {
     "max_tokens": 1024,
     "calendar_days_ahead": 14,
     "history_days": 30,
+    # Read only by `generate.py --tick`. A plain run still does both at once.
+    "refresh_minutes": 60,
+    "brief_time": "06:00",
     "data_file": "dashboard_data.json",
     "content_history_file": "content_history.json",
 }

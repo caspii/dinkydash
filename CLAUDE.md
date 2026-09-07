@@ -229,6 +229,7 @@ dinkydash/
 ├── board.py           payload + config -> what the template renders
 ├── config.py          config.yaml load/save (ruamel round-trip), item ids
 ├── history.py         rolling record of recent notes, to avoid repeats
+├── schedule.py        due(config, payload, now) -> what a tick owes (pure)
 └── runner.py          the one place that does I/O around the engine
 
 web/
@@ -252,18 +253,71 @@ can be actively wrong.
 
 That same 14-day window is where **tomorrow's** agenda comes from, so it survives a failed run too.
 
-### The daily cycle
+The payload carries two stamps, **both in UTC**: `generated_at` (when the brief was written) and
+`calendars_fetched_at` (when the feeds were last fetched, and what `schedule.due` reads). UTC
+because the server is routinely not on the family's clock — a Pi is often left on UTC, and hosted
+the server is nowhere near them. They are rendered in the family's timezone at the point of display,
+which on the settings home is `_clock(stamp, tzinfo)`. It used to slice the characters out of the
+ISO string, which showed the server's hour (PLAN.md bug 9).
+
+### Two cadences, one tick
+
+The fetch and the model call ran together only because history put them there, and it meant an
+appointment added at 09:00 was not on the wall until the next morning. They now run on their own
+clocks, chosen by the family (PLAN.md decision 11, single-mode half):
 
 ```
-[cron @ 6am] -> generate.py -> dinkydash.runner.run()
-                                 fetch every enabled iCal feed, merge, sort
-                                 build the prompt, call Claude
-                                 write dashboard_data.json atomically
-                                 append to content_history.json
+[cron */5m] -> generate.py --tick -> schedule.due(config, payload, now)
+                                       refresh? -> runner.refresh_calendars()
+                                                     fetch every enabled feed, merge, sort
+                                                     write events + calendars_fetched_at
+                                       brief?   -> runner.write_brief()
+                                                     build the prompt, call Claude
+                                                     write headline + note, append to history
+                                       neither  -> exit 0, silently
 
-[browser]    -> app.py       -> board.build_view(config, payload, today)
-                                 renders web/templates/board.html
+[browser]   -> app.py             -> board.build_view(config, payload, today)
+                                       renders web/templates/board.html
 ```
+
+`refresh_minutes` (default 60) and `brief_time` (default `"06:00"`, on the family's clock) are
+ordinary config keys, so they migrate through `with_defaults` and will survive as a `jsonb` column.
+`runner.run` is still both halves in order, which is what a plain `python generate.py` and the
+settings page's **Rewrite now** do — the old `0 6 * * *` line keeps working, it just never sees a
+same-day change.
+
+Three rules hold this together:
+
+- **`due()` is pure and takes `now` as an aware datetime.** No clock, no I/O. That is what lets the
+  same function drive a Pi's cron tick and, later, a worker loop walking every family. A brief is
+  due when `generated_for_date` is not today *in the family's timezone* and the local clock has
+  passed `brief_time`; a refresh is due when `calendars_fetched_at` is missing or older than
+  `refresh_minutes`.
+- **A refresh must not touch `headline`, `note` or `generated_for_date`.** `runner.REFRESH_KEYS`
+  names the three keys it owns. A fresh agenda under yesterday's brief is exactly the amber-banner
+  state `board.build_view` already handles, and the whole point of the split.
+- **A failure is not handled, it is simply due again.** Nothing is written, so the next tick asks
+  the same question and gets the same answer. That is the retry, and it is why there is no backoff
+  or attempt counter anywhere.
+
+Two consequences worth knowing.
+
+**A feed that does not answer keeps its own last-known events**, because a missing event is
+invisible while a stale one is still on the right day. The keeping is per feed, not per fetch: the
+feeds that answered are always fresh, or one dead URL would freeze the whole board for as long as
+nobody fixed it. `runner._with_last_known` does the merge, keyed on the `calendar` label each event
+carries, and only inside the current window — so a permanently broken feed empties out over a
+fortnight instead of growing a tail of appointments that already happened. A *paused* feed keeps
+nothing: switching a calendar off means switching it off. The failure is recorded in
+`calendar_statuses` and shown on the settings page, and the stamp is written either way, so a broken
+feed is retried on the configured cadence rather than every tick.
+
+**A tick takes an exclusive `flock` on `.tick.lock` and skips itself if another holds it**
+(`generate.only_one_tick`). A tick can outlive its five-minute slot — several feeds timing out, then
+a slow model call — and the next one would find the brief still unwritten, pay for it a second time,
+write a second history entry, and race the first over the payload. The overlapping tick exits 0
+instead: whatever is owed is still owed five minutes later. It is deliberately only around the tick.
+**Rewrite now** is a person asking for something, and should do it.
 
 ### Config
 
@@ -304,9 +358,13 @@ venv/bin/python -m pytest tests/ -q
 
 **Generate a board** (needs `ANTHROPIC_API_KEY` in `.env`)
 ```bash
-python generate.py                  # today
+python generate.py                  # today: fetch the calendars and write the brief
+python generate.py --tick           # only what is due now — what cron runs
 python generate.py --date 2026-12-24  # any date, for testing
 ```
+`--tick` and `--date` are mutually exclusive: a tick works from the real clock. `--config` now also
+decides where `dashboard_data.json` and `content_history.json` live, so a scratch config keeps its
+generated files beside it.
 
 **Run the app**
 ```bash
@@ -352,7 +410,9 @@ no changes.
 
 **Changing the payload shape.** Ask first whether the value can be recomputed from config + date.
 If it can, it belongs in `board.build_view`, not the payload — that is what keeps the stale state
-honest. The payload is for things only the generator can know.
+honest. The payload is for things only the generator can know. Then ask which half owns it: a key a
+refresh writes goes in `runner.REFRESH_KEYS` so `write_brief` carries it forward, and a key the
+brief writes must be one a refresh never touches.
 
 **Changing the board layout.** Everything is sized in `rem` off one root value, so check all three
 sizes at `/preview` rather than just the one you are looking at.
@@ -463,9 +523,14 @@ it is missing, installs dependencies, and restarts the `dinkydash.service` syste
 installed. Host, user and target directory are overridable with the `PI_HOST`, `PI_USER` and
 `PI_DIR` environment variables; `--dry-run` shows what a deploy would change without touching the Pi.
 
-Daily generation runs via cron:
+Generation runs via cron:
 ```
-0 6 * * * cd /home/pi/dinkydash && venv/bin/python generate.py >> generate.log 2>&1
+*/5 * * * * cd /home/pi/dinkydash && venv/bin/python generate.py --tick >> generate.log 2>&1
 ```
-A failed run leaves the previous board in place rather than blanking the screen, and the board
-labels itself stale.
+Each tick does only what `config.yaml` says is owed, and logs nothing when that is nothing — "not
+due" is at DEBUG precisely because it is the answer to roughly 260 of the day's 288 ticks. A tick
+that overruns its slot makes the next one skip rather than double up, so the interval is a floor and
+never a guarantee. The old
+`0 6 * * * generate.py` line still works and does both halves at once; use one or the other, not
+both. A failed run leaves the previous board in place rather than blanking the screen, the board
+labels itself stale, and the next tick tries again.

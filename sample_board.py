@@ -14,7 +14,7 @@ in the current schema is already here, this leaves it alone.
 
 import json
 import sys
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from dinkydash import config as config_module
 
@@ -72,7 +72,7 @@ def build_payload(config, today, tzinfo):
         })
 
     return {
-        "generated_at": datetime.now(tzinfo).isoformat(),
+        "generated_at": datetime.now(timezone.utc).isoformat(),
         "generated_for_date": today.isoformat(),
         "family_name": config.get("family_name", ""),
         "timezone": config.get("timezone", "UTC"),

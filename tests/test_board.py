@@ -192,6 +192,20 @@ class TestEmptyStates:
         assert view["state"] == "ready"
         assert view["chores"]
 
+    def test_an_agenda_with_no_brief_yet_still_shows_the_day(self):
+        # A `--tick` that refreshed the calendars before brief_time leaves a
+        # payload with events and no words. Reachable only since the split, and
+        # the right answer is today's agenda under the amber banner rather than
+        # the first-run screen.
+        agenda = {"events": [event("2026-09-03", "08:20", "School run")],
+                  "calendars_fetched_at": "2026-09-03T03:00:00+00:00"}
+        view = build_view(CONFIG, agenda, TODAY)
+        assert view["state"] == "stale"
+        assert [e["title"] for e in view["events"]] == ["School run"]
+        assert view["headline"] == "1 thing on today, starting at 08:20."
+        assert view["note"] == ""
+        assert view["stale_days"] is None
+
 
 class TestTheme:
     def test_dark_is_carried_through(self):

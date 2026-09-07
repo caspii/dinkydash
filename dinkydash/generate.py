@@ -13,7 +13,7 @@ render time and stays correct on a day when generation failed.
 """
 
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 
 from .claude_client import call_claude
 from .context import build_countdowns, compute_chore_assignments
@@ -51,7 +51,9 @@ def generate(config, today, events, recent_notes=(), client=None, rng=None,
     ai = call_claude(user_prompt, config, client=client)
 
     return {
-        "generated_at": datetime.now().astimezone().isoformat(),
+        # UTC, not the server's clock: the Pi is often not set to the family's
+        # timezone, and hosted the server is nowhere near them. Rendered local.
+        "generated_at": datetime.now(timezone.utc).isoformat(),
         "generated_for_date": today.isoformat(),
         "family_name": config.get("family_name", ""),
         "timezone": config.get("timezone", "UTC"),

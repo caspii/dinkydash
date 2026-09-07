@@ -9,6 +9,7 @@ __pycache__/
 dashboard_data.json
 content_history.json
 generate.log
+.tick.lock
 
 # Personal data (not for public repo)
 config.yaml

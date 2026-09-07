@@ -5,6 +5,8 @@ when the page was rendered. It used to be a list position, so deleting anyone
 above shifted everybody below onto somebody else's edit form.
 """
 
+import json
+
 import pytest
 
 from dinkydash import config as config_module
@@ -189,3 +191,55 @@ class TestHomeScreen:
         assert 'rel="apple-touch-icon"' in page
         assert '<meta name="apple-mobile-web-app-title" content="DinkyDash">' in page
         assert client.get("/static/apple-touch-icon.png").status_code == 200
+
+
+class TestTheClockOnTheStatusLine:
+    """Stamps are stored in UTC; the family reads their own clock (PLAN bug 9)."""
+
+    @pytest.fixture
+    def config_path(self, tmp_path, monkeypatch):
+        # Kolkata is UTC+05:30 in every month of the year. Berlin would make
+        # these assertions pass in summer and fail in winter, and the half hour
+        # means no accidental slice of the ISO string can look like a pass.
+        path = tmp_path / "config.yaml"
+        path.write_text(CONFIG.replace('timezone: "Europe/Berlin"',
+                                       'timezone: "Asia/Kolkata"'))
+        monkeypatch.setenv("DINKYDASH_CONFIG", str(path))
+        return path
+
+    @pytest.fixture
+    def board(self, tmp_path, config_path):
+        def _write(payload):
+            (tmp_path / "dashboard_data.json").write_text(json.dumps(payload))
+        return _write
+
+    @pytest.fixture
+    def today(self, config_path):
+        """Today on the family's clock — the same question the page asks."""
+        return config_module.today_for(config_module.load_config(config_path)).isoformat()
+
+    def test_a_utc_stamp_is_shown_in_the_familys_timezone(self, client, board, today):
+        board({"generated_for_date": today, "generated_at": f"{today}T04:07:00+00:00",
+               "headline": "Hi", "note": "There", "events": []})
+        page = client.get("/settings/").get_data(as_text=True)
+        # 04:07 UTC is 09:37 in Kolkata, whatever the server thinks the time is.
+        assert "written 09:37" in page
+
+    def test_the_calendar_refresh_is_shown_too(self, client, board, today):
+        board({"generated_for_date": today, "generated_at": f"{today}T04:00:00+00:00",
+               "calendars_fetched_at": f"{today}T12:30:00+00:00",
+               "headline": "Hi", "note": "There", "events": []})
+        assert "Calendars refreshed 18:00" in client.get("/settings/").get_data(as_text=True)
+
+    def test_an_agenda_with_no_brief_yet_is_still_waiting(self, client, board, today):
+        # The state after a first `--tick` before brief_time: events, no words.
+        board({"calendars_fetched_at": f"{today}T05:00:00+00:00", "events": []})
+        page = client.get("/settings/").get_data(as_text=True)
+        assert "No board has been generated yet." in page
+        assert "Calendars refreshed 10:30" in page
+        assert "from None" not in page
+
+    def test_an_unreadable_stamp_does_not_break_the_page(self, client, board, today):
+        board({"generated_for_date": today, "generated_at": "who knows",
+               "headline": "Hi", "note": "There", "events": []})
+        assert "written earlier" in client.get("/settings/").get_data(as_text=True)
