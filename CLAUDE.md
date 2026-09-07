@@ -234,7 +234,9 @@ dinkydash/
 ├── config.py          config.yaml load/save (ruamel round-trip), item ids
 ├── history.py         what the recent notes say, and how they trim (pure)
 ├── schedule.py        due(config, payload, now) -> what a tick owes (pure)
-├── store.py           the six storage operations; FileStore is the only one yet
+├── store.py           the six storage operations; FileStore, the single-mode one
+├── pgstore.py         PostgresStore, the cloud one. Imports psycopg; single mode never does
+├── db.py              the connection pool and the migration runner (cloud only)
 └── runner.py          the two halves of the day, reading and writing through a store
 
 web/
@@ -254,21 +256,64 @@ load_payload(config)         save_payload(config, payload)
 recent_notes(config, days)   record_note(config, entry, keep)
 ```
 
-`FileStore(config_path)` is the only implementation today — `config.yaml` and two JSON files in one
-directory. `PostgresStore` is the cloud one, where the payload is composed from two rows and comes
-back as the same dict (PLAN.md decision 10). The runner, the board route and the settings routes all
-take a store; `create_app(store=None)` builds one and every route reads `app.config["STORE"]`.
+Both implementations exist. `FileStore(config_path)` is `config.yaml` and two JSON files in one
+directory. `PostgresStore(pool, family_id)` is the same six operations against rows, with the
+payload composed from `generations` (the brief) and `agendas` (the fetched window) and handed back
+as the same dict. The runner, the board route and the settings routes all take a store;
+`create_app(store=None)` builds one and every route reads `app.config["STORE"]`.
 
-Three rules keep it a seam rather than a name:
+Four rules keep it a seam rather than a name:
 
-- **`store.py` and `config.py` are the only files under `dinkydash/` that open a file.** `grep -rn
-  "open(" dinkydash web` is the check, and it should stay that short. A new file read anywhere else
-  is a caller that cloud mode will have to fork.
+- **`store.py` and `config.py` are the only files under `dinkydash/` that open a file**, and
+  `pgstore.py` and `db.py` are the only ones that import psycopg. `grep -rn "open(" dinkydash web`
+  is the check, and it should stay that short. A new file read anywhere else is a caller that cloud
+  mode will have to fork.
 - **`data_file` and `content_history_file` are storage-layer keys.** They stay in `DEFAULTS` and in
   `config.example.yaml` for compatibility, and only `FileStore` reads them. They mean nothing hosted.
 - **The store is passed, never constructed, below the entry points.** `generate.py`, `app.py` and
-  `sample_board.py` build one; everything else is handed it. That is what makes a second
-  implementation a constructor argument rather than an edit.
+  `sample_board.py` build one; everything else is handed it.
+- **`tests/test_store_contract.py` runs every one of its assertions against both**, parametrised over
+  the two backends with no branching. That parity is most of the value of having named the seam: a
+  suite that only ran against files would not notice the day the two drifted. The Postgres half
+  skips unless `DINKYDASH_TEST_DATABASE_URL` is set, so a self-hoster with no database still gets a
+  green suite — and CI runs the suite twice, once with the variable and once without.
+
+**Every `PostgresStore` query is scoped to `self.family_id`.** There is no unscoped read and no
+unscoped write in that file, and there must never be one. An id arriving in a URL is a claim, not a
+fact, and the place to check it is before it reaches a store.
+
+### Cloud mode: schema, migrations, connections
+
+`migrations/*.sql` is plain SQL applied in filename order by `migrate.py`, which records each one in
+`schema_migrations`. No ORM and no Alembic — seven tables and one jsonb document do not need one.
+App Platform runs it as a **pre-deploy job**, so a failed migration fails the deploy rather than
+half-updating a live app.
+
+Three things about that runner are load-bearing:
+
+- **The connection must be autocommit.** Without it psycopg opens an implicit transaction on the
+  first statement, and `conn.transaction()` entered inside one is a *savepoint*, not a `BEGIN`.
+  Every migration then appears to apply, releases its savepoint, and is discarded when the
+  connection closes — no error, no tables, an empty `schema_migrations`. This was written wrong once
+  and caught by running it.
+- **A migration containing `-- no-transaction` is applied statement by statement, outside a
+  transaction**, because `CREATE INDEX CONCURRENTLY` refuses to run inside one. Those cannot be
+  all-or-nothing, so they have to be safe to re-run — every index in them is `IF NOT EXISTS`.
+- **Migrations connect with `DATABASE_URL_DIRECT`, not `DATABASE_URL`.** The first is the cluster,
+  the second is DigitalOcean's transaction-mode pool, which is the wrong end for schema work and for
+  `pg_dump`.
+
+Connections go through `dinkydash/db.py`. `pool()` is a small bounded `psycopg_pool` — its size is a
+latency knob, not a safety one, because DigitalOcean's own pool is what stops the cluster's 22
+connections running out. **`prepare_threshold` is set to `None` on every connection**, everywhere,
+including local development and CI: psycopg 3 prepares a statement server-side once it repeats, and
+under transaction-mode pooling the next execution can land on a different backend connection. The
+full reasoning, and why KeepTheScore's clean record on psycopg2 does not transfer, is in PLAN.md
+under [Connection pooling](PLAN.md#connection-pooling).
+
+**`psycopg` is in `requirements-cloud.txt`, not `requirements.txt`.** A Pi has no database and
+should not install a driver for one, so single mode never imports `pgstore` or `db` — the import in
+`create_app` is inside the cloud branch on purpose. The Dockerfile (DIN-30) installs the cloud file.
 
 ### What the payload holds, and what it does not
 
@@ -400,6 +445,24 @@ cp config.example.yaml config.yaml
 ```bash
 venv/bin/python -m pytest tests/ -q
 ```
+That is the suite a self-hoster runs: the Postgres tests skip, everything else passes. To run the
+other half — the store contract against a real database, and the cloud-mode board — point it at a
+scratch database:
+```bash
+pip install -r requirements-cloud.txt          # psycopg; not in requirements.txt
+createdb dinkydash_test
+DINKYDASH_TEST_DATABASE_URL=postgresql:///dinkydash_test venv/bin/python -m pytest tests/ -q
+```
+The fixture migrates that database itself, so there is nothing to set up and nothing to tear down.
+CI runs it both ways on every push, which is the point: the parity assertions only mean something if
+they actually run.
+
+**Apply the schema** (cloud mode only)
+```bash
+venv/bin/python migrate.py --status                  # what is outstanding
+venv/bin/python migrate.py --database-url postgresql:///dinkydash_dev
+```
+Without `--database-url` it reads `DATABASE_URL_DIRECT` — the cluster, not the pool.
 
 **Generate a board** (needs `ANTHROPIC_API_KEY` in `.env`)
 ```bash

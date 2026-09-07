@@ -2,6 +2,8 @@
 
 *Last updated: September 7, 2026. Supersedes `HOSTING_ANALYSIS.md` (deleted — it predated both the AI generation feature and the July 2026 calendar-display repositioning, and its recommended stack and data model no longer matched the product).*
 
+*September 7, later still: the Postgres layer is built (DIN-31) — `migrations/001_initial_schema.sql`, `migrate.py`, `dinkydash/db.py`, `dinkydash/pgstore.py`, and a contract suite that runs the same assertions over both stores in CI. Connection pooling is settled above. What is deliberately still missing is the multi-tenancy: cloud mode serves one family from `DINKYDASH_FAMILY_ID`, because auth and scoping are Phase 1.*
+
 *September 7, later: the storage seam is built (DIN-19). `dinkydash/store.py` holds the six operations, `FileStore` is the one implementation, and the runner and both blueprints take a store rather than a path. The seam section below describes what exists; `PostgresStore` is now a constructor argument away.*
 
 *September 7 changes: the host is settled — decision 12, DigitalOcean App Platform in Frankfurt with DigitalOcean Managed Postgres and Cloudflare in front. The "Which host?" open question is closed, the hosting section is rewritten around it, DNS gets its own Phase 0 line, and the Compose file's job changes: the shared artefact between the two modes is now the **Dockerfile**, not `docker-compose.yml`.*
@@ -195,8 +197,12 @@ dinkydash/                  # the engine — pure, no clock, no file reads
 ├── config.py               # the config dict: load, save, defaults, migrations, ids
 ├── history.py              # what the recent notes say, and how they trim (pure)
 ├── schedule.py             # due(config, payload, now) -> what a tick owes (pure)
-├── store.py                # the six storage operations; FileStore today
+├── store.py                # the six storage operations; FileStore, single mode
+├── pgstore.py              # PostgresStore, cloud mode
+├── db.py                   # the pool and the migration runner (cloud only)
 └── runner.py               # the two halves of the day, over a store
+
+migrations/                 # plain SQL, applied in order by migrate.py
 
 web/
 ├── __init__.py             # create_app()
@@ -404,15 +410,73 @@ in the app:
 - `sslmode=require`, against DigitalOcean's CA certificate. `DATABASE_URL`
   carries it; nothing else in the app needs to know.
 - **Connection limits are small** on the cheap node — **22**, and that is the
-  whole cluster. Gunicorn workers plus the tick worker will exhaust it by
-  accident, and the failure is a 500 on the board, not a slow page. Either bound
-  a `psycopg_pool` in each process, or use DigitalOcean's own connection pool
-  (their hosted PgBouncer) and point `DATABASE_URL` at that. Decide before
-  Phase 1, not when it breaks.
+  whole cluster (25 per GiB of RAM, less 3 reserved for maintenance). Gunicorn
+  workers plus the tick worker would exhaust it by accident, and the failure is
+  a 500 on the board, not a slow page. **Settled: both, with a division of
+  labour** — see [Connection pooling](#connection-pooling) below.
 - Daily backups and 7-day point-in-time recovery are on by default and are
   theirs. **The restore drill is still ours** — see Phase 6.
 - One cluster, two databases: `dinkydash` and `dinkydash_staging`. A second
   cluster for staging is $15 a month to learn nothing.
+
+#### Connection pooling
+
+*Settled 7 September 2026, after reading how KeepTheScore does it.*
+
+**DigitalOcean's own connection pool (their hosted PgBouncer) in transaction
+mode makes exhaustion impossible; a small `psycopg_pool` in each process makes
+the common case fast.** One decides safety, the other decides speed, and
+getting the second one wrong then costs latency rather than an outage.
+
+```python
+pool = ConnectionPool(
+    os.environ["DATABASE_URL"],      # DigitalOcean's pool, transaction mode
+    min_size=1, max_size=3,
+    configure=lambda conn: setattr(conn, "prepare_threshold", None),
+)
+```
+
+**Why not the app-side pool alone.** Production web, production worker, staging
+web and staging worker is four processes sharing one cluster from the first day
+DIN-26 stands staging up, before the migration job or a `psql` window. The
+arithmetic is tight enough that a third gunicorn worker tips it over. PgBouncer
+turns "connection refused" into "wait a moment", and that change of failure mode
+is the whole reason it is there.
+
+**Why not the DigitalOcean pool alone.** KeepTheScore is the natural experiment:
+same host, same managed Postgres, pool on the DigitalOcean side, no client-side
+pool, and `db.close()` on every request — so every request pays a fresh TCP and
+TLS handshake to the pool endpoint. It has never broken, and nobody has ever
+measured what it costs. Filed as LBD-685. We get the client-side half for free
+by writing it once, before `PostgresStore` exists.
+
+**Transaction mode, not session mode.** DigitalOcean recommends session mode for
+applications that use prepared statements, advisory locks or listen/notify. We
+use none of them — the daily idempotency is a unique constraint on
+`(family_id, generated_for_date)`, not a lock. Session mode holds a backend
+connection for a client's whole session, so it barely multiplexes and the
+arithmetic above comes straight back.
+
+**`prepare_threshold=None`, everywhere, including local development and CI.**
+psycopg 3 prepares a statement server-side once it repeats, and under
+transaction-mode pooling the next execution can land on a different backend
+connection: `prepared statement "..." does not exist`, intermittently, under
+load, after staging looked fine. This is the one line that differs from
+KeepTheScore, which is on psycopg2 and never auto-prepares — their clean record
+does not transfer. Setting it unconditionally means one behaviour rather than
+two. The cost is nil at this query volume.
+
+**Two connection strings.** `DATABASE_URL` (pooled) for `web` and `worker`;
+`DATABASE_URL_DIRECT` (the cluster, port 25060) for the pre-deploy migration job
+and for `pg_dump`. DigitalOcean documents that `pg_dump` errors against a
+transaction-mode pool, and `CREATE INDEX CONCURRENTLY` cannot run inside a
+transaction block. Both are named in `.do/app.yaml`. KeepTheScore has exactly
+this shape already, arrived at by accident and written down as a naming quirk.
+
+**Always `with pool.connection() as conn:`.** The connection returns to the pool
+on the error path too. Skipping that is how KEEPTHESCORE-28A happened next door:
+a view raised, the connection was never released, and the next request on that
+thread got a dead one.
 
 **Deploy.** Push to `main`; App Platform builds the Dockerfile and rolls the
 components out with a health check on `/healthz`. Migrations run as a
@@ -533,7 +597,7 @@ Critical path is 0 → 1 → 2 → 3. Phases 4–6 can run alongside 3. Nothing 
 - [x] **Decision 11, single-mode half:** `refresh_minutes` and `brief_time` in `DEFAULTS`; `runner.run` split into `refresh_calendars` and `write_brief`; a pure `due()`; `generate.py --tick`; the settings page under *This screen*; the board's reload derived from the interval; README cron line updated. Ships to the Pi at once and needs no database. *(DIN-17 for the engine and cron, DIN-18 for the page)*
 - [x] Name the storage seam: `FileStore` gathering the six operations that exist today, and the settings routes, runner and board taking a store *(DIN-19)*
 - [ ] `Dockerfile` and `docker-compose.yml` for single mode (`web` only) — the self-host path is real from here on, the image is what App Platform builds, and every later phase reuses both *(DIN-30)*
-- [ ] Postgres + plain-SQL migrations; CI running the suite against a Postgres service container *(DIN-31)*
+- [x] Postgres + plain-SQL migrations; CI running the suite against a Postgres service container *(DIN-31)*
 - [ ] Move DNS to Cloudflare and add the `app` and `staging.app` records *(DIN-29)*. The apex keeps pointing at GitHub Pages until DIN-27 moves the marketing pages onto the app.
 - [ ] Stand up the App Platform app and the Managed Postgres cluster in Frankfurt; staging live on `staging.app.dinkydash.co` *(DIN-26)*
 

@@ -1,0 +1,10 @@
+-r requirements.txt
+
+# Cloud mode only. Deliberately not in requirements.txt, which is what
+# deploy_to_pi.sh installs: a self-hosted board has no database, and a Pi should
+# not carry a Postgres driver it will never open. The Dockerfile (DIN-30)
+# installs this file for the hosted image.
+#
+# Pinned with == like the rest, so a clean build gets what CI passed on.
+psycopg[binary]==3.3.5
+psycopg-pool==3.3.1
