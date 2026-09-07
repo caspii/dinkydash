@@ -489,7 +489,10 @@ written steps are what people see.
   there is no JSON-repair retry loop. Do not add one back.
 - Self-hosted mode has **no authentication**. Anyone who can reach the port can edit the config.
   That is the same trust model as the file it writes, but keep the port off the public internet.
-  Cloud mode cannot inherit this — see [Hosted mode raises the stakes](#hosted-mode-raises-the-stakes).
+  The README now says so too, in a callout under **Getting started** and a pointer from the Pi
+  section — it used to be written down only here and in the `app.py` docstring, neither of which a
+  user reads. Cloud mode cannot inherit this — see
+  [Hosted mode raises the stakes](#hosted-mode-raises-the-stakes).
 - **A failed calendar fetch puts the secret URL in the error text.** `requests` formats both
   `raise_for_status()` and connection errors with the full URL (`404 Client Error: ... for url:
   https://.../private-REALSECRET/basic.ics`), and `fetch_feed` wraps `{exc}` straight into

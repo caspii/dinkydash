@@ -49,6 +49,20 @@ are still today's — the board just labels the written line as older.
 
 ## Getting started
 
+> **There is no login.** The board and the settings UI are both served without authentication, so
+> anyone who can reach the port can read your family's agenda and rewrite `config.yaml` — names,
+> birthdays, and every calendar link in it.
+>
+> That is deliberate rather than unfinished: DinkyDash is a config file with a web form on it, and
+> the file has no login either. It assumes it is on your home network, the same as a printer.
+>
+> **So keep the port off the public internet.** Do not forward port 5000 on your router. If you need
+> it from outside the house, reach it over a VPN such as [Tailscale](https://tailscale.com) or
+> [WireGuard](https://www.wireguard.com), or put a reverse proxy with basic auth in front of it.
+>
+> Hosted mode is a different matter — it authenticates every request and is scoped per family. See
+> [PLAN.md](PLAN.md).
+
 ### Prerequisites
 
 - Python 3.11+
@@ -340,6 +354,10 @@ feed per person instead.
 ## Raspberry Pi deployment
 
 This section covers setting up DinkyDash on a Raspberry Pi with a small display so it runs as a permanent family dashboard.
+
+The Pi serves the board and the settings UI to your whole network with no login — see the warning
+under [Getting started](#getting-started). On a home network that is the intended setup. Do not
+forward the port to the internet.
 
 ### What you need
 
