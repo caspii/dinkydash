@@ -63,9 +63,6 @@ are still today's — the board just labels the written line as older.
 > Hosted mode is a different matter — it authenticates every request and is scoped per family. See
 > [PLAN.md](PLAN.md).
 
-> **Prefer Docker?** [Running it with Docker](#running-it-with-docker) is two commands and needs no
-> Python on the host. The rest of this section is the from-source path.
-
 ### Prerequisites
 
 - Python 3.11+
@@ -185,72 +182,6 @@ GitHub Actions runs the same command on every push and pull request, on Python 3
 (`.github/workflows/test.yml`), alongside a [gitleaks](https://github.com/gitleaks/gitleaks) scan of
 the full history. Both dependency files are pinned with `==`, so a clean `pip install` gets the
 versions CI passed on. A pull request that fails either check shows a red X.
-
----
-
-## Running it with Docker
-
-One image, and it is the same image the hosted version runs — `web`, the generation worker and the
-database migration job are that image with different commands.
-
-```bash
-git clone https://github.com/caspii/dinkydash.git
-cd dinkydash
-echo "ANTHROPIC_API_KEY=sk-ant-..." > .env    # optional; the board runs without one
-docker compose up
-```
-
-The board is at http://localhost:5000, the settings UI at http://localhost:5000/settings.
-
-**On a Mac, use a different port.** macOS runs AirPlay Receiver on port 5000, so the stack will
-fail to start with `address already in use`. Either turn it off in **System Settings → General →
-AirDrop & Handoff**, or pick another port:
-
-```bash
-DINKYDASH_PORT=5055 docker compose up
-```
-
-### Where your data lives
-
-Everything the app reads and writes is in **`./data`** on your machine: `config.yaml` and the two
-generated JSON files, together. The first `docker compose up` seeds `data/config.yaml` from
-`config.example.yaml`, so there is a board to look at before you have configured anything. Edit it
-at `/settings` or in your editor — both write the same file, and `./data` is what you back up.
-
-It is mounted as a **directory rather than three separate files**, and that matters if you change
-it: every write goes to a temporary file and is renamed over the target, so the board never serves
-half a file. Renaming onto a single-file bind mount fails, which would break every save from the
-settings UI.
-
-### How generation actually runs
-
-The `worker` service is the container answer to the Pi's cron line. It runs `generate.py --tick`
-every five minutes, and each tick does only what `config.yaml` says is owed — re-fetch the calendars
-every `refresh_minutes`, write the daily line once a day after `brief_time`, and nothing at all the
-rest of the time. **You do not need a cron entry on the host.**
-
-The cadence is a setting, not a compose file edit: change it at
-http://localhost:5000/settings/refresh.
-
-```bash
-docker compose logs -f worker      # watch it tick
-docker compose up -d               # run it in the background
-docker compose down                # stop everything; ./data is untouched
-```
-
-To force a generation now, press **Rewrite now** in the settings UI, or:
-
-```bash
-docker compose exec worker python generate.py
-```
-
-### Updating
-
-```bash
-git pull && docker compose up -d --build
-```
-
-Your `./data` is a bind mount, so nothing in it is rebuilt or replaced.
 
 ---
 
@@ -709,8 +640,6 @@ tail -f /home/pi/dinkydash/generate.log   # last night's generation
 | `config.example.yaml` | Template config, documenting every key |
 | `tests/` | 302 tests. Run them before committing |
 | `design/` | Mockups for the board and settings UI, with the reasoning |
-| `Dockerfile` | One image, three commands: web, worker, migrate. What App Platform builds |
-| `docker-compose.yml` | The self-host stack and the local dev stack. Not what production runs |
 | `deploy_to_pi.sh` | Deployment (rsync + service restart) |
 | `.env` | `ANTHROPIC_API_KEY` (not in git) |
 | `.env.example` | The template for it — copy to `.env` |

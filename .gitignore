@@ -13,7 +13,3 @@ generate.log
 
 # Personal data (not for public repo)
 config.yaml
-
-# What docker-compose.yml bind-mounts: the same three files, in one directory.
-# A real family's config lives here the moment anybody runs the stack.
-data/
