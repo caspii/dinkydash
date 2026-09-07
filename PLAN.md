@@ -102,7 +102,7 @@ than discovered during it:
 
 ```
 load_config   / save_config
-load_payload  / save_payload
+load_payload  / save_agenda + save_brief
 recent_notes  / record_note
 ```
 
@@ -626,7 +626,7 @@ lists with stable ids, add/label/enable/remove for iCal feeds with live validati
 timezone, family name and location under `/system`. The boxes below stay unticked because what is
 missing is the multi-tenant half — a schema, auth, and scoping every read and write to a `family_id`.
 
-- [ ] Schema + migrations per the sketch above; `PostgresStore` behind the seam
+- [x] Schema + migrations per the sketch above; `PostgresStore` behind the seam *(DIN-31)*
 - [ ] Magic-link auth: token hashed at rest, single use, 15-minute expiry, request endpoint rate-limited. Signing in through the link *is* email verification — there is no second step.
 - [ ] Session hygiene: `Secure`, `HttpOnly`, `SameSite=Lax`; a CSRF token on every form; cloud mode refuses to start without `DINKYDASH_SECRET_KEY`
 - [x] `fetch_feed` hardening before any stranger's URL is fetched: `https` only, redirects that cannot land on a private range, a response size cap beside the timeout *(DIN-33)*. The settings page's "Check this link" goes through the same function, so it is covered too. DNS rebinding is documented as still open.

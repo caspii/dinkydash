@@ -261,7 +261,8 @@ Six operations, on one object, and nothing above them knows what is behind it:
 
 ```python
 load_config()                save_config(config)
-load_payload(config)         save_payload(config, payload)
+load_payload(config)         save_agenda(config, agenda)
+                             save_brief(config, brief)
 recent_notes(config, days)   record_note(config, entry, keep)
 ```
 
@@ -281,6 +282,12 @@ Four rules keep it a seam rather than a name:
   `config.example.yaml` for compatibility, and only `FileStore` reads them. They mean nothing hosted.
 - **The store is passed, never constructed, below the entry points.** `generate.py`, `app.py` and
   `sample_board.py` build one; everything else is handed it.
+- **The board is read whole and written in halves, and neither half can write the other's keys.**
+  `save_agenda` drops anything that is not in `store.AGENDA_KEYS`; `save_brief` drops anything that
+  is. Enforced by the store rather than by the caller, because the caller that would get it wrong is
+  `write_brief` — it reads the payload, waits seconds on a model call, and writes, so the agenda in
+  its hand is stale by then (DIN-28). `FileStore` takes a short `flock` around its read-modify-write;
+  cloud mode needs none, because there the halves are separate rows and each write is one statement.
 - **`tests/test_store_contract.py` runs every one of its assertions against both**, parametrised over
   the two backends with no branching. That parity is most of the value of having named the seam: a
   suite that only ran against files would not notice the day the two drifted. The Postgres half
@@ -396,9 +403,10 @@ Three rules hold this together:
   due when `generated_for_date` is not today *in the family's timezone* and the local clock has
   passed `brief_time`; a refresh is due when `calendars_fetched_at` is missing or older than
   `refresh_minutes`.
-- **A refresh must not touch `headline`, `note` or `generated_for_date`.** `runner.REFRESH_KEYS`
-  names the three keys it owns. A fresh agenda under yesterday's brief is exactly the amber-banner
-  state `board.build_view` already handles, and the whole point of the split.
+- **A refresh must not touch `headline`, `note` or `generated_for_date`**, and it now cannot: it
+  writes through `store.save_agenda`, which only accepts `store.AGENDA_KEYS`. A fresh agenda under
+  yesterday's brief is exactly the amber-banner state `board.build_view` already handles, and the
+  whole point of the split.
 - **A failure is not handled, it is simply due again.** Nothing is written, so the next tick asks
   the same question and gets the same answer. That is the retry, and it is why there is no backoff
   or attempt counter anywhere.
@@ -416,7 +424,9 @@ nothing: switching a calendar off means switching it off. The failure is recorde
 feed is retried on the configured cadence rather than every tick.
 
 **A tick takes an exclusive `flock` on `.tick.lock` and skips itself if another holds it**
-(`generate.only_one_tick`). A tick can outlive its five-minute slot — several feeds timing out, then
+(`generate.only_one_tick`). Its job is money, not consistency — the storage split is what stops two
+writers clobbering each other, and this stops a second tick paying Anthropic for a brief the first
+one is already writing. A tick can outlive its five-minute slot — several feeds timing out, then
 a slow model call — and the next one would find the brief still unwritten, pay for it a second time,
 write a second history entry, and race the first over the payload. The overlapping tick exits 0
 instead: whatever is owed is still owed five minutes later. It is deliberately only around the tick.

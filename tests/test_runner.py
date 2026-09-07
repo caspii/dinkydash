@@ -403,3 +403,100 @@ class TestOnlyOneTickAtATime:
             # Nothing has ever been generated, so everything would be owed.
             assert cli.main(["--tick", "--config", str(home / "config.yaml")]) == 0
         assert not (home / "dashboard_data.json").exists()
+
+
+class TestARefreshDuringTheModelCall:
+    """DIN-28, end to end.
+
+    `write_brief` reads the payload, then spends seconds waiting on Claude, then
+    writes. A refresh landing in that gap used to be overwritten by the stale
+    keys from the earlier read — silently, while the button that triggered it
+    said it had worked. Each half now writes only what it owns, so it cannot.
+    """
+
+    def test_the_refresh_survives_the_brief(self, home, store, config, api_key):
+        write_stored(home, {"events": [], "calendar_statuses": [],
+                            "calendars_fetched_at": "2026-09-03T05:00:00+00:00",
+                            "generated_for_date": "2026-09-02",
+                            "headline": "Yesterday", "note": "Yesterday",
+                            "note_kind": "fact"})
+
+        class RefreshesMidCall(FakeClient):
+            """Somebody presses Refresh calendars while the model is thinking."""
+            def __init__(self):
+                super().__init__()
+                inner = self.messages.create
+
+                def create(**kwargs):
+                    store.save_agenda(config, {
+                        "events": EVENTS, "calendar_statuses": OK_STATUS,
+                        "calendars_fetched_at": "2026-09-03T08:30:00+00:00"})
+                    return inner(**kwargs)
+                self.messages.create = create
+
+        runner.write_brief(config, store, today=date(2026, 9, 3),
+                           client=RefreshesMidCall())
+
+        payload = stored(home)
+        assert payload["headline"] == "Big morning", "the brief should have been written"
+        assert payload["events"] == EVENTS, \
+            "the refresh that landed during the model call was discarded"
+        assert payload["calendars_fetched_at"] == "2026-09-03T08:30:00+00:00"
+        assert payload["calendar_statuses"] == OK_STATUS
+
+    def test_the_brief_still_describes_the_agenda_it_read(self, home, store, config,
+                                                          api_key):
+        # The prompt is built from what was there when the call started; that is
+        # correct, and it is why the *written* agenda has to be the newer one.
+        write_stored(home, {"events": EVENTS, "calendar_statuses": OK_STATUS,
+                            "calendars_fetched_at": "2026-09-03T05:00:00+00:00"})
+        client = FakeClient()
+        runner.write_brief(config, store, today=date(2026, 9, 3), client=client)
+        assert "Swimming" in client.messages.calls[0]["messages"][0]["content"]
+
+
+class TestTwoWritersAtOnce:
+    """The residual race the split narrows and the lock closes.
+
+    Two processes on one Pi — a cron tick and the web app — can still read and
+    write the same file microseconds apart. `FileStore` takes a short exclusive
+    lock around that, so an update cannot be lost. Cloud mode needs no
+    equivalent: there the two halves are separate rows.
+    """
+
+    def test_concurrent_writers_do_not_lose_an_update(self, store, config):
+        import threading
+
+        errors = []
+
+        def write_agendas():
+            try:
+                for i in range(40):
+                    store.save_agenda(config, {
+                        "events": [], "calendar_statuses": [],
+                        "calendars_fetched_at": f"2026-09-03T00:00:{i:02d}+00:00"})
+            except Exception as exc:  # pragma: no cover
+                errors.append(exc)
+
+        def write_briefs():
+            try:
+                for i in range(40):
+                    store.save_brief(config, {
+                        "generated_for_date": "2026-09-03", "note_kind": "fact",
+                        "headline": f"Headline {i}", "note": "n"})
+            except Exception as exc:  # pragma: no cover
+                errors.append(exc)
+
+        threads = [threading.Thread(target=write_agendas),
+                   threading.Thread(target=write_briefs)]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join()
+
+        assert not errors
+        payload = store.load_payload(config)
+        # Both writers' last words are present: neither clobbered the other, and
+        # the file is readable rather than torn.
+        assert payload["headline"] == "Headline 39"
+        assert payload["calendars_fetched_at"] == "2026-09-03T00:00:39+00:00"

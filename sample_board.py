@@ -90,7 +90,12 @@ def main():
         return 0
 
     today = config_module.today_for(config)
-    store.save_payload(config, build_payload(config, today, config_module.tzinfo_for(config)))
+    payload = build_payload(config, today, config_module.tzinfo_for(config))
+    # Both halves, because this invents a whole board rather than refreshing
+    # one — the two doors exist so that the *runner* cannot write the other
+    # side's keys by accident, not to stop anyone writing both on purpose.
+    store.save_agenda(config, payload)
+    store.save_brief(config, payload)
     print(f"Wrote sample board data for {today}.")
     return 0
 

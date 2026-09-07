@@ -21,8 +21,12 @@ Where the payload lives:
     headline, note, note_kind                        ->  generations.brief
     generated_for_date, generated_at, model, tokens  ->  generations columns
 
-That split is `runner.REFRESH_KEYS`, which already names which half a refresh
-owns. `load_payload` puts the two back together as the dict the engine takes.
+`load_payload` puts the two back together as the dict the engine takes, and
+`save_agenda` and `save_brief` each write one table and never the other. That
+is why the two are separate operations rather than one `save_payload`: a brief
+whose write is separated from its read by a slow model call would otherwise
+overwrite an agenda that landed in between (DIN-28). Here each write is a
+single statement, so no lock is involved at all.
 """
 
 import logging
@@ -31,14 +35,9 @@ from datetime import date, datetime, timezone
 from psycopg.types.json import Jsonb
 
 from . import config as config_module
+from .store import AGENDA_KEYS
 
 log = logging.getLogger(__name__)
-
-# The keys a calendar refresh owns, and the only ones that reach `agendas`.
-# Deliberately a copy rather than an import from `runner`: the store is below
-# the runner, and importing upwards would make the engine's own dependency graph
-# a circle. The test suite asserts the two lists agree.
-REFRESH_KEYS = ("events", "calendar_statuses", "calendars_fetched_at")
 
 # What `generations` holds in real columns rather than inside `brief`.
 GENERATION_COLUMNS = ("generated_for_date", "generated_at", "model",
@@ -114,17 +113,8 @@ class PostgresStore:
             payload["calendars_fetched_at"] = _iso(fetched_at)
         return payload
 
-    def save_payload(self, config, payload):
-        """Split the payload across the two tables, in one transaction.
-
-        Both halves are written together because `refresh_calendars` and
-        `write_brief` each hand over a whole payload, and a board that had the
-        new agenda under no headline — or the reverse — would be a state neither
-        function believes it can produce.
-        """
-        agenda = tuple(payload.get(key) for key in REFRESH_KEYS)
-        for_date = payload.get("generated_for_date")
-
+    def save_agenda(self, config, agenda):
+        """Replace this family's `agendas` row. One statement, nothing else touched."""
         with self.pool.connection() as conn, conn.transaction():
             with conn.cursor() as cur:
                 cur.execute(
@@ -134,14 +124,24 @@ class PostgresStore:
                        SET events = EXCLUDED.events,
                            statuses = EXCLUDED.statuses,
                            fetched_at = EXCLUDED.fetched_at""",
-                    (self.family_id, Jsonb(agenda[0] or []), Jsonb(agenda[1] or []),
-                     _stamp(agenda[2])),
+                    (self.family_id,
+                     Jsonb(agenda.get("events") or []),
+                     Jsonb(agenda.get("calendar_statuses") or []),
+                     _stamp(agenda.get("calendars_fetched_at"))),
                 )
-                if not for_date:
-                    # A refresh that ran before the first brief. There is no
-                    # generation to write, and inventing one would put a board
-                    # with no words on the wall claiming a date.
-                    return
+
+    def save_brief(self, config, brief):
+        """Replace today's `generations` row. Never writes `agendas`.
+
+        A brief with no date is a refresh-shaped payload arriving at the wrong
+        door — there is no generation to write, and inventing one would put a
+        board with no words on the wall claiming a date.
+        """
+        for_date = brief.get("generated_for_date")
+        if not for_date:
+            return
+        with self.pool.connection() as conn, conn.transaction():
+            with conn.cursor() as cur:
                 cur.execute(
                     """INSERT INTO generations
                            (family_id, generated_for_date, generated_at, brief,
@@ -153,9 +153,9 @@ class PostgresStore:
                            model = EXCLUDED.model,
                            input_tokens = EXCLUDED.input_tokens,
                            output_tokens = EXCLUDED.output_tokens""",
-                    (self.family_id, _as_date(for_date), _stamp(payload.get("generated_at")),
-                     Jsonb(_brief(payload)), payload.get("model"),
-                     payload.get("input_tokens"), payload.get("output_tokens")),
+                    (self.family_id, _as_date(for_date), _stamp(brief.get("generated_at")),
+                     Jsonb(_brief(brief)), brief.get("model"),
+                     brief.get("input_tokens"), brief.get("output_tokens")),
                 )
 
     # -- what was written recently ------------------------------------------
@@ -211,7 +211,7 @@ def _brief(payload):
     key still round-trips without a migration. The refresh keys and the columns
     above are the only things kept out.
     """
-    kept = set(REFRESH_KEYS) | set(GENERATION_COLUMNS)
+    kept = set(AGENDA_KEYS) | set(GENERATION_COLUMNS)
     brief = {key: value for key, value in payload.items() if key not in kept}
     for key in BRIEF_KEYS:
         brief.setdefault(key, payload.get(key))

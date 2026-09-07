@@ -100,7 +100,9 @@ class TestABoardOutOfPostgres:
 
         store = PostgresStore(pg_pool, pg_family)
         store.save_config(dict(CONFIG))
-        store.save_payload(store.load_config(), payload_for_today())
+        today = payload_for_today()
+        store.save_agenda(store.load_config(), today)
+        store.save_brief(store.load_config(), today)
 
         monkeypatch.setenv("DINKYDASH_MODE", "cloud")
         monkeypatch.setenv("DINKYDASH_SECRET_KEY", "a-real-one")
@@ -145,7 +147,9 @@ class TestABoardOutOfPostgres:
         from dinkydash.store import FileStore
         (tmp_path / "config.yaml").write_text(yaml.safe_dump(CONFIG, allow_unicode=True))
         file_store = FileStore(tmp_path / "config.yaml")
-        file_store.save_payload(file_store.load_config(), payload_for_today())
+        today = payload_for_today()
+        file_store.save_agenda(file_store.load_config(), today)
+        file_store.save_brief(file_store.load_config(), today)
         from_file = create_app(file_store).test_client().get("/").get_data(as_text=True)
 
         assert client.get("/").get_data(as_text=True) == from_file
