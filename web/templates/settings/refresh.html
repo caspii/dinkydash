@@ -1,0 +1,53 @@
+{% extends "settings/base.html" %}
+{% import "settings/_icons.html" as icons %}
+{% block title %}How often it updates{% endblock %}
+
+{% block appbar %}
+<a class="back" href="{{ url_for('settings.home') }}">{{ icons.back() }}</a>
+<h1>How often it updates</h1>
+<button class="action" type="submit" form="refresh-form">Save</button>
+{% endblock %}
+
+{% block content %}
+{% if problems %}
+<ul class="problems">
+    {% for problem in problems %}<li>{{ problem }}</li>{% endfor %}
+</ul>
+{% endif %}
+
+<form id="refresh-form" method="post" class="card pad" style="display:flex;flex-direction:column;gap:1rem;">
+    <div class="field">
+        <label for="refresh_minutes">Fetch the calendars</label>
+        <select id="refresh_minutes" name="refresh_minutes">
+            {% for minutes, label in choices %}
+            <option value="{{ minutes }}"{{ ' selected' if minutes|string == values.refresh_minutes|string }}>{{ label }}</option>
+            {% endfor %}
+        </select>
+        <div class="hint">
+            How soon an appointment added on your phone reaches the board. Google's calendar links
+            are themselves cached and can lag by a few hours, so shorter is not always sooner.
+        </div>
+    </div>
+
+    <div class="field">
+        <label for="brief_time">Write the daily line at</label>
+        <input type="time" id="brief_time" name="brief_time" value="{{ values.brief_time }}" required>
+        <div class="hint">
+            Written once a day, on your clock — {{ config.timezone }}. Press
+            <strong>Rewrite now</strong> if you want a fresh one sooner.
+        </div>
+    </div>
+
+    <button class="btn" type="submit">Save</button>
+</form>
+
+<div class="note-box">
+    Fetching the calendars costs nothing but a few requests, so it can be as often as you like.
+    The daily line is the part that costs money: one call to Claude, once a day.
+</div>
+
+<div class="note-box">
+    Both need <strong>generate.py --tick</strong> running from cron every five minutes. The setup
+    guide has the line. Without it, nothing updates on its own however this page is set.
+</div>
+{% endblock %}

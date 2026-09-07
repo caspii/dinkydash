@@ -215,3 +215,34 @@ class TestTheme:
     def test_an_unknown_theme_falls_back_to_light(self):
         view = build_view(dict(CONFIG, theme="neon"), payload("2026-09-03"), TODAY)
         assert view["theme"] == "light"
+
+
+class TestReloadInterval:
+    """The board reloads itself on a timer, derived from `refresh_minutes`.
+
+    Five minutes is the ceiling, so the four longer intervals all render the
+    same value the template used to hard-code. Only a shorter one moves it.
+    """
+
+    def test_the_default_is_five_minutes(self):
+        assert build_view(CONFIG, payload("2026-09-03"), TODAY)["reload_seconds"] == 300
+
+    def test_a_longer_fetch_interval_does_not_slow_the_reload(self):
+        config = dict(CONFIG, refresh_minutes=1440)
+        assert build_view(config, payload("2026-09-03"), TODAY)["reload_seconds"] == 300
+
+    def test_a_quarter_hourly_fetch_still_reloads_every_five_minutes(self):
+        config = dict(CONFIG, refresh_minutes=15)
+        assert build_view(config, payload("2026-09-03"), TODAY)["reload_seconds"] == 300
+
+    def test_only_an_interval_under_five_minutes_pulls_it_down(self):
+        config = dict(CONFIG, refresh_minutes=2)
+        assert build_view(config, payload("2026-09-03"), TODAY)["reload_seconds"] == 120
+
+    def test_the_waiting_screen_asks_more_often(self):
+        # Nothing to show yet, so fill the screen in a minute rather than five.
+        assert build_view(CONFIG, None, TODAY)["reload_seconds"] == 60
+
+    def test_an_unreadable_interval_falls_back_to_five_minutes(self):
+        config = dict(CONFIG, refresh_minutes="hourly")
+        assert build_view(config, payload("2026-09-03"), TODAY)["reload_seconds"] == 300

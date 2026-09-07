@@ -11,6 +11,7 @@ from datetime import datetime, timedelta
 
 from .calendars import events_on
 from .context import build_countdowns, compute_chore_assignments
+from .schedule import refresh_interval
 
 # The agenda's row budget, not just today's cap. Today fills it first and
 # tomorrow tops up whatever is left, so a quiet day stops leaving the column
@@ -20,6 +21,15 @@ MAX_EVENTS = 5
 # reads as today's first.
 MAX_TOMORROW = 3
 MAX_COUNTDOWNS = 3
+
+# Nothing pushes to the board, so it reloads itself on a timer. Five minutes is
+# the ceiling — it is a panel on a wall, not a page anyone is watching — and
+# reloading faster than the calendars are fetched only shows the same thing
+# again, so a shorter `refresh_minutes` is the only thing that lowers it.
+MAX_RELOAD_SECONDS = 300
+# Before the first run there is nothing to show, so ask more often: the screen
+# then fills itself in a minute after the board is written rather than five.
+WAITING_RELOAD_SECONDS = 60
 
 
 def computed_headline(events):
@@ -32,6 +42,16 @@ def computed_headline(events):
     if timed:
         return f"{count} {noun} on today, starting at {timed[0]['time']}."
     return f"{count} {noun} on today."
+
+
+def reload_seconds(config):
+    """How long the board waits before rendering itself again.
+
+    Config-derived, so it is computed here rather than written into the
+    template: a family that fetches every 15 minutes still reloads every 5, and
+    only an interval shorter than that pulls it down.
+    """
+    return min(MAX_RELOAD_SECONDS, int(refresh_interval(config).total_seconds()))
 
 
 def build_view(config, payload, today):
@@ -57,10 +77,13 @@ def build_view(config, payload, today):
         "note": "",
         "stale": False,
         "state": "waiting",
+        "reload_seconds": WAITING_RELOAD_SECONDS,
     }
 
     if not payload:
         return view
+
+    view["reload_seconds"] = reload_seconds(config)
 
     fetched = payload.get("events") or []
     events = events_on(fetched, today)[:MAX_EVENTS]

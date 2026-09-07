@@ -193,12 +193,12 @@ Cron runs `generate.py --tick` every five minutes, and the tick does only what i
 
 **Every hour**, it re-fetches every enabled calendar and merges them into one time-ordered agenda
 for the next 14 days. This costs nothing but a few HTTP requests, and it is what puts an
-appointment added at 09:00 for 15:00 onto the board the same afternoon. Change `refresh_minutes` in
-`config.yaml` to make that 15 minutes or once a day. Fetching faster than the provider updates buys
-nothing: Google's secret `.ics` link is cached at their end and can lag by hours.
+appointment added at 09:00 for 15:00 onto the board the same afternoon. Make that 15 minutes or
+once a day under **Settings → How often it updates**. Fetching faster than the provider updates
+buys nothing: Google's secret `.ics` link is cached at their end and can lag by hours.
 
 **Once a day at 06:00**, on your own clock, it asks Claude for a headline and one line of copy —
-the only part that costs money. Change the hour with `brief_time`. A brief that fails is simply
+the only part that costs money. The same page changes the hour. A brief that fails is simply
 owed again five minutes later, so a network blip at dawn no longer means a day-old line.
 
 Both write atomically to `dashboard_data.json`, and a refresh never touches the written line.
@@ -229,8 +229,19 @@ your comments and formatting, so editing the file by hand and editing through th
 interchangeable.
 
 Config changes show up on the next page load. They do **not** re-run generation: the headline and
-note are from this morning. Press **Rewrite now** if you want fresh copy immediately — each press is
-one API call.
+note are from this morning.
+
+Two buttons on the settings home force the point:
+
+- **Refresh calendars** re-fetches the feeds and nothing else. Free, and usually what you want
+  after adding something to a calendar you don't want to wait for.
+- **Rewrite now** does that *and* asks Claude for a new headline and line. One API call per press.
+
+**How often it updates** sets both cadences — how often the calendars are fetched, and what time
+the daily line is written, on your own clock. They are the `refresh_minutes` and `brief_time` keys,
+so editing them by hand still works; the page is just the version you can reach from a phone. The
+board's own reload follows: it redraws every five minutes, or every `refresh_minutes` if you set
+something shorter than that.
 
 ### Keeping settings on your phone
 
@@ -338,8 +349,8 @@ Nothing to do to your config — it is migrated on load. But be aware:
 | `max_tokens` | Max response length |
 | `calendar_days_ahead` | How far ahead to fetch (default 14) |
 | `history_days` | Days of past notes sent back so the model doesn't repeat itself |
-| `refresh_minutes` | How often `--tick` re-fetches the calendars (default 60). Costs nothing but HTTP requests |
-| `brief_time` | When `--tick` writes the daily brief, on your own clock (default `"06:00"`). Quote it |
+| `refresh_minutes` | How often `--tick` re-fetches the calendars (default 60). Costs nothing but HTTP requests. Also sets the board's own reload, when it is under five minutes. Editable at **Settings → How often it updates** |
+| `brief_time` | When `--tick` writes the daily brief, on your own clock (default `"06:00"`). Quote it. Same settings page |
 | `data_file` | Path for the generated JSON |
 | `content_history_file` | Path for the rolling note history |
 | `id` | Added to each `people[]`, `pets[]`, `recurring[]`, `special_dates[]` and `calendars[]` entry the first time you open `/settings`. Leave it alone — it is how the settings UI tells one entry from another, so deleting somebody does not renumber everyone below onto the wrong edit form |

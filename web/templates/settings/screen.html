@@ -42,7 +42,8 @@
 
 <div class="note-box">
     The board lives at <strong>{{ url_for('board.index', _external=True) }}</strong> — open that on the
-    TV, tablet or Pi and leave the page up. It refreshes itself every five minutes.
+    TV, tablet or Pi and leave the page up. It redraws itself on its own; how often is under
+    <a href="{{ url_for('settings.refresh') }}">How often it updates</a>.
 </div>
 
 <div class="note-box">

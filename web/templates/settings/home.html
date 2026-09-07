@@ -16,11 +16,18 @@
             <span style="font-size:0.8125rem;color:var(--text-mid);">{{ status.detail }}</span>
         </div>
     </div>
-    <div style="display:flex;gap:0.625rem;">
-        <a class="btn outline" style="flex:1;" href="{{ url_for('board.index') }}">{{ icons.screen() }} View board</a>
-        <form class="inline-form" method="post" action="{{ url_for('settings.generate_now') }}" style="flex:1;">
-            <button class="btn" type="submit">{{ icons.refresh() }} Rewrite now</button>
+    <div style="display:flex;flex-direction:column;gap:0.625rem;">
+        {# The cheap half first: fetching the calendars costs a few requests,
+           while rewriting the line costs a call to Claude. #}
+        <form class="inline-form" method="post" action="{{ url_for('settings.refresh_now') }}">
+            <button class="btn" type="submit">{{ icons.refresh() }} Refresh calendars</button>
         </form>
+        <div style="display:flex;gap:0.625rem;">
+            <a class="btn outline" style="flex:1;" href="{{ url_for('board.index') }}">{{ icons.screen() }} View board</a>
+            <form class="inline-form" method="post" action="{{ url_for('settings.generate_now') }}" style="flex:1;">
+                <button class="btn outline" type="submit">Rewrite now</button>
+            </form>
+        </div>
     </div>
 </div>
 
@@ -76,6 +83,12 @@
             <div class="row-main">
                 <div class="row-title">Colours</div>
                 <div class="row-sub">{{ config.theme | capitalize }}</div>
+            </div>{{ icons.chevron() }}
+        </a>
+        <a class="row" href="{{ url_for('settings.refresh') }}">
+            <div class="row-main">
+                <div class="row-title">How often it updates</div>
+                <div class="row-sub">{{ cadence }}</div>
             </div>{{ icons.chevron() }}
         </a>
         <a class="row" href="{{ url_for('settings.system') }}">

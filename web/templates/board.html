@@ -14,7 +14,7 @@
     <title>{{ view.family_name or "DinkyDash" }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <meta name="robots" content="noindex, nofollow">
-    <meta http-equiv="refresh" content="{{ 60 if view.state == 'waiting' else 300 }}">
+    <meta http-equiv="refresh" content="{{ view.reload_seconds }}">
     <link rel="icon" href="{{ url_for('static', filename='favicon.svg') }}" type="image/svg+xml">
     <!-- On a tablet used as the panel, saving this to the home screen gives a
          full-screen board with no browser around it. -->
