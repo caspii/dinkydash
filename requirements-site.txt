@@ -1,0 +1,13 @@
+-r requirements.txt
+
+# The marketing site, when it is served rather than built (DIN-27). Not in
+# requirements.txt because deploy_to_pi.sh installs that file onto a board that
+# has no business rendering landing pages, and not in requirements-cloud.txt
+# because the site needs no database.
+#
+# jinja2 is absent on purpose: Flask depends on it already.
+#
+# Pinned with == like the rest, so a clean build gets what CI passed on.
+markdown==3.10.3
+pyyaml==6.0.3
+gunicorn==23.0.0
