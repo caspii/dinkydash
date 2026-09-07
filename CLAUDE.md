@@ -313,7 +313,40 @@ under [Connection pooling](PLAN.md#connection-pooling).
 
 **`psycopg` is in `requirements-cloud.txt`, not `requirements.txt`.** A Pi has no database and
 should not install a driver for one, so single mode never imports `pgstore` or `db` — the import in
-`create_app` is inside the cloud branch on purpose. The Dockerfile (DIN-30) installs the cloud file.
+`create_app` is inside the cloud branch on purpose. The `Dockerfile` installs the cloud file, so the
+image carries the driver even in single mode; one image is the point, and the constraint that
+actually matters is `deploy_to_pi.sh`, which installs `requirements.txt` and never sees it.
+
+### The image, and what runs it
+
+`Dockerfile` builds one image and `web`, `worker` and the migration job are that image with three
+commands. App Platform builds it; `docker-compose.yml` runs it locally and is the Phase 7 self-host
+deliverable. Production does not run the compose file — what the two modes share is the image
+(PLAN.md decision 12).
+
+Five things in there are load-bearing:
+
+- **Debian slim, never Alpine.** `strftime("%-d")` is a glibc extension and musl has not got it, so
+  an Alpine base would give silently wrong dates rather than a build error.
+- **`.dockerignore` is a security control, not tidiness.** `docker build` sends the whole directory
+  to the daemon regardless of `.gitignore`, so without it `config.yaml`, `.env` and
+  `dashboard_data.json` would be baked into a layer and pushed to a registry. `docker history` is
+  the check.
+- **The compose mount is a directory (`./data`), never three separate files.** Every write goes
+  through `tempfile` and `os.replace`, and renaming onto a single-file bind mount fails with
+  "Device or resource busy" — mounting `config.yaml` directly would break every save from the
+  settings UI.
+- **`docker-entrypoint.sh` seeds an empty mount from `config.example.yaml`**, so a first
+  `docker compose up` renders a board instead of a stack trace. It only fires when
+  `DINKYDASH_CONFIG` names a file that is not there, so cloud mode never touches it. The seeding
+  belongs to the container that owns the empty directory, not to `FileStore`.
+- **The self-host tick is the `worker` service, not host cron.** `generate.py --tick` on a
+  five-minute loop, and the loop drifting by however long a tick took does not matter because a tick
+  only does what the config says is owed. Cloud mode's worker is a different thing: one loop over
+  every family that is due.
+
+**macOS holds port 5000** for AirPlay Receiver, so `docker compose up` fails there with `address
+already in use`. `DINKYDASH_PORT` is the override, and the README says so.
 
 ### What the payload holds, and what it does not
 

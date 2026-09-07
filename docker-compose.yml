@@ -1,0 +1,79 @@
+# The local development stack, and the self-host deliverable.
+#
+#   docker compose up                      the board, and the tick that feeds it
+#   docker compose --profile cloud up -d postgres    a database for the tests
+#
+# Production does not run this file — App Platform builds the Dockerfile and
+# runs the same image with different commands. What the two modes share is the
+# image, not the compose file (PLAN.md decision 12).
+
+services:
+  web:
+    build: .
+    image: dinkydash
+    ports:
+      - "${DINKYDASH_PORT:-5000}:5000"
+    environment:
+      DINKYDASH_MODE: single
+      # Everything the app reads and writes lives here: config.yaml and the two
+      # generated JSON files, together, the way `generate.py --config` keeps them.
+      DINKYDASH_CONFIG: /data/config.yaml
+      # From the host environment or a .env beside this file, never written into
+      # it. .gitignore already covers .env.
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+    volumes:
+      # A *directory*, and this is not a stylistic choice. Every write in the
+      # app goes to a temporary file and is renamed over the target, so the
+      # board never serves half a file — and `os.replace` onto a single-file
+      # bind mount fails with "Device or resource busy". Mounting
+      # ./data/config.yaml directly would break every save from the settings UI.
+      - ./data:/data
+    restart: unless-stopped
+
+  worker:
+    build: .
+    image: dinkydash
+    environment:
+      DINKYDASH_MODE: single
+      DINKYDASH_CONFIG: /data/config.yaml
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+    volumes:
+      - ./data:/data
+    # The container answer to the Pi's cron line. Each tick does only what
+    # config.yaml says is owed — refresh the calendars every `refresh_minutes`,
+    # write the brief once a day after `brief_time` — so the loop drifting by
+    # however long a tick took does not matter. The cadence lives in the config
+    # and is edited at /settings/refresh, not here.
+    #
+    # This is the self-host answer to "how does generation actually run". Cloud
+    # mode's worker is a different thing: one loop over every family that is due
+    # (PLAN.md phase 2), not one family on a sleep.
+    command: sh -c 'while true; do python generate.py --tick; sleep 300; done'
+    # No ports. It talks to Anthropic and to the calendar feeds, and nothing
+    # talks to it.
+    depends_on:
+      - web
+    restart: unless-stopped
+
+  # Not started by default: `docker compose --profile cloud up -d postgres`.
+  # This is what the store contract suite runs against locally, and it is the
+  # same major version as DigitalOcean's managed cluster.
+  postgres:
+    profiles: ["cloud"]
+    image: postgres:16
+    environment:
+      POSTGRES_USER: dinkydash
+      POSTGRES_PASSWORD: dinkydash
+      POSTGRES_DB: dinkydash_test
+    ports:
+      - "${DINKYDASH_DB_PORT:-5433}:5432"
+    volumes:
+      - dinkydash-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dinkydash"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  dinkydash-postgres:

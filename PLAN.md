@@ -596,7 +596,7 @@ Critical path is 0 → 1 → 2 → 3. Phases 4–6 can run alongside 3. Nothing 
 - [ ] The small jobs above: CI, `gitleaks`, push protection, `.env.example`, pinned requirements, key rotation *(DIN-16)*; self-hosted font, URL scrub, referrer policy, `/healthz`. The `Dockerfile` has its own line below.
 - [x] **Decision 11, single-mode half:** `refresh_minutes` and `brief_time` in `DEFAULTS`; `runner.run` split into `refresh_calendars` and `write_brief`; a pure `due()`; `generate.py --tick`; the settings page under *This screen*; the board's reload derived from the interval; README cron line updated. Ships to the Pi at once and needs no database. *(DIN-17 for the engine and cron, DIN-18 for the page)*
 - [x] Name the storage seam: `FileStore` gathering the six operations that exist today, and the settings routes, runner and board taking a store *(DIN-19)*
-- [ ] `Dockerfile` and `docker-compose.yml` for single mode (`web` only) — the self-host path is real from here on, the image is what App Platform builds, and every later phase reuses both *(DIN-30)*
+- [x] `Dockerfile` and `docker-compose.yml` for single mode — the self-host path is real from here on, the image is what App Platform builds, and every later phase reuses both *(DIN-30)*
 - [x] Postgres + plain-SQL migrations; CI running the suite against a Postgres service container *(DIN-31)*
 - [ ] Move DNS to Cloudflare and add the `app` and `staging.app` records *(DIN-29)*. The apex keeps pointing at GitHub Pages until DIN-27 moves the marketing pages onto the app.
 - [ ] Stand up the App Platform app and the Managed Postgres cluster in Frankfurt; staging live on `staging.app.dinkydash.co` *(DIN-26)*
