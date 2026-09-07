@@ -122,6 +122,19 @@ def create_site_app(site_url=None):
         return render_template("404.html",
                                canonical_url=app.config["SITE_URL"]), 404
 
+    @app.before_request
+    def canonical_host():
+        """Send `www` to the bare domain, the way GitHub Pages did.
+
+        `docs/CNAME` named the apex, so Pages 301'd www to it and every link and
+        every ranking signal has pointed there for as long as the site has
+        existed. Serving both would be the same pages on two hostnames.
+        """
+        host = (request.host or "").split(":")[0]
+        canonical = _bare_host(app)
+        if host == f"www.{canonical}":
+            return redirect(app.config["SITE_URL"] + request.full_path.rstrip("?"), 301)
+
     @app.after_request
     def headers(response):
         # Same promise the board makes: never tell a third party what URL the
@@ -141,11 +154,18 @@ def create_site_app(site_url=None):
     return app
 
 
-def _canonical_hosts(app):
-    """The hostnames this site is allowed to claim to be."""
+def _bare_host(app):
     from urllib.parse import urlsplit
-    host = urlsplit(app.config["SITE_URL"]).netloc
-    return {host, f"www.{host}"}
+    return urlsplit(app.config["SITE_URL"]).netloc
+
+
+def _canonical_hosts(app):
+    """The hostnames this site is allowed to serve as itself.
+
+    `www` is deliberately absent: it redirects rather than serving, so it never
+    needs to be indexable.
+    """
+    return {_bare_host(app)}
 
 
 def _send(directory, filename, mimetype=None):

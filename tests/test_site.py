@@ -151,9 +151,11 @@ class TestOnlyTheRealSiteIsIndexable:
         response = client.get("/", headers={"Host": "dinkydash.co"})
         assert "X-Robots-Tag" not in response.headers
 
-    def test_www_counts_as_canonical_too(self, client):
-        response = client.get("/", headers={"Host": "www.dinkydash.co"})
-        assert "X-Robots-Tag" not in response.headers
+    def test_www_redirects_rather_than_serving(self, client):
+        """GitHub Pages 301'd www to the apex; the app has to keep doing it."""
+        response = client.get("/getting-started/", headers={"Host": "www.dinkydash.co"})
+        assert response.status_code == 301
+        assert response.headers["Location"] == "https://dinkydash.co/getting-started/"
 
     @pytest.mark.parametrize("host", ["preview.dinkydash.co",
                                       "dinkydash-site-mgk6u.ondigitalocean.app"])
