@@ -213,8 +213,16 @@ def copy_static():
         return
     for name in sorted(os.listdir('static')):
         source = os.path.join('static', name)
+        destination = os.path.join(OUTPUT_DIR, name)
         if os.path.isfile(source):
-            shutil.copy2(source, os.path.join(OUTPUT_DIR, name))
+            shutil.copy2(source, destination)
+        elif os.path.isdir(source):
+            # static/fonts/ is the reason this branch exists: the self-hosted
+            # Nunito files have to reach the site root the same way the
+            # favicons do.
+            if os.path.exists(destination):
+                shutil.rmtree(destination)
+            shutil.copytree(source, destination)
 
 
 def generate_pages():

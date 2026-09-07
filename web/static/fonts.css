@@ -1,0 +1,48 @@
+/* Nunito, served from here rather than from Google.
+ *
+ * Four reasons, in order of how much they matter:
+ *
+ *  1. The screen token. Cloud mode puts the board at /s/<token>, and that token
+ *     is a bearer credential. A request to fonts.gstatic.com from that page
+ *     hands the whole URL to Google in the Referer header. Referrer-Policy
+ *     covers it now; not making the request at all is what settles it.
+ *  2. One fewer sub-processor. A Munich court ruled against dynamically loaded
+ *     Google Fonts in 2022, and this is a product holding EU families' calendars.
+ *  3. A Pi with no internet renders the same board. It used to fall back to a
+ *     system font, which changes every measurement the fitting script makes.
+ *  4. One fewer third-party request on a screen that reloads every five minutes.
+ *
+ * One variable font per subset rather than four static weights: the file covers
+ * 200-1000, so every weight the board and the settings UI ask for (400, 600,
+ * 700, 800) comes out of the same download. Italic is not included because
+ * nothing uses it.
+ *
+ * SIL Open Font Licence 1.1 — see OFL.txt beside these files.
+ */
+
+@font-face {
+    font-family: 'Nunito';
+    font-style: normal;
+    font-weight: 200 1000;
+    /* Same as Google served: draw in the fallback immediately, swap when the
+       real font lands. board.html re-fits itself on document.fonts.ready
+       precisely because that swap changes the line height. */
+    font-display: swap;
+    src: url('fonts/nunito-latin.woff2') format('woff2');
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+                   U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122,
+                   U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* Only fetched when a name needs it — Łukasz, Đorđe, a Turkish ı. */
+@font-face {
+    font-family: 'Nunito';
+    font-style: normal;
+    font-weight: 200 1000;
+    font-display: swap;
+    src: url('fonts/nunito-latin-ext.woff2') format('woff2');
+    unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7,
+                   U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF,
+                   U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0,
+                   U+2113, U+2C60-2C7F, U+A720-A7FF;
+}

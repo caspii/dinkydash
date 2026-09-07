@@ -45,6 +45,23 @@ def create_app(store=None):
 
     app.register_blueprint(board_bp)
     app.register_blueprint(settings_bp, url_prefix="/settings")
+
+    @app.after_request
+    def no_referrer(response):
+        """Never tell anybody else what URL the reader is on.
+
+        Cloud mode puts the board at `/s/<token>`, and that token is a bearer
+        credential — whoever has the URL sees the family's day. Any outbound
+        request from the page, and any link somebody follows off it, would
+        otherwise hand the whole URL to a third party in the `Referer` header.
+
+        Set here rather than in the templates so it covers every response
+        including redirects and errors, and set in single mode too: a header
+        that only exists in one mode is a header nobody tests.
+        """
+        response.headers.setdefault("Referrer-Policy", "no-referrer")
+        return response
+
     return app
 
 

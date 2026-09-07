@@ -257,8 +257,8 @@ Dropping the pairing code makes token length a UX constraint — a 32-character 
 - Rate-limit the route; enumeration is the only attack and it's slow
 - Rotatable from the settings page, invalidating the old URL
 - `noindex`, `Referrer-Policy: no-referrer`, and **no third-party requests from the page** — the
-  board currently loads Nunito from Google Fonts, which would hand the token URL to Google in the
-  `Referer` header. Self-host the font (see Phase 0).
+  font is self-hosted and every response carries `Referrer-Policy: no-referrer`, both done in
+  Phase 0 (DIN-32), which is what closes the `Referer` path for the token.
 - Display as a QR code as well, for tablets and phones
 
 ### URL map
@@ -576,7 +576,7 @@ These are latent on a single Pi and actively harmful hosted.
 
 6. **Stale `.env` keys.** `DATABASE_URL`, `SECRET_KEY`, `UPLOAD_FOLDER`, `MAX_CONTENT_LENGTH` are leftovers from an abandoned plan. No code reads any of them, so removing them changes nothing — but `.env` is not in git, so each copy has to be edited where it lives: the main checkout, and the Pi, whose `.env` `deploy_to_pi.sh` no longer overwrites. There is still no `.env.example`.
 7. **No CI.** The suite runs in under a second and nothing runs it on push.
-8. **A failed fetch puts the secret URL in the error text.** `requests` formats both `raise_for_status()` and connection errors with the full URL, and `fetch_feed` wraps `{exc}` straight into `FeedError`. That string reaches `generate.log` and the calendar status on the settings page. Scrub it to the exception class and the status code.
+8. ~~**A failed fetch puts the secret URL in the error text.**~~ Fixed in DIN-32. `calendars._why` reduces a `requests` failure to a category and a status code, leaving out the host as well as the path, and the parse error is scrubbed too — a parser quotes the line it choked on, which is an appointment. Tested.
 9. **`generated_at` is the server's clock.** `generate.py` stamps `datetime.now().astimezone()` and the settings home prints `stamp[11:16]` as "written 06:02". On a UTC host that is the wrong time for every family. Stamp in UTC; render in the family's timezone.
 10. **`describe_feed` falls back to `date.today()`.** Never reached — the settings route passes the date — but it is the one clock left inside `dinkydash/`.
 11. **No CSRF protection on any form.** Harmless with no accounts; the moment a session exists, a page elsewhere can submit "Rewrite now" or a delete on the parent's behalf. Every POST needs a token in cloud mode.
@@ -591,10 +591,10 @@ Each of these is under an hour, needs no database, and ships to the Pi as well a
 2. **`.env.example`** — one line: `ANTHROPIC_API_KEY=`.
 3. **Pin `requirements.txt`.** An unpinned dependency in an app holding other families' calendars is the supply-chain decision CLAUDE.md warns about, made by omission.
 4. **Rotate the Anthropic key.** Five minutes, no code, overdue. Edit it on the Pi in place — `deploy_to_pi.sh` no longer copies `.env`.
-5. **Self-host Nunito.** Four font files in `web/static/`. This removes a third-party request from every screen, a GDPR sub-processor (a Munich court ruled against dynamically loaded Google Fonts in 2022), the `Referer` path for screen tokens, and it makes a Pi's board render the same when the internet is down.
-6. **Scrub the URL out of `FeedError`** (bug 8), with a test that a 404 message contains the label and not the URL.
-7. **`Referrer-Policy: no-referrer`** on the board and the settings pages. One header each.
-8. **`/healthz`.** Returns `ok` and the git SHA; every host and uptime checker wants it.
+5. ~~**Self-host Nunito.**~~ Done in DIN-32 — one variable font per subset in `web/static/fonts/`, and its own copy in `website/static/`. Removes a third-party request from every screen, a GDPR sub-processor (a Munich court ruled against dynamically loaded Google Fonts in 2022), the `Referer` path for screen tokens, and it makes a Pi's board render the same when the internet is down.
+6. ~~**Scrub the URL out of `FeedError`**~~ (bug 8). Done in DIN-32.
+7. ~~**`Referrer-Policy: no-referrer`**~~. Done in DIN-32, on every response rather than two templates, so it covers redirects and errors too.
+8. ~~**`/healthz`.**~~ Done in DIN-32. Returns `ok` and the git SHA from the environment, and deliberately reads no config and no database.
 9. **`generated_at` in UTC**, rendered in the family's timezone (bug 9).
 10. ~~**A `Dockerfile`.**~~ Dropped on 7 September, having been built and then removed. App Platform's Python buildpack needs none, and Docker was machinery with nothing here to earn it. `.python-version` and a `build_command` in the app spec are what replaced it *(DIN-30, cancelled)*.
 
@@ -610,7 +610,7 @@ Critical path is 0 → 1 → 2 → 3. Phases 4–6 can run alongside 3. Nothing 
 - [x] Refactor the engine to `generate(config, today, events, recent_notes) -> dict` *(#28)*
 - [x] Fix the five issues listed above; add tests around date/timezone, calendar parsing, chore rotation *(#28, #29)*
 - [x] Update the Claude model; switch to structured outputs *(#28 — `claude-haiku-4-5` takes no `thinking` parameter, so leaving it unset is the explicit choice)*
-- [ ] The small jobs above: CI, `gitleaks`, push protection, `.env.example`, pinned requirements, key rotation *(DIN-16)*; self-hosted font, URL scrub, referrer policy, `/healthz`.
+- [x] The small jobs above: CI, `gitleaks`, push protection, `.env.example`, pinned requirements, key rotation *(DIN-16)*; self-hosted font, URL scrub, referrer policy, `/healthz` *(DIN-32)*.
 - [x] **Decision 11, single-mode half:** `refresh_minutes` and `brief_time` in `DEFAULTS`; `runner.run` split into `refresh_calendars` and `write_brief`; a pure `due()`; `generate.py --tick`; the settings page under *This screen*; the board's reload derived from the interval; README cron line updated. Ships to the Pi at once and needs no database. *(DIN-17 for the engine and cron, DIN-18 for the page)*
 - [x] Name the storage seam: `FileStore` gathering the six operations that exist today, and the settings routes, runner and board taking a store *(DIN-19)*
 - [x] Postgres + plain-SQL migrations; CI running the suite against a Postgres service container *(DIN-31)*
@@ -676,7 +676,7 @@ missing is the multi-tenant half — a schema, auth, and scoping every read and 
 ### Phase 5 — Legal & trust
 
 - [ ] Privacy policy and ToS, forked from KeepTheScore
-- [ ] Sub-processor list — Anthropic, DigitalOcean, Stripe, the email provider, Cloudflare. Not Google Fonts, once Phase 0 is done.
+- [ ] Sub-processor list — Anthropic, DigitalOcean, Stripe, the email provider, Cloudflare. **Not Google Fonts**: self-hosted since DIN-32, and nothing on the board, the settings UI or the marketing site requests anything from them.
 - [ ] **DigitalOcean's DPA signed, with standard contractual clauses.** They are a US company; the app and database sit in Frankfurt. Say both — where the data lives, and who the company is. Cloudflare needs the same treatment.
 - [ ] Plain statement that calendar contents are sent to Anthropic for generation
 - [ ] Data export and hard delete — the delete cascades through users, tokens, agendas, generations, history and calendar health; the Stripe customer record stays, as accounting requires
