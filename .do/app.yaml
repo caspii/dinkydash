@@ -1,0 +1,54 @@
+# DigitalOcean App Platform spec for the DinkyDash marketing site.
+#
+# Applied with:
+#   doctl apps update <APP_ID> --spec .do/app.yaml
+#
+# Infrastructure reviewed like code, which is why it is committed. **No secrets
+# here.** This app needs none — it renders Markdown and serves files, with no
+# database, no API key and no user data. The board is a separate app and will
+# get its own spec; keeping them apart is what lets this one hold nothing worth
+# stealing.
+#
+# No Dockerfile: App Platform's Python buildpack reads .python-version and
+# requirements.txt and runs the command below (DIN-30, reversed).
+
+name: dinkydash-site
+region: fra
+
+services:
+  - name: site
+    github:
+      repo: caspii/dinkydash
+      branch: main
+      deploy_on_push: true
+    source_dir: /
+    environment_slug: python
+
+    # The buildpack installs requirements.txt on its own, which is deliberately
+    # the smaller list — no markdown, no pyyaml, no production WSGI server,
+    # because a Raspberry Pi needs none of them.
+    build_command: pip install -r requirements-site.txt
+
+    # Two workers with threads: the work is rendering cached Markdown and
+    # sending files, so it waits on the network far more than on the CPU.
+    run_command: gunicorn --workers 2 --threads 4 --bind 0.0.0.0:8080 --access-logfile - "website.site:app"
+
+    instance_size_slug: apps-s-1vcpu-0.5gb
+    instance_count: 1
+    http_port: 8080
+
+    health_check:
+      http_path: /healthz
+      initial_delay_seconds: 10
+      period_seconds: 10
+      timeout_seconds: 3
+      success_threshold: 1
+      failure_threshold: 3
+
+    envs:
+      # What the canonical tags, og:url and the sitemap claim to be. Set
+      # explicitly so a staging copy never tells a search engine it is
+      # production.
+      - key: DINKYDASH_SITE_URL
+        scope: RUN_TIME
+        value: https://dinkydash.co

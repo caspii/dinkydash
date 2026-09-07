@@ -1,6 +1,7 @@
 # DinkyDash Website
 
-This directory contains the static site generator for the DinkyDash website.
+This directory is the DinkyDash marketing site, dinkydash.co. It is a Flask app that renders
+Markdown through Jinja **on request** — there is no build step and no committed HTML.
 
 ## Structure
 
@@ -8,13 +9,17 @@ This directory contains the static site generator for the DinkyDash website.
 - `templates/` - Jinja2 HTML templates
 - `images/` - Static images
 - `static/` - Root files copied to the site verbatim (favicons, `CNAME`)
-- `build.py` - Static site generator script
+- `site.py` - The Flask app that serves the site
+- `render.py` - Markdown to HTML, and the page/sitemap metadata
 - `generate_favicon.py` - Redraws the favicons from `static/favicon.svg`; run only when that changes
 - `generate_social_preview.py` - Draws `images/social-preview.png`, the repository's social preview
   card; run only when its wording, the palette or the board image changes
 
-The build writes to `../docs/`, which is what GitHub Pages serves. There is no `output/` directory —
-`build.py` deletes and rewrites `../docs/` on every run.
+It used to build to `../docs/` for GitHub Pages. That directory is gone (DIN-27): the pages were
+already Jinja templates, so rendering them when they are asked for removed 34 files of generated
+HTML from the repository, the "I edited the copy and forgot to rebuild" failure, and a date bug the
+build could not avoid — it stamped each page with the commit date of the commit *before* the one it
+shipped in, because the build ran before that commit existed.
 
 ## Images
 
@@ -44,9 +49,9 @@ holds one of those two URLs, and deleting the file turns an old link preview int
 no gain. Do not add new references to them.
 
 Nothing generates the card at build time. `generate_social_preview.py` writes it, the output is
-committed, and `build.py` copies it to `docs/images/` like any other image. Setting it as the
+committed, and the site serves it from `images/` like any other image. Setting it as the
 repository's preview is a separate manual step — Settings → General → Social preview — because
-GitHub exposes no API for that field. `build.py` reads intrinsic dimensions out of images referenced from
+GitHub exposes no API for that field. `render.py` reads intrinsic dimensions out of images referenced from
 Markdown, but an image used directly in a template needs `width` and `height` on the tag by hand, or
 the text below it jumps when the image lands.
 
@@ -54,32 +59,38 @@ the text below it jumps when the image lands.
 
 ### Prerequisites
 
-The site generator's dependencies are in the repo's `requirements-dev.txt`, not `requirements.txt`
-— they are build-time only and are never installed on the Pi:
+The site's own dependencies are in `requirements-site.txt`, not `requirements.txt` — a Raspberry Pi
+has no business rendering landing pages, and `deploy_to_pi.sh` installs the smaller file:
 
 ```bash
-pip install -r ../requirements-dev.txt
+pip install -r ../requirements-site.txt
 ```
 
-### Build Process
-
-To build the website, run:
+### Running it
 
 ```bash
-cd website
-python build.py
+cd ..
+FLASK_APP=website.site flask run --port 5001
 ```
 
-This will:
-1. Read all Markdown files from the `content/` directory
-2. Process YAML front matter in each Markdown file
-3. Convert Markdown content to HTML
-4. Apply Jinja2 templates from the `templates/` directory
-5. Generate static HTML files in the `../docs/` directory
-6. Copy images to the output directory
-7. Preserve the CNAME file for custom domain
+A request for `/about/` reads `content/about.md`, renders it through the template its front matter
+names, and returns it. `/sitemap.xml` and `/robots.txt` are generated the same way. Page discovery
+and the git dates behind `lastmod` are read once at start-up, so a content change needs a restart —
+which on the server is a deploy.
 
-The generated files in `../docs/` are served by GitHub Pages at https://dinkydash.co/
+### How it is deployed
+
+DigitalOcean App Platform, from `.do/app.yaml` at the repo root. Python buildpack, no Dockerfile,
+`deploy_on_push` from `main`. To change the spec:
+
+```bash
+doctl apps update <app-id> --spec .do/app.yaml
+```
+
+**One thing only the dashboard can do**: create an app with a GitHub source. `doctl` has an API
+token and no GitHub OAuth session, so it refuses to *introduce* one — though it will happily update
+an app that already has one. DigitalOcean also will not let you change a component's source type
+after creation, so an app made with a plain git URL has to be recreated rather than converted.
 
 ## Adding New Pages
 
@@ -93,7 +104,7 @@ The generated files in `../docs/` are served by GitHub Pages at https://dinkydas
    ---
    ```
 3. Write your content in Markdown below the front matter
-4. Run `python build.py` to generate the HTML
+4. Restart the site; the page is live at its clean URL
 
 ## Templates
 

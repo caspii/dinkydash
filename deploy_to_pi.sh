@@ -52,7 +52,6 @@ rsync -az --stats --delete $DRY_RUN \
     --exclude='.tick.lock' \
     --exclude='*.log' \
     --exclude='website/' \
-    --exclude='docs/' \
     --exclude='design/' \
     --exclude='tests/' \
     "$SRC" "$REMOTE:$PI_DIR/"

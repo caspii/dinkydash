@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """One-off generator for every raster icon a browser can't take from the SVG.
 
-Not part of `build.py` — the outputs are committed, so a normal build needs no
+Run by hand, not by the site — the outputs are committed, so serving needs no
 image library. Re-run this only if `static/favicon.svg` changes:
 
     python3 generate_favicon.py     # requires Pillow

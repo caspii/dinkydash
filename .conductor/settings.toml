@@ -26,5 +26,5 @@ command = "venv/bin/python generate.py"
 icon = "sparkles"
 
 [scripts.run.website]
-command = "cd website && ../venv/bin/python build.py"
+command = "FLASK_APP=website.site venv/bin/flask run --port 5001"
 icon = "globe"
