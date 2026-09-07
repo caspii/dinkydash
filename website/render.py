@@ -134,6 +134,38 @@ def git_last_modified(file_path):
     return result.stdout.strip() or None
 
 
+@lru_cache(maxsize=1)
+def last_modified_map():
+    """Every tracked file under content/ and templates/, to its last commit date.
+
+    One `git log` rather than one per file. The per-file version meant 34
+    subprocesses — two for each page — which cost about seventeen seconds on
+    this repository's history and paid it again on every container start.
+
+    The commit date rather than the filesystem mtime, which on a fresh clone or
+    a deployed container is just the checkout time.
+    """
+    try:
+        out = subprocess.run(
+            # --relative, because git otherwise prints paths from the repository
+            # root and the lookup below asks in terms of this directory.
+            ["git", "log", "--format=%cs", "--name-only", "--relative",
+             "--", "content", "templates"],
+            capture_output=True, text=True, check=True, cwd=HERE).stdout
+    except (subprocess.CalledProcessError, FileNotFoundError, OSError):
+        return {}
+
+    dates, date = {}, None
+    for line in out.splitlines():
+        if not line.strip():
+            continue
+        if len(line) == 10 and line[4] == "-" and line[7] == "-":
+            date = line          # git prints the date, then that commit's files
+        elif date:
+            dates.setdefault(line, date)   # log is newest first, so first wins
+    return dates
+
+
 def faq_schema(faq):
     """Render a `faq:` front-matter list as FAQPage JSON-LD, or '' if absent.
 
@@ -159,6 +191,26 @@ def faq_schema(faq):
 
 
 @lru_cache(maxsize=1)
+def without_email_obfuscation(html):
+    """Keep Cloudflare's hands off code blocks.
+
+    App Platform serves through Cloudflare, whose Email Address Obfuscation
+    rewrites anything shaped like an address into a JavaScript-decoded link —
+    including `ssh pi@raspberrypi.local` in the setup guide, which is a command
+    people are meant to copy. It also injects a script into the page to decode
+    it again.
+
+    `<!--email_off-->` is Cloudflare's documented opt-out for a region of a
+    page. Applied to `<pre>` blocks only: a real address in prose should still
+    be protected from scrapers, but a shell command is not an address.
+
+    Discovered by deploying, not by reading: it does not happen on GitHub Pages,
+    so it appeared the moment the apex moved.
+    """
+    return re.sub(r"(<pre\b.*?</pre>)",
+                  r"<!--email_off-->\1<!--email_on-->", html, flags=re.S)
+
+
 def pages():
     """Every content page: (url_path, source, front_matter, html, last_modified).
 
@@ -174,10 +226,13 @@ def pages():
             else "/" + str(relative.parent / relative.name if relative.name != "index"
                            else relative.parent).replace("\\", "/") + "/"
         front_matter, html = read_markdown(path)
+        html = without_email_obfuscation(html)
         template = front_matter.get("template", "page.html")
         # A page's real content is its Markdown *and* the template rendering it —
         # the home page in particular lives almost entirely in its template.
-        dates = [d for d in (git_last_modified(p) for p in (path, TEMPLATES / template)) if d]
+        modified = last_modified_map()
+        dates = [d for d in (modified.get(str(p.relative_to(HERE)))
+                             for p in (path, TEMPLATES / template)) if d]
         found.append({
             "url": url,
             "source": path,

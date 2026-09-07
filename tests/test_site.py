@@ -110,8 +110,9 @@ class TestTheFilesBrowsersAskForUnprompted:
     def test_the_root_route_cannot_be_used_to_browse_the_directory(self, client):
         # It is narrowed to a known list, so it can neither swallow a page URL
         # nor hand out anything else that happens to sit in static/.
-        assert client.get("/build.py").status_code == 404
-        assert client.get("/../render.py").status_code in (301, 308, 404)
+        assert client.get("/render.py").status_code == 404
+        assert client.get("/site.py").status_code == 404
+        assert client.get("/../site.py").status_code in (301, 308, 404)
 
 
 class TestLayoutStability:
@@ -162,3 +163,19 @@ class TestOnlyTheRealSiteIsIndexable:
     def test_every_other_copy_asks_not_to_be_indexed(self, client, host):
         response = client.get("/", headers={"Host": host})
         assert response.headers["X-Robots-Tag"] == "noindex"
+
+
+class TestCloudflareDoesNotEatShellCommands:
+    """App Platform serves through Cloudflare, whose Email Address Obfuscation
+    rewrote `ssh pi@raspberrypi.local` in the setup guide into a JavaScript
+    link. Found on the live site, not in review."""
+
+    def test_code_blocks_opt_out_of_obfuscation(self, client):
+        page = client.get("/getting-started/").get_data(as_text=True)
+        assert "<!--email_off-->" in page
+        assert "ssh pi@raspberrypi.local" in page
+
+    def test_the_marker_wraps_the_block_rather_than_the_page(self, client):
+        page = client.get("/getting-started/").get_data(as_text=True)
+        assert page.count("<!--email_off-->") == page.count("<!--email_on-->")
+        assert page.count("<!--email_off-->") > 1, "one pair per code block"

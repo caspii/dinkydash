@@ -13,7 +13,8 @@ Three components:
 1. **The engine** (`dinkydash/`) — pure functions plus the model call. No config file is read here,
    no clock consulted, nothing written to disk.
 2. **The web app** (`web/`) — the board at `/`, a settings UI at `/settings` that writes `config.yaml`.
-3. **Static site generator** (`website/`) — the marketing site, built to `docs/` for GitHub Pages.
+3. **The marketing site** (`website/`) — dinkydash.co, a second Flask app rendering Markdown
+   through Jinja on request. No build step and no committed HTML.
 
 **This repo is public and MIT-licensed**, and the hosted multi-tenant SaaS is being built inside
 it, with self-hosting as the second mode of one codebase. Both facts constrain every change: see
@@ -155,7 +156,8 @@ set with the one shape the defaults do not know: **an iCal secret address**. Goo
 (`private-` + 32 hex) and iCloud (`/published/2/` + a long token) both have a rule; the visibly fake
 examples in the docs (`private-xxxx`, `private-8f3c1a`) are too short to match, so keep new ones
 that way. The single allowlist entry is the Ahrefs Web Analytics site key, which is served in the
-`<head>` of every page on dinkydash.co and so trips `generic-api-key` 4,000+ times across `docs/`.
+`<head>` of every page on dinkydash.co. It used to trip `generic-api-key` 4,000+ times across the
+committed `docs/`; with the site rendered on request there is one copy of it, in a template.
 **Allowlisting is for values that are public by design.** A real secret that reached a commit is
 fixed by rotating it.
 
@@ -509,10 +511,18 @@ python app.py                       # or: flask run --host=0.0.0.0
 ```
 Board at `/`, settings at `/settings`, all three screen sizes at once at `/preview`.
 
-**Build the marketing site**
+**Run the marketing site** (dinkydash.co)
 ```bash
-cd website && python build.py
+pip install -r requirements-site.txt        # markdown, pyyaml, gunicorn
+FLASK_APP=website.site flask run --port 5001
 ```
+There is no build step and no `docs/` directory: `website/site.py` renders `content/*.md` through
+`website/templates/` on request. Adding a page is still "write a Markdown file" and nothing else.
+
+Deployed on DigitalOcean App Platform from `.do/app.yaml` — Python buildpack, no Dockerfile, and
+`doctl apps update <id> --spec .do/app.yaml` applies a change. **The one thing the dashboard has to
+do is create an app with a GitHub source**: `doctl` cannot introduce one (an API token carries no
+GitHub OAuth session), though it can update an app that already has one.
 
 ## Working on it
 

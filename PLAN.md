@@ -614,7 +614,7 @@ Critical path is 0 → 1 → 2 → 3. Phases 4–6 can run alongside 3. Nothing 
 - [x] **Decision 11, single-mode half:** `refresh_minutes` and `brief_time` in `DEFAULTS`; `runner.run` split into `refresh_calendars` and `write_brief`; a pure `due()`; `generate.py --tick`; the settings page under *This screen*; the board's reload derived from the interval; README cron line updated. Ships to the Pi at once and needs no database. *(DIN-17 for the engine and cron, DIN-18 for the page)*
 - [x] Name the storage seam: `FileStore` gathering the six operations that exist today, and the settings routes, runner and board taking a store *(DIN-19)*
 - [x] Postgres + plain-SQL migrations; CI running the suite against a Postgres service container *(DIN-31)*
-- [ ] Move DNS to Cloudflare and add the `app` and `staging.app` records *(DIN-29)*. The apex keeps pointing at GitHub Pages until DIN-27 moves the marketing pages onto the app.
+- [x] Move DNS to Cloudflare and add the app records *(DIN-29)*. The apex now points at App Platform, not GitHub Pages — DIN-27 moved the marketing pages onto the app.
 - [ ] Stand up the App Platform app and the Managed Postgres cluster in Frankfurt; staging live on `staging.app.dinkydash.co` *(DIN-26)*
 
 **Done when:** the engine runs from a dict with an injected date, tests pass in CI on Postgres, a same-day calendar change reaches a Pi within its chosen interval, and staging serves a hardcoded family over TLS.

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Generator for the repository's social preview card (GitHub, Slack, Reddit).
 
-Not part of `build.py` — the output is committed, so a normal build needs no
+Run by hand, not by the site — the output is committed, so serving needs no
 browser. Re-run this only if the card's wording, the palette or the board image
 changes:
 
@@ -368,7 +368,7 @@ def main():
     card = render(build_html())
     card.save(OUTPUT, optimize=True)
     print(f'wrote {os.path.relpath(OUTPUT, REPO)}  {card.width}x{card.height}')
-    print('Run website/build.py to copy it into docs/, then upload it at')
+    print('Committed as it is — the site serves it directly. Upload it at')
     print('Settings > General > Social preview — GitHub has no API for that one.')
 
 

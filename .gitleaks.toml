@@ -38,6 +38,7 @@ description = """
 The Ahrefs Web Analytics site key. It is served in the <head> of every page on
 dinkydash.co, identifies the site to Ahrefs and grants nothing, so it is public
 by design — but it trips the generic-api-key rule in website/templates/base.html
-and in every page build.py renders into docs/, which is 4,000+ findings.
+and it used to be duplicated into every committed page under docs/, which was 4,000+ findings.
+The site is rendered on request now, so it lives once, in website/templates/base.html.
 """
 regexes = ['''NInZX5cjFNqKC44BBPaEBA''']
