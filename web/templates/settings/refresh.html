@@ -47,7 +47,8 @@
 </div>
 
 <div class="note-box">
-    Both need <strong>generate.py --tick</strong> running from cron every five minutes. The setup
-    guide has the line. Without it, nothing updates on its own however this page is set.
+    Both need <strong>generate.py --tick</strong> in your crontab, every five minutes. If yours
+    still says <strong>0 6 * * *</strong> without <strong>--tick</strong> — the line older setup
+    guides gave — nothing on this page has any effect, and the board updates once at 6am as before.
 </div>
 {% endblock %}
