@@ -24,7 +24,7 @@ the same arrangement `app.py` and `generate.py` already have.
 
 import os
 
-from flask import Flask, Response, abort, redirect, render_template
+from flask import Flask, Response, abort, redirect, render_template, request
 
 from . import render
 
@@ -127,9 +127,25 @@ def create_site_app(site_url=None):
         # Same promise the board makes: never tell a third party what URL the
         # reader was on.
         response.headers.setdefault("Referrer-Policy", "no-referrer")
+
+        # Every copy of this site that is not the canonical origin asks not to
+        # be indexed. App Platform hands out an .ondigitalocean.app hostname
+        # whatever else is configured, and a preview or staging name is a
+        # second crawlable copy of pages the whole acquisition argument rests
+        # on. The canonical tag already points home; this is the belt to its
+        # braces, and it costs one header.
+        if request.host and request.host not in _canonical_hosts(app):
+            response.headers.setdefault("X-Robots-Tag", "noindex")
         return response
 
     return app
+
+
+def _canonical_hosts(app):
+    """The hostnames this site is allowed to claim to be."""
+    from urllib.parse import urlsplit
+    host = urlsplit(app.config["SITE_URL"]).netloc
+    return {host, f"www.{host}"}
 
 
 def _send(directory, filename, mimetype=None):

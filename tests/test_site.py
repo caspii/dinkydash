@@ -141,3 +141,22 @@ class TestItIsNotTheBoard:
     def test_healthz_reads_nothing(self, client):
         body = client.get("/healthz").get_json()
         assert body["status"] == "ok"
+
+
+class TestOnlyTheRealSiteIsIndexable:
+    """App Platform always hands out an .ondigitalocean.app name, and a preview
+    domain is a second crawlable copy of the pages the funnel rests on."""
+
+    def test_the_canonical_host_is_indexable(self, client):
+        response = client.get("/", headers={"Host": "dinkydash.co"})
+        assert "X-Robots-Tag" not in response.headers
+
+    def test_www_counts_as_canonical_too(self, client):
+        response = client.get("/", headers={"Host": "www.dinkydash.co"})
+        assert "X-Robots-Tag" not in response.headers
+
+    @pytest.mark.parametrize("host", ["preview.dinkydash.co",
+                                      "dinkydash-site-mgk6u.ondigitalocean.app"])
+    def test_every_other_copy_asks_not_to_be_indexed(self, client, host):
+        response = client.get("/", headers={"Host": host})
+        assert response.headers["X-Robots-Tag"] == "noindex"
