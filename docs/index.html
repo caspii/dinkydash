@@ -3,19 +3,19 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>DinkyDash — Digital Family Calendar, Any Screen You Own</title>
-    <meta name="description" content="Turn any TV, tablet or Raspberry Pi into a shared family calendar. Works with Google, Apple and Outlook calendars, plus a chore rota, countdowns and a daily AI brief.">
+    <title>DinkyDash — Digital Family Calendar for Screens You Own</title>
+    <meta name="description" content="A digital family calendar for the TV, tablet or Raspberry Pi you already own. $39 a year, or free if you run it yourself. Open source, no account, no adverts.">
     <link rel="canonical" href="https://dinkydash.co/">
     
     <link rel="icon" href="/favicon.ico" sizes="any">
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/apple-touch-icon.png">
     <meta name="theme-color" content="#fffaf5">
-    <meta property="og:title" content="DinkyDash — The Digital Family Calendar for Screens You Already Own">
+    <meta property="og:title" content="DinkyDash — A Family Calendar on the Screen You Already Own">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://dinkydash.co/">
     <meta property="og:image" content="https://dinkydash.co/images/og-board-kitchen.jpg">
-    <meta property="og:description" content="Turn any TV, tablet or Raspberry Pi into a shared family calendar. Works with Google, Apple and Outlook calendars, plus a chore rota, countdowns and a daily AI brief.">
+    <meta property="og:description" content="A digital family calendar for the TV, tablet or Raspberry Pi you already own. $39 a year, or free if you run it yourself. Open source, no account, no adverts.">
     <meta name="twitter:card" content="summary_large_image">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -40,7 +40,10 @@
             --radius: 16px;
         }
 
-        html { scroll-behavior: smooth; }
+        /* Marketing pages read a touch small on a desktop browser, so the
+           whole site is scaled up 15% from one root value. Every length is in
+           rem/em, so this lifts text and spacing together. */
+        html { scroll-behavior: smooth; font-size: 115%; }
 
         body {
             font-family: 'Nunito', system-ui, -apple-system, sans-serif;
@@ -371,6 +374,23 @@
         line-height: 1.6;
     }
     .hero-note strong { color: var(--text-mid); }
+    /* Small credibility strip. The site is a DR 11 stranger asking for an
+       email, so the few true things we can show are worth showing. */
+    .hero-proof {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px 14px;
+        margin-top: 20px;
+        font-size: 0.78rem;
+        color: var(--text-muted);
+        font-weight: 700;
+    }
+    .hero-proof span::after {
+        content: "\00b7";
+        margin-left: 14px;
+        color: var(--border);
+    }
+    .hero-proof span:last-child::after { content: ""; margin: 0; }
 
     @media (prefers-reduced-motion: no-preference) {
         .hero-copy, .hero-shot { animation: rise 0.5s ease-out both; }
@@ -488,51 +508,107 @@
     }
     .split-phone { max-width: 320px; margin: 0 auto; }
 
-    /* PRICE MATH */
-    .math {
-        padding: 72px 0 0;
-    }
-    .math h2 {
+    /* SHARED SECTION FURNITURE */
+    .section-head h2 {
         font-size: 2rem;
         font-weight: 800;
         text-align: center;
+        margin-bottom: 12px;
         letter-spacing: -0.02em;
-        margin-bottom: 10px;
     }
-    .math > .container > p.math-intro {
+    .section-head > p {
         text-align: center;
         color: var(--text-mid);
-        max-width: 520px;
-        margin: 0 auto 32px;
+        max-width: 580px;
+        margin: 0 auto 36px;
         font-size: 1.05rem;
     }
-    .math-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 20px;
-        max-width: 860px;
-        margin: 0 auto;
-    }
-    .math-card {
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: var(--radius);
-        padding: 24px;
+    /* The paragraph that lands the argument after a grid of evidence. */
+    .lede {
+        max-width: 620px;
+        margin: 32px auto 0;
         text-align: center;
+        color: var(--text-mid);
+        font-size: 1rem;
+        line-height: 1.75;
     }
-    .math-card.highlight { border: 2px solid var(--accent); background: var(--accent-soft); }
-    .math-name { font-size: 0.85rem; font-weight: 700; color: var(--text-mid); margin-bottom: 8px; }
-    .math-price { font-size: 1.9rem; font-weight: 800; letter-spacing: -0.02em; color: var(--text); }
-    .math-sub { font-size: 0.82rem; color: var(--text-muted); margin-top: 4px; }
-    .math-card.highlight .math-price { color: var(--accent); }
-    .math-note {
+    .lede strong { color: var(--text); }
+    .lede + .lede { margin-top: 14px; }
+    .source-note {
         text-align: center;
         font-size: 0.78rem;
         color: var(--text-muted);
-        margin-top: 20px;
+        margin: 24px auto 0;
         max-width: 640px;
-        margin-left: auto;
-        margin-right: auto;
+    }
+
+    /* CARD GRID, USED BY THE TWO ARGUMENT SECTIONS */
+    .cards { padding: 72px 0 0; }
+    .cards-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+    }
+    .card {
+        background: var(--surface);
+        border-radius: var(--radius);
+        padding: 28px;
+        border: 1px solid var(--border);
+    }
+    .card h3 { font-size: 1rem; font-weight: 800; margin-bottom: 6px; }
+    .card p { font-size: 0.88rem; color: var(--text-mid); line-height: 1.6; }
+    .card .verdict {
+        display: block;
+        margin-top: 10px;
+        font-size: 0.82rem;
+        font-weight: 800;
+        color: var(--text);
+    }
+
+    /* NOTHING TO TICK OFF */
+    .upkeep {
+        padding: 64px 0;
+        margin-top: 72px;
+        background: var(--surface-warm);
+        border-top: 1px solid var(--border);
+        border-bottom: 1px solid var(--border);
+    }
+
+    /* WHERE THE DATA SITS — text only, so it reads differently from the
+       card grids either side of it. */
+    .privacy { padding: 72px 0 0; }
+    .privacy .lede { max-width: 660px; text-align: left; }
+
+    /* THE DAILY LINE */
+    .samples { padding: 72px 0 0; }
+    .samples-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+    }
+    .sample-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-left: 4px solid var(--accent);
+        border-radius: var(--radius);
+        padding: 24px;
+    }
+    .sample-headline {
+        font-size: 1.05rem;
+        font-weight: 800;
+        letter-spacing: -0.01em;
+        margin-bottom: 8px;
+        line-height: 1.35;
+    }
+    .sample-note { font-size: 0.88rem; color: var(--text-mid); line-height: 1.6; }
+    .sample-kind {
+        display: block;
+        margin-top: 12px;
+        font-size: 0.72rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--text-muted);
     }
 
     /* SCREENS YOU OWN */
@@ -581,97 +657,34 @@
     .screen-tile h3 { font-size: 0.95rem; font-weight: 800; margin-bottom: 4px; }
     .screen-tile p { font-size: 0.82rem; color: var(--text-mid); line-height: 1.55; }
 
-    /* VALUE PROPS */
-    .value { padding: 72px 0 0; }
-    .value h2 {
-        font-size: 2rem;
-        font-weight: 800;
-        text-align: center;
-        margin-bottom: 12px;
-        letter-spacing: -0.02em;
-    }
-    .value > .container > p {
-        text-align: center;
-        color: var(--text-mid);
-        max-width: 500px;
-        margin: 0 auto 40px;
-        font-size: 1.05rem;
-    }
-    .value-grid {
+    /* WHAT IT COSTS — the price comparison and the two modes, one section */
+    .costs { padding: 72px 0 0; }
+    .math-grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
         gap: 20px;
-    }
-    .value-card {
-        background: var(--surface);
-        border-radius: var(--radius);
-        padding: 28px;
-        border: 1px solid var(--border);
-    }
-    .value-emoji { font-size: 1.6rem; margin-bottom: 12px; }
-    .value-card h3 { font-size: 1rem; font-weight: 800; margin-bottom: 6px; }
-    .value-card p { font-size: 0.88rem; color: var(--text-mid); line-height: 1.6; }
-
-    /* HOW IT WORKS */
-    .how { padding: 72px 0 0; }
-    .how h2 {
-        font-size: 2rem;
-        font-weight: 800;
-        text-align: center;
-        margin-bottom: 12px;
-        letter-spacing: -0.02em;
-    }
-    .how > .container > p.how-intro {
-        text-align: center;
-        color: var(--text-mid);
-        max-width: 520px;
-        margin: 0 auto 40px;
-        font-size: 1.05rem;
-    }
-    .steps {
-        display: flex;
-        flex-direction: column;
-        gap: 28px;
-        max-width: 580px;
+        max-width: 860px;
         margin: 0 auto;
     }
-    .step { display: flex; gap: 18px; align-items: flex-start; }
-    .step-num {
-        flex-shrink: 0;
-        width: 36px; height: 36px;
-        display: flex; align-items: center; justify-content: center;
-        background: var(--accent);
-        color: #fff;
-        border-radius: 50%;
-        font-size: 0.85rem;
-        font-weight: 800;
+    .math-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 24px;
+        text-align: center;
     }
-    .step-body h3 { font-size: 1rem; font-weight: 700; margin-bottom: 2px; }
-    .step-body p { color: var(--text-mid); font-size: 0.9rem; }
-    .steps-cta { text-align: center; margin-top: 36px; }
+    .math-card.highlight { border: 2px solid var(--accent); background: var(--accent-soft); }
+    .math-name { font-size: 0.85rem; font-weight: 700; color: var(--text-mid); margin-bottom: 8px; }
+    .math-price { font-size: 1.9rem; font-weight: 800; letter-spacing: -0.02em; color: var(--text); }
+    .math-sub { font-size: 0.82rem; color: var(--text-muted); margin-top: 4px; }
+    .math-card.highlight .math-price { color: var(--accent); }
 
-    /* TWO WAYS TO RUN IT */
-    .modes { padding: 72px 0 0; }
-    .modes h2 {
-        font-size: 2rem;
-        font-weight: 800;
-        text-align: center;
-        margin-bottom: 12px;
-        letter-spacing: -0.02em;
-    }
-    .modes > .container > p.modes-intro {
-        text-align: center;
-        color: var(--text-mid);
-        max-width: 540px;
-        margin: 0 auto 36px;
-        font-size: 1.05rem;
-    }
     .modes-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 20px;
         max-width: 820px;
-        margin: 0 auto;
+        margin: 48px auto 0;
     }
     .mode-card {
         background: var(--surface);
@@ -771,7 +784,8 @@
         .tour-list { grid-template-columns: repeat(2, 1fr); }
     }
     @media (max-width: 720px) {
-        .value-grid { grid-template-columns: 1fr; }
+        .cards-grid { grid-template-columns: 1fr; }
+        .samples-grid { grid-template-columns: 1fr; }
         .math-grid { grid-template-columns: 1fr; }
         .modes-grid { grid-template-columns: 1fr; }
         .screens-photos { grid-template-columns: 1fr; }
@@ -809,14 +823,18 @@
     <div class="container">
         <div class="hero-grid">
             <div class="hero-copy">
-                <div class="hero-pill"><span class="dot"></span> Hosted version in build &middot; waiting list open</div>
-                <h1>The digital family calendar for screens you already own</h1>
-                <p class="subtitle">Today's agenda from your Google, Apple and Outlook calendars, whose turn each chore is, the countdowns the kids ask about, and one line written fresh each morning. On the TV, the old tablet, or a Raspberry Pi. No $600 frame.</p>
+                <div class="hero-pill"><span class="dot"></span> Open source &middot; No app to install</div>
+                <h1>A simple screen that shows your family what matters today</h1>
+                <p class="subtitle">DinkyDash is a digital family calendar with none of the cruft. Your calendar feed, a few chores, the countdowns the kids ask about. Set it up from your phone, point a screen at it, and leave it alone.</p>
                 <div class="hero-buttons">
-                    <a href="https://fffwryhvses.typeform.com/to/yxMMhmFs" target="_blank" rel="noopener" class="btn">Join the waiting list</a>
-                    <a href="#two-ways" class="btn btn-outline">Or self-host it free</a>
+                    <a href="/getting-started/" class="btn">Run it yourself, free</a>
+                    <a href="https://fffwryhvses.typeform.com/to/yxMMhmFs" target="_blank" rel="noopener" class="btn btn-outline">Join the waiting list</a>
                 </div>
-                <p class="hero-note"><strong>The first 100 families on the list pay $29 a year</strong>, locked in for as long as they stay. 14-day trial, no card up front.</p>
+                <div class="hero-proof">
+                    <span>MIT licensed</span>
+                    <span>Open source since 2021</span>
+                    <span>90+ stars on GitHub</span>
+                </div>
             </div>
 
             <div class="hero-shot">
@@ -833,71 +851,116 @@
 <!-- THE BOARD, UP CLOSE -->
 <section class="tour">
     <div class="container">
-        <h2>This is the whole product</h2>
-        <p>One page, recalculated every morning, readable from the other side of the kitchen. Nothing to tap, nothing to tick off.</p>
+        <h2>What's on the board</h2>
+        <p>One page, readable from the other side of the kitchen. The agenda, the rota, the countdowns, and one written line. The important things, and nothing else.</p>
         <figure class="shot">
             <img src="/images/family-dashboard-board.webp" width="1600" height="960" decoding="async" loading="lazy"
                  alt="A close-up of the DinkyDash family dashboard: today's agenda in time order, tomorrow underneath, a chore rota, birthday countdowns, and an AI-written line">
         </figure>
         <ul class="tour-list">
-            <li><strong>Today's agenda</strong>, in time order, merged from as many Google, Apple or Outlook calendars as you connect.</li>
+            <li><strong>Today's agenda</strong>, in time order, merged from as many calendars as you connect.</li>
             <li><strong>A look at tomorrow</strong> underneath it, on the days today leaves room.</li>
             <li><strong>Whose turn each chore is</strong> &mdash; rotated daily, so nobody has to arbitrate.</li>
             <li><strong>Countdowns</strong> to birthdays and the dates children ask about on repeat.</li>
-            <li><strong>One line written each morning</strong> by Claude &mdash; some days a fact, some days about the dog.</li>
+            <li><strong>One line written each morning</strong> &mdash; some days a fact, some days about the dog.</li>
             <li><strong>Light or dark</strong>, sized in one measurement so it fits every screen you own.</li>
         </ul>
     </div>
 </section>
 
-<!-- SET IT UP FROM YOUR PHONE -->
-<section class="split">
+<!-- YOURS TO KEEP -->
+<section class="cards">
     <div class="container">
-        <div class="split-grid">
-            <div class="split-copy">
-                <h2>Set it up from your phone</h2>
-                <p>Everything on the board is edited from one page: add a child, paste a calendar link, change who takes the bins out, switch to dark.</p>
-                <ul>
-                    <li>Add people, pets, chores and countdowns</li>
-                    <li>Connect Google, iCloud or Outlook calendars</li>
-                    <li>See at a glance whether today's board is written</li>
-                    <li>Rewrite the day's line whenever you like</li>
-                </ul>
-                <p>Save it to your home screen and it opens like an app.</p>
+        <div class="section-head">
+            <h2>Yours to keep</h2>
+            <p>Every other family calendar is a company standing between you and your own week. Companies raise prices, move features behind a paywall, and close.</p>
+        </div>
+        <div class="cards-grid">
+            <div class="card">
+                <h3>Buy the screen, then rent the features</h3>
+                <p>Skylight sells the 15&Prime; Calendar from $329.99. Photo Screensaver, Meal Planning, Magic Import and Rewards are not included &mdash; they need Plus, at $79 a year.</p>
+                <span class="verdict">Stop paying, and they stop.</span>
             </div>
-            <div class="split-phone">
-                <figure class="shot">
-                    <img src="/images/family-calendar-settings-phone.webp" width="784" height="1327" decoding="async" loading="lazy"
-                         alt="A hand holding a phone showing the DinkyDash settings page, with sections for people, pets, chores, special dates and calendars">
-                </figure>
+            <div class="card">
+                <h3>Or the subscription is not optional</h3>
+                <p>Hearth Display lists at $699, and the membership is required: $9 a month, or $86.40 a year. Routines, rewards and meal planning go with it if it lapses.</p>
+                <span class="verdict">Nearly $800 in year one.</span>
+            </div>
+            <div class="card">
+                <h3>Or the company simply closes</h3>
+                <p>Maple, a family organiser app, was acquired and shuts down on 31 December 2026. Nothing its users did caused that, and nothing they could have done would have prevented it.</p>
+                <span class="verdict">This happens.</span>
             </div>
         </div>
+        <p class="lede">DinkyDash has <strong>no company in the loop</strong>. The code is MIT-licensed and public, it runs on your hardware with your own API key, and there is no server of ours it has to reach. If this project were abandoned tomorrow, every board on every wall would carry on working.</p>
+        <p class="lede">That is not a promise in a FAQ. It is how the thing is built &mdash; and it is the honest pitch for the paid version too: we are not asking you to trust us with the wall. <a href="https://github.com/caspii/dinkydash">Read the code</a>.</p>
+        <p class="source-note">Competitor prices and features checked 6 September 2026. Skylight and Hearth are good products &mdash; you just might not need the hardware.</p>
     </div>
 </section>
 
-<!-- PRICE MATH -->
-<section class="math">
+<!-- NOTHING TO MAINTAIN -->
+<section class="upkeep">
     <div class="container">
-        <h2>Do the math</h2>
-        <p class="math-intro">The competition sells you a screen. You already have three.</p>
-        <div class="math-grid">
-            <div class="math-card">
-                <div class="math-name">Skylight Calendar Max 27&Prime;</div>
-                <div class="math-price">$599.99</div>
-                <div class="math-sub">+ $79/yr for Plus features</div>
+        <div class="section-head">
+            <h2>Nothing to maintain</h2>
+            <p>Every family organiser dies the same way. Somebody sets it up in January, and by March nobody is ticking the boxes. So the board has no boxes.</p>
+        </div>
+        <div class="cards-grid">
+            <div class="card">
+                <h3>Chores rotate on the date</h3>
+                <p>Nobody marks one done, and nobody arbitrates whose turn it is. The wall already said, and it will still be saying the right name in March.</p>
             </div>
-            <div class="math-card">
-                <div class="math-name">Hearth Display 27&Prime;</div>
-                <div class="math-price">$699</div>
-                <div class="math-sub">+ $9/mo membership</div>
+            <div class="card">
+                <h3>Countdowns count themselves</h3>
+                <p>Ages and days-to-go are worked out fresh from today's date, so they cannot drift. <a href="/birthday-countdown/">Try the birthday countdown &rarr;</a></p>
             </div>
-            <div class="math-card highlight">
-                <div class="math-name">DinkyDash hosted, on your screen</div>
-                <div class="math-price">$39<span style="font-size: 1rem; font-weight: 700;">/yr</span></div>
-                <div class="math-sub">$29/yr for the first 100 on the list</div>
+            <div class="card">
+                <h3>A bad morning stays honest</h3>
+                <p>If the overnight run fails, the times, turns and countdowns are still today's. Only the written line is old, and the board tells you so.</p>
             </div>
         </div>
-        <p class="math-note">Competitor prices checked 6 September 2026. Skylight and Hearth are lovely products &mdash; you just might not need the hardware. Running DinkyDash on your own machine is free forever, and always will be.</p>
+        <p class="lede">The rest of the category is running the other way &mdash; tap-to-complete, points, rewards, child locks. Those are <strong>apps on a wall</strong>, and apps on a wall need feeding. This is a poster that updates itself.</p>
+    </div>
+</section>
+
+<!-- WHERE THE DATA SITS -->
+<section class="privacy">
+    <div class="container">
+        <div class="section-head">
+            <h2>No account, no camera, no adverts</h2>
+            <p>The board holds your children's names, their birthdays and your week. Here is exactly where that goes.</p>
+        </div>
+        <p class="lede">There is no account to create, no camera and no microphone. It is a web page. Run it yourself and your config, your calendar feeds and the board all stay on your machine. Once each morning the day's agenda goes to Anthropic, so Claude can write the line. Nothing else leaves, and the board still works if you skip that step.</p>
+        <p class="lede">Hosted, we keep your config so we can build the board each morning. It is never sold and there are no adverts. You can export it and run it yourself whenever you like. <strong>The code that touches all of it is public.</strong> <a href="https://github.com/caspii/dinkydash">Read it</a>.</p>
+    </div>
+</section>
+
+<!-- THE DAILY LINE -->
+<section class="samples">
+    <div class="container">
+        <div class="section-head">
+            <h2>One line, written each morning</h2>
+            <p>No other family calendar does this. Claude reads the day ahead and writes a headline and a single line &mdash; some days a fact worth repeating at school, some days about the dog.</p>
+        </div>
+        <div class="samples-grid">
+            <div class="sample-card">
+                <p class="sample-headline">Swimming, then football &mdash; a full day.</p>
+                <p class="sample-note">Octopuses have three hearts. Two of them stop beating when the octopus swims, which is why it would rather walk.</p>
+                <span class="sample-kind">A busy Tuesday</span>
+            </div>
+            <div class="sample-card">
+                <p class="sample-headline">Term starts tomorrow. Last quiet one.</p>
+                <p class="sample-note">Mabel has claimed the warm patch by the radiator and is defending it against all comers, including the hoover.</p>
+                <span class="sample-kind">The day before</span>
+            </div>
+            <div class="sample-card">
+                <p class="sample-headline">Nothing on today. Enjoy it.</p>
+                <p class="sample-note">A day on Venus lasts longer than a year on Venus. It turns so slowly that it laps itself.</p>
+                <span class="sample-kind">An empty Sunday</span>
+            </div>
+        </div>
+        <p class="lede">It keeps a month of what it has already written, so it never repeats itself &mdash; and on a genuinely empty day it says so, rather than inventing excitement. <strong>This is what stops a wall display becoming wallpaper by week three.</strong></p>
+        <p class="source-note">Illustrative examples, written to the same brief the real one gets. No real family's data appears anywhere on this site.</p>
     </div>
 </section>
 
@@ -905,7 +968,7 @@
 <section class="screens">
     <div class="container">
         <h2>Bring your own screen</h2>
-        <p>DinkyDash is a web page. Anything with a browser becomes the family board &mdash; and it re-measures itself to fit whatever you point at it.</p>
+        <p>DinkyDash is a web page. Anything with a browser becomes the family board &mdash; and it measures the screen it lands on, so it fits whatever you point at it.</p>
         <div class="screens-photos">
             <figure class="shot">
                 <img src="/images/family-calendar-tablet-kitchen.webp" width="1195" height="896" decoding="async" loading="lazy"
@@ -941,99 +1004,58 @@
     </div>
 </section>
 
-<!-- VALUE PROPS -->
-<section class="value">
+<!-- SET IT UP FROM YOUR PHONE -->
+<section class="split">
     <div class="container">
-        <h2>One screen answers everyone's questions</h2>
-        <p>"What's on today?" "Whose turn is it?" "How many days until my birthday?" &mdash; the wall knows.</p>
-        <div class="value-grid">
-            <div class="value-card">
-                <div class="value-emoji">&#128197;</div>
-                <h3>Google, Apple and Outlook</h3>
-                <p>All three publish a calendar sharing link. You paste that link in &mdash; there is no account to sign in to. Add as many as you like; they arrive as one agenda in time order.</p>
-            </div>
-            <div class="value-card">
-                <div class="value-emoji">&#128260;</div>
-                <h3>A chore rota that runs itself</h3>
-                <p>Chores rotate between the children every day. The screen says whose turn it is, so you don't have to.</p>
-            </div>
-            <div class="value-card">
-                <div class="value-emoji">&#9201;&#65039;</div>
-                <h3>Countdowns kids check daily</h3>
-                <p>Birthdays, holidays, the school trip. Ages update themselves. <a href="/birthday-countdown/">Try the birthday countdown &rarr;</a></p>
-            </div>
-            <div class="value-card">
-                <div class="value-emoji">&#129302;</div>
-                <h3>A line written every morning</h3>
-                <p>Claude reads the day ahead and writes a headline and one line of copy. It knows what happened yesterday, so it never repeats itself.</p>
-            </div>
-            <div class="value-card">
-                <div class="value-emoji">&#128737;&#65039;</div>
-                <h3>Honest about a bad morning</h3>
-                <p>If a morning's run fails, the times, turns and countdowns on the wall are still today's. Only the written line is old, and the board says so.</p>
-            </div>
-            <div class="value-card">
-                <div class="value-emoji">&#128275;</div>
-                <h3>Open source underneath</h3>
-                <p>The hosted version is built from the same MIT-licensed repository you can read, fork and run yourself. <a href="https://github.com/caspii/dinkydash">See the code</a>.</p>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- HOW IT WORKS -->
-<section class="how">
-    <div class="container">
-        <h2>How the hosted version will work</h2>
-        <p class="how-intro">Five minutes of setup, then it looks after itself.</p>
-        <div class="steps">
-            <div class="step">
-                <div class="step-num">1</div>
-                <div class="step-body">
-                    <h3>Describe your family once</h3>
-                    <p>Names, birthdays, pets, chores and the dates you count down to. Paste in a calendar link or three.</p>
-                </div>
-            </div>
-            <div class="step">
-                <div class="step-num">2</div>
-                <div class="step-body">
-                    <h3>Your board is written at 6am</h3>
-                    <p>In your own timezone. We merge the calendars, work out the turns, and ask Claude for the day's line.</p>
-                </div>
-            </div>
-            <div class="step">
-                <div class="step-num">3</div>
-                <div class="step-body">
-                    <h3>Point any screen at your board</h3>
-                    <p>A TV, an old tablet, a Pi, a spare monitor. It refreshes itself all day and needs nothing installed.</p>
-                </div>
-            </div>
-        </div>
-        <div class="steps-cta">
-            <a href="https://fffwryhvses.typeform.com/to/yxMMhmFs" target="_blank" rel="noopener" class="btn">Join the waiting list</a>
-        </div>
-    </div>
-</section>
-
-<!-- TWO WAYS TO RUN IT -->
-<section class="modes" id="two-ways">
-    <div class="container">
-        <h2>Two ways to run it</h2>
-        <p class="modes-intro">Same board, same code, same repository. The difference is who keeps it running.</p>
-        <div class="modes-grid">
-            <div class="mode-card featured">
-                <div class="mode-label">In build &mdash; join the list</div>
-                <h3>Hosted</h3>
-                <div class="mode-price">$39/year, or $6/month</div>
+        <div class="split-grid">
+            <div class="split-copy">
+                <h2>Set up once, from your phone</h2>
+                <p>Describe your family &mdash; names, birthdays, pets, chores, the dates you count down to &mdash; and paste in a calendar link or three. Then leave it alone.</p>
                 <ul>
-                    <li>Nothing to install and nothing to keep alive</li>
-                    <li>We run the 6am job and pay for the AI</li>
-                    <li>Your own board URL, for any screen in the house</li>
-                    <li>Settings from your phone, backed up for you</li>
-                    <li>14-day trial, no card up front</li>
+                    <li>Add people, pets, chores and countdowns</li>
+                    <li>Connect Google, iCloud or Outlook calendars</li>
+                    <li>See at a glance whether today's board is written</li>
+                    <li>Rewrite the day's line whenever you like</li>
                 </ul>
-                <a href="https://fffwryhvses.typeform.com/to/yxMMhmFs" target="_blank" rel="noopener" class="btn">Join the waiting list</a>
+                <p>Save the settings page to your home screen and it opens like an app. Every morning after that, the board rebuilds itself and the screen on the wall refreshes on its own.</p>
             </div>
+            <div class="split-phone">
+                <figure class="shot">
+                    <img src="/images/family-calendar-settings-phone.webp" width="784" height="1327" decoding="async" loading="lazy"
+                         alt="A hand holding a phone showing the DinkyDash settings page, with sections for people, pets, chores, special dates and calendars">
+                </figure>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- WHAT IT COSTS -->
+<section class="costs" id="two-ways">
+    <div class="container">
+        <div class="section-head">
+            <h2>What it costs</h2>
+            <p>The competition sells you a screen. You already own three. Here is the first year, all in.</p>
+        </div>
+        <div class="math-grid">
+            <div class="math-card">
+                <div class="math-name">Hearth Display 27&Prime;</div>
+                <div class="math-price">$785</div>
+                <div class="math-sub">$699 display + $86.40 required membership</div>
+            </div>
+            <div class="math-card">
+                <div class="math-name">Skylight Calendar 15&Prime; + Plus</div>
+                <div class="math-price">$409</div>
+                <div class="math-sub">$329.99 screen + $79 a year</div>
+            </div>
+            <div class="math-card highlight">
+                <div class="math-name">DinkyDash, on your screen</div>
+                <div class="math-price">$39<span style="font-size: 1rem; font-weight: 700;">/yr</span></div>
+                <div class="math-sub">or $0 if you run it yourself</div>
+            </div>
+        </div>
+        <p class="lede">The bring-your-own-screen rivals are closer: DAKboard is $60 a year and Mango Display $59.99. We are cheaper than both, but <strong>price is not really the difference</strong> &mdash; theirs is a subscription, and ours is also a repository you get to keep.</p>
+
+        <div class="modes-grid">
             <div class="mode-card">
                 <div class="mode-label">Available today</div>
                 <h3>Self-hosted</h3>
@@ -1047,15 +1069,37 @@
                 </ul>
                 <a href="/getting-started/" class="btn btn-outline">Read the setup guide</a>
             </div>
+            <div class="mode-card featured">
+                <div class="mode-label">In build &mdash; join the list</div>
+                <h3>Hosted</h3>
+                <div class="mode-price">$39/year, or $6/month</div>
+                <ul>
+                    <li>Nothing to install and nothing to keep alive</li>
+                    <li>We run the 6am job and pay for the AI</li>
+                    <li>Your own board URL, for any screen in the house</li>
+                    <li>Settings from your phone, backed up for you</li>
+                    <li>14-day trial, no card up front</li>
+                </ul>
+                <a href="https://fffwryhvses.typeform.com/to/yxMMhmFs" target="_blank" rel="noopener" class="btn">Join the waiting list</a>
+            </div>
         </div>
+        <p class="source-note">Same board, same code, same repository. The only difference is who keeps it running.</p>
     </div>
 </section>
 
 <!-- FAQ -->
 <section class="faq">
     <div class="container">
-        <h2>Questions families ask</h2>
+        <h2>Common questions</h2>
         <div class="faq-list">
+            <details>
+                <summary>What happens to my board if DinkyDash goes away?</summary>
+                <p>If you self-host, nothing happens: the code is MIT-licensed and already on your machine, so it keeps running whether this project continues or not. If we are hosting it for you, the same code is public, and your config is a small file you can export and run yourself. That is the point of building it this way.</p>
+            </details>
+            <details>
+                <summary>Will features I have today ever move behind a paywall?</summary>
+                <p>Not for anything already released. Everything on the board today is published under the MIT license, and that grant cannot be withdrawn for code that is already out — so a copy you are running stays yours to run. The hosted version is a convenience: we run the machine and pay the AI bill. It is not a key to features you would otherwise lose.</p>
+            </details>
             <details>
                 <summary>When can I get the hosted version?</summary>
                 <p>It is being built now, in the open. Families are invited from the waiting list in small batches, so that what breaks for the first group is fixed before the next one arrives. Join the list and you will hear from us before it opens to everyone.</p>
@@ -1082,7 +1126,7 @@
             </details>
             <details>
                 <summary>How is this different from a Skylight or Hearth?</summary>
-                <p>Skylight and Hearth sell you a dedicated touchscreen ($300–$699) with an optional or required subscription on top. DinkyDash is just the software, running on a screen you already own. It also does something they don't: a line written fresh every morning from your actual day. <a href="/skylight-calendar-alternatives/">See the full comparison</a>.</p>
+                <p>Skylight and Hearth sell you a dedicated touchscreen, from $329.99 to $699, with a subscription on top that is optional at Skylight and required at Hearth. DinkyDash is just the software, running on a screen you already own, and nothing on it can be taken away later. It also does something they don't: a line written fresh every morning from your actual day. <a href="/skylight-calendar-alternatives/">See the full comparison</a>.</p>
             </details>
         </div>
     </div>
@@ -1091,11 +1135,11 @@
 <!-- CTA -->
 <section class="cta">
     <div class="container">
-        <h2>Get on the list before the first hundred</h2>
-        <p>The hosted version opens in batches, and the waiting list is the queue. Join it and you keep the launch price for as long as you stay.</p>
+        <h2>Put it on the wall this week</h2>
+        <p>Set it up yourself this afternoon, or join the waiting list and we will run it for you. Either way, the code is yours and it stays that way.</p>
         <div class="cta-buttons">
-            <a href="https://fffwryhvses.typeform.com/to/yxMMhmFs" target="_blank" rel="noopener" class="btn">Join the waiting list</a>
-            <a href="/getting-started/" class="btn btn-outline">Set it up yourself, free</a>
+            <a href="/getting-started/" class="btn">Set it up yourself, free</a>
+            <a href="https://fffwryhvses.typeform.com/to/yxMMhmFs" target="_blank" rel="noopener" class="btn btn-outline">Join the waiting list</a>
         </div>
         <p class="cta-note">We only email about DinkyDash, and one click gets you off the list. Or read the code on <a href="https://github.com/caspii/dinkydash">GitHub</a>.</p>
     </div>
@@ -1147,6 +1191,16 @@
   "mainEntity": [
     {
       "@type": "Question",
+      "name": "What happens to my board if DinkyDash goes away?",
+      "acceptedAnswer": { "@type": "Answer", "text": "If you self-host, nothing happens: the code is MIT-licensed and already on your machine, so it keeps running whether this project continues or not. If we are hosting it for you, the same code is public, and your config is a small file you can export and run yourself. That is the point of building it this way." }
+    },
+    {
+      "@type": "Question",
+      "name": "Will features I have today ever move behind a paywall?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Not for anything already released. Everything on the board today is published under the MIT license, and that grant cannot be withdrawn for code that is already out — so a copy you are running stays yours to run. The hosted version is a convenience: we run the machine and pay the AI bill. It is not a key to features you would otherwise lose." }
+    },
+    {
+      "@type": "Question",
       "name": "When can I get the hosted version?",
       "acceptedAnswer": { "@type": "Answer", "text": "It is being built now, in the open. Families are invited from the waiting list in small batches, so that what breaks for the first group is fixed before the next one arrives. Join the list and you will hear from us before it opens to everyone." }
     },
@@ -1168,7 +1222,7 @@
     {
       "@type": "Question",
       "name": "Does it work with Google, Apple and Outlook calendars?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Yes, all three. Google Calendar, Apple iCloud Calendar and Outlook each let you share a calendar as an iCal link, and that link is what DinkyDash reads. You paste the link in — there is no sign-in to grant and no app to install. Connect several and they are merged into one agenda in time order." }
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes, all three. Google Calendar, Apple iCloud Calendar and Outlook each let you share a calendar as an iCal link, and that link is what DinkyDash reads. You paste the link in — there is no sign-in to grant and no app to install. Connect several and they are merged into one agenda in time order. The setup guide has the steps for each one." }
     },
     {
       "@type": "Question",
@@ -1178,7 +1232,7 @@
     {
       "@type": "Question",
       "name": "How is this different from a Skylight or Hearth?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Skylight and Hearth sell you a dedicated touchscreen ($300–$699) with an optional or required subscription on top. DinkyDash is just the software, running on a screen you already own. It also does something they don't: a line written fresh every morning from your actual day." }
+      "acceptedAnswer": { "@type": "Answer", "text": "Skylight and Hearth sell you a dedicated touchscreen, from $329.99 to $699, with a subscription on top that is optional at Skylight and required at Hearth. DinkyDash is just the software, running on a screen you already own, and nothing on it can be taken away later. It also does something they don't: a line written fresh every morning from your actual day. See the full comparison." }
     }
   ]
 }
