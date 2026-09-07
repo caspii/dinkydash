@@ -175,7 +175,7 @@ pip install -r requirements-dev.txt   # adds pytest and the website build; not n
 python -m pytest tests/ -q
 ```
 
-227 tests, well under a second. They cover leap years, timezone conversion, event ordering, chore
+264 tests, well under a second. They cover leap years, timezone conversion, event ordering, chore
 rotation, the stale-board logic, the config round-trip, and the settings routes that write it.
 
 GitHub Actions runs the same command on every push and pull request, on Python 3.11
@@ -630,13 +630,14 @@ tail -f /home/pi/dinkydash/generate.log   # last night's generation
 | `dinkydash/board.py` | Turns config + payload into what the board renders |
 | `dinkydash/runner.py` | The two halves of the cycle: `refresh_calendars` and `write_brief` |
 | `dinkydash/schedule.py` | `due()` — which of the two the clock and the config owe right now |
+| `dinkydash/store.py` | Where the config, the board and the note history are kept |
 | `web/` | Flask app — board, settings UI, templates |
 | `web/templates/board.html` | The board itself, light and dark, all screen sizes |
 | `generate.py` | Command-line skin over `dinkydash.runner` — this is what cron calls |
 | `app.py` | Flask entry point |
 | `config.yaml` | All configuration. The settings UI writes this same file |
 | `config.example.yaml` | Template config, documenting every key |
-| `tests/` | 227 tests. Run them before committing |
+| `tests/` | 264 tests. Run them before committing |
 | `design/` | Mockups for the board and settings UI, with the reasoning |
 | `deploy_to_pi.sh` | Deployment (rsync + service restart) |
 | `.env` | `ANTHROPIC_API_KEY` (not in git) |

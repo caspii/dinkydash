@@ -10,6 +10,7 @@ import json
 import pytest
 
 from dinkydash import config as config_module
+from dinkydash.store import FileStore
 from web import create_app
 
 CONFIG = """\
@@ -33,16 +34,16 @@ recurring:
 
 
 @pytest.fixture
-def config_path(tmp_path, monkeypatch):
+def config_path(tmp_path):
     path = tmp_path / "config.yaml"
     path.write_text(CONFIG)
-    monkeypatch.setenv("DINKYDASH_CONFIG", str(path))
     return path
 
 
 @pytest.fixture
 def client(config_path):
-    app = create_app()
+    """The app over that config, handed the store rather than finding one."""
+    app = create_app(FileStore(config_path))
     app.config["TESTING"] = True
     return app.test_client()
 
@@ -197,14 +198,13 @@ class TestTheClockOnTheStatusLine:
     """Stamps are stored in UTC; the family reads their own clock (PLAN bug 9)."""
 
     @pytest.fixture
-    def config_path(self, tmp_path, monkeypatch):
+    def config_path(self, tmp_path):
         # Kolkata is UTC+05:30 in every month of the year. Berlin would make
         # these assertions pass in summer and fail in winter, and the half hour
         # means no accidental slice of the ISO string can look like a pass.
         path = tmp_path / "config.yaml"
         path.write_text(CONFIG.replace('timezone: "Europe/Berlin"',
                                        'timezone: "Asia/Kolkata"'))
-        monkeypatch.setenv("DINKYDASH_CONFIG", str(path))
         return path
 
     @pytest.fixture
@@ -267,10 +267,9 @@ class TestTheCadencePage:
     """The two keys decision 11 added, edited from a phone rather than in YAML."""
 
     @pytest.fixture
-    def config_path(self, tmp_path, monkeypatch):
+    def config_path(self, tmp_path):
         path = tmp_path / "config.yaml"
         path.write_text(CADENCE_CONFIG)
-        monkeypatch.setenv("DINKYDASH_CONFIG", str(path))
         return path
 
     def test_the_page_is_not_swallowed_by_the_section_routes(self, client):
@@ -353,10 +352,9 @@ class TestTheCadencePage:
 
 class TestTheCadenceOnTheHomePage:
     @pytest.fixture
-    def config_path(self, tmp_path, monkeypatch):
+    def config_path(self, tmp_path):
         path = tmp_path / "config.yaml"
         path.write_text(CADENCE_CONFIG)
-        monkeypatch.setenv("DINKYDASH_CONFIG", str(path))
         return path
 
     def test_the_row_says_both_cadences(self, client):
@@ -378,7 +376,7 @@ class TestRefreshingTheCalendarsByHand:
         """Stub the runner, so the test touches neither the network nor a key."""
         calls = []
 
-        def fake(config, base=None, **kwargs):
+        def fake(config, store, **kwargs):
             calls.append(config)
             return {"events": [1, 2, 3], "calendar_statuses": [{"label": "Family", "ok": True}]}
 
@@ -399,7 +397,7 @@ class TestRefreshingTheCalendarsByHand:
     def test_a_broken_feed_is_named_without_its_url(self, client, monkeypatch):
         secret = "https://calendar.google.com/calendar/ical/private-abc123/basic.ics"
 
-        def fake(config, base=None, **kwargs):
+        def fake(config, store, **kwargs):
             return {"events": [],
                     "calendar_statuses": [{"label": "Dad's", "ok": False, "error": secret}]}
 
@@ -409,7 +407,7 @@ class TestRefreshingTheCalendarsByHand:
         assert "private-abc123" not in page
 
     def test_a_failure_flashes_rather_than_500s(self, client, monkeypatch):
-        def explode(config, base=None, **kwargs):
+        def explode(config, store, **kwargs):
             raise OSError("the disk is full")
 
         monkeypatch.setattr("web.routes.settings.refresh_calendars", explode)

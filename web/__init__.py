@@ -6,24 +6,20 @@ trust model as the config file it writes.
 """
 
 import os
-from pathlib import Path
 
 from flask import Flask
 
-from dinkydash import config as config_module
-from dinkydash import runner
+from dinkydash.store import FileStore
 
 
-def load_payload(config):
-    """The last generated payload, or None if nothing has been generated yet."""
-    return runner.read_payload(config_module.data_path(config))
-
-
-def create_app():
+def create_app(store=None):
     app = Flask(__name__, static_folder="static", template_folder="templates")
     # Only ever used to sign flash messages on a LAN-local app.
     app.secret_key = os.environ.get("DINKYDASH_SECRET_KEY", "dinkydash-self-hosted")
-    app.config["CONFIG_PATH"] = Path(config_module.config_path())
+    # Every route reads and writes through this one object, and none of them is
+    # told what is behind it. Cloud mode hands in a different store here and
+    # nothing below this line changes (PLAN.md decision 10).
+    app.config["STORE"] = store or FileStore()
 
     from .routes.board import bp as board_bp
     from .routes.settings import bp as settings_bp

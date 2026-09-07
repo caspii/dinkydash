@@ -12,11 +12,11 @@ present. It costs nothing and calls no API. Real data always wins: if a payload
 in the current schema is already here, this leaves it alone.
 """
 
-import json
 import sys
 from datetime import datetime, timedelta, timezone
 
 from dinkydash import config as config_module
+from dinkydash.store import FileStore
 
 # Enough to fill today's agenda and leave a fortnight of context behind it, the
 # same window a real run fetches.
@@ -40,16 +40,11 @@ NOTE = ("Sample data, so the board has something to show. Run generate.py, or "
         "press “Rewrite now” in settings, for the real thing.")
 
 
-def is_usable(path):
-    """True if a payload is already here and speaks the current schema."""
-    try:
-        with open(path) as f:
-            payload = json.load(f)
-    except (FileNotFoundError, json.JSONDecodeError):
-        return False
+def is_usable(payload):
+    """True if a payload is already stored and speaks the current schema."""
     # Pre-rebuild payloads carry `generated_date` and `ai_content` instead, and
     # nothing build_view reads, so they are worse than no payload at all.
-    return isinstance(payload, dict) and "generated_for_date" in payload
+    return bool(payload) and "generated_for_date" in payload
 
 
 def build_payload(config, today, tzinfo):
@@ -87,18 +82,16 @@ def build_payload(config, today, tzinfo):
 
 
 def main():
-    config = config_module.load_config(config_module.config_path())
-    path = config_module.data_path(config)
+    store = FileStore()
+    config = store.load_config()
 
-    if is_usable(path):
-        print(f"{path} is already a current payload; leaving it alone.")
+    if is_usable(store.load_payload(config)):
+        print("A current board is already stored; leaving it alone.")
         return 0
 
     today = config_module.today_for(config)
-    payload = build_payload(config, today, config_module.tzinfo_for(config))
-    with open(path, "w") as f:
-        json.dump(payload, f, indent=2, ensure_ascii=False)
-    print(f"Wrote sample board data for {today} to {path}.")
+    store.save_payload(config, build_payload(config, today, config_module.tzinfo_for(config)))
+    print(f"Wrote sample board data for {today}.")
     return 0
 
 

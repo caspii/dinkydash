@@ -89,5 +89,9 @@ refresh_minutes: 60
 # 06:00 is a number in older YAML. One brief a day; "Rewrite now" covers the rest.
 brief_time: "06:00"
 
+# Where the generated board and the record of recent notes are kept. Relative
+# paths sit beside this file, so `generate.py --config` moves them with it.
+# These two are storage-layer keys: only the file store reads them, and the
+# hosted version keeps the same two things as rows instead.
 data_file: "dashboard_data.json"
 content_history_file: "content_history.json"

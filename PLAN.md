@@ -2,6 +2,8 @@
 
 *Last updated: September 7, 2026. Supersedes `HOSTING_ANALYSIS.md` (deleted — it predated both the AI generation feature and the July 2026 calendar-display repositioning, and its recommended stack and data model no longer matched the product).*
 
+*September 7, later: the storage seam is built (DIN-19). `dinkydash/store.py` holds the six operations, `FileStore` is the one implementation, and the runner and both blueprints take a store rather than a path. The seam section below describes what exists; `PostgresStore` is now a constructor argument away.*
+
 *September 7 changes: the host is settled — decision 12, DigitalOcean App Platform in Frankfurt with DigitalOcean Managed Postgres and Cloudflare in front. The "Which host?" open question is closed, the hosting section is rewritten around it, DNS gets its own Phase 0 line, and the Compose file's job changes: the shared artefact between the two modes is now the **Dockerfile**, not `docker-compose.yml`.*
 
 *September 6 changes: decision 11 (the refresh cadence is a setting), a storage seam for the payload and history, a hosting and deployment recommendation, the Batch API deferred, and the phases re-sequenced so the Docker Compose file arrives first rather than last.*
@@ -87,12 +89,12 @@ else's edit form.
 
 ### The storage seam
 
-Decision 10 covers the config. The runtime writes two more things — the
-payload and the note history — and today those are file calls scattered across
-`web/__init__.py` (`load_payload`), `runner.py` (`write_payload`) and
-`history.py` (`load_history`, `record`). Cloud mode needs the same operations
-against Postgres, so name them before Phase 1 rather than discovering them
-during it:
+*Built in DIN-19.* Decision 10 covers the config. The runtime writes two more
+things — the payload and the note history — and those used to be file calls
+scattered across `web/__init__.py` (`load_payload`), `runner.py`
+(`write_payload`) and `history.py` (`load_history`, `record`). Cloud mode needs
+the same operations against Postgres, so they were named before Phase 1 rather
+than discovered during it:
 
 ```
 load_config   / save_config
@@ -100,17 +102,22 @@ load_payload  / save_payload
 recent_notes  / record_note
 ```
 
-One object with those six methods. `FileStore` is what exists now, just
-gathered up; `PostgresStore` is the cloud one. `board.build_view`, the runner
-and the settings routes take a store and never learn which. In single mode the
+One object with those six methods, in `dinkydash/store.py`. `FileStore` is what
+exists now, gathered up; `PostgresStore` is the cloud one. The runner, the board
+route and the settings routes take a store and never learn which — `create_app`
+accepts one, and every route reads `app.config["STORE"]`. In single mode the
 payload is `dashboard_data.json`. In cloud mode it is composed from two rows —
 the brief in `generations`, the fetched calendar window in `agendas` — and
 comes back as the same dict.
 
-`data_file` and `content_history_file` are storage-layer keys that have been
+`data_file` and `content_history_file` are storage-layer keys that had been
 living in the family's config dict. They mean nothing in cloud mode. The store
 owns them; they stay in `config.yaml` for compatibility and nothing else reads
 them.
+
+`store.py` and `config.py` are now the only files under `dinkydash/` that open
+a file. That is the invariant to keep: a read anywhere else is a caller cloud
+mode would have to fork.
 
 ### Three clocks, one setting
 
@@ -186,8 +193,10 @@ dinkydash/                  # the engine — pure, no clock, no file reads
 ├── generate.py             # orchestrator: config + date + events -> payload
 ├── board.py                # payload + config -> what the template renders
 ├── config.py               # the config dict: load, save, defaults, migrations, ids
-├── history.py              # rolling record of recent notes, to avoid repeats
-└── runner.py               # the one place that does I/O around the engine
+├── history.py              # what the recent notes say, and how they trim (pure)
+├── schedule.py             # due(config, payload, now) -> what a tick owes (pure)
+├── store.py                # the six storage operations; FileStore today
+└── runner.py               # the two halves of the day, over a store
 
 web/
 ├── __init__.py             # create_app()
@@ -522,7 +531,7 @@ Critical path is 0 → 1 → 2 → 3. Phases 4–6 can run alongside 3. Nothing 
 - [x] Update the Claude model; switch to structured outputs *(#28 — `claude-haiku-4-5` takes no `thinking` parameter, so leaving it unset is the explicit choice)*
 - [ ] The small jobs above: CI, `gitleaks`, push protection, `.env.example`, pinned requirements, key rotation *(DIN-16)*; self-hosted font, URL scrub, referrer policy, `/healthz`. The `Dockerfile` has its own line below.
 - [x] **Decision 11, single-mode half:** `refresh_minutes` and `brief_time` in `DEFAULTS`; `runner.run` split into `refresh_calendars` and `write_brief`; a pure `due()`; `generate.py --tick`; the settings page under *This screen*; the board's reload derived from the interval; README cron line updated. Ships to the Pi at once and needs no database. *(DIN-17 for the engine and cron, DIN-18 for the page)*
-- [ ] Name the storage seam: `FileStore` gathering the six operations that exist today, and the settings routes, runner and board taking a store *(DIN-19)*
+- [x] Name the storage seam: `FileStore` gathering the six operations that exist today, and the settings routes, runner and board taking a store *(DIN-19)*
 - [ ] `Dockerfile` and `docker-compose.yml` for single mode (`web` only) — the self-host path is real from here on, the image is what App Platform builds, and every later phase reuses both *(DIN-30)*
 - [ ] Postgres + plain-SQL migrations; CI running the suite against a Postgres service container *(DIN-31)*
 - [ ] Move DNS to Cloudflare and add the `app` and `staging.app` records *(DIN-29)*. The apex keeps pointing at GitHub Pages until DIN-27 moves the marketing pages onto the app.

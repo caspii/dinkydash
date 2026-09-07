@@ -232,19 +232,6 @@ class TestTimezone:
         assert config_module.tzinfo_for(config).key == "UTC"
 
 
-class TestPaths:
-    def test_relative_paths_resolve_next_to_the_config(self, config_file):
-        config = config_module.load_config(config_file)
-        assert config_module.data_path(config, base=config_file.parent) == \
-            config_file.parent / "dashboard_data.json"
-
-    def test_absolute_paths_are_left_alone(self, config_file, tmp_path):
-        config = config_module.load_config(config_file)
-        config["data_file"] = str(tmp_path / "elsewhere.json")
-        assert config_module.data_path(config, base=config_file.parent) == \
-            tmp_path / "elsewhere.json"
-
-
 def test_people_names_skips_the_nameless(config_file):
     config = config_module.load_config(config_file)
     config["people"].append({"date_of_birth": "2020-01-01"})

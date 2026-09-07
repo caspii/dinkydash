@@ -17,7 +17,6 @@ import logging
 import sys
 from contextlib import contextmanager
 from datetime import date, datetime, timezone
-from pathlib import Path
 
 try:
     import fcntl  # POSIX only; the board runs on a Pi
@@ -28,8 +27,9 @@ from dotenv import load_dotenv
 
 from dinkydash import config as config_module
 from dinkydash.claude_client import GenerationError
-from dinkydash.runner import read_payload, refresh_calendars, run, write_brief
+from dinkydash.runner import refresh_calendars, run, write_brief
 from dinkydash.schedule import due
+from dinkydash.store import FileStore
 
 load_dotenv()
 log = logging.getLogger("dinkydash")
@@ -53,26 +53,26 @@ def main(argv=None):
         stream=sys.stdout,
     )
 
-    path = args.config or config_module.config_path()
-    try:
-        config = config_module.load_config(path)
-    except FileNotFoundError:
-        log.error("No config found at %s. Copy config.example.yaml to config.yaml.", path)
-        return 1
-
     # Generated data sits beside the config it was generated from, so --config
     # moves the payload and the history with it.
-    base = Path(path).expanduser().parent
+    store = FileStore(args.config)
+    try:
+        config = store.load_config()
+    except FileNotFoundError:
+        log.error("No config found at %s. Copy config.example.yaml to config.yaml.",
+                  store.config_path)
+        return 1
+
     if args.tick:
-        with only_one_tick(base / LOCK_FILE) as mine:
+        with only_one_tick(store.base / LOCK_FILE) as mine:
             if not mine:
                 log.warning("A previous tick is still running; skipping this one.")
                 return 0
-            return tick(config, base)
+            return tick(config, store)
 
     today = date.fromisoformat(args.date) if args.date else config_module.today_for(config)
     try:
-        payload = run(config, today=today, base=base)
+        payload = run(config, store, today=today)
     except GenerationError as exc:
         # The previous board is left in place rather than blanking the screen.
         log.error("%s", exc)
@@ -111,10 +111,10 @@ def only_one_tick(path):
         handle.close()  # releases the lock, and so does the process exiting
 
 
-def tick(config, base):
+def tick(config, store):
     """Do what the clock and the config say is owed, and no more."""
     now = datetime.now(timezone.utc)
-    payload = read_payload(config_module.data_path(config, base=base))
+    payload = store.load_payload(config)
     owed = due(config, payload, now)
 
     if not any(owed.values()):
@@ -124,12 +124,12 @@ def tick(config, base):
         return 0
 
     if owed["refresh"]:
-        refresh_calendars(config, now=now, base=base)
+        refresh_calendars(config, store, now=now)
 
     if owed["brief"]:
         today = now.astimezone(config_module.tzinfo_for(config)).date()
         try:
-            report(write_brief(config, today=today, base=base))
+            report(write_brief(config, store, today=today))
         except GenerationError as exc:
             # Not fatal: the brief is simply due again on the next tick.
             log.error("%s", exc)
