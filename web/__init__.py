@@ -5,28 +5,18 @@ network. Anyone who can reach the port can edit the config, which is the same
 trust model as the config file it writes.
 """
 
-import json
-import logging
 import os
 from pathlib import Path
 
 from flask import Flask
 
 from dinkydash import config as config_module
-
-log = logging.getLogger(__name__)
+from dinkydash import runner
 
 
 def load_payload(config):
     """The last generated payload, or None if nothing has been generated yet."""
-    try:
-        with open(config_module.data_path(config)) as f:
-            return json.load(f)
-    except FileNotFoundError:
-        return None
-    except json.JSONDecodeError as exc:
-        log.warning("Dashboard data is not valid JSON (%s); showing the waiting screen", exc)
-        return None
+    return runner.read_payload(config_module.data_path(config))
 
 
 def create_app():

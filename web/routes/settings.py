@@ -9,7 +9,7 @@ comments in the file survive being edited from a phone.
 """
 
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 
 from flask import (Blueprint, abort, current_app, flash, redirect,
                    render_template, request, url_for)
@@ -173,13 +173,21 @@ def home():
     today = config_module.today_for(config)
     payload = load_payload(config)
 
+    tzinfo = config_module.tzinfo_for(config)
     status = {"state": "waiting", "detail": "No board has been generated yet."}
     if payload:
         generated_for = payload.get("generated_for_date")
+        written = _clock(payload.get("generated_at"), tzinfo)
         if generated_for == today.isoformat():
-            status = {"state": "ready", "detail": f"Today's board is up — written {_clock(payload)}."}
-        else:
+            status = {"state": "ready",
+                      "detail": f"Today's board is up — written {written or 'earlier'}."}
+        elif generated_for:
             status = {"state": "stale", "detail": f"Showing the board from {generated_for}."}
+        # A refresh with no brief yet leaves a payload holding only the agenda,
+        # so an unwritten board stays "waiting" rather than claiming a date.
+        fetched = _clock(payload.get("calendars_fetched_at"), tzinfo)
+        if fetched:
+            status["detail"] += f" Calendars refreshed {fetched}."
 
     calendars = config.get("calendars") or []
     broken = [c for c in (payload or {}).get("calendar_statuses", []) if c.get("ok") is False]
@@ -197,9 +205,22 @@ def home():
     )
 
 
-def _clock(payload):
-    stamp = payload.get("generated_at", "")
-    return stamp[11:16] if len(stamp) >= 16 else "earlier"
+def _clock(stamp, tzinfo):
+    """An ISO timestamp as the time on the family's own clock, or None.
+
+    Stamps are written in UTC. The server is often not in the family's timezone
+    — a Pi is frequently left on UTC, and hosted the server is nowhere near
+    them — so reading the characters out of the string showed the wrong time.
+    """
+    if not stamp:
+        return None
+    try:
+        moment = datetime.fromisoformat(str(stamp))
+    except (TypeError, ValueError):
+        return None
+    if moment.tzinfo is None:
+        moment = moment.replace(tzinfo=timezone.utc)
+    return moment.astimezone(tzinfo).strftime("%H:%M")
 
 
 @bp.route("/manifest.webmanifest")

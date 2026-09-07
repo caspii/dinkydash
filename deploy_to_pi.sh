@@ -45,6 +45,7 @@ rsync -az --info=stats1 --delete $DRY_RUN \
     --exclude='config.yaml' \
     --exclude='dashboard_data.json' \
     --exclude='content_history.json' \
+    --exclude='.tick.lock' \
     --exclude='*.log' \
     --exclude='website/' \
     --exclude='docs/' \

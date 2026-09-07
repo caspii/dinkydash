@@ -33,12 +33,12 @@ the same file, and the UI keeps your comments.
 ## How it works
 
 ```
-[cron @ 6am] → generate.py         → merges every enabled iCal feed, in time order
-                                   → builds the prompt, calls Claude
-                                   → saves dashboard_data.json
+[cron every 5m] → generate.py --tick → every hour: re-fetches every iCal feed, in time order
+                                     → once a day at 06:00: builds the prompt, calls Claude
+                                     → saves dashboard_data.json
 
-[browser]    → web/routes/board.py → recomputes chores, countdowns and today's agenda
-                                   → renders the board
+[browser]       → web/routes/board.py → recomputes chores, countdowns and today's agenda
+                                      → renders the board
 ```
 
 Only the headline and the written line come from the model. Ages, countdowns, chore turns and the
@@ -161,7 +161,7 @@ pip install -r requirements-dev.txt   # adds pytest and the website build; not n
 python -m pytest tests/ -q
 ```
 
-157 tests, well under a second. They cover leap years, timezone conversion, event ordering, chore
+227 tests, well under a second. They cover leap years, timezone conversion, event ordering, chore
 rotation, the stale-board logic, the config round-trip, and the settings routes that write it.
 
 GitHub Actions runs the same command on every push and pull request, on Python 3.11
@@ -173,11 +173,21 @@ versions CI passed on. A pull request that fails either check shows a red X.
 
 ## Running it day to day
 
-### What happens each morning
+### What happens each day
 
-At 6am cron runs `generate.py`. It fetches every enabled calendar, merges them into one
-time-ordered agenda for the next 14 days, works out whose turn each chore is, and asks Claude for a
-headline and one line of copy. The result is written atomically to `dashboard_data.json`.
+Cron runs `generate.py --tick` every five minutes, and the tick does only what is owed.
+
+**Every hour**, it re-fetches every enabled calendar and merges them into one time-ordered agenda
+for the next 14 days. This costs nothing but a few HTTP requests, and it is what puts an
+appointment added at 09:00 for 15:00 onto the board the same afternoon. Change `refresh_minutes` in
+`config.yaml` to make that 15 minutes or once a day. Fetching faster than the provider updates buys
+nothing: Google's secret `.ics` link is cached at their end and can lag by hours.
+
+**Once a day at 06:00**, on your own clock, it asks Claude for a headline and one line of copy —
+the only part that costs money. Change the hour with `brief_time`. A brief that fails is simply
+owed again five minutes later, so a network blip at dawn no longer means a day-old line.
+
+Both write atomically to `dashboard_data.json`, and a refresh never touches the written line.
 
 The browser does the rest of the work on every render: ages, countdowns, whose turn it is, and
 today's slice of the agenda are all recomputed from `config.yaml` and the current date. Only the
@@ -191,7 +201,7 @@ so today's times are still there and still right.
 | What you see | What it means | What to do |
 |---|---|---|
 | The board, no banner | Today's run succeeded | Nothing |
-| An amber banner across the top | Today's run failed or hasn't happened yet. Times, turns and countdowns are still today's; only the written line is older, and it is labelled | Check `generate.log`. Press **Rewrite now** in settings to retry |
+| An amber banner across the top | Today's brief failed or hasn't happened yet. Times, turns and countdowns are still today's; only the written line is older, and it is labelled | Nothing — the next tick retries. Check `generate.log` if it stays. Press **Rewrite now** in settings to force it |
 | "Writing … first board" | Nothing has ever been generated | Press **Rewrite now**, or run `python generate.py` |
 
 The board never blanks itself. A failed run leaves the previous one up rather than clearing the
@@ -246,8 +256,18 @@ Settings → Family & system. **Rewrite now** costs the same as a scheduled run,
 
 ### When something looks wrong
 
-**The board is a day behind.** Look at `generate.log`. The commonest causes are an expired API key,
-no network at 6am, or a calendar that now 404s. Fix and press **Rewrite now**.
+**The board is a day behind.** Look at `generate.log`. The commonest causes are an expired API key
+or no network. With the `--tick` cron line a single failure fixes itself five minutes later, so a
+banner that is still there an hour on is a real fault. Fix it and press **Rewrite now**.
+
+**An event I just added is not on the board.** Give it up to `refresh_minutes` (an hour by
+default), plus your provider's own lag — Google's secret `.ics` link is cached at their end and can
+take hours to show a change. Press **Rewrite now** if you cannot wait.
+
+**One calendar is broken and its events are still showing.** That is deliberate. A feed that stops
+answering keeps whatever it last gave us, because an event that vanishes is one nobody notices,
+while a stale one is at least on the right day. Your other calendars carry on updating normally.
+Fix or delete the feed under Settings → Calendars, where it is flagged.
 
 **Times are off by an hour, or "today" rolls over at the wrong moment.** The timezone under
 Settings → Family & system is what the engine works from, not the machine's clock. Set it even on a
@@ -304,6 +324,8 @@ Nothing to do to your config — it is migrated on load. But be aware:
 | `max_tokens` | Max response length |
 | `calendar_days_ahead` | How far ahead to fetch (default 14) |
 | `history_days` | Days of past notes sent back so the model doesn't repeat itself |
+| `refresh_minutes` | How often `--tick` re-fetches the calendars (default 60). Costs nothing but HTTP requests |
+| `brief_time` | When `--tick` writes the daily brief, on your own clock (default `"06:00"`). Quote it |
 | `data_file` | Path for the generated JSON |
 | `content_history_file` | Path for the rolling note history |
 | `id` | Added to each `people[]`, `pets[]`, `recurring[]`, `special_dates[]` and `calendars[]` entry the first time you open `/settings`. Leave it alone — it is how the settings UI tells one entry from another, so deleting somebody does not renumber everyone below onto the wrong edit form |
@@ -419,18 +441,29 @@ sudo systemctl enable dinkydash.service
 sudo systemctl start dinkydash.service
 ```
 
-### Step 4: Set up daily generation
+### Step 4: Set up the tick
 
 ```bash
 crontab -e
 ```
 
-Add this line to write a fresh board every morning at 6am. If a run fails, the previous board
-stays up and labels itself — the screen never goes blank:
+Add this line. It runs every five minutes, and each run does only what `config.yaml` says is
+owed — nothing at all, most of the time. Runs never pile up: if one is still going when the next is
+due, the next skips itself. If a run fails, the previous board stays up and labels itself; the
+screen never goes blank:
 
 ```cron
-0 6 * * * cd /home/pi/dinkydash && source venv/bin/activate && python generate.py >> generate.log 2>&1
+*/5 * * * * cd /home/pi/dinkydash && venv/bin/python generate.py --tick >> generate.log 2>&1
 ```
+
+The old daily line still works, and does the fetch and the brief together:
+
+```cron
+0 6 * * * cd /home/pi/dinkydash && venv/bin/python generate.py >> generate.log 2>&1
+```
+
+It just never sees a change you make to your calendar during the day. Use one line or the other,
+not both.
 
 ### Step 5: Set up kiosk mode
 
@@ -544,6 +577,7 @@ getting the Pi to boot into it.
 # Local development
 source venv/bin/activate
 python -m pytest tests/ -q           # run the tests
+python generate.py --tick            # do only what is due now (what cron runs)
 python generate.py                   # write today's board (costs a few cents)
 python generate.py --date 2026-12-24 # any date, for checking a countdown
 python app.py                        # board at /, settings at /settings
@@ -565,14 +599,15 @@ tail -f /home/pi/dinkydash/generate.log   # last night's generation
 | `dinkydash/context.py` | Ages, birthdays, countdowns, chore rotation |
 | `dinkydash/calendars.py` | iCal fetch, parse, recurrence, merging feeds |
 | `dinkydash/board.py` | Turns config + payload into what the board renders |
-| `dinkydash/runner.py` | The daily cycle: fetch, generate, write. Used by cron and the UI |
+| `dinkydash/runner.py` | The two halves of the cycle: `refresh_calendars` and `write_brief` |
+| `dinkydash/schedule.py` | `due()` — which of the two the clock and the config owe right now |
 | `web/` | Flask app — board, settings UI, templates |
 | `web/templates/board.html` | The board itself, light and dark, all screen sizes |
-| `generate.py` | Command-line skin over `runner.run` — this is what cron calls |
+| `generate.py` | Command-line skin over `dinkydash.runner` — this is what cron calls |
 | `app.py` | Flask entry point |
 | `config.yaml` | All configuration. The settings UI writes this same file |
 | `config.example.yaml` | Template config, documenting every key |
-| `tests/` | 157 tests. Run them before committing |
+| `tests/` | 227 tests. Run them before committing |
 | `design/` | Mockups for the board and settings UI, with the reasoning |
 | `deploy_to_pi.sh` | Deployment (rsync + service restart) |
 | `.env` | `ANTHROPIC_API_KEY` (not in git) |
