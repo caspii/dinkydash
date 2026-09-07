@@ -26,6 +26,18 @@ Before making structural changes, read:
   Linear](#strategy-and-marketing-live-in-linear).
 - [design/](design/) — mockups for the settings UI and the board, with the reasoning
 
+### The other instruction files
+
+This file is loaded on every task, so it holds only what applies to every change. The detail
+that matters in one place lives beside that place, and arrives when you open a file there:
+
+| File | Read it when |
+|---|---|
+| [`dinkydash/CLAUDE.md`](dinkydash/CLAUDE.md) | Touching the engine, the storage seam, the payload, the tick, or `migrations/` |
+| [`web/CLAUDE.md`](web/CLAUDE.md) | Changing the board's layout, the settings UI, or measuring either |
+| [`website/CLAUDE.md`](website/CLAUDE.md) | Working on the marketing site or the image generators |
+| [`doc/operations.md`](doc/operations.md) | You need the state of the running system — secrets, the Pi, what has been rotated. A log, not guidance, and deliberately not loaded |
+
 ## This is a public repo
 
 DinkyDash is open source, and the hosted product is being built in the same public repo (PLAN.md
@@ -139,14 +151,9 @@ Phase 0 of PLAN.md is mostly this. Three of the four pieces are now in place.
 `.github/workflows/test.yml` runs on every push and pull request, as two independent jobs so a
 secret and a broken test are separate red X's: **pytest** on Python 3.11, and **gitleaks** over the
 full history — `fetch-depth: 0`, because gitleaks scans commits rather than the working tree.
-GitHub's own secret scanning and push protection are switched on for the repo as a second layer.
-**Do not rely on that layer yet.** Minutes after enabling it, a correctly shaped fake
-`sk-ant-api03-` key and a correctly shaped fake AWS key pair were both pushed to a scratch branch
-without being blocked, and neither raised an alert — so the settings report enabled while nothing
-observably enforces. GitHub rescans a repo from scratch when the feature is turned on, so this may
-simply be the backfill; it is worth re-testing on a scratch branch before treating a rejected push
-as the safety net. **gitleaks is the layer that was actually observed to work**: it failed the build
-on that same fake key, and `--redact` kept the value out of the CI log.
+GitHub's own secret scanning is switched on as a second layer, but **gitleaks is the layer that was
+observed to work** — see [doc/operations.md](doc/operations.md) for what happened when the other
+one was tested.
 
 The gitleaks job runs the MIT-licensed binary directly, pinned, rather than the upstream
 `gitleaks-action` — that action is a bundled JavaScript blob under a commercial licence, and this is
@@ -167,23 +174,6 @@ Two things the net does not catch, both worth knowing before trusting it:
   children's first names; it holds no credential, no calendar URL and no key, so there is nothing to
   rotate — but it is public and permanent, and rewriting a published history is not a fix worth the
   breakage. It is the reason the rules above exist.
-
-**`.env` should hold `ANTHROPIC_API_KEY` and nothing else.** `FLASK_ENV`, `SECRET_KEY`,
-`DATABASE_URL`, `UPLOAD_FOLDER` and `MAX_CONTENT_LENGTH` are leftovers from an abandoned plan and
-none of them is read by any code — a grep over the repo returns only `web/__init__.py`, and that
-reads `DINKYDASH_SECRET_KEY`, a different name. **They are all still there**, as of 7 September 2026:
-in the main checkout, on the Pi, and in every new worktree. `.env` is not in git, so stripping it in
-a worktree dies with that worktree, and the next workspace is seeded from the main checkout again —
-which is why an earlier note here claiming they had been stripped did not stay true. Every copy has
-to be edited where it lives, including the Pi's, whose `.env` `deploy_to_pi.sh` does not overwrite.
-Do not put `SECRET_KEY` back: nothing calls `from_prefixed_env`, so Flask never sees it, and the
-session key comes from `DINKYDASH_SECRET_KEY` or the hardcoded fallback whatever `.env` says.
-
-**The Anthropic key was rotated on 7 September 2026** (DIN-20), after living on a Pi and having
-been rsynced. The old key now reads 401 from the API; the new one is in `.env` in the main checkout
-and on the Pi, written in place. CI could not have done it, and a future rotation is the same manual
-job: revoke in the Anthropic console, then edit each copy where it lives. `deploy_to_pi.sh` excludes
-`.env`, so pushing one copy over the other is not an option and is not meant to be.
 
 **`requirements.txt` and `requirements-dev.txt` are pinned with `==`** to the versions CI passes on,
 so a clean venv gets what was tested. Bump deliberately, and check the release notes: `anthropic`
@@ -257,207 +247,21 @@ web/
 
 ### The storage seam
 
-Six operations, on one object, and nothing above them knows what is behind it:
-
-```python
-load_config()                save_config(config)
-load_payload(config)         save_agenda(config, agenda)
-                             save_brief(config, brief)
-recent_notes(config, days)   record_note(config, entry, keep)
-```
-
-Both implementations exist. `FileStore(config_path)` is `config.yaml` and two JSON files in one
-directory. `PostgresStore(pool, family_id)` is the same six operations against rows, with the
-payload composed from `generations` (the brief) and `agendas` (the fetched window) and handed back
-as the same dict. The runner, the board route and the settings routes all take a store;
-`create_app(store=None)` builds one and every route reads `app.config["STORE"]`.
-
-Four rules keep it a seam rather than a name:
+Six operations, on one object, and nothing above them knows what is behind it — `FileStore`
+for a Pi, `PostgresStore` for cloud mode, and `tests/test_store_contract.py` asserting the two
+behave identically. Two invariants hold anywhere in the repo:
 
 - **`store.py` and `config.py` are the only files under `dinkydash/` that open a file**, and
   `pgstore.py` and `db.py` are the only ones that import psycopg. `grep -rn "open(" dinkydash web`
   is the check, and it should stay that short. A new file read anywhere else is a caller that cloud
   mode will have to fork.
-- **`data_file` and `content_history_file` are storage-layer keys.** They stay in `DEFAULTS` and in
-  `config.example.yaml` for compatibility, and only `FileStore` reads them. They mean nothing hosted.
-- **The store is passed, never constructed, below the entry points.** `generate.py`, `app.py` and
-  `sample_board.py` build one; everything else is handed it.
-- **The board is read whole and written in halves, and neither half can write the other's keys.**
-  `save_agenda` drops anything that is not in `store.AGENDA_KEYS`; `save_brief` drops anything that
-  is. Enforced by the store rather than by the caller, because the caller that would get it wrong is
-  `write_brief` — it reads the payload, waits seconds on a model call, and writes, so the agenda in
-  its hand is stale by then (DIN-28). Each half is **replaced, not merged into**: a key the caller
-  stops sending disappears, because that is what whole-row writes do in Postgres, and a stale value
-  surviving on a Pi but not in the cloud is exactly the divergence the seam exists to prevent.
-  `FileStore` takes a short `flock` **on the containing directory** for its read-modify-write — a
-  lock file beside the data would have to be kept out of `deploy_to_pi.sh`'s `rsync --delete`, and a
-  deploy landing mid-write would otherwise unlink the inode a running tick still held, leaving the
-  next writer to lock a fresh file and serialise against nobody. Cloud mode needs no lock at all:
-  there the halves are separate rows and each write is one statement.
-- **`tests/test_store_contract.py` runs every one of its assertions against both**, parametrised over
-  the two backends with no branching. That parity is most of the value of having named the seam: a
-  suite that only ran against files would not notice the day the two drifted. The Postgres half
-  skips unless `DINKYDASH_TEST_DATABASE_URL` is set, so a self-hoster with no database still gets a
-  green suite — and CI runs the suite twice, once with the variable and once without.
+- **Every `PostgresStore` query is scoped to `self.family_id`.** There is no unscoped read and no
+  unscoped write in that file, and there must never be one. An id arriving in a URL is a claim, not
+  a fact, and the place to check it is before it reaches a store.
 
-**Every `PostgresStore` query is scoped to `self.family_id`.** There is no unscoped read and no
-unscoped write in that file, and there must never be one. An id arriving in a URL is a claim, not a
-fact, and the place to check it is before it reaches a store.
-
-### Cloud mode: schema, migrations, connections
-
-`migrations/*.sql` is plain SQL applied in filename order by `migrate.py`, which records each one in
-`schema_migrations`. No ORM and no Alembic — seven tables and one jsonb document do not need one.
-App Platform runs it as a **pre-deploy job**, so a failed migration fails the deploy rather than
-half-updating a live app.
-
-Three things about that runner are load-bearing:
-
-- **The connection must be autocommit.** Without it psycopg opens an implicit transaction on the
-  first statement, and `conn.transaction()` entered inside one is a *savepoint*, not a `BEGIN`.
-  Every migration then appears to apply, releases its savepoint, and is discarded when the
-  connection closes — no error, no tables, an empty `schema_migrations`. This was written wrong once
-  and caught by running it.
-- **A migration containing `-- no-transaction` is applied statement by statement, outside a
-  transaction**, because `CREATE INDEX CONCURRENTLY` refuses to run inside one. Those cannot be
-  all-or-nothing, so they have to be safe to re-run — every index in them is `IF NOT EXISTS`.
-- **Migrations connect with `DATABASE_URL_DIRECT`, not `DATABASE_URL`.** The first is the cluster,
-  the second is DigitalOcean's transaction-mode pool, which is the wrong end for schema work and for
-  `pg_dump`.
-
-Connections go through `dinkydash/db.py`. `pool()` is a small bounded `psycopg_pool` — its size is a
-latency knob, not a safety one, because DigitalOcean's own pool is what stops the cluster's 22
-connections running out. **`prepare_threshold` is set to `None` on every connection**, everywhere,
-including local development and CI: psycopg 3 prepares a statement server-side once it repeats, and
-under transaction-mode pooling the next execution can land on a different backend connection. The
-full reasoning, and why KeepTheScore's clean record on psycopg2 does not transfer, is in PLAN.md
-under [Connection pooling](PLAN.md#connection-pooling).
-
-**`psycopg` is in `requirements-cloud.txt`, not `requirements.txt`.** A Pi has no database and
-should not install a driver for one, so single mode never imports `pgstore` or `db` — the import in
-`create_app` is inside the cloud branch on purpose. **App Platform's Python buildpack installs
-`requirements.txt` on its own**, which is deliberately the smaller list, so the app spec carries a
-`build_command` that installs `requirements-cloud.txt` instead. `gunicorn` is in that file for the
-same reason: a Pi serves with Flask's own server and should not carry a production WSGI server it
-never starts.
-
-### What the payload holds, and what it does not
-
-The payload stores only what cannot be recomputed: the model's `headline` and `note`, plus the
-fetched calendar window (14 days, not just today). Chores, countdowns and ages are pure functions of
-config + date, so `board.build_view` recomputes them on every render.
-
-That split is deliberate and load-bearing: when a morning's generation fails, the times, turns and
-countdowns on the wall are still **today's** — only the written line is old, and the board says so.
-Yesterday's fetch reached 14 days ahead, so today's agenda is still in it. The stale headline is
-replaced by a computed one (`"3 things on today, starting at 08:20."`) because a day-old AI headline
-can be actively wrong.
-
-That same 14-day window is where **tomorrow's** agenda comes from, so it survives a failed run too.
-
-The payload carries two stamps, **both in UTC**: `generated_at` (when the brief was written) and
-`calendars_fetched_at` (when the feeds were last fetched, and what `schedule.due` reads). UTC
-because the server is routinely not on the family's clock — a Pi is often left on UTC, and hosted
-the server is nowhere near them. They are rendered in the family's timezone at the point of display,
-which on the settings home is `_clock(stamp, tzinfo)`. It used to slice the characters out of the
-ISO string, which showed the server's hour (PLAN.md bug 9).
-
-### Two cadences, one tick
-
-The fetch and the model call ran together only because history put them there, and it meant an
-appointment added at 09:00 was not on the wall until the next morning. They now run on their own
-clocks, chosen by the family (PLAN.md decision 11, single-mode half):
-
-```
-[cron */5m] -> generate.py --tick -> schedule.due(config, payload, now)
-                                       refresh? -> runner.refresh_calendars()
-                                                     fetch every enabled feed, merge, sort
-                                                     write events + calendars_fetched_at
-                                       brief?   -> runner.write_brief()
-                                                     build the prompt, call Claude
-                                                     write headline + note, append to history
-                                       neither  -> exit 0, silently
-
-[browser]   -> app.py             -> board.build_view(config, payload, today)
-                                       renders web/templates/board.html
-```
-
-`refresh_minutes` (default 60) and `brief_time` (default `"06:00"`, on the family's clock) are
-ordinary config keys, so they migrate through `with_defaults` and will survive as a `jsonb` column.
-`runner.run` is still both halves in order, which is what a plain `python generate.py` and the
-settings page's **Rewrite now** do — the old `0 6 * * *` line keeps working, it just never sees a
-same-day change. **Refresh calendars**, beside it, is `refresh_calendars` alone: no key needed, no
-money spent, and the thing most people pressing the other button actually wanted.
-
-Both keys are edited at `/settings/refresh` rather than in YAML. The select offers five intervals
-and nothing else, but it also offers **whatever the file already says** — a hand-edited
-`refresh_minutes: 45` has to survive somebody opening the page and pressing Save, or the UI quietly
-overrules the file. `brief_time` is written back through `config.quoted()`: bare `06:00` is a string
-to ruamel and a sexagesimal integer to a YAML 1.1 parser, and this file is meant to be hand-editable
-with either.
-
-**The board's own reload is derived, not stored** (`board.reload_seconds`). Five minutes is the
-ceiling; only a `refresh_minutes` shorter than that lowers it, because reloading faster than the
-calendars are fetched just redraws the same thing. A parent picks "how soon does a change show up",
-not a browser knob — so there is no separate setting for it and the template reads
-`view.reload_seconds` rather than deciding.
-
-Three rules hold this together:
-
-- **`due()` is pure and takes `now` as an aware datetime.** No clock, no I/O. That is what lets the
-  same function drive a Pi's cron tick and, later, a worker loop walking every family. A brief is
-  due when `generated_for_date` is not today *in the family's timezone* and the local clock has
-  passed `brief_time`; a refresh is due when `calendars_fetched_at` is missing or older than
-  `refresh_minutes`.
-- **A refresh must not touch `headline`, `note` or `generated_for_date`**, and it now cannot: it
-  writes through `store.save_agenda`, which only accepts `store.AGENDA_KEYS`. A fresh agenda under
-  yesterday's brief is exactly the amber-banner state `board.build_view` already handles, and the
-  whole point of the split.
-- **A failure is not handled, it is simply due again.** Nothing is written, so the next tick asks
-  the same question and gets the same answer. That is the retry, and it is why there is no backoff
-  or attempt counter anywhere.
-
-Two consequences worth knowing.
-
-**A feed that does not answer keeps its own last-known events**, because a missing event is
-invisible while a stale one is still on the right day. The keeping is per feed, not per fetch: the
-feeds that answered are always fresh, or one dead URL would freeze the whole board for as long as
-nobody fixed it. `runner._with_last_known` does the merge, keyed on the `calendar` label each event
-carries, and only inside the current window — so a permanently broken feed empties out over a
-fortnight instead of growing a tail of appointments that already happened. A *paused* feed keeps
-nothing: switching a calendar off means switching it off. The failure is recorded in
-`calendar_statuses` and shown on the settings page, and the stamp is written either way, so a broken
-feed is retried on the configured cadence rather than every tick.
-
-**A tick takes an exclusive `flock` on `.tick.lock` and skips itself if another holds it**
-(`generate.only_one_tick`). Its job is money, not consistency — the storage split is what stops two
-writers clobbering each other, and this stops a second tick paying Anthropic for a brief the first
-one is already writing. A tick can outlive its five-minute slot — several feeds timing out, then
-a slow model call — and the next one would find the brief still unwritten, pay for it a second time,
-write a second history entry, and race the first over the payload. The overlapping tick exits 0
-instead: whatever is owed is still owed five minutes later. It is deliberately only around the tick.
-**Rewrite now** is a person asking for something, and should do it.
-
-### Config
-
-`config.yaml` is the single source of truth, and the settings UI writes it back. Loads and saves go
-through ruamel round-trip mode with `indent(mapping=2, sequence=4, offset=2)`, so comments, key
-order and indentation all survive an edit made from a phone. There is a test asserting a save
-changes exactly the lines it means to.
-
-`config.example.yaml` documents every key. Two are migrated on load: a single `calendar_url` becomes
-the first entry in `calendars`, and `calendar_filter_emails` is dropped with a warning.
-
-Every item in the five edited lists — people, pets, recurring, special_dates, calendars — carries a
-short `id`. The settings UI addresses items by it, because a position is not an identity: delete the
-first person and everyone below renumbers onto somebody else's edit form. Ids are backfilled by
-`ensure_ids`, which the settings UI calls on load and saves once if it added any. Deliberately not
-part of `load_config` — loading must not rewrite the file, and the engine never reads ids.
-`_add_id` puts the id *first* in the mapping: ruamel hangs the comment introducing the next section
-off the last item of the previous one, so an appended key lands under the wrong heading.
-
-Ids are also what lets one settings UI serve both modes later. `PLAN.md` decision 10: the config
-dict is the storage contract, a file in self-hosted mode and a `jsonb` column when hosted.
+The six operations, how the halves are written, the migration runner and the connection pool are
+in [`dinkydash/CLAUDE.md`](dinkydash/CLAUDE.md), along with what the payload may hold and how the
+two cadences of a tick are decided.
 
 ## Development Commands
 
@@ -535,80 +339,16 @@ default `.env*` pattern: `.env` arrives, the rest does not. `.conductor/settings
 gap by falling back to `config.example.yaml` and seeding a sample board, so a workspace always opens
 on something real. Copied data still wins over both.
 
-**Adding a field to a settings section.** Add a tuple to the section's `fields` list in
-`web/routes/settings.py` — `(name, label, kind, required, help)`. The list template and the edit
-form both render from it, and `parse_field` reads it back. `kind` is one of `text`, `url`, `date`,
-`monthday`, `textarea`, `checkbox`, `emoji`, `color`, `people`. A new `kind` needs a branch in
-`parse_field` and a branch in `web/templates/settings/edit.html`; nothing else.
-
-**Adding a whole settings section.** Add an entry to `SECTIONS` and a row to
-`web/templates/settings/home.html`. The list, edit, delete and reorder routes are generic and need
-no changes.
-
 **Changing the payload shape.** Ask first whether the value can be recomputed from config + date.
 If it can, it belongs in `board.build_view`, not the payload — that is what keeps the stale state
 honest. The payload is for things only the generator can know. Then ask which half owns it: a key a
 refresh writes goes in `runner.REFRESH_KEYS` so `write_brief` carries it forward, and a key the
 brief writes must be one a refresh never touches.
 
-**Changing the board layout.** Everything is sized in `rem` off one root value, so check all three
-sizes at `/preview` rather than just the one you are looking at.
-
-That root value is now *measured*, not guessed. A short script at the foot of `board.html` binary-
-searches the largest `html { font-size }` whose content still fits the viewport, capped at
-`min(26px, vh/24)`. The CSS `clamp()` stays as the no-JS fallback. Because `body` is
-`height:100vh;overflow:hidden`, nothing ever reports an overflow — so the script lets the page lay
-out freely for one measurement (`height:auto`) and puts it straight back.
-
-**Nunito is served from `web/static/fonts/`, not from Google**, as one variable font per subset
-(`nunito-latin.woff2`, `nunito-latin-ext.woff2`, covering weights 200-1000 so every weight the board
-asks for comes out of one download). `web/static/fonts.css` holds the `@font-face` rules and the
-reasoning; `website/static/` has its own copy plus the italic pair the marketing site uses. Editing
-either means editing both — they are separate deployables on purpose, and `website/` never runs on
-the board. The files are byte-for-byte what Google was serving, so the metrics did not change; what
-changed is that a screen at `/s/<token>` no longer tells Google that URL, and a Pi with no internet
-renders the same board rather than falling back to a system font.
-
-It re-fits on `document.fonts.ready` as well as on resize, and that is not optional. Nunito arrives
-after the first paint and sets taller lines than the system fallback, so a size measured before it
-lands can overflow once it swaps in — measured at 557px of content in a 480px panel. The board only
-looks right because it re-measures when the font arrives.
-
-**The agenda's row budget.** `MAX_EVENTS = 5` is the budget for the whole agenda, not today's cap.
-Today fills it first; tomorrow tops up whatever is left, capped again at `MAX_TOMORROW = 3` so it
-stays a footnote even on an empty day. A five-event day therefore renders exactly as it did before
-tomorrow existed. This is what "if there is space" means in code — a fixed row count, decided by a
-pure function, rather than a layout measurement.
-
-What those rows cost depends on which column is taller, so measure against a real config rather
-than `config.example.yaml`. In two-column mode the side column (chores plus countdowns) usually
-sets the page height, and the agenda grows into slack it was already wasting. On a config with
-three chores and four birthdays the 800x480 root moves 14.23px -> 14.10px on a three-event day —
-under 1% — and 14.23px -> 13.32px on a quiet one. The two-chore example config has a shorter side
-column, so there the agenda *is* the constraint and the same change costs 8% and 13%. The stacked
-single-column layout (an iPad in portrait) has no side column to hide behind and always pays the
-full price, around 13-18%. Everything fits at all three sizes in every case. Raising either
-constant spends more type size, so measure at `/preview` before you do.
-
-In two-column mode the body is a grid, and **the note sits under the agenda, not across the
-bottom**. The agenda is short on a quiet day while chores plus countdowns are not, so a full-width
-note left the lower left quarter of an 800x480 panel empty. Under the agenda it balances the two
-columns instead: on a five-event day the left column measures 311px against the side column's 312.
-
-**Saving a page to a home screen.** `/` and `/settings/` each serve their own web app manifest
-(`web/manifest.py` holds what they share), so a saved link gets the mark and a name instead of a
-URL — the board full screen for a tablet used as the panel, the settings UI standalone on a phone.
-They must keep **different `id`s**: share one and the phone treats them as a single app, so saving
-the board would replace the settings icon. iOS reads none of the manifest; its icon and label come
-from the `apple-touch-icon` link and `apple-mobile-web-app-title` in the page head, which is why
-both are set on both pages. The PNGs in `web/static/` are drawn by `website/generate_favicon.py`,
-which renders the same mark as the favicon at every size the site and the app need — the outputs
-are committed, so Pillow stays out of `requirements.txt` (it is declared in `requirements-dev.txt`).
-**Editing `favicon.svg` means re-running that script**, or the `.ico` and the PNGs keep serving the
-old mark: `website/static/favicon.ico` sat two weeks behind its own SVG that way. The settings page offers this once and
-remembers a "Not now" in `localStorage`; it hides itself when already running from a home screen.
-Note that Chrome's own install prompt needs https, so on a home network it never fires and the
-written steps are what people see.
+**Changing the board, or the settings UI.** Read [`web/CLAUDE.md`](web/CLAUDE.md) first. The
+board is sized off one measured root value and every length is relative, so a change that looks
+right at one size is not evidence about the other two — and `--window-size` cannot be trusted
+to tell you.
 
 ## Conventions
 
@@ -647,40 +387,7 @@ written steps are what people see.
   is scrubbed for the same reason — a parser quotes the line it choked on, which is an appointment.
   `tests/test_secrets_and_headers.py` fails if any of that regresses.
 - `strftime("%-d")` is glibc-specific. Fine on a Pi and in CI; would need changing for Windows.
-- **Headless Chrome lies about the viewport.** `--window-size=800,480` renders into 800x393 — 87px
-  short — while `--screenshot` still writes an 800x480 PNG, so the bottom fifth looks empty when it
-  is simply not there. Add 87 to the height you want (`--window-size=800,567` gives a true 480), and
-  confirm it by reading `window.innerHeight` out of the page rather than trusting the flag. Chrome
-  also reuses a running instance unless each run gets its own `--user-data-dir`, which silently
-  makes every size in a loop return the first one's numbers.
-- **Do not trust `--window-size` for layout work at all.** Even with the +87 correction it has been
-  seen to ignore the flag and report a 756x469 viewport, which silently puts the board on the wrong
-  side of the `3/2` media query. Size the page with an **iframe of exactly the target dimensions**
-  instead, the way `/preview` already does, and read the numbers out of `iframe.contentWindow`. That
-  is deterministic; the flag is not.
-- **The board's `<meta http-equiv="refresh">` stops headless Chrome ever exiting.** `--screenshot`
-  and `--dump-dom` both hang until the timeout, though they do write their output first. Strip the
-  tag when rendering a copy for measurement, and wrap the call in `timeout` regardless.
-- The honest check is `scrot` over SSH on the Pi itself: a real 800x480 panel, a real kiosk browser,
-  no capture artifacts. The board reloads itself every 5 minutes on a default config, so a change
-  takes one reload to appear — check `refresh_minutes` before concluding it did not work.
-
-## Raspberry Pi Deployment
-
-`deploy_to_pi.sh` rsyncs the code to the Pi — protecting the Pi's own `config.yaml`, generated data
-and `.env`, and with `--delete` clearing anything dropped from the repo — creates the virtualenv if
-it is missing, installs dependencies, and restarts the `dinkydash.service` systemd unit when it is
-installed. Host, user and target directory are overridable with the `PI_HOST`, `PI_USER` and
-`PI_DIR` environment variables; `--dry-run` shows what a deploy would change without touching the Pi.
-
-Generation runs via cron:
-```
-*/5 * * * * cd /home/pi/dinkydash && venv/bin/python generate.py --tick >> generate.log 2>&1
-```
-Each tick does only what `config.yaml` says is owed, and logs nothing when that is nothing — "not
-due" is at DEBUG precisely because it is the answer to roughly 260 of the day's 288 ticks. A tick
-that overruns its slot makes the next one skip rather than double up, so the interval is a floor and
-never a guarantee. The old
-`0 6 * * * generate.py` line still works and does both halves at once; use one or the other, not
-both. A failed run leaves the previous board in place rather than blanking the screen, the board
-labels itself stale, and the next tick tries again.
+- **Measuring the board in headless Chrome is full of traps** — a viewport that is not the size
+  the flag asked for, a reused instance returning the previous run's numbers, and a `--screenshot`
+  that writes its file and then hangs forever. All of them, and what to do instead, are in
+  [`web/CLAUDE.md`](web/CLAUDE.md).
