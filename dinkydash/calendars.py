@@ -21,7 +21,38 @@ DEFAULT_TIMEOUT = 30
 
 
 class FeedError(Exception):
-    """A feed could not be fetched or parsed."""
+    """A feed could not be fetched or parsed.
+
+    Its message is shown on the settings page and written to generate.log, so
+    it must never carry the URL or the feed's contents — see `_why`.
+    """
+
+
+def _why(exc):
+    """Why a fetch failed, in words that carry no secret.
+
+    An iCal "secret address" is a password in a URL: whoever holds it reads that
+    family's whole calendar, indefinitely, and there is no way to see who has.
+    `requests` puts the full URL into the message of both `raise_for_status()`
+    and every connection error, so wrapping `{exc}` — which this used to do —
+    published it to generate.log and to the settings page.
+
+    The label already says *which* calendar, so the URL adds nothing a person
+    needs. The host is left out too: `calendar.google.com` is harmless, but a
+    self-hosted `calendar.the-smiths.example` is not, and there is no way to
+    tell them apart.
+    """
+    response = getattr(exc, "response", None)
+    if response is not None and getattr(response, "status_code", None):
+        reason = str(getattr(response, "reason", "") or "").strip()
+        return f"the server said {response.status_code}{f' {reason}' if reason else ''}"
+    if isinstance(exc, requests.Timeout):
+        return "the server did not answer in time"
+    if isinstance(exc, requests.TooManyRedirects):
+        return "too many redirects"
+    if isinstance(exc, requests.ConnectionError):
+        return "could not reach the server"
+    return type(exc).__name__
 
 
 def _localise(value, tzinfo):
@@ -41,7 +72,9 @@ def parse_feed(ical_text, start, end, tzinfo, label=None):
     try:
         cal = Calendar.from_ical(ical_text)
     except Exception as exc:
-        raise FeedError(f"could not parse iCal data: {exc}") from exc
+        # Not `{exc}`: a parser error quotes the line it choked on, which is
+        # somebody's appointment.
+        raise FeedError(f"could not read the calendar data ({type(exc).__name__})") from exc
 
     events = []
     for component in recurring_events_of(cal).between(start, end + timedelta(days=1)):
@@ -70,7 +103,7 @@ def fetch_feed(url, start, end, tzinfo, label=None, timeout=DEFAULT_TIMEOUT):
         response = requests.get(url, timeout=timeout)
         response.raise_for_status()
     except Exception as exc:
-        raise FeedError(f"could not fetch the calendar: {exc}") from exc
+        raise FeedError(f"could not fetch the calendar: {_why(exc)}") from exc
     return parse_feed(response.text, start, end, tzinfo, label=label)
 
 

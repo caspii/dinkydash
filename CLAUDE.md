@@ -535,6 +535,15 @@ searches the largest `html { font-size }` whose content still fits the viewport,
 `height:100vh;overflow:hidden`, nothing ever reports an overflow — so the script lets the page lay
 out freely for one measurement (`height:auto`) and puts it straight back.
 
+**Nunito is served from `web/static/fonts/`, not from Google**, as one variable font per subset
+(`nunito-latin.woff2`, `nunito-latin-ext.woff2`, covering weights 200-1000 so every weight the board
+asks for comes out of one download). `web/static/fonts.css` holds the `@font-face` rules and the
+reasoning; `website/static/` has its own copy plus the italic pair the marketing site uses. Editing
+either means editing both — they are separate deployables on purpose, and `website/` never runs on
+the board. The files are byte-for-byte what Google was serving, so the metrics did not change; what
+changed is that a screen at `/s/<token>` no longer tells Google that URL, and a Pi with no internet
+renders the same board rather than falling back to a system font.
+
 It re-fits on `document.fonts.ready` as well as on resize, and that is not optional. Nunito arrives
 after the first paint and sets taller lines than the system fallback, so a size measured before it
 lands can overflow once it swaps in — measured at 557px of content in a 480px panel. The board only
@@ -605,12 +614,14 @@ written steps are what people see.
   section — it used to be written down only here and in the `app.py` docstring, neither of which a
   user reads. Cloud mode cannot inherit this — see
   [Hosted mode raises the stakes](#hosted-mode-raises-the-stakes).
-- **A failed calendar fetch puts the secret URL in the error text.** `requests` formats both
-  `raise_for_status()` and connection errors with the full URL (`404 Client Error: ... for url:
-  https://.../private-REALSECRET/basic.ics`), and `fetch_feed` wraps `{exc}` straight into
-  `FeedError`. That string reaches `generate.log` and the feed status on the settings page.
-  `fetch_events` logs the *label* precisely to avoid this; the exception text needs the same
-  treatment before hosted mode, where the log is ours and the calendar is not.
+- **A `FeedError` message must never carry the URL, and `calendars._why` is what keeps it out.**
+  `requests` formats both `raise_for_status()` and connection errors with the full URL (`404 Client
+  Error: ... for url: https://.../private-REALSECRET/basic.ics`), and `fetch_feed` used to wrap
+  `{exc}` straight in — publishing it to `generate.log` and to the feed status on the settings page.
+  `_why` reduces it to a category and a status code, and the host is left out too: it is not
+  possible to tell `calendar.google.com` from `calendar.the-smiths.example` in code. The parse error
+  is scrubbed for the same reason — a parser quotes the line it choked on, which is an appointment.
+  `tests/test_secrets_and_headers.py` fails if any of that regresses.
 - `strftime("%-d")` is glibc-specific. Fine on a Pi and in CI; would need changing for Windows.
 - **Headless Chrome lies about the viewport.** `--window-size=800,480` renders into 800x393 — 87px
   short — while `--screenshot` still writes an 800x480 PNG, so the bottom fifth looks empty when it

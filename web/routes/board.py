@@ -1,5 +1,7 @@
 """The board itself, plus a preview harness for the target screen sizes."""
 
+import os
+
 from flask import Blueprint, current_app, render_template, url_for
 
 from dinkydash import board as board_view
@@ -59,3 +61,25 @@ def manifest():
 def preview():
     """Every target screen at once, so a layout change can be checked in one go."""
     return render_template("preview.html", sizes=PREVIEW_SIZES)
+
+
+@bp.route("/healthz")
+def healthz():
+    """Is this process up, and which commit is it?
+
+    **Deliberately touches nothing.** No config read, no database query, no
+    file. A health check that depends on storage turns a slow query into a
+    failed deploy and hands anyone who can reach the port a way to make the
+    platform restart the app. "Is the WSGI worker answering" is the only
+    question it should be able to answer wrongly.
+
+    The SHA comes from the environment because a deployed checkout has no
+    `.git` to ask. App Platform sets it; anything else falls back to "unknown".
+    """
+    return {
+        "status": "ok",
+        "commit": os.environ.get("GIT_SHA")
+        or os.environ.get("APP_PLATFORM_COMPONENT_COMMIT")
+        or os.environ.get("SOURCE_COMMIT")
+        or "unknown",
+    }, 200, {"Cache-Control": "no-store", "X-Robots-Tag": "noindex"}
