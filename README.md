@@ -1,3 +1,5 @@
+![DinkyDash — the digital family calendar for screens you already own](website/images/social-preview.png)
+
 # DinkyDash
 
 The digital family calendar for screens you already own — a TV, an old tablet, or a Raspberry Pi.
@@ -47,7 +49,31 @@ are still today's — the board just labels the written line as older.
 
 ---
 
-## Getting started
+## Quickstart
+
+You can see the real board in about two minutes, with no API key and nothing to pay for.
+
+```bash
+git clone https://github.com/caspii/dinkydash.git
+cd dinkydash
+python3 -m venv venv && source venv/bin/activate
+pip install -r requirements.txt
+cp config.example.yaml config.yaml    # edit by hand, or from /settings once it runs
+python sample_board.py                # a board for today; calls no API, costs nothing
+python app.py
+```
+
+- http://localhost:5000 — the board
+- http://localhost:5000/settings — configure it from a phone
+- http://localhost:5000/preview — Pi, TV and tablet sizes side by side
+
+The chore turns, ages and countdowns are computed from the `config.yaml` you just made, so
+editing it and reloading shows your own family. Only the headline and the one written line
+are canned until you add an Anthropic API key.
+
+**Then follow the [getting started guide](https://dinkydash.co/getting-started/)** — it has
+the API key step, where to find your calendar's iCal link for Google, iCloud and Outlook, and
+the whole Raspberry Pi build with systemd, kiosk mode and the screen schedule.
 
 > **There is no login.** The board and the settings UI are both served without authentication, so
 > anyone who can reach the port can read your family's agenda and rewrite `config.yaml` — names,
@@ -63,112 +89,23 @@ are still today's — the board just labels the written line as older.
 > Hosted mode is a different matter — it authenticates every request and is scoped per family. See
 > [PLAN.md](PLAN.md).
 
-### Prerequisites
+---
 
-- Python 3.11+
-- An [Anthropic API key](https://console.anthropic.com/settings/keys) — for the daily headline and
-  written line only; you can run the board without one, see step 2
-- One or more iCal URLs. Google, Apple iCloud and Outlook all publish one — the
-  [getting started guide](https://dinkydash.co/getting-started/#find-your-calendar-link) has the
-  steps for each
+## Documentation
 
-### 1. Clone and install
+| What you want | Where it is |
+|---|---|
+| Install it, and put it on a Raspberry Pi | [dinkydash.co/getting-started](https://dinkydash.co/getting-started/) |
+| Every config key, with comments | [`config.example.yaml`](config.example.yaml) |
+| Living with it: the daily cycle, the two buttons, what to check when something looks wrong | [`doc/running-it.md`](doc/running-it.md) |
+| Coming from an older version | [`doc/upgrading.md`](doc/upgrading.md) |
+| The hosted build: architecture, phases, decisions | [`PLAN.md`](PLAN.md) |
+| Working on the code | [`CLAUDE.md`](CLAUDE.md) |
 
-```bash
-git clone https://github.com/caspii/dinkydash.git
-cd dinkydash
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-```
+The install and Pi guides live on the website rather than here, so there is one copy of each
+to keep right.
 
-### 2. Create your config
-
-```bash
-cp config.example.yaml config.yaml
-```
-
-Edit `config.yaml` with your family's details — or start the app and use `/settings`:
-
-```yaml
-family_name: "The Wilsons"
-timezone: "Europe/Berlin"     # decides when "today" rolls over
-location: "Berlin, Germany"   # optional, flavours the daily line
-theme: light                  # or dark
-
-calendars:                    # as many as you like; merged into one agenda
-  - label: "Sam's Google"
-    url: "https://calendar.google.com/calendar/ical/…/basic.ics"
-    enabled: true
-
-people:
-  - name: "Mia"
-    date_of_birth: "2017-03-15"
-    avatar_emoji: "🦖"
-    avatar_color: purple
-    interests: "dinosaurs, drawing, swimming"
-
-pets:
-  - name: "Biscuit"
-    type: "dog"
-    avatar_emoji: "🐕"
-
-recurring:                    # rotated one person per day, in this order
-  - title: "Set the table"
-    emoji: "🍽"
-    choices: ["Mia", "Theo"]
-
-special_dates:                # repeat every year, so no year to set
-  - title: "Christmas"
-    emoji: "🎄"
-    date: "12/25"
-
-claude_model: "claude-haiku-4-5"
-max_tokens: 1024
-```
-
-> **Want to see it before you fetch an API key?**
->
-> ```bash
-> python sample_board.py    # writes a board for today; calls no API, costs nothing
-> python app.py
-> ```
->
-> Open http://localhost:5000. That is the real board: the chore turns, ages and countdowns are
-> computed from the `config.yaml` you just made, so editing it and reloading shows your own family.
-> Only the headline and the one written line are canned. `sample_board.py` refuses to overwrite a
-> board a real run produced, so it is safe to leave in place.
-
-### 3. Add your API key
-
-```bash
-cp .env.example .env
-```
-
-Then put your key in it. That one line is the whole file:
-
-```
-ANTHROPIC_API_KEY=sk-ant-...
-```
-
-`.env` is gitignored, and `deploy_to_pi.sh` does not copy it — so a Pi keeps its own, and rotating
-a key means editing each copy where it lives.
-
-### 4. Generate and run
-
-```bash
-python generate.py        # write today's board
-python app.py             # start the server
-```
-
-- http://localhost:5000 — the board
-- http://localhost:5000/settings — configure it from a phone
-- http://localhost:5000/preview — Pi, TV and tablet sizes side by side
-
-Before the first generation the board shows a waiting screen; press **Rewrite now** in the settings
-UI to fill it in.
-
-### Running the tests
+## Running the tests
 
 ```bash
 pip install -r requirements-dev.txt   # adds pytest and the website build; not needed on the Pi
@@ -182,443 +119,6 @@ GitHub Actions runs the same command on every push and pull request, on Python 3
 (`.github/workflows/test.yml`), alongside a [gitleaks](https://github.com/gitleaks/gitleaks) scan of
 the full history. Both dependency files are pinned with `==`, so a clean `pip install` gets the
 versions CI passed on. A pull request that fails either check shows a red X.
-
----
-
-## Running it day to day
-
-### What happens each day
-
-Cron runs `generate.py --tick` every five minutes, and the tick does only what is owed.
-
-**Every hour**, it re-fetches every enabled calendar and merges them into one time-ordered agenda
-for the next 14 days. This costs nothing but a few HTTP requests, and it is what puts an
-appointment added at 09:00 for 15:00 onto the board the same afternoon. Make that 15 minutes or
-once a day under **Settings → How often it updates**. Fetching faster than the provider updates
-buys nothing: Google's secret `.ics` link is cached at their end and can lag by hours.
-
-**Once a day at 06:00**, on your own clock, it asks Claude for a headline and one line of copy —
-the only part that costs money. The same page changes the hour. A brief that fails is simply
-owed again five minutes later, so a network blip at dawn no longer means a day-old line.
-
-Both write atomically to `dashboard_data.json`, and a refresh never touches the written line.
-
-The browser does the rest of the work on every render: ages, countdowns, whose turn it is, and
-today's slice of the agenda are all recomputed from `config.yaml` and the current date. Only the
-headline and the written line come from the model.
-
-That split is why a failed run is not a disaster. Yesterday's fetch already reached 14 days ahead,
-so today's times are still there and still right.
-
-### The three states the board can be in
-
-| What you see | What it means | What to do |
-|---|---|---|
-| The board, no banner | Today's run succeeded | Nothing |
-| An amber banner across the top | Today's brief failed or hasn't happened yet. Times, turns and countdowns are still today's; only the written line is older, and it is labelled | Nothing — the next tick retries. Check `generate.log` if it stays. Press **Rewrite now** in settings to force it |
-| "Writing … first board" | Nothing has ever been generated | Press **Rewrite now**, or run `python generate.py` |
-
-The board never blanks itself. A failed run leaves the previous one up rather than clearing the
-screen, on the grounds that a stale kitchen board beats an empty one.
-
-### Changing things
-
-Everything is editable from a phone at `/settings` — people, pets, chores and their rotation order,
-special dates, calendars, and whether the board is light or dark. It writes `config.yaml`, keeping
-your comments and formatting, so editing the file by hand and editing through the UI are
-interchangeable.
-
-Config changes show up on the next page load. They do **not** re-run generation: the headline and
-note are from this morning.
-
-Two buttons on the settings home force the point:
-
-- **Refresh calendars** re-fetches the feeds and nothing else. Free, and usually what you want
-  after adding something to a calendar you don't want to wait for.
-- **Rewrite now** does that *and* asks Claude for a new headline and line. One API call per press.
-
-**How often it updates** sets both cadences — how often the calendars are fetched, and what time
-the daily line is written, on your own clock. They are the `refresh_minutes` and `brief_time` keys,
-so editing them by hand still works; the page is just the version you can reach from a phone. The
-board's own reload follows: it redraws every five minutes, or every `refresh_minutes` if you set
-something shorter than that.
-
-### Keeping settings on your phone
-
-Save `/settings` to your phone's home screen and it opens like an app, with the DinkyDash icon and
-name rather than a bare URL. On an iPhone: **Share** → **Add to Home Screen**. On Android: the **⋮**
-menu → **Add to home screen**. The settings page offers this itself the first time, until you say no.
-
-The board does the same at `/` — worth doing if a tablet is your panel, because a saved board opens
-full screen with no browser around it.
-
-### Adding a calendar
-
-Settings → Calendars → Add a calendar. Paste an iCal link and press **Check this link** — it will
-tell you how many events it found and what the next one is, rather than silently accepting a URL
-that returns nothing.
-
-Where the link lives, per provider:
-
-| Provider | Where to find the iCal link |
-|---|---|
-| **Google Calendar** | Settings and sharing → **Integrate calendar** → **Secret address in iCal format** |
-| **Apple iCloud** | iCloud Calendar → share the calendar → **Public Calendar** → Copy Link. A `webcal://` link is fine — it is converted for you |
-| **Outlook / Microsoft 365** | Settings → Calendar → **Shared calendars** → **Publish a calendar**, permission **Can view all details**, then copy the **ICS** link |
-
-Nothing here signs you in to an account. DinkyDash fetches the link on a schedule and can only read.
-The [getting started guide](https://dinkydash.co/getting-started/#find-your-calendar-link) has the
-full steps and the gotchas.
-
-Add one feed per person. A feed that stops answering is reported on the settings home page and is
-skipped rather than emptying the board.
-
-### Costs
-
-One board a day on `claude-haiku-4-5` is roughly **$0.13 a month** — about 2,500 tokens in and 350
-out. `claude-sonnet-5` is around three times that and writes better. Change it under
-Settings → Family & system. **Rewrite now** costs the same as a scheduled run, so don't sit on it.
-
-### When something looks wrong
-
-**The board is a day behind.** Look at `generate.log`. The commonest causes are an expired API key
-or no network. With the `--tick` cron line a single failure fixes itself five minutes later, so a
-banner that is still there an hour on is a real fault. Fix it and press **Rewrite now**.
-
-**An event I just added is not on the board.** Give it up to `refresh_minutes` (an hour by
-default), plus your provider's own lag — Google's secret `.ics` link is cached at their end and can
-take hours to show a change. Press **Rewrite now** if you cannot wait.
-
-**One calendar is broken and its events are still showing.** That is deliberate. A feed that stops
-answering keeps whatever it last gave us, because an event that vanishes is one nobody notices,
-while a stale one is at least on the right day. Your other calendars carry on updating normally.
-Fix or delete the feed under Settings → Calendars, where it is flagged.
-
-**Times are off by an hour, or "today" rolls over at the wrong moment.** The timezone under
-Settings → Family & system is what the engine works from, not the machine's clock. Set it even on a
-Pi whose clock is already local.
-
-**A calendar shows nothing.** Check it under Settings → Calendars — a failed feed says so. Apple
-regenerates iCloud links when a calendar stops being shared, so a link that worked last month may
-need replacing.
-
-**The same fact twice in a fortnight.** `content_history.json` is what stops that; if you deleted
-it, the model has nothing to avoid. It refills itself over the next few days.
-
-**Emoji show as boxes.** `sudo apt install fonts-noto-color-emoji && fc-cache -fv`
-
----
-
-## Upgrading from an earlier version
-
-Nothing to do to your config — it is migrated on load. But be aware:
-
-- **New dependency.** `pip install -r requirements.txt` — `ruamel.yaml` is needed for the settings
-  UI to write the config without destroying your comments.
-- **`calendar_url` becomes `calendars`.** A single URL is migrated into a one-entry list. The
-  settings UI will write the new shape back the first time you save.
-- **`calendar_filter_emails` is gone.** It required every listed address to appear as an `ATTENDEE`
-  on an event, which most personal calendar entries do not have — so it silently returned zero
-  events. Add one feed per person instead. It is ignored with a warning in the log.
-- **Photos are no longer used.** The board shows an agenda rather than person cards, so the `image:`
-  fields do nothing, and the root `static/` folder that held the JPEGs is gone. `avatar_emoji` and
-  `avatar_color` replace them, and are used in the settings UI. Old keys are harmless if left in
-  place, but the photos themselves can be deleted.
-- **Dates read as `25 December`,** not `December 25`.
-- **The model default is now `claude-haiku-4-5`.** If your config pins
-  `claude-sonnet-4-5-20250929`, it will keep using it — that model is dated, and newer models run
-  adaptive thinking by default, which competes with `max_tokens` and can truncate the response.
-  Either move to `claude-haiku-4-5` or `claude-sonnet-5`.
-
----
-
-## Configuration reference
-
-| Field | Description |
-|-------|-------------|
-| `family_name` | Shown in the corner of the board |
-| `timezone` | IANA name. Decides when "today" rolls over and how event times are shown — set it even on a Pi whose clock is already local |
-| `location` | Your city/country. Optional, gives the daily line some local flavour |
-| `theme` | `light` or `dark` |
-| `calendars[]` | iCal feeds: `label`, `url`, `enabled`. Merged into one agenda |
-| `people[]` | `name`, `date_of_birth` (YYYY-MM-DD), `avatar_emoji`, `avatar_color`, `interests` |
-| `pets[]` | `name`, `type`, `avatar_emoji` |
-| `recurring[]` | Rotating chores: `title`, `emoji`, `choices` (names, one per day by day-of-year) |
-| `special_dates[]` | Countdowns: `title`, `emoji`, `date` (MM/DD, repeats yearly) |
-| `claude_model` | `claude-haiku-4-5` (~$0.13/month) or `claude-sonnet-5` for better prose |
-| `max_tokens` | Max response length |
-| `calendar_days_ahead` | How far ahead to fetch (default 14) |
-| `history_days` | Days of past notes sent back so the model doesn't repeat itself |
-| `refresh_minutes` | How often `--tick` re-fetches the calendars (default 60). Costs nothing but HTTP requests. Also sets the board's own reload, when it is under five minutes. Editable at **Settings → How often it updates** |
-| `brief_time` | When `--tick` writes the daily brief, on your own clock (default `"06:00"`). Quote it. Same settings page |
-| `data_file` | Path for the generated JSON |
-| `content_history_file` | Path for the rolling note history |
-| `id` | Added to each `people[]`, `pets[]`, `recurring[]`, `special_dates[]` and `calendars[]` entry the first time you open `/settings`. Leave it alone — it is how the settings UI tells one entry from another, so deleting somebody does not renumber everyone below onto the wrong edit form |
-
-Upgrading from an older config? A single `calendar_url` is migrated into `calendars` automatically,
-and `calendar_filter_emails` is dropped — it required every listed address to appear as an
-`ATTENDEE`, which most personal calendar events do not have, so it silently matched nothing. Use one
-feed per person instead.
-
----
-
-## Raspberry Pi deployment
-
-This section covers setting up DinkyDash on a Raspberry Pi with a small display so it runs as a permanent family dashboard.
-
-The Pi serves the board and the settings UI to your whole network with no login — see the warning
-under [Getting started](#getting-started). On a home network that is the intended setup. Do not
-forward the port to the internet.
-
-### What you need
-
-- Raspberry Pi 4 (2GB+ RAM)
-- MicroSD card (16GB+)
-- DSI touchscreen display or HDMI monitor (800x480 recommended)
-- Power supply
-- Wi-Fi connection
-
-### Step 1: Set up the Pi
-
-Install Raspberry Pi OS (Debian Bookworm) using the [Raspberry Pi Imager](https://www.raspberrypi.com/software/). Enable SSH and configure Wi-Fi during setup.
-
-After first boot:
-
-```bash
-ssh pi@raspberrypi
-sudo apt update && sudo apt upgrade -y
-sudo apt install fonts-noto-color-emoji unclutter -y
-```
-
-The emoji font package is required for the dashboard to render emoji correctly.
-
-### Step 2: Install DinkyDash
-
-```bash
-ssh pi@raspberrypi
-mkdir -p /home/pi/dinkydash
-```
-
-From your local machine, copy the files:
-
-```bash
-rsync -az --exclude='venv' --exclude='.git' --exclude='__pycache__' \
-  ./ pi@raspberrypi:/home/pi/dinkydash/
-```
-
-Or use the deploy script:
-
-```bash
-./deploy_to_pi.sh
-```
-
-Then on the Pi:
-
-```bash
-cd /home/pi/dinkydash
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-```
-
-Create the `.env` file on the Pi:
-
-```bash
-echo "ANTHROPIC_API_KEY=sk-ant-..." > /home/pi/dinkydash/.env
-```
-
-Test it:
-
-```bash
-python generate.py
-flask run --host=0.0.0.0
-```
-
-### Step 3: Create the systemd service
-
-Create `/etc/systemd/system/dinkydash.service`:
-
-```ini
-[Unit]
-Description=DinkyDash Family Dashboard
-After=network.target
-
-[Service]
-ExecStart=/home/pi/dinkydash/run_app.sh
-User=pi
-WorkingDirectory=/home/pi/dinkydash
-Restart=always
-
-[Install]
-WantedBy=multi-user.target
-```
-
-`run_app.sh` ships with the repo and is what the unit runs:
-
-```bash
-#!/bin/bash
-cd /home/pi/dinkydash
-exec venv/bin/python app.py
-```
-
-Enable and start:
-
-```bash
-chmod +x /home/pi/dinkydash/run_app.sh
-sudo systemctl daemon-reload
-sudo systemctl enable dinkydash.service
-sudo systemctl start dinkydash.service
-```
-
-### Step 4: Set up the tick
-
-```bash
-crontab -e
-```
-
-Add this line. It runs every five minutes, and each run does only what `config.yaml` says is
-owed — nothing at all, most of the time. Runs never pile up: if one is still going when the next is
-due, the next skips itself. If a run fails, the previous board stays up and labels itself; the
-screen never goes blank:
-
-```cron
-*/5 * * * * cd /home/pi/dinkydash && venv/bin/python generate.py --tick >> generate.log 2>&1
-```
-
-The old daily line still works, and does the fetch and the brief together:
-
-```cron
-0 6 * * * cd /home/pi/dinkydash && venv/bin/python generate.py >> generate.log 2>&1
-```
-
-It just never sees a change you make to your calendar during the day. Use one line or the other,
-not both.
-
-### Step 5: Set up kiosk mode
-
-This makes Chromium launch fullscreen on boot, showing the dashboard.
-
-Create `/home/pi/run.sh`:
-
-```bash
-#!/bin/sh
-# Wait for Flask to be ready (max 60 seconds)
-echo 'Waiting for DinkyDash...'
-i=0
-while [ $i -lt 60 ]; do
-    if curl -s -o /dev/null -w '' http://localhost:5000/ 2>/dev/null; then
-        echo 'Ready!'
-        break
-    fi
-    i=$((i + 1))
-    sleep 1
-done
-
-/usr/bin/chromium-browser \
-  --kiosk \
-  --password-store=basic \
-  --disable-infobars \
-  --enable-features=OverlayScrollbar \
-  --disable-restore-session-state \
-  --noerrdialogs \
-  http://localhost:5000/
-```
-
-```bash
-chmod +x /home/pi/run.sh
-```
-
-Edit `/home/pi/.config/lxsession/LXDE-pi/autostart`:
-
-```
-@lxpanel --profile LXDE-pi
-@pcmanfm --desktop --profile LXDE-pi
-@unclutter
-@xset s off
-@xset -dpms
-@xset s noblank
-@/home/pi/run.sh
-```
-
-This disables the screensaver, hides the mouse cursor, and launches the dashboard in kiosk mode.
-
-### Step 6: Display rotation (optional)
-
-If your display is mounted upside down, add to `/boot/firmware/config.txt`:
-
-```ini
-[all]
-lcd_rotate=2
-display_rotate=2
-```
-
-Note: On Bookworm, the boot config is at `/boot/firmware/config.txt`, not `/boot/config.txt`.
-
-### Step 7: Screen power schedule (optional)
-
-Save power by turning the display off at night.
-
-Create `/home/pi/screen_control.sh`:
-
-```bash
-#!/bin/bash
-if [ "$1" = "off" ]; then
-    vcgencmd display_power 0
-elif [ "$1" = "on" ]; then
-    vcgencmd display_power 1
-fi
-```
-
-```bash
-chmod +x /home/pi/screen_control.sh
-```
-
-Add to crontab:
-
-```cron
-0 22 * * * /home/pi/screen_control.sh off
-0 7 * * * /home/pi/screen_control.sh on
-```
-
----
-
-## Troubleshooting
-
-Problems with the *board itself* — a stale banner, a calendar that stopped working, wrong times —
-are covered under [When something looks wrong](#when-something-looks-wrong). This section is about
-getting the Pi to boot into it.
-
-**"localhost refused to connect" on boot** — Race condition where Chromium starts before Flask is ready. The `run.sh` script above handles this by waiting up to 60 seconds.
-
-**GNOME Keyring password dialog** — Chromium tries to use GNOME keyring on auto-login. The `--password-store=basic` flag prevents this.
-
-**Emoji not displaying** — Install the emoji font: `sudo apt install fonts-noto-color-emoji && fc-cache -fv`
-
-**Wayland switch dialog on boot** — Bookworm may prompt to switch from X11 to Wayland. Fix with: `sudo raspi-config nonint do_wayland W1`
-
-**Wi-Fi blocked** — Fresh Bookworm installs may have Wi-Fi soft-blocked: `sudo raspi-config nonint do_wifi_country DE && sudo rfkill unblock wifi`
-
----
-
-## Quick reference
-
-```bash
-# Local development
-source venv/bin/activate
-python -m pytest tests/ -q           # run the tests
-python generate.py --tick            # do only what is due now (what cron runs)
-python generate.py                   # write today's board (costs a few cents)
-python generate.py --date 2026-12-24 # any date, for checking a countdown
-python app.py                        # board at /, settings at /settings
-
-# On the Pi
-sudo systemctl status dinkydash      # is it running
-sudo systemctl restart dinkydash     # restart after a code change
-journalctl -u dinkydash -f           # app logs
-tail -f /home/pi/dinkydash/generate.log   # last night's generation
-/home/pi/screen_control.sh on        # screen on
-/home/pi/screen_control.sh off       # screen off
-```
 
 ## Key files
 
@@ -639,6 +139,7 @@ tail -f /home/pi/dinkydash/generate.log   # last night's generation
 | `config.yaml` | All configuration. The settings UI writes this same file |
 | `config.example.yaml` | Template config, documenting every key |
 | `tests/` | 368 tests. Run them before committing |
+| `doc/` | Running it day to day, and upgrading from an older version |
 | `design/` | Mockups for the board and settings UI, with the reasoning |
 | `deploy_to_pi.sh` | Deployment (rsync + service restart) |
 | `.env` | `ANTHROPIC_API_KEY` (not in git) |

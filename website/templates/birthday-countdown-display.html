@@ -12,7 +12,10 @@
     <meta name="robots" content="noindex, follow">
     <meta property="og:title" content="Birthday countdown">
     <meta property="og:type" content="website">
-    <meta property="og:image" content="https://dinkydash.co/images/og-hero.jpg">
+    {# This page does not extend base.html, so the card is repeated here. Keep
+       it the same one — a shared countdown is still a DinkyDash link. -#}
+    <meta property="og:image" content="https://dinkydash.co/images/social-preview.png">
+    <meta property="og:image:alt" content="DinkyDash — the digital family calendar for screens you already own, shown on a wall panel">
     <meta property="og:description" content="{{ description }}">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="theme-color" content="#fffaf5">

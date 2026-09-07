@@ -14,7 +14,11 @@
     <meta property="og:title" content="{% block og_title %}DinkyDash — The digital family calendar for screens you already own{% endblock %}">
     <meta property="og:type" content="website">
     <meta property="og:url" content="{{ canonical_url }}">
-    <meta property="og:image" content="{% block og_image %}https://dinkydash.co/images/og-hero.jpg{% endblock %}">
+    {# The same card the repository serves as its social preview: the mark, the
+       tagline and the board. A room photograph shares badly — at the size a
+       card is actually seen there is no name on it and the board is a smudge. -#}
+    <meta property="og:image" content="{% block og_image %}https://dinkydash.co/images/social-preview.png{% endblock %}">
+    <meta property="og:image:alt" content="{% block og_image_alt %}DinkyDash — the digital family calendar for screens you already own, shown on a wall panel{% endblock %}">
     <meta property="og:description" content="{{ self.description() }}">
     <meta name="twitter:card" content="summary_large_image">
     <link rel="stylesheet" href="/fonts.css">
