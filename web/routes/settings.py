@@ -118,8 +118,12 @@ MONTHS = ["January", "February", "March", "April", "May", "June", "July",
 REFRESH_CHOICES = (15, 30, 60, 360, 1440)
 
 
+def current_store():
+    return current_app.config["STORE"]
+
+
 def current_config():
-    config = config_module.load_config(current_app.config["CONFIG_PATH"])
+    config = current_store().load_config()
     if config_module.ensure_ids(config):
         # A config written by hand, or before ids existed. Give its items ids
         # once, so the links on this page keep meaning the same thing.
@@ -128,7 +132,7 @@ def current_config():
 
 
 def save(config):
-    config_module.save_config(config, current_app.config["CONFIG_PATH"])
+    current_store().save_config(config)
 
 
 def section_or_404(name):
@@ -176,10 +180,9 @@ def validate(section, item):
 
 @bp.route("/")
 def home():
-    from web import load_payload
     config = current_config()
     today = config_module.today_for(config)
-    payload = load_payload(config)
+    payload = current_store().load_payload(config)
 
     tzinfo = config_module.tzinfo_for(config)
     status = {"state": "waiting", "detail": "No board has been generated yet."}
@@ -235,10 +238,10 @@ def _clock(stamp, tzinfo):
 def manifest():
     """The name and icon a phone gives this page on its home screen.
 
-    Loaded straight from the file rather than through `current_config`: fetching
+    Read straight from the store rather than through `current_config`: fetching
     a manifest must not be able to write config.yaml.
     """
-    config = config_module.load_config(current_app.config["CONFIG_PATH"])
+    config = current_store().load_config()
     family = config.get("family_name")
     return manifest_module.response(
         id=url_for("settings.home"),
@@ -257,7 +260,7 @@ def manifest():
 def generate_now():
     config = current_config()
     try:
-        payload = run_generation(config, base=current_app.config["CONFIG_PATH"].parent)
+        payload = run_generation(config, current_store())
     except GenerationError as exc:
         flash(str(exc), "error")
     except Exception as exc:  # a broken feed or an unreadable file shouldn't 500 the UI
@@ -486,7 +489,7 @@ def refresh_now():
     """Fetch the calendars and nothing else — the free half of "Rewrite now"."""
     config = current_config()
     try:
-        payload = refresh_calendars(config, base=current_app.config["CONFIG_PATH"].parent)
+        payload = refresh_calendars(config, current_store())
     except Exception as exc:  # a broken feed or an unwritable file shouldn't 500 the UI
         log.exception("Calendar refresh failed")
         flash(f"Could not refresh the calendars: {exc}", "error")

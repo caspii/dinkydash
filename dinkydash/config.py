@@ -35,6 +35,9 @@ DEFAULTS = {
     # Read only by `generate.py --tick`. A plain run still does both at once.
     "refresh_minutes": 60,
     "brief_time": "06:00",
+    # Storage-layer keys, read only by dinkydash.store.FileStore. They say
+    # where a self-hoster's generated files go and mean nothing in cloud mode,
+    # where the same two things are rows.
     "data_file": "dashboard_data.json",
     "content_history_file": "content_history.json",
 }
@@ -199,19 +202,3 @@ def today_for(config):
 
 def people_names(config):
     return [p.get("name", "") for p in config.get("people", []) if p.get("name")]
-
-
-def data_path(config, base=None):
-    return _resolve(config.get("data_file", DEFAULTS["data_file"]), base)
-
-
-def history_path(config, base=None):
-    return _resolve(config.get("content_history_file", DEFAULTS["content_history_file"]), base)
-
-
-def _resolve(value, base):
-    path = Path(value).expanduser()
-    if path.is_absolute():
-        return path
-    base = Path(base) if base else config_path().parent
-    return base / path

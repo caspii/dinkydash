@@ -232,9 +232,10 @@ dinkydash/
 ├── generate.py        orchestrator: config + date + events -> payload
 ├── board.py           payload + config -> what the template renders
 ├── config.py          config.yaml load/save (ruamel round-trip), item ids
-├── history.py         rolling record of recent notes, to avoid repeats
+├── history.py         what the recent notes say, and how they trim (pure)
 ├── schedule.py        due(config, payload, now) -> what a tick owes (pure)
-└── runner.py          the one place that does I/O around the engine
+├── store.py           the six storage operations; FileStore is the only one yet
+└── runner.py          the two halves of the day, reading and writing through a store
 
 web/
 ├── __init__.py        create_app()
@@ -242,6 +243,32 @@ web/
 ├── routes/settings.py the settings UI (one table drives every list section)
 └── templates/         board.html, preview.html, settings/*.html
 ```
+
+### The storage seam
+
+Six operations, on one object, and nothing above them knows what is behind it:
+
+```python
+load_config()                save_config(config)
+load_payload(config)         save_payload(config, payload)
+recent_notes(config, days)   record_note(config, entry, keep)
+```
+
+`FileStore(config_path)` is the only implementation today — `config.yaml` and two JSON files in one
+directory. `PostgresStore` is the cloud one, where the payload is composed from two rows and comes
+back as the same dict (PLAN.md decision 10). The runner, the board route and the settings routes all
+take a store; `create_app(store=None)` builds one and every route reads `app.config["STORE"]`.
+
+Three rules keep it a seam rather than a name:
+
+- **`store.py` and `config.py` are the only files under `dinkydash/` that open a file.** `grep -rn
+  "open(" dinkydash web` is the check, and it should stay that short. A new file read anywhere else
+  is a caller that cloud mode will have to fork.
+- **`data_file` and `content_history_file` are storage-layer keys.** They stay in `DEFAULTS` and in
+  `config.example.yaml` for compatibility, and only `FileStore` reads them. They mean nothing hosted.
+- **The store is passed, never constructed, below the entry points.** `generate.py`, `app.py` and
+  `sample_board.py` build one; everything else is handed it. That is what makes a second
+  implementation a constructor argument rather than an edit.
 
 ### What the payload holds, and what it does not
 

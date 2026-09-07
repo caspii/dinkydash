@@ -1,4 +1,4 @@
-"""The two halves of the daily cycle, and the one place that does I/O.
+"""The two halves of the daily cycle: fetch the calendars, write the brief.
 
 `refresh_calendars` re-fetches the feeds and costs a few HTTP requests.
 `write_brief` asks Claude for the headline and note and costs money. They were
@@ -8,16 +8,17 @@ the wall the same day (`generate.py --tick`, and `dinkydash.schedule.due`).
 
 `run` is still both, in order, which is what `python generate.py` has always
 meant and what the settings page's "Rewrite now" does.
+
+All three take a `store` and read and write only through it, so nothing here
+knows whether the board it is replacing is a file on a Pi or a row belonging to
+one family among thousands.
 """
 
-import json
 import logging
 import os
-import tempfile
 from datetime import datetime, timedelta, timezone
 
 from . import config as config_module
-from . import history as history_module
 from .calendars import fetch_events, sort_key
 from .claude_client import GenerationError
 from .generate import generate
@@ -30,33 +31,7 @@ log = logging.getLogger(__name__)
 REFRESH_KEYS = ("events", "calendar_statuses", "calendars_fetched_at")
 
 
-def read_payload(path):
-    """The stored payload, or None when there isn't a usable one."""
-    try:
-        with open(path) as f:
-            data = json.load(f)
-    except FileNotFoundError:
-        return None
-    except (OSError, json.JSONDecodeError) as exc:
-        log.warning("Dashboard data is not readable (%s); treating it as no board yet", exc)
-        return None
-    return data if isinstance(data, dict) else None
-
-
-def write_payload(payload, path):
-    """Write the payload atomically so the board never reads a half-written file."""
-    fd, tmp = tempfile.mkstemp(dir=str(path.parent), suffix=".tmp")
-    try:
-        with os.fdopen(fd, "w") as f:
-            json.dump(payload, f, indent=2, ensure_ascii=False)
-        os.replace(tmp, str(path))
-    except Exception:
-        if os.path.exists(tmp):
-            os.unlink(tmp)
-        raise
-
-
-def refresh_calendars(config, now=None, base=None, today=None):
+def refresh_calendars(config, store, now=None, today=None):
     """Re-fetch every enabled feed and store the merged agenda. No model call.
 
     `now` is when this is happening and becomes the `calendars_fetched_at`
@@ -73,8 +48,7 @@ def refresh_calendars(config, now=None, base=None, today=None):
         config.get("calendars"), today, tzinfo, days_ahead=days_ahead,
     )
 
-    path = config_module.data_path(config, base=base)
-    payload = read_payload(path) or {}
+    payload = store.load_payload(config) or {}
 
     failed = {s["label"] for s in statuses if s["ok"] is False}
     if failed:
@@ -85,7 +59,7 @@ def refresh_calendars(config, now=None, base=None, today=None):
     payload["events"] = events
     payload["calendar_statuses"] = statuses
     payload["calendars_fetched_at"] = now.astimezone(timezone.utc).isoformat()
-    write_payload(payload, path)
+    store.save_payload(config, payload)
     log.info("Calendars refreshed: %d events stored", len(payload["events"]))
     return payload
 
@@ -120,7 +94,7 @@ def _with_last_known(fresh, previous, failed_labels, start, end):
     return sorted(fresh + kept, key=sort_key)
 
 
-def write_brief(config, today=None, base=None, client=None):
+def write_brief(config, store, today=None, client=None):
     """Ask Claude for today's headline and note, and store them. Costs one call.
 
     The events come from the stored payload rather than a second fetch, so the
@@ -133,12 +107,10 @@ def write_brief(config, today=None, base=None, client=None):
     require_api_key()
     today = today or config_module.today_for(config)
 
-    path = config_module.data_path(config, base=base)
-    stored = read_payload(path) or {}
+    stored = store.load_payload(config) or {}
 
-    history_file = config_module.history_path(config, base=base)
     keep = int(config.get("history_days") or 30)
-    recent = history_module.recent_notes(history_module.load_history(history_file), keep)
+    recent = store.recent_notes(config, keep)
 
     payload = generate(
         config, today, stored.get("events") or [], recent_notes=recent, client=client
@@ -147,9 +119,9 @@ def write_brief(config, today=None, base=None, client=None):
         if key in stored:
             payload[key] = stored[key]
 
-    write_payload(payload, path)
-    history_module.record(
-        history_file,
+    store.save_payload(config, payload)
+    store.record_note(
+        config,
         {
             "date": today.isoformat(),
             "headline": payload["headline"],
@@ -165,11 +137,11 @@ def write_brief(config, today=None, base=None, client=None):
     return payload
 
 
-def run(config, today=None, client=None, base=None):
+def run(config, store, today=None, client=None):
     """Both halves: fetch the calendars, then write the brief. Returns the payload."""
     require_api_key()  # before the fetch, so a missing key fails in a second
-    refresh_calendars(config, base=base, today=today)
-    return write_brief(config, today=today, base=base, client=client)
+    refresh_calendars(config, store, today=today)
+    return write_brief(config, store, today=today, client=client)
 
 
 def require_api_key():

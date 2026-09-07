@@ -15,16 +15,20 @@ PREVIEW_SIZES = [
 ]
 
 
+def current_store():
+    return current_app.config["STORE"]
+
+
 def current_config():
-    return config_module.load_config(current_app.config["CONFIG_PATH"])
+    return current_store().load_config()
 
 
 @bp.route("/")
 def index():
-    from web import load_payload
-    config = current_config()
+    store = current_store()
+    config = store.load_config()
     today = config_module.today_for(config)
-    view = board_view.build_view(config, load_payload(config), today)
+    view = board_view.build_view(config, store.load_payload(config), today)
     return render_template("board.html", view=view)
 
 
