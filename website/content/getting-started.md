@@ -37,7 +37,7 @@ If the address ever leaks, **Reset** on that same screen issues a new one and ki
 1. Open [iCloud Calendar](https://www.icloud.com/calendar/) in a browser and sign in. You can also do this from the Calendar app on a Mac, iPhone or iPad.
 2. Hover over the calendar in the sidebar and open its share options.
 3. Switch on **Public Calendar**, then **Copy Link**.
-4. **Change the `webcal://` at the front to `https://`.** The rest of the address stays exactly as it is. DinkyDash fetches over https, so a `webcal://` link fails.
+4. **Paste it as it is.** A `webcal://` link is converted to `https://` for you — the rest of the address stays exactly as it is. Links have to be https; a plain `http://` feed is refused, because it would send the secret address across the network in the clear.
 
 "Public" here means a long random address rather than a listed page, but anyone holding it can read that calendar — keep it to yourself. Turning sharing off and on again issues a *different* link, and the old one stops working, so the board will need the new one.
 

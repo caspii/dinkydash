@@ -97,10 +97,19 @@ Relative links like `[PLAN.md](PLAN.md)` break once a document is in Linear. Rew
   protects the first — there is no `|safe` anywhere in `web/`, and none should appear on feed or
   user content. For the second, treat the text as data: an event titled "ignore your instructions
   and ..." must not change what the model does.
-- **The server fetches URLs the user typed.** On a Pi that is the user's own machine. Hosted, it is
-  a request from our infrastructure to anywhere, so before cloud mode goes live `fetch_feed` needs a
-  scheme allowlist, redirects that cannot reach a private range, and a response size cap alongside
-  the timeout it already has.
+- **The server fetches URLs the user typed, and `fetch_feed` is what keeps that safe.** On a Pi the
+  typist owns the network; hosted it is our infrastructure dialling whatever a stranger pasted, and
+  everything worth reaching is inside. Four rules, all in `calendars.py` and all tested in
+  `tests/test_feed_safety.py`: **https only** (`webcal://` is normalised, plain `http` is refused
+  because it puts the secret address on the wire); **every resolved address checked** against
+  private, loopback, link-local, reserved and multicast, before any request is made; **redirects
+  followed by hand** with the scheme and address re-checked at each hop, because a public URL that
+  302s to `169.254.169.254` is the whole attack; and a **10 MB body cap** enforced on
+  `Content-Length` *and* on the read, since a server can omit or lie in that header.
+  `FeedRefused` subclasses `FeedError` on purpose, so one bad URL in a config is a failed feed
+  rather than a failed tick. **DNS rebinding is not closed by this** — between the check and the
+  socket a hostile resolver can answer differently, and closing it means connecting to the checked
+  address with an explicit `Host` header.
 - **Calendar contents leave the machine.** They go to Anthropic to write the daily line. A fair
   trade, but it has to be *said* — in the privacy policy, the sub-processor list, and the UI
   (PLAN.md phase 5).

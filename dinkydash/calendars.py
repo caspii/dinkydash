@@ -6,8 +6,11 @@ the way through — the old code formatted them to a string too early and then
 sorted those strings, which ordered the day alphabetically by weekday name.
 """
 
+import ipaddress
 import logging
+import socket
 from datetime import date, datetime, time, timedelta
+from urllib.parse import urljoin, urlsplit, urlunsplit
 from zoneinfo import ZoneInfo
 
 import requests
@@ -19,12 +22,33 @@ log = logging.getLogger(__name__)
 DEFAULT_DAYS_AHEAD = 14
 DEFAULT_TIMEOUT = 30
 
+# A calendar feed the size of a fortnight's appointments is tens of kilobytes.
+# Ten megabytes is generous for a decade of a busy family, and it is the
+# difference between a bad URL being an error and a bad URL filling the disk.
+MAX_FEED_BYTES = 10 * 1024 * 1024
+
+# Enough for a provider's own shortener or a http->https hop, few enough that a
+# redirect loop ends as an error rather than a hang.
+MAX_REDIRECTS = 5
+
 
 class FeedError(Exception):
     """A feed could not be fetched or parsed.
 
     Its message is shown on the settings page and written to generate.log, so
     it must never carry the URL or the feed's contents — see `_why`.
+    """
+
+
+class FeedRefused(FeedError):
+    """The URL was refused before any request was made.
+
+    Its own type because the two mean different things to whoever reads the
+    message — `FeedError` is "we asked and it went wrong", this is "we are not
+    going to ask" — but a *subclass*, deliberately, so that every existing
+    `except FeedError` keeps working. One bad URL in a config must not abort
+    the whole tick, and a handler nobody remembered to add is exactly how that
+    would happen.
     """
 
 
@@ -97,14 +121,126 @@ def parse_feed(ical_text, start, end, tzinfo, label=None):
     return events
 
 
-def fetch_feed(url, start, end, tzinfo, label=None, timeout=DEFAULT_TIMEOUT):
-    """Fetch one iCal URL and return its events. Raises FeedError."""
+def normalise_url(url):
+    """The URL we will actually fetch, or a refusal.
+
+    Two jobs. `webcal://` is what Apple hands people when they share a
+    calendar, and it is an ordinary HTTPS URL wearing a different scheme, so it
+    is translated rather than rejected — the alternative is a support question
+    from everybody with an iPhone.
+
+    Then: **https only**. Plain http sends the secret address in cleartext to
+    every hop, so an http feed was never safe, and Google, iCloud and Outlook
+    are all https. This is a real change for anyone with an internal http feed,
+    and it applies on a Pi too — the fetch layer sits below the seam and does
+    not know which mode it is in.
+    """
+    parts = urlsplit((url or "").strip())
+    if parts.scheme in ("webcal", "webcals"):
+        parts = parts._replace(scheme="https")
+    if parts.scheme != "https":
+        raise FeedRefused(
+            f"the link has to start with https:// (this one starts with "
+            f"{parts.scheme or 'nothing'}://)")
+    if not parts.hostname:
+        raise FeedRefused("the link has no server name in it")
+    return urlunsplit(parts)
+
+
+def _check_address(hostname):
+    """Refuse a host that resolves anywhere it has no business being.
+
+    The board fetches URLs a person typed. On a Pi that person owns the
+    network. Hosted it is our infrastructure dialling whatever a stranger
+    pasted, and the interesting targets are all *inside*: the cloud metadata
+    endpoint on 169.254.169.254, a database on 127.0.0.1, anything on the
+    platform's own private range.
+
+    Every resolved address has to pass, not just the first, because a host with
+    one public and one private address is otherwise a way through.
+
+    **This does not close DNS rebinding.** Between this check and the socket,
+    a hostile resolver can answer differently. Closing that means connecting to
+    the checked address with an explicit Host header, which is a bigger change
+    than this and is written down rather than implied.
+    """
     try:
-        response = requests.get(url, timeout=timeout)
-        response.raise_for_status()
-    except Exception as exc:
-        raise FeedError(f"could not fetch the calendar: {_why(exc)}") from exc
-    return parse_feed(response.text, start, end, tzinfo, label=label)
+        infos = socket.getaddrinfo(hostname, 443, proto=socket.IPPROTO_TCP)
+    except socket.gaierror as exc:
+        raise FeedRefused("that server name does not resolve") from exc
+
+    for info in infos:
+        address = ipaddress.ip_address(info[4][0])
+        if (address.is_private or address.is_loopback or address.is_link_local
+                or address.is_reserved or address.is_multicast
+                or address.is_unspecified):
+            # Deliberately does not say which address. The answer would
+            # otherwise be a way to map the inside of the network from outside.
+            raise FeedRefused("that link points inside a private network")
+
+
+def fetch_feed(url, start, end, tzinfo, label=None, timeout=DEFAULT_TIMEOUT):
+    """Fetch one iCal URL and return its events.
+
+    Raises FeedRefused if the URL is one we will not ask for, and FeedError if
+    asking went wrong. Redirects are followed by hand rather than by requests,
+    because a public URL that 302s to 169.254.169.254 is the whole attack and
+    `allow_redirects=True` would walk straight into it.
+    """
+    target = normalise_url(url)
+
+    for _hop in range(MAX_REDIRECTS + 1):
+        parts = urlsplit(target)
+        _check_address(parts.hostname)
+        try:
+            response = requests.get(target, timeout=timeout, stream=True,
+                                    allow_redirects=False)
+        except Exception as exc:
+            raise FeedError(f"could not fetch the calendar: {_why(exc)}") from exc
+
+        if response.is_redirect or response.is_permanent_redirect:
+            location = response.headers.get("Location", "")
+            response.close()
+            if not location:
+                raise FeedError("could not fetch the calendar: a redirect with nowhere to go")
+            # urljoin covers all three legal shapes of a Location: absolute,
+            # root-relative and relative. normalise_url then re-applies the
+            # scheme rule, so a 302 to http:// or file:// is refused here too.
+            target = normalise_url(urljoin(target, location))
+            continue
+
+        try:
+            response.raise_for_status()
+        except Exception as exc:
+            response.close()
+            raise FeedError(f"could not fetch the calendar: {_why(exc)}") from exc
+        return parse_feed(_read_capped(response), start, end, tzinfo, label=label)
+
+    raise FeedError("could not fetch the calendar: too many redirects")
+
+
+def _read_capped(response):
+    """The body, refusing anything over MAX_FEED_BYTES.
+
+    Content-Length is checked first because it is free, and then the read is
+    budgeted anyway — a server that omits the header, or lies in it, must not
+    be able to hand us an unbounded body.
+    """
+    declared = response.headers.get("Content-Length")
+    if declared and declared.isdigit() and int(declared) > MAX_FEED_BYTES:
+        response.close()
+        raise FeedError("could not fetch the calendar: it is too big to be a calendar")
+
+    chunks, total = [], 0
+    try:
+        for chunk in response.iter_content(chunk_size=64 * 1024):
+            total += len(chunk)
+            if total > MAX_FEED_BYTES:
+                raise FeedError("could not fetch the calendar: it is too big to be a calendar")
+            chunks.append(chunk)
+    finally:
+        response.close()
+    return b"".join(chunks).decode(response.encoding or "utf-8", errors="replace")
 
 
 def sort_key(event):

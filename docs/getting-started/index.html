@@ -385,7 +385,7 @@
 <li>Open <a href="https://www.icloud.com/calendar/">iCloud Calendar</a> in a browser and sign in. You can also do this from the Calendar app on a Mac, iPhone or iPad.</li>
 <li>Hover over the calendar in the sidebar and open its share options.</li>
 <li>Switch on <strong>Public Calendar</strong>, then <strong>Copy Link</strong>.</li>
-<li><strong>Change the <code>webcal://</code> at the front to <code>https://</code>.</strong> The rest of the address stays exactly as it is. DinkyDash fetches over https, so a <code>webcal://</code> link fails.</li>
+<li><strong>Paste it as it is.</strong> A <code>webcal://</code> link is converted to <code>https://</code> for you — the rest of the address stays exactly as it is. Links have to be https; a plain <code>http://</code> feed is refused, because it would send the secret address across the network in the clear.</li>
 </ol>
 <p>"Public" here means a long random address rather than a listed page, but anyone holding it can read that calendar — keep it to yourself. Turning sharing off and on again issues a <em>different</em> link, and the old one stops working, so the board will need the new one.</p>
 <h3>Outlook and Microsoft 365</h3>

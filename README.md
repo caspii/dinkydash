@@ -175,7 +175,7 @@ pip install -r requirements-dev.txt   # adds pytest and the website build; not n
 python -m pytest tests/ -q
 ```
 
-325 tests, well under a second. They cover leap years, timezone conversion, event ordering, chore
+356 tests, well under a second. They cover leap years, timezone conversion, event ordering, chore
 rotation, the stale-board logic, the config round-trip, and the settings routes that write it.
 
 GitHub Actions runs the same command on every push and pull request, on Python 3.11
@@ -263,7 +263,7 @@ Where the link lives, per provider:
 | Provider | Where to find the iCal link |
 |---|---|
 | **Google Calendar** | Settings and sharing → **Integrate calendar** → **Secret address in iCal format** |
-| **Apple iCloud** | iCloud Calendar → share the calendar → **Public Calendar** → Copy Link, then change `webcal://` to `https://` |
+| **Apple iCloud** | iCloud Calendar → share the calendar → **Public Calendar** → Copy Link. A `webcal://` link is fine — it is converted for you |
 | **Outlook / Microsoft 365** | Settings → Calendar → **Shared calendars** → **Publish a calendar**, permission **Can view all details**, then copy the **ICS** link |
 
 Nothing here signs you in to an account. DinkyDash fetches the link on a schedule and can only read.
@@ -638,7 +638,7 @@ tail -f /home/pi/dinkydash/generate.log   # last night's generation
 | `app.py` | Flask entry point |
 | `config.yaml` | All configuration. The settings UI writes this same file |
 | `config.example.yaml` | Template config, documenting every key |
-| `tests/` | 325 tests. Run them before committing |
+| `tests/` | 356 tests. Run them before committing |
 | `design/` | Mockups for the board and settings UI, with the reasoning |
 | `deploy_to_pi.sh` | Deployment (rsync + service restart) |
 | `.env` | `ANTHROPIC_API_KEY` (not in git) |

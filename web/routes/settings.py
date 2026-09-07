@@ -93,9 +93,9 @@ SECTIONS = {
             ("label", "Call it", "text", True, ""),
             ("url", "iCal link", "url", True,
              "Google → Settings and sharing → Integrate calendar → Secret address in iCal format. "
-             "iCloud → share the calendar → Public Calendar → Copy Link, then change webcal:// to "
-             "https://. Outlook → Settings → Calendar → Shared calendars → Publish a calendar, "
-             "then the ICS link."),
+             "iCloud → share the calendar → Public Calendar → Copy Link (a webcal:// link is "
+             "fine, it is converted for you). Outlook → Settings → Calendar → Shared calendars → "
+             "Publish a calendar, then the ICS link. Links must be https."),
             ("enabled", "Show on the board", "checkbox", False, ""),
         ],
     },
