@@ -161,16 +161,20 @@ Two things the net does not catch, both worth knowing before trusting it:
 
 **`.env` should hold `ANTHROPIC_API_KEY` and nothing else.** `FLASK_ENV`, `SECRET_KEY`,
 `DATABASE_URL`, `UPLOAD_FOLDER` and `MAX_CONTENT_LENGTH` are leftovers from an abandoned plan and
-none of them is read by any code. They have been stripped from this worktree's copy, but `.env` is
-not in git, so every other copy has to be edited where it lives — the main checkout, and the Pi,
-whose `.env` `deploy_to_pi.sh` no longer overwrites. Do not put `SECRET_KEY` back: nothing calls `from_prefixed_env`, so
-Flask never sees it, and the session key comes from `DINKYDASH_SECRET_KEY` or the hardcoded fallback
-whatever `.env` says.
+none of them is read by any code — a grep over the repo returns only `web/__init__.py`, and that
+reads `DINKYDASH_SECRET_KEY`, a different name. **They are all still there**, as of 7 September 2026:
+in the main checkout, on the Pi, and in every new worktree. `.env` is not in git, so stripping it in
+a worktree dies with that worktree, and the next workspace is seeded from the main checkout again —
+which is why an earlier note here claiming they had been stripped did not stay true. Every copy has
+to be edited where it lives, including the Pi's, whose `.env` `deploy_to_pi.sh` does not overwrite.
+Do not put `SECRET_KEY` back: nothing calls `from_prefixed_env`, so Flask never sees it, and the
+session key comes from `DINKYDASH_SECRET_KEY` or the hardcoded fallback whatever `.env` says.
 
-The Anthropic key is still not rotated after living on a Pi and having been rsynced. That is the
-one Phase 0 item still open, and CI cannot do it: revoke the key in the Anthropic console, then
-write the new one into `.env` in the main checkout and on the Pi, in place. `deploy_to_pi.sh`
-excludes `.env`, so pushing one copy over the other is not an option and is not meant to be.
+**The Anthropic key was rotated on 7 September 2026** (DIN-20), after living on a Pi and having
+been rsynced. The old key now reads 401 from the API; the new one is in `.env` in the main checkout
+and on the Pi, written in place. CI could not have done it, and a future rotation is the same manual
+job: revoke in the Anthropic console, then edit each copy where it lives. `deploy_to_pi.sh` excludes
+`.env`, so pushing one copy over the other is not an option and is not meant to be.
 
 **`requirements.txt` and `requirements-dev.txt` are pinned with `==`** to the versions CI passes on,
 so a clean venv gets what was tested. Bump deliberately, and check the release notes: `anthropic`

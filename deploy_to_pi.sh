@@ -32,7 +32,11 @@ $SSH "$REMOTE" "mkdir -p '$PI_DIR'"
 # with --delete, from being removed: the settings and data written on the Pi
 # (config.yaml, dashboard_data.json, content_history.json, generate.log), the
 # API key (.env), the virtualenv, and the build- and dev-only trees.
-rsync -az --info=stats1 --delete $DRY_RUN \
+#
+# --stats rather than --info=stats1: macOS 15 replaced rsync with openrsync,
+# which speaks protocol 29 and rejects --info outright. --stats is understood by
+# both, and by rsync 2.6.9 before it.
+rsync -az --stats --delete $DRY_RUN \
     --exclude='.git/' \
     --exclude='venv/' \
     --exclude='__pycache__/' \
