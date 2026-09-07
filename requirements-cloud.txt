@@ -1,10 +1,15 @@
 -r requirements.txt
 
 # Cloud mode only. Deliberately not in requirements.txt, which is what
-# deploy_to_pi.sh installs: a self-hosted board has no database, and a Pi should
-# not carry a Postgres driver it will never open. The Dockerfile (DIN-30)
-# installs this file for the hosted image.
+# deploy_to_pi.sh installs: a self-hosted board has no database and serves with
+# Flask's own server, so a Pi should carry neither a Postgres driver nor a
+# production WSGI server.
+#
+# App Platform installs this file with a build_command in `.do/app.yaml` — its
+# Python buildpack installs requirements.txt on its own, which is deliberately
+# the smaller list.
 #
 # Pinned with == like the rest, so a clean build gets what CI passed on.
 psycopg[binary]==3.3.5
 psycopg-pool==3.3.1
+gunicorn==23.0.0

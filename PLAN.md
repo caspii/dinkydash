@@ -6,9 +6,11 @@
 
 *September 7, later: the storage seam is built (DIN-19). `dinkydash/store.py` holds the six operations, `FileStore` is the one implementation, and the runner and both blueprints take a store rather than a path. The seam section below describes what exists; `PostgresStore` is now a constructor argument away.*
 
-*September 7 changes: the host is settled — decision 12, DigitalOcean App Platform in Frankfurt with DigitalOcean Managed Postgres and Cloudflare in front. The "Which host?" open question is closed, the hosting section is rewritten around it, DNS gets its own Phase 0 line, and the Compose file's job changes: the shared artefact between the two modes is now the **Dockerfile**, not `docker-compose.yml`.*
+*September 7 changes: the host is settled — decision 12, DigitalOcean App Platform in Frankfurt with DigitalOcean Managed Postgres and Cloudflare in front. The "Which host?" open question is closed, the hosting section is rewritten around it, and DNS gets its own Phase 0 line.*
 
-*September 6 changes: decision 11 (the refresh cadence is a setting), a storage seam for the payload and history, a hosting and deployment recommendation, the Batch API deferred, and the phases re-sequenced so the Docker Compose file arrives first rather than last.*
+*September 7, and this reverses a decision made the same day: **there is no Dockerfile and no Compose file.** App Platform does not need one — its Python buildpack builds from `.python-version` and `requirements.txt` and runs whatever `run_command` a component declares, which is how qrpage.co already deploys to the same platform, pre-deploy migration job and all. Docker was machinery with nothing here to earn it, so it is gone. Self-hosting is the from-source path it always was: a virtualenv and a cron line.*
+
+*September 6 changes: decision 11 (the refresh cadence is a setting), a storage seam for the payload and history, a hosting and deployment recommendation, and the Batch API deferred.*
 
 This document covers **how the hosted version gets built and launched**. Its companion — positioning, pricing anchors, and SEO — is kept outside this repo, as a Linear document on the Dinky Dash team.
 
@@ -37,7 +39,7 @@ Turn DinkyDash from a single-family Raspberry Pi app into a hosted product a non
 | 9 | **Self-hosting stays, community-supported only.** | See below. |
 | 10 | **The config dict is the storage contract.** `config.yaml` in single mode, a `jsonb` column in cloud mode. Not SQLite on the Pi. | The engine already takes a plain dict, so both modes can produce the same one. Self-hosters expect a file they can edit and copy, and a Pi should not have to run migrations to gain a field. One shape means one settings UI. |
 | 11 | **The refresh cadence is a setting in the UI.** How often the calendars are re-fetched, and when the daily brief is written, are chosen by the family — not hard-coded in a cron line. | A calendar product whose board only learns about a new appointment the next morning is a support ticket waiting to happen. See [Three clocks, one setting](#three-clocks-one-setting). |
-| 12 | **DigitalOcean App Platform (Frankfurt) + DigitalOcean Managed Postgres, with Cloudflare in front.** Not Hetzner and a box, which is what this plan recommended until 7 September. | Quickest route to a deployed app: no SSH, no firewall, no Docker daemon to patch, and the worker is a second component off the same image. A managed database deletes the backup, upgrade and failover work a box would have added. About $25 a month against roughly €5 for the box — the difference buys the ops. See [Hosting and deployment](#hosting-and-deployment). |
+| 12 | **DigitalOcean App Platform (Frankfurt) + DigitalOcean Managed Postgres, with Cloudflare in front.** Not Hetzner and a box, which is what this plan recommended until 7 September. | Quickest route to a deployed app: no SSH, no firewall, no container machinery, and the worker is a second component off the same checkout. A managed database deletes the backup, upgrade and failover work a box would have added. About $25 a month against roughly €5 for the box — the difference buys the ops. See [Hosting and deployment](#hosting-and-deployment). |
 
 ### On self-hosting (decision 9)
 
@@ -45,7 +47,7 @@ The repo is the credibility wedge and the backlink engine — the Show HN / r/se
 
 What gets cut is the **support commitment**, not the code:
 
-> Self-hosting is community-supported. Docker Compose file is in the repo, bring your own Anthropic API key, issues welcome but unanswered.
+> Self-hosting is community-supported. Clone the repo, make a virtualenv, bring your own Anthropic API key, issues welcome but unanswered.
 
 This costs roughly zero hours. Realistically almost no parent completes the current self-host path anyway — it needs a terminal and an API key — so this loses a support queue, not customers.
 
@@ -224,11 +226,11 @@ web/models.py               # cloud mode only — families, users, generations
 web/routes/                 # auth, billing, admin, the tokenised screen
 worker/                     # the tick loop (cloud mode)
 migrations/                 # plain SQL, applied in order
-Dockerfile                  # one image, both modes — what App Platform builds
-docker-compose.yml          # local dev, CI, and the self-host deliverable
-.do/app.yaml                # the App Platform spec: components, health check,
-                            #   pre-deploy migration job. No secrets in it.
-selfhost/                   # Pi and Compose docs
+.python-version             # what App Platform's Python buildpack pins to
+.do/app.yaml                # the App Platform spec: components, build command,
+                            #   health check, pre-deploy migration job.
+                            #   No secrets in it.
+selfhost/                   # Pi and from-source docs
 ```
 
 No `selfhost/` config loader: single and cloud mode both go through
@@ -376,20 +378,36 @@ App Platform app                            Managed Postgres cluster (FRA1)
 ├── web       service   gunicorn, HTTP      ├── dinkydash
 ├── worker    worker    the 5-minute tick   └── dinkydash_staging
 └── migrate   pre-deploy job                Cloudflare — DNS, edge TLS, rate limits
-        all three from the one Dockerfile
+     all three from the same checkout, no image
 ```
 
-All three are built from the same `Dockerfile`, so `web`, `worker` and the
-migration job are one image with three commands. That is decision 2's "one
-artefact" argument arriving where it actually pays.
+**No Dockerfile, and no Compose file.** App Platform's Python buildpack reads
+`.python-version` and `requirements.txt` and runs whatever `run_command` each
+component declares, so `web`, `worker` and the migration job are one checkout
+with three commands. That is decision 2's "one artefact" argument holding in
+the only form that ever mattered — one codebase — without a container runtime
+in the middle of it.
 
-**What the Compose file is now for.** It stops being what production runs, and
-that is the honest cost of this choice. It stays the Phase 7 self-host
-deliverable, the local development stack, and what CI runs the suite against —
-web, worker and a `postgres` container, `DINKYDASH_MODE=single`. Production
-runs the same *image* with that container swapped for a managed cluster. "The
-hosted version runs the same file you run at home" is no longer literally true;
-"the same image" is, and that was the part that mattered.
+qrpage.co already deploys to this platform exactly this way, `PRE_DEPLOY`
+migration job and all, so this is a shape known to work in this account rather
+than one read off a documentation page.
+
+**One wrinkle the buildpack creates.** It installs `requirements.txt`, which is
+deliberately the *smaller* list — no Postgres driver and no production WSGI
+server, because `deploy_to_pi.sh` installs that same file onto a Pi that needs
+neither. So the app spec carries a build command:
+
+```yaml
+build_command: pip install -r requirements-cloud.txt
+```
+
+`requirements-cloud.txt` pulls in `requirements.txt` and adds `psycopg`,
+`psycopg-pool` and `gunicorn`.
+
+**Self-hosting is untouched by any of this.** It is what it always was: clone,
+virtualenv, `pip install -r requirements.txt`, and a cron line calling
+`generate.py --tick`. `deploy_to_pi.sh` does exactly that, and nothing about
+the hosted build reaches it.
 
 **Region and residency.** App and database both in Frankfurt, so the calendar
 data never leaves the EU and sits in the same country as the entity holding it.
@@ -478,8 +496,8 @@ on the error path too. Skipping that is how KEEPTHESCORE-28A happened next door:
 a view raised, the connection was never released, and the next request on that
 thread got a dead one.
 
-**Deploy.** Push to `main`; App Platform builds the Dockerfile and rolls the
-components out with a health check on `/healthz`. Migrations run as a
+**Deploy.** Push to `main`; App Platform's Python buildpack builds the checkout
+and rolls the components out with a health check on `/healthz`. Migrations run as a
 **pre-deploy job** in the app spec, so the schema is always ahead of the code
 that needs it and a failed migration fails the deploy instead of half-updating
 a live app. GitHub Actions keeps running the test suite — App Platform deploys,
@@ -514,14 +532,13 @@ I/O-light) plus the $15.15 database is **about $25/month** for production.
 Staging adds two more $5 components and shares the cluster, so call it $35 all
 in. Verified against DigitalOcean's pricing pages on 7 September 2026.
 
-**What was considered and dropped.** One Hetzner box in Falkenstein running
-Compose — cheaper (about €5 a month), a German entity, and production would
-have run literally the self-host file. It loses on time: a box means SSH
-hardening, a firewall, Caddy, a Docker daemon to patch, GHCR credentials in CI
-and a deploy key, before anything of the product exists. Render in Frankfurt is
-the same shape as the choice made and was close to a coin toss. Neither is hard
-to leave: the Dockerfile is the unit, so moving is an afternoon, not a
-migration.
+**What was considered and dropped.** One Hetzner box in Falkenstein — cheaper
+(about €5 a month) and a German entity. It loses on time: a box means SSH
+hardening, a firewall, Caddy, a process manager, credentials in CI and a deploy
+key, before anything of the product exists. Render in Frankfurt is the same
+shape as the choice made and was close to a coin toss. Neither is hard to
+leave: the app is a Python checkout with a `run_command`, so moving is an
+afternoon, not a migration.
 
 **Inside the app:**
 
@@ -579,7 +596,7 @@ Each of these is under an hour, needs no database, and ships to the Pi as well a
 7. **`Referrer-Policy: no-referrer`** on the board and the settings pages. One header each.
 8. **`/healthz`.** Returns `ok` and the git SHA; every host and uptime checker wants it.
 9. **`generated_at` in UTC**, rendered in the family's timezone (bug 9).
-10. **A `Dockerfile`.** Fifteen lines; both modes. It is what App Platform builds and what the Compose file runs, so it is the deploy unit for everything below *(DIN-30)*.
+10. ~~**A `Dockerfile`.**~~ Dropped on 7 September, having been built and then removed. App Platform's Python buildpack needs none, and Docker was machinery with nothing here to earn it. `.python-version` and a `build_command` in the app spec are what replaced it *(DIN-30, cancelled)*.
 
 ---
 
@@ -593,15 +610,14 @@ Critical path is 0 → 1 → 2 → 3. Phases 4–6 can run alongside 3. Nothing 
 - [x] Refactor the engine to `generate(config, today, events, recent_notes) -> dict` *(#28)*
 - [x] Fix the five issues listed above; add tests around date/timezone, calendar parsing, chore rotation *(#28, #29)*
 - [x] Update the Claude model; switch to structured outputs *(#28 — `claude-haiku-4-5` takes no `thinking` parameter, so leaving it unset is the explicit choice)*
-- [ ] The small jobs above: CI, `gitleaks`, push protection, `.env.example`, pinned requirements, key rotation *(DIN-16)*; self-hosted font, URL scrub, referrer policy, `/healthz`. The `Dockerfile` has its own line below.
+- [ ] The small jobs above: CI, `gitleaks`, push protection, `.env.example`, pinned requirements, key rotation *(DIN-16)*; self-hosted font, URL scrub, referrer policy, `/healthz`.
 - [x] **Decision 11, single-mode half:** `refresh_minutes` and `brief_time` in `DEFAULTS`; `runner.run` split into `refresh_calendars` and `write_brief`; a pure `due()`; `generate.py --tick`; the settings page under *This screen*; the board's reload derived from the interval; README cron line updated. Ships to the Pi at once and needs no database. *(DIN-17 for the engine and cron, DIN-18 for the page)*
 - [x] Name the storage seam: `FileStore` gathering the six operations that exist today, and the settings routes, runner and board taking a store *(DIN-19)*
-- [x] `Dockerfile` and `docker-compose.yml` for single mode — the self-host path is real from here on, the image is what App Platform builds, and every later phase reuses both *(DIN-30)*
 - [x] Postgres + plain-SQL migrations; CI running the suite against a Postgres service container *(DIN-31)*
 - [ ] Move DNS to Cloudflare and add the `app` and `staging.app` records *(DIN-29)*. The apex keeps pointing at GitHub Pages until DIN-27 moves the marketing pages onto the app.
 - [ ] Stand up the App Platform app and the Managed Postgres cluster in Frankfurt; staging live on `staging.app.dinkydash.co` *(DIN-26)*
 
-**Done when:** the engine runs from a dict with an injected date, tests pass in CI on Postgres, `docker compose up` serves a board in single mode, a same-day calendar change reaches a Pi within its chosen interval, and staging serves a hardcoded family over TLS.
+**Done when:** the engine runs from a dict with an injected date, tests pass in CI on Postgres, a same-day calendar change reaches a Pi within its chosen interval, and staging serves a hardcoded family over TLS.
 
 ### Phase 1 — Multi-tenant core
 
@@ -681,7 +697,7 @@ missing is the multi-tenant half — a schema, auth, and scoping every read and 
 
 ### Phase 7 — Launch
 
-- [ ] Community-supported self-host docs around the Compose file that has existed since Phase 0; smoke-test single mode before release
+- [ ] Community-supported self-host docs around the from-source path and `deploy_to_pi.sh`; smoke-test single mode before release
 - [ ] Private beta: ~10 waitlist families, two weeks
 - [ ] Waitlist email sequence
 - [ ] Swap Typeform links for real signup across homepage, FAQ, and all six satellite pages
