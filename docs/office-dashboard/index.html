@@ -40,7 +40,10 @@
             --radius: 16px;
         }
 
-        html { scroll-behavior: smooth; }
+        /* Marketing pages read a touch small on a desktop browser, so the
+           whole site is scaled up 15% from one root value. Every length is in
+           rem/em, so this lifts text and spacing together. */
+        html { scroll-behavior: smooth; font-size: 115%; }
 
         body {
             font-family: 'Nunito', system-ui, -apple-system, sans-serif;
