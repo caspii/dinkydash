@@ -9,15 +9,17 @@ comments in the file survive being edited from a phone.
 """
 
 import logging
-from datetime import datetime, timezone
+from datetime import datetime, time, timezone
 
 from flask import (Blueprint, abort, current_app, flash, redirect,
                    render_template, request, url_for)
 
 from dinkydash import config as config_module
+from dinkydash import schedule
 from dinkydash.calendars import FeedError, describe_feed
 from dinkydash.claude_client import GenerationError
 from dinkydash.context import compute_birthday_info, upcoming_for
+from dinkydash.runner import refresh_calendars
 from dinkydash.runner import run as run_generation
 from web import manifest as manifest_module
 
@@ -108,6 +110,12 @@ EMOJI_SUGGESTIONS = {
 
 MONTHS = ["January", "February", "March", "April", "May", "June", "July",
           "August", "September", "October", "November", "December"]
+
+# How often the calendars are re-fetched. A short list rather than a free
+# number: the useful range is bounded at both ends, and Google's own feed is
+# cached, so anything under a quarter of an hour would be a promise we cannot
+# keep. The engine takes any integer — these are what the page offers.
+REFRESH_CHOICES = (15, 30, 60, 360, 1440)
 
 
 def current_config():
@@ -201,7 +209,7 @@ def home():
     }
     return render_template(
         "settings/home.html", config=config, status=status, counts=counts,
-        broken=broken, sections=SECTIONS,
+        broken=broken, sections=SECTIONS, cadence=cadence_summary(config),
     )
 
 
@@ -394,6 +402,107 @@ def screen():
             flash(f"Board set to {theme}.", "ok")
         return redirect(url_for("settings.screen"))
     return render_template("settings/screen.html", config=config, themes=config_module.THEMES)
+
+
+def describe_minutes(minutes):
+    """An interval as the page says it — "Every hour", not "60"."""
+    if minutes == 1440:
+        return "Once a day"
+    if minutes >= 60 and minutes % 60 == 0:
+        hours = minutes // 60
+        return "Every hour" if hours == 1 else f"Every {hours} hours"
+    return "Every minute" if minutes == 1 else f"Every {minutes} minutes"
+
+
+def cadence_choices(current):
+    """The offered intervals, plus whatever the file already says if it differs.
+
+    A hand-edited `refresh_minutes: 45` is a real setting, and a select that
+    could not show it would silently rewrite it the first time anyone saved.
+    """
+    minutes = sorted(set(REFRESH_CHOICES) | {current})
+    return [(m, describe_minutes(m)) for m in minutes]
+
+
+def cadence_values(config):
+    """The two keys as the form wants them — an int and an "HH:MM" string."""
+    return {
+        "refresh_minutes": int(schedule.refresh_interval(config).total_seconds() // 60),
+        "brief_time": schedule.brief_time(config).strftime("%H:%M"),
+    }
+
+
+def cadence_summary(config):
+    """The one line the settings home shows: "Calendars every hour · brief at 06:00"."""
+    values = cadence_values(config)
+    cadence = describe_minutes(values["refresh_minutes"])
+    return (f"Calendars {cadence[:1].lower()}{cadence[1:]} · "
+            f"brief at {values['brief_time']}")
+
+
+@bp.route("/refresh", methods=["GET", "POST"])
+def refresh():
+    """The two cadences: how often the calendars are fetched, and when the brief is written."""
+    config = current_config()
+    stored = cadence_values(config)
+    choices = cadence_choices(stored["refresh_minutes"])
+    allowed = {m for m, _ in choices}
+    values, problems = stored, []
+
+    if request.method == "POST":
+        # Show back what was submitted, not what is still on disk.
+        values = {
+            "refresh_minutes": request.form.get("refresh_minutes", "").strip(),
+            "brief_time": request.form.get("brief_time", "").strip(),
+        }
+        minutes, brief = None, None
+        try:
+            minutes = int(values["refresh_minutes"])
+        except ValueError:
+            pass
+        if minutes not in allowed:
+            problems.append("Pick one of the calendar intervals offered.")
+        try:
+            # <input type="time"> posts "HH:MM", but "HH:MM:SS" with a step set.
+            brief = time.fromisoformat(values["brief_time"]).strftime("%H:%M")
+        except ValueError:
+            problems.append("The time the brief is written should look like 06:00.")
+
+        if not problems:
+            config["refresh_minutes"] = minutes
+            config["brief_time"] = config_module.quoted(brief)
+            save(config)
+            flash("Saved.", "ok")
+            return redirect(url_for("settings.refresh"))
+
+    return render_template(
+        "settings/refresh.html", config=config, values=values,
+        problems=problems, choices=choices,
+    )
+
+
+@bp.route("/refresh-now", methods=["POST"])
+def refresh_now():
+    """Fetch the calendars and nothing else — the free half of "Rewrite now"."""
+    config = current_config()
+    try:
+        payload = refresh_calendars(config, base=current_app.config["CONFIG_PATH"].parent)
+    except Exception as exc:  # a broken feed or an unwritable file shouldn't 500 the UI
+        log.exception("Calendar refresh failed")
+        flash(f"Could not refresh the calendars: {exc}", "error")
+        return redirect(url_for("settings.home"))
+
+    count = len(payload.get("events") or [])
+    days = int(config.get("calendar_days_ahead") or 14)
+    broken = [s for s in payload.get("calendar_statuses") or [] if s.get("ok") is False]
+    message = f"Calendars refreshed — {count} event{'' if count == 1 else 's'} over the next {days} days."
+    if broken:
+        # Named, because "which one" is the first thing anybody asks. The URL
+        # stays out of it: it is a password.
+        message += (f" {len(broken)} didn't answer: "
+                    f"{', '.join(sorted(s['label'] for s in broken))}.")
+    flash(message, "error" if broken else "ok")
+    return redirect(url_for("settings.home"))
 
 
 @bp.route("/system", methods=["GET", "POST"])

@@ -284,7 +284,21 @@ clocks, chosen by the family (PLAN.md decision 11, single-mode half):
 ordinary config keys, so they migrate through `with_defaults` and will survive as a `jsonb` column.
 `runner.run` is still both halves in order, which is what a plain `python generate.py` and the
 settings page's **Rewrite now** do — the old `0 6 * * *` line keeps working, it just never sees a
-same-day change.
+same-day change. **Refresh calendars**, beside it, is `refresh_calendars` alone: no key needed, no
+money spent, and the thing most people pressing the other button actually wanted.
+
+Both keys are edited at `/settings/refresh` rather than in YAML. The select offers five intervals
+and nothing else, but it also offers **whatever the file already says** — a hand-edited
+`refresh_minutes: 45` has to survive somebody opening the page and pressing Save, or the UI quietly
+overrules the file. `brief_time` is written back through `config.quoted()`: bare `06:00` is a string
+to ruamel and a sexagesimal integer to a YAML 1.1 parser, and this file is meant to be hand-editable
+with either.
+
+**The board's own reload is derived, not stored** (`board.reload_seconds`). Five minutes is the
+ceiling; only a `refresh_minutes` shorter than that lowers it, because reloading faster than the
+calendars are fetched just redraws the same thing. A parent picks "how soon does a change show up",
+not a browser knob — so there is no separate setting for it and the template reads
+`view.reload_seconds` rather than deciding.
 
 Three rules hold this together:
 
@@ -515,8 +529,8 @@ written steps are what people see.
   and `--dump-dom` both hang until the timeout, though they do write their output first. Strip the
   tag when rendering a copy for measurement, and wrap the call in `timeout` regardless.
 - The honest check is `scrot` over SSH on the Pi itself: a real 800x480 panel, a real kiosk browser,
-  no capture artifacts. The board refreshes itself every 5 minutes, so a change takes one refresh to
-  appear.
+  no capture artifacts. The board reloads itself every 5 minutes on a default config, so a change
+  takes one reload to appear — check `refresh_minutes` before concluding it did not work.
 
 ## Raspberry Pi Deployment
 

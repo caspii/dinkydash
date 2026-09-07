@@ -243,3 +243,176 @@ class TestTheClockOnTheStatusLine:
         board({"generated_for_date": today, "generated_at": "who knows",
                "headline": "Hi", "note": "There", "events": []})
         assert "written earlier" in client.get("/settings/").get_data(as_text=True)
+
+
+CADENCE_CONFIG = """\
+# What the family is called.
+family_name: "The Wilsons"
+timezone: "Europe/Berlin"
+
+# How often --tick re-fetches the calendars.
+refresh_minutes: 60
+
+# When --tick writes the daily brief, on your own clock.
+brief_time: "06:00"
+
+people:
+  - id: mia12345
+    name: "Mia"
+    date_of_birth: "2017-03-15"
+"""
+
+
+class TestTheCadencePage:
+    """The two keys decision 11 added, edited from a phone rather than in YAML."""
+
+    @pytest.fixture
+    def config_path(self, tmp_path, monkeypatch):
+        path = tmp_path / "config.yaml"
+        path.write_text(CADENCE_CONFIG)
+        monkeypatch.setenv("DINKYDASH_CONFIG", str(path))
+        return path
+
+    def test_the_page_is_not_swallowed_by_the_section_routes(self, client):
+        # `/settings/<section_name>` would match "refresh" too.
+        assert client.get("/settings/refresh").status_code == 200
+
+    def test_it_opens_on_what_the_file_says(self, client):
+        page = client.get("/settings/refresh").get_data(as_text=True)
+        assert '<option value="60" selected>Every hour</option>' in page
+        assert 'value="06:00"' in page
+
+    def test_it_offers_the_five_intervals(self, client):
+        page = client.get("/settings/refresh").get_data(as_text=True)
+        for label in ("Every 15 minutes", "Every 30 minutes", "Every hour",
+                      "Every 6 hours", "Once a day"):
+            assert f">{label}</option>" in page
+
+    def test_saving_both_writes_them_back(self, client, config_path):
+        client.post("/settings/refresh",
+                    data={"refresh_minutes": "15", "brief_time": "07:30"})
+        config = config_module.load_config(config_path)
+        assert config["refresh_minutes"] == 15
+        assert config["brief_time"] == "07:30"
+
+    def test_a_save_changes_exactly_the_two_lines_it_means_to(self, client, config_path):
+        before = config_path.read_text().splitlines()
+        client.post("/settings/refresh",
+                    data={"refresh_minutes": "1440", "brief_time": "07:30"})
+        after = config_path.read_text().splitlines()
+
+        changed = [(a, b) for a, b in zip(before, after) if a != b]
+        assert changed == [
+            ("refresh_minutes: 60", "refresh_minutes: 1440"),
+            ('brief_time: "06:00"', 'brief_time: "07:30"'),
+        ]
+        # The comments introducing them are what a self-hoster reads.
+        assert "# How often --tick re-fetches the calendars." in "\n".join(after)
+        assert "# When --tick writes the daily brief, on your own clock." in "\n".join(after)
+
+    def test_the_brief_time_stays_quoted(self, config_path, client):
+        # Bare 07:30 is a string to ruamel and a sexagesimal integer to a YAML
+        # 1.1 parser. The file is edited by hand, so it keeps its quotes.
+        client.post("/settings/refresh",
+                    data={"refresh_minutes": "60", "brief_time": "07:30"})
+        assert 'brief_time: "07:30"' in config_path.read_text()
+
+    def test_seconds_from_a_time_input_are_trimmed(self, client, config_path):
+        client.post("/settings/refresh",
+                    data={"refresh_minutes": "60", "brief_time": "07:30:00"})
+        assert config_module.load_config(config_path)["brief_time"] == "07:30"
+
+    def test_an_interval_that_was_not_offered_is_refused(self, client, config_path):
+        page = client.post("/settings/refresh",
+                           data={"refresh_minutes": "7", "brief_time": "07:30"})
+        assert "Pick one of the calendar intervals offered." in page.get_data(as_text=True)
+        assert config_module.load_config(config_path)["refresh_minutes"] == 60
+
+    def test_a_time_that_is_not_a_time_is_refused(self, client, config_path):
+        page = client.post("/settings/refresh",
+                           data={"refresh_minutes": "15", "brief_time": "breakfast"})
+        assert "should look like 06:00" in page.get_data(as_text=True)
+        # Neither key is written when either is wrong.
+        config = config_module.load_config(config_path)
+        assert (config["refresh_minutes"], config["brief_time"]) == (60, "06:00")
+
+    def test_a_rejected_form_shows_back_what_was_typed(self, client):
+        page = client.post("/settings/refresh",
+                           data={"refresh_minutes": "15", "brief_time": "breakfast"})
+        assert 'value="breakfast"' in page.get_data(as_text=True)
+
+    def test_a_hand_edited_interval_is_offered_rather_than_overwritten(self, client, config_path):
+        config_path.write_text(CADENCE_CONFIG.replace("refresh_minutes: 60",
+                                                      "refresh_minutes: 45"))
+        page = client.get("/settings/refresh").get_data(as_text=True)
+        assert '<option value="45" selected>Every 45 minutes</option>' in page
+        # And saving it back keeps it, rather than snapping to the nearest offer.
+        client.post("/settings/refresh", data={"refresh_minutes": "45", "brief_time": "06:00"})
+        assert config_module.load_config(config_path)["refresh_minutes"] == 45
+
+
+class TestTheCadenceOnTheHomePage:
+    @pytest.fixture
+    def config_path(self, tmp_path, monkeypatch):
+        path = tmp_path / "config.yaml"
+        path.write_text(CADENCE_CONFIG)
+        monkeypatch.setenv("DINKYDASH_CONFIG", str(path))
+        return path
+
+    def test_the_row_says_both_cadences(self, client):
+        page = client.get("/settings/").get_data(as_text=True)
+        assert "Calendars every hour · brief at 06:00" in page
+        assert 'href="/settings/refresh"' in page
+
+    def test_it_follows_what_was_saved(self, client):
+        client.post("/settings/refresh", data={"refresh_minutes": "1440", "brief_time": "07:30"})
+        page = client.get("/settings/").get_data(as_text=True)
+        assert "Calendars once a day · brief at 07:30" in page
+
+
+class TestRefreshingTheCalendarsByHand:
+    """The cheap half of "Rewrite now": fetch the feeds, ask Claude nothing."""
+
+    @pytest.fixture
+    def refreshed(self, monkeypatch):
+        """Stub the runner, so the test touches neither the network nor a key."""
+        calls = []
+
+        def fake(config, base=None, **kwargs):
+            calls.append(config)
+            return {"events": [1, 2, 3], "calendar_statuses": [{"label": "Family", "ok": True}]}
+
+        monkeypatch.setattr("web.routes.settings.refresh_calendars", fake)
+        return calls
+
+    def test_the_button_posts_to_the_refresh_route(self, client):
+        page = client.get("/settings/").get_data(as_text=True)
+        assert 'action="/settings/refresh-now"' in page
+        assert "Refresh calendars" in page
+
+    def test_it_reports_what_it_found(self, client, refreshed):
+        page = client.post("/settings/refresh-now", follow_redirects=True)
+        assert "Calendars refreshed — 3 events over the next 14 days." in \
+            page.get_data(as_text=True)
+        assert len(refreshed) == 1
+
+    def test_a_broken_feed_is_named_without_its_url(self, client, monkeypatch):
+        secret = "https://calendar.google.com/calendar/ical/private-abc123/basic.ics"
+
+        def fake(config, base=None, **kwargs):
+            return {"events": [],
+                    "calendar_statuses": [{"label": "Dad's", "ok": False, "error": secret}]}
+
+        monkeypatch.setattr("web.routes.settings.refresh_calendars", fake)
+        page = client.post("/settings/refresh-now", follow_redirects=True).get_data(as_text=True)
+        assert "1 didn&#39;t answer: Dad&#39;s." in page
+        assert "private-abc123" not in page
+
+    def test_a_failure_flashes_rather_than_500s(self, client, monkeypatch):
+        def explode(config, base=None, **kwargs):
+            raise OSError("the disk is full")
+
+        monkeypatch.setattr("web.routes.settings.refresh_calendars", explode)
+        page = client.post("/settings/refresh-now", follow_redirects=True)
+        assert page.status_code == 200
+        assert "Could not refresh the calendars: the disk is full" in page.get_data(as_text=True)

@@ -12,6 +12,7 @@ from datetime import datetime
 from pathlib import Path
 
 from ruamel.yaml import YAML
+from ruamel.yaml.scalarstring import DoubleQuotedScalarString
 
 from .calendars import zone
 
@@ -51,6 +52,17 @@ LIST_KEYS = ("people", "pets", "recurring", "special_dates", "calendars")
 # when something goes wrong, so leave out the characters that look like others.
 ID_ALPHABET = "23456789abcdefghjkmnpqrstuvwxyz"
 ID_LENGTH = 8
+
+
+def quoted(value):
+    """A string that stays quoted when the file is written back.
+
+    `06:00` is a plain string to ruamel's resolver but a sexagesimal integer to
+    a YAML 1.1 one, and config.yaml is meant to be editable by hand with
+    whatever parser the reader has. So `brief_time` is written the way
+    config.example.yaml documents it — in quotes.
+    """
+    return DoubleQuotedScalarString(str(value))
 
 
 def _yaml():

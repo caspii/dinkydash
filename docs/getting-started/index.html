@@ -329,7 +329,7 @@
   "headline": "Getting Started with DinkyDash",
   "description": "Set up DinkyDash from scratch \u2014 first on your computer, then as a permanent wall dashboard on a Raspberry Pi running the current Raspberry Pi OS.",
   "mainEntityOfPage": "https://dinkydash.co/getting-started/",
-  "dateModified": "2026-09-06",
+  "dateModified": "2026-09-07",
   "author": { "@type": "Person", "name": "Caspar Wrede", "url": "https://casparwre.de" },
   "publisher": { "@id": "https://dinkydash.co/#org" }
 }
@@ -601,13 +601,24 @@ sudo systemctl daemon-reload
 sudo systemctl enable dinkydash.service
 sudo systemctl start dinkydash.service
 </code></pre>
-<h3>Step 6: Generate a fresh board every morning</h3>
-<p>A cron job writes a new board at 6am. If a run fails, the previous board stays up and labels itself stale — the screen never goes blank.</p>
+<h3>Step 6: Keep the board up to date</h3>
+<p>A cron job ticks every five minutes, and each tick does only what your settings say is owed —
+nothing at all, most of the time. Calendars are re-fetched every hour, so an appointment added at
+09:00 for 15:00 reaches the board the same afternoon. The daily line is written once, at 6am. Both
+are yours to change under <strong>Settings → How often it updates</strong>.</p>
 <pre><code class="language-bash">crontab -e
 </code></pre>
 <p>Add this line:</p>
+<pre><code class="language-cron">*/5 * * * * cd /home/pi/dinkydash &amp;&amp; venv/bin/python generate.py --tick &gt;&gt; generate.log 2&gt;&amp;1
+</code></pre>
+<p>Runs never pile up: if one is still going when the next is due, the next skips itself. If a run
+fails, the previous board stays up and labels itself stale — the screen never goes blank, and the
+next tick tries again.</p>
+<p>The old daily line still works, and does the fetch and the line together:</p>
 <pre><code class="language-cron">0 6 * * * cd /home/pi/dinkydash &amp;&amp; venv/bin/python generate.py &gt;&gt; generate.log 2&gt;&amp;1
 </code></pre>
+<p>It just never sees a change you make to your calendar during the day, and the settings above have
+no effect on it. Use one line or the other, not both.</p>
 <h3>Step 7: Show the board full screen at boot (kiosk)</h3>
 <p>Kiosk mode launches Chromium full screen with nothing around it. Current Raspberry Pi OS uses the Wayland desktop by default, so that is the main path. A classic X11 alternative follows for people who want the older, simpler tools.</p>
 <p>First, save this launcher as <code>/home/pi/run.sh</code>. It waits for the board to answer before opening the browser, which avoids the "localhost refused to connect" screen at boot:</p>
@@ -727,7 +738,7 @@ tail -f /home/pi/dinkydash/generate.log   # last night's generation
 /home/pi/screen_control.sh on         # screen on
 </code></pre>
 <p>Once it is set up, the family gets a fresh dashboard every morning, and there is nothing to tap and nothing to maintain.</p>
-    <p class="page-updated">Last updated 2026-09-06.</p>
+    <p class="page-updated">Last updated 2026-09-07.</p>
 </div>
 
 </main>

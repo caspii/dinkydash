@@ -278,9 +278,12 @@ sudo systemctl enable dinkydash.service
 sudo systemctl start dinkydash.service
 ```
 
-### Step 6: Generate a fresh board every morning
+### Step 6: Keep the board up to date
 
-A cron job writes a new board at 6am. If a run fails, the previous board stays up and labels itself stale — the screen never goes blank.
+A cron job ticks every five minutes, and each tick does only what your settings say is owed —
+nothing at all, most of the time. Calendars are re-fetched every hour, so an appointment added at
+09:00 for 15:00 reaches the board the same afternoon. The daily line is written once, at 6am. Both
+are yours to change under **Settings → How often it updates**.
 
 ```bash
 crontab -e
@@ -289,8 +292,21 @@ crontab -e
 Add this line:
 
 ```cron
+*/5 * * * * cd /home/pi/dinkydash && venv/bin/python generate.py --tick >> generate.log 2>&1
+```
+
+Runs never pile up: if one is still going when the next is due, the next skips itself. If a run
+fails, the previous board stays up and labels itself stale — the screen never goes blank, and the
+next tick tries again.
+
+The old daily line still works, and does the fetch and the line together:
+
+```cron
 0 6 * * * cd /home/pi/dinkydash && venv/bin/python generate.py >> generate.log 2>&1
 ```
+
+It just never sees a change you make to your calendar during the day, and the settings above have
+no effect on it. Use one line or the other, not both.
 
 ### Step 7: Show the board full screen at boot (kiosk)
 
