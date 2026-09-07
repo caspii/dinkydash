@@ -85,13 +85,16 @@ class TestWhereTheFilesGo:
         elsewhere.mkdir()
         (elsewhere / "config.yaml").write_text(CONFIG)
         store = FileStore(elsewhere / "config.yaml")
-        store.save_payload(store.load_config(), PAYLOAD)
+        cfg = store.load_config()
+        store.save_agenda(cfg, PAYLOAD)
+        store.save_brief(cfg, PAYLOAD)
         assert (elsewhere / "dashboard_data.json").exists()
         assert not (tmp_path / "dashboard_data.json").exists()
 
     def test_an_absolute_data_file_is_left_where_it_says(self, store, config, tmp_path):
         config["data_file"] = str(tmp_path / "elsewhere.json")
-        store.save_payload(config, PAYLOAD)
+        store.save_agenda(config, PAYLOAD)
+        store.save_brief(config, PAYLOAD)
         assert json.loads((tmp_path / "elsewhere.json").read_text()) == PAYLOAD
 
     def test_the_history_file_is_really_trimmed_on_disk(self, store, config, tmp_path):
@@ -107,8 +110,9 @@ class TestWritingIsAtomic:
     def test_a_half_written_board_is_never_visible(self, store, config, tmp_path):
         # The write goes to a temporary file and is renamed, so a browser
         # loading the board mid-write reads the old one or the new one.
-        store.save_payload(config, PAYLOAD)
+        store.save_agenda(config, PAYLOAD)
+        store.save_brief(config, PAYLOAD)
         with pytest.raises(TypeError):
-            store.save_payload(config, {"headline": object()})  # not JSON
+            store.save_brief(config, {"headline": object()})  # not JSON
         assert store.load_payload(config) == PAYLOAD
         assert list(tmp_path.glob("*.tmp")) == []

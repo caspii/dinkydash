@@ -7,12 +7,22 @@ cloud mode it is rows in Postgres, keyed on a family (PLAN.md decision 10).
 So the six operations get a name now, while there is still one implementation:
 
     load_config()                save_config(config)
-    load_payload(config)         save_payload(config, payload)
+    load_payload(config)         save_agenda(config, agenda)
+                                 save_brief(config, brief)
     recent_notes(config, days)   record_note(config, entry, keep)
 
 The runner, the board route and the settings routes take a store and never
 learn which one they were given. `PostgresStore` is then a second class rather
 than a fork of every caller.
+
+**The board is read whole and written in halves**, and that is the shape rather
+than an accident. A refresh owns the agenda; the daily brief owns the words.
+They run on different clocks, and the brief's write is separated from its read
+by a slow model call — so a single `save_payload` meant a refresh that landed
+during that call was overwritten by stale keys, silently, while the button that
+triggered it said it had worked (DIN-28). Two operations that each write only
+what they own makes that impossible rather than merely unlikely; in Postgres
+they are already two tables, so it is also the more honest mapping.
 
 The payload and history calls are handed the config because `FileStore` needs
 two keys out of it — `data_file` and `content_history_file` — to know where to
@@ -27,12 +37,24 @@ import json
 import logging
 import os
 import tempfile
+from contextlib import contextmanager
 from pathlib import Path
+
+try:
+    import fcntl  # POSIX only
+except ImportError:  # pragma: no cover - Windows has no flock
+    fcntl = None
 
 from . import config as config_module
 from . import history as history_module
 
 log = logging.getLogger(__name__)
+
+# What a calendar refresh owns, and the only keys `save_agenda` will write.
+# Everything else in the payload belongs to the brief. Named here rather than in
+# the runner because it is the storage contract's own vocabulary: both
+# implementations enforce it, and no caller can talk its way past it.
+AGENDA_KEYS = ("events", "calendar_statuses", "calendars_fetched_at")
 
 
 class FileStore:
@@ -66,9 +88,44 @@ class FileStore:
         payload = _read_json(self._data_path(config), "the stored board")
         return payload if isinstance(payload, dict) else None
 
-    def save_payload(self, config, payload):
-        """Write the board atomically, so nothing ever reads half a file."""
-        _write_json(self._data_path(config), payload)
+    def save_agenda(self, config, agenda):
+        """Replace the fetched window, leaving the brief exactly as it was."""
+        self._replace(config, _is_agenda_key,
+                      {k: agenda[k] for k in AGENDA_KEYS if k in agenda})
+
+    def save_brief(self, config, brief):
+        """Replace the model's words, leaving the fetched window alone.
+
+        Agenda keys are dropped rather than trusted, so a caller handing over a
+        whole payload cannot resurrect a stale agenda through this door.
+        """
+        self._replace(config, lambda key: not _is_agenda_key(key),
+                      {k: v for k, v in brief.items() if not _is_agenda_key(k)})
+
+    def _replace(self, config, owns, updates):
+        """Swap out everything this half owns, inside one lock.
+
+        **Replace, not merge.** A key the caller has stopped sending has to
+        disappear, because that is what `PostgresStore` does — it writes whole
+        rows, so an omitted `model` or token count comes back as None. Merging
+        instead would leave a stale value behind on a Pi and not in the cloud,
+        which is exactly the sort of quiet divergence the storage seam exists to
+        prevent.
+
+        The lock covers a read and a write a microsecond apart, never a model
+        call, so nothing waits on it in practice. Without it two processes on
+        one Pi could still interleave — the same bug the split removes, only
+        very much narrower. Cloud mode needs no equivalent: there each half is
+        a row and each write is one statement.
+        """
+        path = self._data_path(config)
+        with _locked(path.parent):
+            stored = _read_json(path, "the stored board")
+            if not isinstance(stored, dict):
+                stored = {}
+            payload = {k: v for k, v in stored.items() if not owns(k)}
+            payload.update(updates)
+            _write_json(path, payload)
 
     # -- what was written recently ------------------------------------------
 
@@ -109,6 +166,44 @@ class FileStore:
     def _resolve(self, value):
         path = Path(value).expanduser()
         return path if path.is_absolute() else self.base / path
+
+
+def _is_agenda_key(key):
+    return key in AGENDA_KEYS
+
+
+@contextmanager
+def _locked(directory):
+    """An exclusive lock on the directory, for one read and one write.
+
+    **The directory rather than a lock file beside the data**, and that is the
+    point: a sidecar would have to be kept out of `deploy_to_pi.sh`'s
+    `rsync --delete`, and if it ever were not, a deploy landing mid-write would
+    unlink the inode a running tick still holds. The next writer would then
+    create a fresh file, take a lock on a different inode, and serialise against
+    nobody — silently. A directory's inode survives all of that, and there is no
+    file to remember to exclude.
+
+    `flock` is per-machine, which is all single mode needs: the web process and
+    the tick are on the same Pi. It is deliberately not the answer for cloud
+    mode, where `web` and `worker` are separate containers — there the split
+    into two rows is what makes concurrent writes safe.
+    """
+    if fcntl is None:  # Windows; the board runs on Linux and macOS
+        yield
+        return
+    try:
+        fd = os.open(str(directory), os.O_RDONLY)
+    except OSError:
+        # No directory to lock means the write is about to fail anyway, and it
+        # will say why far more clearly than a lock error would.
+        yield
+        return
+    try:
+        fcntl.flock(fd, fcntl.LOCK_EX)
+        yield
+    finally:
+        os.close(fd)
 
 
 def _read_json(path, what):

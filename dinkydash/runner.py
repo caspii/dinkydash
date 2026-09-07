@@ -12,6 +12,12 @@ meant and what the settings page's "Rewrite now" does.
 All three take a `store` and read and write only through it, so nothing here
 knows whether the board it is replacing is a file on a Pi or a row belonging to
 one family among thousands.
+
+**Each half writes only what it owns** — `save_agenda` or `save_brief`, never a
+whole payload. That is what makes a refresh landing during the model call
+survive rather than being overwritten by the stale keys the brief read minutes
+earlier (DIN-28). A fresh agenda under yesterday's headline is exactly the
+amber-banner state `board.build_view` already handles.
 """
 
 import logging
@@ -24,11 +30,6 @@ from .claude_client import GenerationError
 from .generate import generate
 
 log = logging.getLogger(__name__)
-
-# What a refresh owns. Everything else in the payload belongs to the brief, and
-# a refresh must not touch it: a fresh agenda under yesterday's headline is
-# exactly the amber-banner state `board.build_view` already handles.
-REFRESH_KEYS = ("events", "calendar_statuses", "calendars_fetched_at")
 
 
 def refresh_calendars(config, store, now=None, today=None):
@@ -48,20 +49,24 @@ def refresh_calendars(config, store, now=None, today=None):
         config.get("calendars"), today, tzinfo, days_ahead=days_ahead,
     )
 
-    payload = store.load_payload(config) or {}
+    # Read only to find out what a failing feed last gave us. Nothing from this
+    # read is written back except the events themselves.
+    previous = (store.load_payload(config) or {}).get("events")
 
     failed = {s["label"] for s in statuses if s["ok"] is False}
     if failed:
         log.warning("Calendars that did not answer: %s", ", ".join(sorted(failed)))
-        events = _with_last_known(events, payload.get("events"), failed,
+        events = _with_last_known(events, previous, failed,
                                   today, today + timedelta(days=days_ahead))
 
-    payload["events"] = events
-    payload["calendar_statuses"] = statuses
-    payload["calendars_fetched_at"] = now.astimezone(timezone.utc).isoformat()
-    store.save_payload(config, payload)
-    log.info("Calendars refreshed: %d events stored", len(payload["events"]))
-    return payload
+    agenda = {
+        "events": events,
+        "calendar_statuses": statuses,
+        "calendars_fetched_at": now.astimezone(timezone.utc).isoformat(),
+    }
+    store.save_agenda(config, agenda)
+    log.info("Calendars refreshed: %d events stored", len(events))
+    return agenda
 
 
 def _with_last_known(fresh, previous, failed_labels, start, end):
@@ -115,11 +120,11 @@ def write_brief(config, store, today=None, client=None):
     payload = generate(
         config, today, stored.get("events") or [], recent_notes=recent, client=client
     )
-    for key in REFRESH_KEYS:
-        if key in stored:
-            payload[key] = stored[key]
-
-    store.save_payload(config, payload)
+    # Only the brief. `stored` was read before a model call that takes seconds,
+    # so anything of the agenda's in it is already potentially out of date — a
+    # refresh may well have landed in the meantime, and writing this copy back
+    # would throw that away while telling the person it had worked.
+    store.save_brief(config, payload)
     store.record_note(
         config,
         {

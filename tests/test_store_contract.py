@@ -71,6 +71,12 @@ def config(store):
     return store.load_config()
 
 
+def save_board(store, config, payload):
+    """Both halves, for tests that want a whole board on the wall."""
+    store.save_agenda(config, payload)
+    store.save_brief(config, payload)
+
+
 class TestTheConfig:
     def test_it_loads_with_the_defaults_filled_in(self, store):
         config = store.load_config()
@@ -102,13 +108,13 @@ class TestTheBoard:
         assert store.load_payload(config) is None
 
     def test_a_payload_comes_back_as_the_dict_that_went_in(self, store, config):
-        store.save_payload(config, dict(PAYLOAD))
+        save_board(store, config, dict(PAYLOAD))
         assert store.load_payload(config) == PAYLOAD
 
     def test_saving_twice_replaces_rather_than_accumulates(self, store, config):
-        store.save_payload(config, dict(PAYLOAD))
+        save_board(store, config, dict(PAYLOAD))
         second = dict(PAYLOAD, headline="A quieter morning")
-        store.save_payload(config, second)
+        save_board(store, config, second)
         assert store.load_payload(config) == second
 
     def test_a_refresh_before_the_first_brief_stores_only_the_agenda(self, store, config):
@@ -116,16 +122,14 @@ class TestTheBoard:
         # board shows its waiting screen rather than claiming a date.
         agenda_only = {"events": EVENTS, "calendar_statuses": STATUSES,
                        "calendars_fetched_at": "2026-09-03T03:50:00+00:00"}
-        store.save_payload(config, agenda_only)
+        store.save_agenda(config, agenda_only)
         assert store.load_payload(config) == agenda_only
 
     def test_a_fresh_agenda_under_yesterdays_brief(self, store, config):
         # The amber-banner state: a refresh must not disturb the brief.
-        store.save_payload(config, dict(PAYLOAD))
-        stored = store.load_payload(config)
-        stored["events"] = []
-        stored["calendars_fetched_at"] = "2026-09-04T07:00:00+00:00"
-        store.save_payload(config, stored)
+        save_board(store, config, dict(PAYLOAD))
+        store.save_agenda(config, {"events": [], "calendar_statuses": [],
+                                   "calendars_fetched_at": "2026-09-04T07:00:00+00:00"})
 
         after = store.load_payload(config)
         assert after["events"] == []
@@ -137,7 +141,7 @@ class TestTheBoard:
     def test_stamps_come_back_in_utc(self, store, config):
         # The two stores must agree about what time a board was written, or the
         # settings page renders the wrong clock on one of them (PLAN.md bug 9).
-        store.save_payload(config, dict(PAYLOAD))
+        save_board(store, config, dict(PAYLOAD))
         written = store.load_payload(config)["generated_at"]
         assert datetime.fromisoformat(written) == datetime(
             2026, 9, 3, 4, 0, tzinfo=timezone.utc)
@@ -153,7 +157,7 @@ class TestTheBoard:
         """
         bare = {"generated_for_date": "2026-09-03", "headline": "Hi",
                 "note": "There", "note_kind": "fact", "events": []}
-        store.save_payload(config, bare)
+        save_board(store, config, bare)
         after = store.load_payload(config)
         assert after["headline"] == "Hi"
         assert after["generated_for_date"] == "2026-09-03"
@@ -194,13 +198,82 @@ class TestTheNoteHistory:
         assert store.recent_notes(config, 30) == []
 
 
-def test_the_two_stores_agree_on_which_keys_a_refresh_owns():
-    """`pgstore` copies REFRESH_KEYS rather than importing upwards from `runner`.
+class TestNeitherDoorWritesTheOthersKeys:
+    """The whole point of two operations instead of one (DIN-28).
 
-    That copy is deliberate — the store sits below the runner — but a copy is
-    only safe if something notices when it stops matching.
+    Enforced by the store rather than by the caller: handing a whole payload to
+    either one must not let it write the other half, because the caller that
+    does exactly that is `write_brief`, holding an agenda it read before a model
+    call that took seconds.
     """
-    pytest.importorskip("psycopg")
-    from dinkydash import pgstore, runner
 
-    assert pgstore.REFRESH_KEYS == runner.REFRESH_KEYS
+    def test_save_brief_cannot_write_the_agenda(self, store, config):
+        save_board(store, config, dict(PAYLOAD))
+        # A whole payload arriving at the brief's door, agenda and all.
+        store.save_brief(config, dict(PAYLOAD, events=[], calendar_statuses=[],
+                                      calendars_fetched_at="1999-01-01T00:00:00+00:00",
+                                      headline="Rewritten"))
+        after = store.load_payload(config)
+        assert after["headline"] == "Rewritten"
+        assert after["events"] == EVENTS
+        assert after["calendars_fetched_at"] == "2026-09-03T03:50:00+00:00"
+
+    def test_save_agenda_cannot_write_the_brief(self, store, config):
+        save_board(store, config, dict(PAYLOAD))
+        store.save_agenda(config, dict(PAYLOAD, events=[],
+                                       headline="Should not appear",
+                                       generated_for_date="1999-01-01"))
+        after = store.load_payload(config)
+        assert after["events"] == []
+        assert after["headline"] == "Big morning"
+        assert after["generated_for_date"] == "2026-09-03"
+
+    def test_a_key_the_caller_stops_sending_disappears(self, store, config):
+        """Each half is *replaced*, not merged into.
+
+        `PostgresStore` writes whole rows, so an omitted `model` or token count
+        comes back as None. `FileStore` merged instead and left the old value
+        behind — a Pi and the cloud disagreeing about what was stored, which is
+        the one thing this suite exists to catch. It did not, until now.
+        """
+        save_board(store, config, dict(PAYLOAD))
+        leaner = {k: v for k, v in PAYLOAD.items()
+                  if k not in ("model", "input_tokens", "output_tokens")}
+        store.save_brief(config, leaner)
+
+        after = store.load_payload(config)
+        assert after.get("model") is None
+        assert after.get("input_tokens") is None
+        assert after["headline"] == "Big morning"      # what was sent is kept
+
+    def test_the_same_is_true_of_the_agenda_half(self, store, config):
+        save_board(store, config, dict(PAYLOAD))
+        store.save_agenda(config, {"events": []})      # no statuses, no stamp
+        after = store.load_payload(config)
+        assert after["events"] == []
+        assert not after.get("calendar_statuses")
+        assert after.get("calendars_fetched_at") is None
+        assert after["headline"] == "Big morning"      # the other half untouched
+
+    def test_a_brief_written_after_a_concurrent_refresh_keeps_the_new_agenda(
+            self, store, config):
+        """The bug DIN-28 describes, end to end.
+
+        A tick reads the payload, spends seconds in the model call, and writes.
+        A refresh lands in the middle. The refresh must survive.
+        """
+        save_board(store, config, dict(PAYLOAD))
+        stale = store.load_payload(config)          # what write_brief read
+
+        fresh = [dict(EVENTS[0], title="Dentist")]  # the refresh, mid-call
+        store.save_agenda(config, {"events": fresh, "calendar_statuses": STATUSES,
+                                   "calendars_fetched_at": "2026-09-03T09:00:00+00:00"})
+
+        stale["headline"] = "Written after a long call"
+        store.save_brief(config, stale)             # the model call returns
+
+        after = store.load_payload(config)
+        assert after["headline"] == "Written after a long call"
+        assert [e["title"] for e in after["events"]] == ["Dentist"], \
+            "the refresh that landed during the model call was discarded"
+        assert after["calendars_fetched_at"] == "2026-09-03T09:00:00+00:00"
