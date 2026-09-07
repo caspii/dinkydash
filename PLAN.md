@@ -629,7 +629,7 @@ missing is the multi-tenant half — a schema, auth, and scoping every read and 
 - [ ] Schema + migrations per the sketch above; `PostgresStore` behind the seam
 - [ ] Magic-link auth: token hashed at rest, single use, 15-minute expiry, request endpoint rate-limited. Signing in through the link *is* email verification — there is no second step.
 - [ ] Session hygiene: `Secure`, `HttpOnly`, `SameSite=Lax`; a CSRF token on every form; cloud mode refuses to start without `DINKYDASH_SECRET_KEY`
-- [ ] `fetch_feed` hardening before any stranger's URL is fetched: `https` only, redirects that cannot land on a private range, a response size cap beside the timeout. The settings page's "Check this link" is the interactive way in, so it goes through the same function.
+- [x] `fetch_feed` hardening before any stranger's URL is fetched: `https` only, redirects that cannot land on a private range, a response size cap beside the timeout *(DIN-33)*. The settings page's "Check this link" goes through the same function, so it is covered too. DNS rebinding is documented as still open.
 - [ ] Family setup wizard: people + DOBs, emoji/color avatars, pets, chores, special dates
 - [ ] Multi-calendar management: add/label/enable/remove iCal feeds, with live validation on paste
 - [ ] Per-provider help content — Google, iCloud, Outlook each expose iCal URLs differently

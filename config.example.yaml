@@ -21,7 +21,7 @@ theme: light
 # One entry per iCal feed; they are merged into a single agenda.
 # Google, Apple iCloud and Outlook all publish an iCal link:
 #   Google   → Settings and sharing → Integrate calendar → Secret address in iCal format
-#   iCloud   → share the calendar → Public Calendar → Copy Link, then webcal:// → https://
+#   iCloud   → share the calendar → Public Calendar → Copy Link (webcal:// is fine)
 #   Outlook  → Settings → Calendar → Shared calendars → Publish a calendar → the ICS link
 calendars:
   - label: "Family"
