@@ -285,6 +285,15 @@
             .nav-links.open { display: flex; }
             .footer-row { flex-direction: column; gap: 8px; text-align: center; }
             .footer-guides { justify-content: center; }
+            /* Comparison tables are three to five columns of prose and cannot
+               fit 375px, so on a phone the table scrolls sideways rather than
+               the whole page: without this the body is ~450px wide and every
+               paragraph runs off the right edge. Desktop keeps width:100%. */
+            .page-content table {
+                display: block;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
         }
     </style>
     <script type="application/ld+json">
@@ -497,7 +506,7 @@
 <p><strong>Best for:</strong> people who want zero setup and are happy paying for it.</p>
 <h2>5. Skylight Calendar — buy the screen too</h2>
 <p>If the real answer is that you want a finished object on the wall rather than a project, Skylight sells the hardware: $299.99 for the 15″ Calendar 2, $599.99 for the 27″ Calendar Max, with an optional Plus subscription at $79/year for chore rewards and meal planning.</p>
-<p>It is the opposite trade to DAKboard — you spend money instead of time, and you get a touchscreen your family can actually tap. See our <a href="/skylight-calendar-alternatives/">Skylight alternatives page</a> for the wider comparison, or the <a href="/skylight-calendar-subscription/">subscription breakdown</a> for what Plus actually costs.</p>
+<p>It is the opposite trade to DAKboard — you spend money instead of time, and you get a touchscreen your family can actually tap. If those two are the ones you are weighing up, we put them head to head in <a href="/dakboard-vs-skylight/">DAKboard vs Skylight vs DinkyDash</a>. See also our <a href="/skylight-calendar-alternatives/">Skylight alternatives page</a> for the wider comparison, or the <a href="/skylight-calendar-subscription/">subscription breakdown</a> for what Plus actually costs.</p>
 <p><strong>Best for:</strong> people who would rather buy the problem away.</p>
 <h2>6. Hearth Display — routines rather than dashboards</h2>
 <p>Hearth's 27″ portrait display ($699 plus a required membership at $9/month, or $86.40 billed annually) is built around routines and visual schedules rather than data panels, and is popular with ADHD and neurodivergent families. It is the most expensive option here over three years, and the least like DAKboard — which for some households is the point. Our <a href="/hearth-vs-skylight/">Hearth vs Skylight comparison</a> goes into it.</p>
@@ -577,6 +586,7 @@
         <div class="footer-guides">
             <a href="/skylight-calendar-alternatives/">Skylight alternatives</a>
             <a href="/dakboard-alternatives/">DAKboard alternatives</a>
+            <a href="/dakboard-vs-skylight/">DAKboard vs Skylight</a>
             <a href="/hearth-vs-skylight/">Hearth vs Skylight</a>
             <a href="/skylight-calendar-subscription/">Skylight subscription costs</a>
             <a href="/diy-skylight-calendar/">DIY digital calendar</a>

@@ -1,0 +1,644 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>DAKboard vs Skylight vs DinkyDash (2026) Compared</title>
+    <meta name="description" content="DAKboard ($0–10/mo, bring your own screen) vs Skylight ($299.99–$599.99 plus optional $79/yr) vs DinkyDash (free and open source) — compared on hardware, subscription, setup effort, and what happens when it breaks.">
+    <link rel="canonical" href="https://dinkydash.co/dakboard-vs-skylight/">
+    
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <meta name="theme-color" content="#fffaf5">
+    <meta property="og:title" content="DAKboard vs Skylight vs DinkyDash (2026) Compared">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://dinkydash.co/dakboard-vs-skylight/">
+    <meta property="og:image" content="https://dinkydash.co/images/og-hero.jpg">
+    <meta property="og:description" content="DAKboard ($0–10/mo, bring your own screen) vs Skylight ($299.99–$599.99 plus optional $79/yr) vs DinkyDash (free and open source) — compared on hardware, subscription, setup effort, and what happens when it breaks.">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #fffaf5;
+            --surface: #ffffff;
+            --surface-warm: #fff5ec;
+            --border: #f0e6da;
+            --text: #2d2319;
+            --text-mid: #5c4a3a;
+            --text-muted: #9a8677;
+            --accent: #e85d24;
+            --accent-soft: rgba(232, 93, 36, 0.08);
+            --purple: #7c5cbf;
+            --purple-soft: rgba(124, 92, 191, 0.08);
+            --blue: #3b82f6;
+            --green: #16a34a;
+            --radius: 16px;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Nunito', system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.65;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        a { color: var(--accent); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+
+        .container {
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* NAV */
+        nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(255, 250, 245, 0.9);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+        }
+        nav .container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 60px;
+        }
+        .nav-brand {
+            font-weight: 800;
+            font-size: 1.2rem;
+            color: var(--accent);
+            text-decoration: none;
+            letter-spacing: -0.02em;
+        }
+        .nav-links { display: flex; gap: 24px; list-style: none; }
+        .nav-links a {
+            color: var(--text-mid);
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: color 0.15s;
+        }
+        .nav-links a:hover { color: var(--accent); text-decoration: none; }
+
+        /* FOOTER */
+        footer {
+            border-top: 1px solid var(--border);
+            padding: 32px 0;
+            margin-top: 80px;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+        footer .container {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        footer a { color: var(--text-muted); }
+        footer a:hover { color: var(--accent); }
+        .footer-guides {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px 18px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+        .footer-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .footer-links { display: flex; align-items: center; gap: 8px; }
+        .footer-sep { color: var(--border); }
+
+        /* CONTENT PAGES */
+        .page-content {
+            /* longhand so .container's horizontal padding survives on mobile */
+            padding-top: 56px;
+            padding-bottom: 56px;
+            max-width: 728px; /* 680px text column + 2x24px padding (border-box) */
+            margin: 0 auto;
+        }
+        .page-content h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            margin-bottom: 24px;
+            color: var(--text);
+            line-height: 1.2;
+        }
+        .page-content h2 {
+            font-size: 1.4rem;
+            font-weight: 800;
+            letter-spacing: -0.01em;
+            margin-top: 40px;
+            margin-bottom: 12px;
+            color: var(--text);
+        }
+        .page-content h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-top: 28px;
+            margin-bottom: 10px;
+        }
+        .page-content p {
+            color: var(--text-mid);
+            margin-bottom: 16px;
+        }
+        .page-content ul, .page-content ol {
+            color: var(--text-mid);
+            padding-left: 20px;
+            margin-bottom: 16px;
+        }
+        .page-content li { margin-bottom: 8px; }
+        .page-content strong { color: var(--text); }
+        .page-content code {
+            font-size: 0.88em;
+            background: var(--surface-warm);
+            padding: 2px 7px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+        }
+        .page-content pre {
+            background: var(--surface-warm);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 14px 16px;
+            margin-bottom: 16px;
+            overflow-x: auto;
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+        .page-content pre code {
+            background: none;
+            border: none;
+            padding: 0;
+            font-size: inherit;
+        }
+        .page-content blockquote {
+            border-left: 3px solid var(--accent);
+            padding: 12px 20px;
+            margin: 20px 0;
+            background: var(--accent-soft);
+            border-radius: 0 var(--radius) var(--radius) 0;
+            color: var(--text-mid);
+            font-style: italic;
+        }
+        .page-content img {
+            width: 100%;
+            height: auto;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            margin: 6px 0 20px;
+        }
+        .page-updated {
+            margin-top: 40px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+            font-size: 0.82rem;
+            color: var(--text-muted) !important;
+        }
+        .page-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0 24px;
+            font-size: 0.9rem;
+        }
+        .page-content th {
+            text-align: left;
+            font-weight: 800;
+            color: var(--text);
+            border-bottom: 2px solid var(--border);
+            padding: 8px 10px;
+        }
+        .page-content td {
+            border-bottom: 1px solid var(--border);
+            padding: 8px 10px;
+            color: var(--text-mid);
+            vertical-align: top;
+        }
+
+        /* BUTTON */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 28px;
+            background: var(--accent);
+            color: #fff;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            font-family: inherit;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.1s, box-shadow 0.15s;
+            box-shadow: 0 2px 8px rgba(232, 93, 36, 0.25);
+        }
+        .btn:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(232, 93, 36, 0.3); text-decoration: none; color: #fff; }
+        .btn-outline {
+            background: transparent;
+            color: var(--text);
+            border: 2px solid var(--border);
+            box-shadow: none;
+        }
+        .btn-outline:hover { border-color: var(--accent); color: var(--accent); box-shadow: none; }
+
+        /* MOBILE */
+        .mobile-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text);
+            font-size: 1.4rem;
+            cursor: pointer;
+            padding: 4px;
+        }
+        @media (max-width: 640px) {
+            .mobile-toggle { display: block; }
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 60px;
+                left: 0;
+                right: 0;
+                background: var(--bg);
+                border-bottom: 1px solid var(--border);
+                flex-direction: column;
+                padding: 16px 24px;
+                gap: 16px;
+            }
+            .nav-links.open { display: flex; }
+            .footer-row { flex-direction: column; gap: 8px; text-align: center; }
+            .footer-guides { justify-content: center; }
+            /* Comparison tables are three to five columns of prose and cannot
+               fit 375px, so on a phone the table scrolls sideways rather than
+               the whole page: without this the body is ~450px wide and every
+               paragraph runs off the right edge. Desktop keeps width:100%. */
+            .page-content table {
+                display: block;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+        }
+    </style>
+    <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://dinkydash.co/#org",
+      "name": "DinkyDash",
+      "url": "https://dinkydash.co/",
+      "logo": "https://dinkydash.co/favicon.svg",
+      "sameAs": ["https://github.com/caspii/dinkydash"]
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://dinkydash.co/#site",
+      "name": "DinkyDash",
+      "url": "https://dinkydash.co/",
+      "publisher": { "@id": "https://dinkydash.co/#org" }
+    }
+  ]
+}
+    </script>
+    
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "DAKboard vs Skylight vs DinkyDash (2026): Prices, Setup, and Which to Pick",
+  "description": "DAKboard ($0\u201310/mo, bring your own screen) vs Skylight ($299.99\u2013$599.99 plus optional $79/yr) vs DinkyDash (free and open source) \u2014 compared on hardware, subscription, setup effort, and what happens when it breaks.",
+  "mainEntityOfPage": "https://dinkydash.co/dakboard-vs-skylight/",
+  "dateModified": "2026-09-06",
+  "author": { "@type": "Person", "name": "Caspar Wrede", "url": "https://casparwre.de" },
+  "publisher": { "@id": "https://dinkydash.co/#org" }
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is the difference between DAKboard and Skylight?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "DAKboard is software you point at a screen you already own; Skylight is a screen you buy with the software built in. DAKboard costs $0\u201310 per month and nothing up front. Skylight costs $299.99 for the 15-inch Calendar 2 or $599.99 for the 27-inch Calendar Max, with an optional Plus subscription at $79 per year. Checked September 2026."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is DAKboard cheaper than Skylight?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Over three years, yes, if you already own a screen. DAKboard Essential is about $180 over three years and Plus is about $288. A 15-inch Skylight with Plus is about $537, and a 27-inch Calendar Max with Plus is about $837. If you have to buy a screen for DAKboard, its own CPU stick is around $80."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Which is better for a family calendar, DAKboard or Skylight?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Skylight, if you want a touchscreen your family taps and no setup at all. DAKboard, if you already own a screen and want control over the layout. DAKboard is a general information dashboard that has added a chore chart; Skylight is built as a family calendar from the start. DinkyDash is a third option: free, open source, family-shaped, and it needs an afternoon of setup."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Do I need a subscription for DAKboard or Skylight?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Neither strictly requires one. DAKboard's free tier gives one predefined screen and two calendars with DAKboard branding and a 60-minute refresh; custom layouts start at $6 per month, or $5 billed annually. A Skylight works without Plus \u2014 Plus at $79 per year adds chore rewards, meal planning and Magic Import. DinkyDash self-hosted has no subscription at all."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How does Mango Display compare to DAKboard?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Both are bring-your-own-screen software. Mango Display is more polished and needs no setup, but its free plan has no calendar at all \u2014 calendars start on Pro at $5.99 per month or $59.99 per year. DAKboard's free tier does include two calendars, and DAKboard goes much further on custom layouts. Checked September 2026."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What happens if the company shuts down?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "With DAKboard, Skylight and Mango Display, the display depends on the company's servers, so the screen stops being useful. DinkyDash is MIT-licensed and runs on your own machine, so a copy you have already installed keeps working. That is the main practical argument for the open-source option."
+      }
+    }
+  ]
+}
+</script>
+
+    
+</head>
+<body>
+<nav>
+    <div class="container">
+        <a class="nav-brand" href="/">DinkyDash</a>
+        <button class="mobile-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">&#9776;</button>
+        <ul class="nav-links">
+            <li><a href="/getting-started/">Get started</a></li>
+            <li><a href="/diy-skylight-calendar/">DIY calendar</a></li>
+            <li><a href="/skylight-calendar-alternatives/">Alternatives</a></li>
+            <li><a href="/dakboard-alternatives/">DAKboard</a></li>
+            <li><a href="/birthday-countdown/">Countdown</a></li>
+            <li><a href="/about/">About</a></li>
+            <li><a href="https://github.com/caspii/dinkydash">GitHub</a></li>
+        </ul>
+    </div>
+</nav>
+
+<main>
+    
+<div class="container page-content">
+    <h1>DAKboard vs Skylight vs DinkyDash (2026): Prices, Setup, and Which to Pick</h1>
+    <p>Comparing the two best-known ways to put your family's calendar on a wall? Here is the short version.</p>
+<p><strong>DAKboard</strong> is software you point at a screen you already own. <strong>Skylight</strong> is a screen you buy, with the software already in it. That single difference decides most of it: DAKboard costs nothing up front and $0–10 a month; Skylight costs $299.99–$599.99 once and $0–79 a year after that.</p>
+<p><strong>DinkyDash</strong> — our project — is a third shape: free, open source, bring your own screen, and no subscription at all. We are obviously not neutral about that one, so this page is written to be useful even if you pick one of the other two.</p>
+<p><em>A word on what this page is. It compares published specifications and public prices, checked on 6 September 2026. It is not a review — we have not lived with a Skylight on our kitchen wall, and we are not going to pretend otherwise. For hands-on impressions of the hardware, go and read the people who actually bought one.</em></p>
+<h2>Head to head</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>DAKboard</th>
+<th>Skylight Calendar</th>
+<th>DinkyDash</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Screen</strong></td>
+<td>Bring your own, or their ~$80 CPU stick</td>
+<td>Included — 15″ or 27″ touchscreen</td>
+<td>Bring your own</td>
+</tr>
+<tr>
+<td><strong>Hardware cost</strong></td>
+<td>$0–80</td>
+<td><strong>$299.99</strong> (15″ Calendar 2) / <strong>$599.99</strong> (27″ Calendar Max)</td>
+<td>$0, or ~$100–130 for a Raspberry Pi build</td>
+</tr>
+<tr>
+<td><strong>Subscription</strong></td>
+<td>Free tier; Essential <strong>$6/mo</strong> ($5 annually); Plus <strong>$10/mo</strong> ($8 annually)</td>
+<td>Optional Plus, <strong>$79/yr</strong></td>
+<td><strong>None</strong> self-hosted. Hosted tier $39/yr or $6/mo</td>
+</tr>
+<tr>
+<td><strong>Calendars it reads</strong></td>
+<td>Google, iCloud, Microsoft 365, Facebook Events, ICS files</td>
+<td>Google, Apple and Outlook</td>
+<td>Google, iCloud and Outlook — you paste a sharing link, there is no sign-in</td>
+</tr>
+<tr>
+<td><strong>Open source</strong></td>
+<td>No</td>
+<td>No</td>
+<td><strong>Yes, MIT</strong></td>
+</tr>
+<tr>
+<td><strong>Runs on your own hardware</strong></td>
+<td>The display does; the service does not</td>
+<td>No</td>
+<td><strong>Yes, entirely</strong></td>
+</tr>
+<tr>
+<td><strong>Chore chart</strong></td>
+<td>Yes — on Essential and Plus, not free</td>
+<td>Yes; rewards need Plus</td>
+<td>Yes, free — rotates between kids automatically</td>
+</tr>
+<tr>
+<td><strong>Touchscreen</strong></td>
+<td>Only if the screen you bring is one</td>
+<td>Yes, built in</td>
+<td>Only if the screen you bring is one</td>
+</tr>
+<tr>
+<td><strong>AI</strong></td>
+<td>No</td>
+<td>Magic Import on Plus — photograph a school newsletter, get events</td>
+<td>A daily brief written fresh each morning</td>
+</tr>
+<tr>
+<td><strong>Setup</strong></td>
+<td>About ten minutes</td>
+<td>Out of the box</td>
+<td>An afternoon, and some comfort with a terminal</td>
+</tr>
+</tbody>
+</table>
+<p><em>Prices checked 6 September 2026. Always confirm current pricing before buying.</em></p>
+<h2>What each one actually is</h2>
+<h3>DAKboard — a dashboard you compose</h3>
+<p>DAKboard grew out of the Raspberry Pi community and has been the default answer for wall displays for years. You build a layout in their web editor — calendar, weather, photos, news, sports, whatever — and point any browser at the resulting screen URL. It runs on a TV, a tablet, an old monitor, or their own plug-in CPU.</p>
+<p>The thing to check before you start is <strong>what the free tier actually is</strong>. It gives you <strong>one predefined screen and two calendars</strong>, with predefined layouts only, DAKboard branding on the display, a 60-minute calendar refresh and a cap of 20 content blocks. Custom layouts — the feature DAKboard is known for — begin on Essential at $6/month, or $5/month billed annually, which also lifts you to two screens and five calendars. Plus, at $10/month or $8 annually, is where three screens, unlimited calendars and a 15-minute refresh live.</p>
+<p>DAKboard does now market a <strong>chore chart</strong>: a column per family member, one tap to check something off, points that convert into rewards you set, and a child lock so siblings cannot clear each other's lists. It is on Essential and Plus, not the free tier.</p>
+<p>The product underneath is still an information dashboard, though. It is very good at arranging many data sources on one screen, which means "whose turn is it to feed the dog" is a general tool pointed at a specific job.</p>
+<h3>Skylight Calendar — a finished object</h3>
+<p>Skylight sells the screen. The 15″ Calendar 2 is $299.99 and the 27″ Calendar Max is $599.99, in both cases a wall-mountable touchscreen that merges your Google, Apple and Outlook calendars into one big color-coded family view. There is nothing to build.</p>
+<p>The optional <strong>Plus</strong> subscription is $79/year. A Skylight works without it — the core calendar and the chore chart are there — but Plus is where chore rewards, meal planning and Magic Import sit. Our <a href="/skylight-calendar-subscription/">breakdown of what Plus actually covers</a> goes through it line by line.</p>
+<p>What you are paying for is that a family can walk up and tap it. No other option here gives you that unless the screen you already own happens to be a touchscreen.</p>
+<h3>DinkyDash — free, open source, family-shaped</h3>
+<p>DinkyDash turns any TV, tablet, Raspberry Pi or spare monitor into a family calendar: today's events, a chore chart that rotates between kids automatically, countdowns to birthdays and holidays, and a daily brief written by AI each morning around the family's actual day.</p>
+<p>It reads the calendars you already keep — <strong>Google Calendar, Apple iCloud and Outlook</strong> all publish a sharing link, and DinkyDash merges as many as you like into one agenda in time order. That is a link, not a login: it never signs in to your Google, Apple or Microsoft account, and it can only read. The <a href="/getting-started/#find-your-calendar-link">getting started guide</a> has the steps for each of the three.</p>
+<p><img alt="The DinkyDash board showing today's agenda, whose turn each chore is, countdowns to birthdays and holidays, and the AI-written daily note" src="/images/family-dashboard-board.webp" width="1600" height="960" decoding="async" /></p>
+<p>It is MIT-licensed and free forever if you run it yourself — no paid tier, no screen limit. Your config, the names and the birthdays stay on your own machine. To be precise about the one thing that leaves: the day's agenda is sent to Anthropic each morning to write the note, and that is the only outbound call besides fetching your calendars.</p>
+<p>The honest cost is time, not money. Setup is an afternoon and some copy-paste in a terminal — the <a href="/getting-started/">getting started guide</a> has the commands. The only running cost is your own Anthropic key for the daily brief, about <strong>$0.13 a month</strong>.</p>
+<p>A hosted version is in build for people who want the same board without the terminal: <strong>$39/year or $6/month</strong>, 14-day trial, no card up front. The first 100 people on the waiting list pay $29/year for as long as they stay subscribed — <a href="https://fffwryhvses.typeform.com/to/yxMMhmFs">join the list</a>.</p>
+<h2>What three years actually costs</h2>
+<p>Annual billing where it is offered. The DAKboard and DinkyDash rows assume you already own a screen; if you do not, the hardware column is where that shows up.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Hardware</th>
+<th>3 years of software</th>
+<th><strong>3-year total</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>DinkyDash, self-hosted</strong></td>
+<td>$0 (own screen) or ~$100–130 (Pi build)</td>
+<td>~$5</td>
+<td><strong>~$5–135</strong></td>
+</tr>
+<tr>
+<td>DinkyDash, hosted</td>
+<td>$0</td>
+<td>$117, or $87 at the waiting-list price</td>
+<td><strong>~$117</strong></td>
+</tr>
+<tr>
+<td>DAKboard Essential</td>
+<td>$0, or ~$80 for their CPU</td>
+<td>~$180</td>
+<td><strong>~$180–260</strong></td>
+</tr>
+<tr>
+<td>DAKboard Plus</td>
+<td>$0, or ~$80</td>
+<td>~$288</td>
+<td><strong>~$288–368</strong></td>
+</tr>
+<tr>
+<td>Skylight 15″, no Plus</td>
+<td>$299.99</td>
+<td>$0</td>
+<td><strong>~$300</strong></td>
+</tr>
+<tr>
+<td>Skylight 15″ + Plus</td>
+<td>$299.99</td>
+<td>$237</td>
+<td><strong>~$537</strong></td>
+</tr>
+<tr>
+<td>Skylight Max + Plus</td>
+<td>$599.99</td>
+<td>$237</td>
+<td><strong>~$837</strong></td>
+</tr>
+</tbody>
+</table>
+<p>The interesting row is the fifth one. <strong>A Skylight without Plus is a genuinely competitive three-year cost</strong> — cheaper than DAKboard Plus, and you get a touchscreen for it. The $837 figure people quote is the 27″ model with the subscription, which is the most expensive way to buy Skylight rather than the only way.</p>
+<h2>Setup effort, honestly</h2>
+<ul>
+<li><strong>Skylight: minutes.</strong> Unbox, connect to Wi-Fi, sign in to your calendar accounts. This is the whole point of buying hardware.</li>
+<li><strong>DAKboard: about ten minutes</strong>, plus whatever time you spend fiddling with the layout, which for some people is the hobby rather than the cost. Point a browser at a URL and you are done.</li>
+<li><strong>DinkyDash: an afternoon.</strong> Install Python, edit a config file or use the settings page, get an Anthropic API key, set up a cron job. Nothing is hard, but it is a terminal, and if that sentence made you tired then this is not your option. Our <a href="/diy-skylight-calendar/">DIY guide</a> walks through the Raspberry Pi version.</li>
+</ul>
+<h2>What happens when it breaks</h2>
+<p>Nobody puts this in a comparison table, and it is the difference that lasts longest.</p>
+<p><strong>DAKboard.</strong> The display renders on your screen but the service runs on their servers. If DAKboard has an outage, your wall shows a stale screen or nothing, and there is no local fix — you wait, and you file a ticket. In exchange, there <em>is</em> a ticket to file: a company, a support queue and an uptime record.</p>
+<p><strong>Skylight.</strong> Hardware fails, and Skylight's answer is a warranty claim and a replacement unit. That is a real, staffed process, which is more than you get from a self-hosted anything. The longer-term exposure is the same shape as DAKboard's: the screen needs their service to be useful, so it is worth remembering you are buying a subscription to a company as much as a piece of glass.</p>
+<p><strong>DinkyDash.</strong> You are the support queue. Self-hosting is community-supported — issues are welcome on GitHub, and nobody is on call. Against that, three things are true and are the reason some people choose it anyway:</p>
+<ul>
+<li><strong>A failed morning does not blank the wall.</strong> If the generation job fails, the board still shows <em>today's</em> times, chores and countdowns, because those are recalculated from your config every time the page renders. Only the written line is old, and the board labels itself stale rather than lying about it. Yesterday's calendar fetch reached 14 days ahead, so today's agenda is still in it.</li>
+<li><strong>The company cannot take it away.</strong> It is MIT-licensed and installed on your machine. A copy you already have keeps working regardless of what happens to us.</li>
+<li><strong>The failure modes are yours to fix.</strong> SD card, Wi-Fi, a Python version — annoying, but visible, and you own them.</li>
+</ul>
+<p>That is the actual trade: a support queue you cannot influence, or no support queue and no dependency.</p>
+<h2>Where Mango Display fits</h2>
+<p>Two of the three products above are bring-your-own-screen, so the natural fourth name is <strong>Mango Display</strong> — and "Mango Display vs DAKboard" is a comparison people search for on its own.</p>
+<p>The short answer: Mango is the polished, no-setup version, and <strong>its free plan does not include the calendar.</strong> The free tier gives you two screens with a clock, weather, news headlines, background images and quotes. Calendars — along with chores, meal plan and photo widgets — start on Pro at $5.99/month or $59.99/year. That is comparable to DAKboard Essential in price, but the products differ in shape: DAKboard goes much further on custom layouts, and Mango asks far less of you to get something on the wall.</p>
+<p>Against DAKboard specifically: pick <strong>DAKboard</strong> if you want to control the layout, and <strong>Mango</strong> if you want an app on a Fire TV and no configuration at all. Neither is open source, and both keep your data on their servers. Our <a href="/dakboard-alternatives/">DAKboard alternatives page</a> covers Mango, MagicMirror² and Home Assistant in more detail.</p>
+<h2>Where each one genuinely wins</h2>
+<p>A comparison that only flatters its own product is not worth reading, so:</p>
+<p><strong>DAKboard wins on layout control and breadth.</strong> Custom layouts and CSS styling, and calendars, photos, weather, news, sports, stocks and smart-home feeds all on one screen. Multiple screens showing different things is built in. If your wall display is a hobby, DAKboard is the better hobby.</p>
+<p><strong>Skylight wins on "it is finished".</strong> A touchscreen your family taps, a solid companion app, a support line, and a setup measured in minutes. If the real goal is that everybody sees the calendar and nobody has to be the household IT department, buying the problem away is a legitimate answer — and without Plus it is not even expensive over three years.</p>
+<p><strong>DinkyDash wins on cost, ownership and the daily brief.</strong> Free, MIT-licensed, running on hardware you own, with a written line each morning that neither of the others offers. It is the only one here you can read the source of, and the only one that cannot be discontinued out from under you.</p>
+<h2>Which should you pick?</h2>
+<ul>
+<li><strong>You already own a screen and enjoy configuring things:</strong> DAKboard, and budget for Essential rather than the free tier if you want custom layouts.</li>
+<li><strong>You want a touchscreen and no project:</strong> Skylight — start with the 15″ and skip Plus until you know you want meal planning.</li>
+<li><strong>You want $0, the source code, and a calendar that is family-shaped out of the box:</strong> <a href="/getting-started/">DinkyDash, self-hosted</a>.</li>
+<li><strong>You want the DinkyDash board without the terminal:</strong> <a href="https://fffwryhvses.typeform.com/to/yxMMhmFs">the hosted waiting list</a> — $39/year, or $29 for the first 100.</li>
+<li><strong>You want something on the wall today with no configuration:</strong> Mango Display Pro — budget for Pro, not the free tier, which has no calendar.</li>
+<li><strong>Mornings are the actual problem, not the calendar:</strong> neither of these. See <a href="/hearth-vs-skylight/">Hearth vs Skylight</a>.</li>
+</ul>
+<p>Still deciding whether a wall display is worth it at all? Prop an old tablet on the kitchen counter for two weeks first. Our <a href="/diy-skylight-calendar/">DIY guide</a> explains why that test tells you more than the hardware decision does. Or compare the wider field on the <a href="/skylight-calendar-alternatives/">Skylight alternatives</a> and <a href="/dakboard-alternatives/">DAKboard alternatives</a> pages.</p>
+    <p class="page-updated">Last updated 2026-09-06.</p>
+</div>
+
+</main>
+
+<footer>
+    <div class="container">
+        <div class="footer-guides">
+            <a href="/skylight-calendar-alternatives/">Skylight alternatives</a>
+            <a href="/dakboard-alternatives/">DAKboard alternatives</a>
+            <a href="/dakboard-vs-skylight/">DAKboard vs Skylight</a>
+            <a href="/hearth-vs-skylight/">Hearth vs Skylight</a>
+            <a href="/skylight-calendar-subscription/">Skylight subscription costs</a>
+            <a href="/diy-skylight-calendar/">DIY digital calendar</a>
+            <a href="/raspberry-pi-family-calendar/">Raspberry Pi calendar</a>
+            <a href="/digital-calendar-and-chore-chart/">Calendar + chore chart</a>
+            <a href="/best-digital-family-calendar/">Best family calendars</a>
+            <a href="/birthday-countdown/">Birthday countdown</a>
+            <a href="/morning-routine/">Morning routines</a>
+            <a href="/family-dashboard/">Family dashboard</a>
+            <a href="/office-dashboard/">Office dashboard</a>
+        </div>
+        <div class="footer-row">
+            <span>&copy; 2026 DinkyDash</span>
+            <span class="footer-links">
+                <a href="https://github.com/caspii/dinkydash/issues/new">Feedback</a>
+                <span class="footer-sep">&middot;</span>
+                <a href="https://casparwre.de">Built by Caspar</a>
+            </span>
+        </div>
+    </div>
+</footer>
+
+<!-- Fathom - beautiful, simple analytics -->
+<script src="https://cdn.usefathom.com/script.js" data-site="HLVHPKAZ" defer></script>
+<!-- / Fathom -->
+<!-- Ahrefs analytics -->
+<script src="https://analytics.ahrefs.com/analytics.js" data-key="NInZX5cjFNqKC44BBPaEBA" async></script>
+<!-- / Ahrefs analytics -->
+
+</body>
+</html>
