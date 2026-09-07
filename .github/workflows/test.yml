@@ -11,6 +11,28 @@ jobs:
   test:
     name: pytest
     runs-on: ubuntu-latest
+
+    # A real Postgres, so the store tests run twice — once over FileStore and
+    # once over PostgresStore, with the same assertions. A suite that only ever
+    # ran against files would not notice the day the two drifted apart.
+    services:
+      postgres:
+        # Pinned to the major version DigitalOcean's managed cluster runs.
+        image: postgres:16
+        env:
+          POSTGRES_USER: dinkydash
+          POSTGRES_PASSWORD: dinkydash
+          POSTGRES_DB: dinkydash_test
+        ports:
+          - 5432:5432
+        # Without this the job races the container and the first connection
+        # fails on a database that is seconds from being ready.
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - uses: actions/checkout@v7
 
@@ -23,11 +45,27 @@ jobs:
           cache-dependency-path: |
             requirements.txt
             requirements-dev.txt
+            requirements-cloud.txt
 
       # requirements-dev.txt pulls in requirements.txt, so this installs both.
-      - run: pip install -r requirements-dev.txt
+      # requirements-cloud.txt adds psycopg, which is deliberately not in
+      # either — a Pi has no database and should not carry a driver for one.
+      - run: pip install -r requirements-dev.txt -r requirements-cloud.txt
 
-      - run: python -m pytest tests/ -q
+      # The password is the service container's own, invented above and
+      # reachable only from this job — but it goes in PGPASSWORD rather than
+      # inline in the URL, because `user:pass@host` is the shape a secret
+      # scanner looks for and a build that cries wolf gets ignored.
+      - name: Run the tests, both backends
+        env:
+          PGPASSWORD: dinkydash
+          DINKYDASH_TEST_DATABASE_URL: postgresql://dinkydash@localhost:5432/dinkydash_test
+        run: python -m pytest tests/ -q
+
+      # The suite a self-hoster actually runs: no database, no psycopg. The
+      # Postgres tests skip, and everything else has to still pass.
+      - name: Run the tests as a self-hoster does
+        run: python -m pytest tests/ -q
 
   gitleaks:
     name: gitleaks

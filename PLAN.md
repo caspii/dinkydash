@@ -2,6 +2,8 @@
 
 *Last updated: September 7, 2026. Supersedes `HOSTING_ANALYSIS.md` (deleted — it predated both the AI generation feature and the July 2026 calendar-display repositioning, and its recommended stack and data model no longer matched the product).*
 
+*September 7, later still: the Postgres layer is built (DIN-31) — `migrations/001_initial_schema.sql`, `migrate.py`, `dinkydash/db.py`, `dinkydash/pgstore.py`, and a contract suite that runs the same assertions over both stores in CI. Connection pooling is settled above. What is deliberately still missing is the multi-tenancy: cloud mode serves one family from `DINKYDASH_FAMILY_ID`, because auth and scoping are Phase 1.*
+
 *September 7, later: the storage seam is built (DIN-19). `dinkydash/store.py` holds the six operations, `FileStore` is the one implementation, and the runner and both blueprints take a store rather than a path. The seam section below describes what exists; `PostgresStore` is now a constructor argument away.*
 
 *September 7 changes: the host is settled — decision 12, DigitalOcean App Platform in Frankfurt with DigitalOcean Managed Postgres and Cloudflare in front. The "Which host?" open question is closed, the hosting section is rewritten around it, DNS gets its own Phase 0 line, and the Compose file's job changes: the shared artefact between the two modes is now the **Dockerfile**, not `docker-compose.yml`.*
@@ -195,8 +197,12 @@ dinkydash/                  # the engine — pure, no clock, no file reads
 ├── config.py               # the config dict: load, save, defaults, migrations, ids
 ├── history.py              # what the recent notes say, and how they trim (pure)
 ├── schedule.py             # due(config, payload, now) -> what a tick owes (pure)
-├── store.py                # the six storage operations; FileStore today
+├── store.py                # the six storage operations; FileStore, single mode
+├── pgstore.py              # PostgresStore, cloud mode
+├── db.py                   # the pool and the migration runner (cloud only)
 └── runner.py               # the two halves of the day, over a store
+
+migrations/                 # plain SQL, applied in order by migrate.py
 
 web/
 ├── __init__.py             # create_app()
@@ -591,7 +597,7 @@ Critical path is 0 → 1 → 2 → 3. Phases 4–6 can run alongside 3. Nothing 
 - [x] **Decision 11, single-mode half:** `refresh_minutes` and `brief_time` in `DEFAULTS`; `runner.run` split into `refresh_calendars` and `write_brief`; a pure `due()`; `generate.py --tick`; the settings page under *This screen*; the board's reload derived from the interval; README cron line updated. Ships to the Pi at once and needs no database. *(DIN-17 for the engine and cron, DIN-18 for the page)*
 - [x] Name the storage seam: `FileStore` gathering the six operations that exist today, and the settings routes, runner and board taking a store *(DIN-19)*
 - [ ] `Dockerfile` and `docker-compose.yml` for single mode (`web` only) — the self-host path is real from here on, the image is what App Platform builds, and every later phase reuses both *(DIN-30)*
-- [ ] Postgres + plain-SQL migrations; CI running the suite against a Postgres service container *(DIN-31)*
+- [x] Postgres + plain-SQL migrations; CI running the suite against a Postgres service container *(DIN-31)*
 - [ ] Move DNS to Cloudflare and add the `app` and `staging.app` records *(DIN-29)*. The apex keeps pointing at GitHub Pages until DIN-27 moves the marketing pages onto the app.
 - [ ] Stand up the App Platform app and the Managed Postgres cluster in Frankfurt; staging live on `staging.app.dinkydash.co` *(DIN-26)*
 

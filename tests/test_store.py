@@ -1,10 +1,9 @@
-"""The storage seam.
+"""What is true of `FileStore` and only `FileStore`.
 
-`FileStore` is the only implementation today, so what is worth asserting is the
-contract `PostgresStore` will have to keep: six operations, a payload that comes
-back as the dict that went in, a history that trims itself, and nothing that
-raises when the files are missing or corrupt. A board must not go dark because
-somebody's disk filled up mid-write.
+The six operations themselves are asserted in `test_store_contract.py`, against
+both implementations with the same assertions. What is left here is the part
+that is genuinely about files: where they land, what happens when one is
+corrupt, and that a reader never sees half of one.
 """
 
 import json
@@ -30,6 +29,12 @@ PAYLOAD = {
 }
 
 
+def _explode(message):
+    def _raise(*args, **kwargs):
+        raise OSError(message)
+    return _raise
+
+
 @pytest.fixture
 def store(tmp_path):
     (tmp_path / "config.yaml").write_text(CONFIG)
@@ -41,68 +46,17 @@ def config(store):
     return store.load_config()
 
 
-def _explode(message):
-    def _raise(*args, **kwargs):
-        raise OSError(message)
-    return _raise
+class TestAFileThatIsNotReadable:
+    """None of these may take the board down. The next write replaces the file."""
 
-
-class TestTheConfig:
-    def test_it_loads_with_the_defaults_filled_in(self, store):
-        config = store.load_config()
-        assert config["family_name"] == "The Wilsons"
-        assert config["refresh_minutes"] == 60
-
-    def test_a_save_comes_back_on_the_next_load(self, store):
-        config = store.load_config()
-        config["family_name"] = "The Bakers"
-        store.save_config(config)
-        assert store.load_config()["family_name"] == "The Bakers"
-
-
-class TestTheBoard:
-    def test_a_payload_comes_back_as_the_dict_that_went_in(self, store, config):
-        store.save_payload(config, PAYLOAD)
-        assert store.load_payload(config) == PAYLOAD
-
-    def test_nothing_generated_yet_is_none_rather_than_an_error(self, store, config):
-        assert store.load_payload(config) is None
-
-    def test_an_unreadable_payload_reads_as_no_board_at_all(self, store, config, tmp_path):
-        # Truncated by a power cut mid-write. The board shows its first-run
-        # screen and the next generation replaces the file.
+    def test_a_truncated_payload_reads_as_no_board_at_all(self, store, config, tmp_path):
+        # Cut off by a power cut mid-write. The board shows its first-run screen.
         (tmp_path / "dashboard_data.json").write_text("{not json")
         assert store.load_payload(config) is None
 
     def test_something_that_is_not_a_payload_is_ignored(self, store, config, tmp_path):
         (tmp_path / "dashboard_data.json").write_text("[1, 2, 3]")
         assert store.load_payload(config) is None
-
-
-class TestTheNoteHistory:
-    def test_a_recorded_note_comes_back(self, store, config):
-        store.record_note(config, {"date": "2026-09-03", "note": "An octopus fact."})
-        assert store.recent_notes(config, 30) == ["An octopus fact."]
-
-    def test_notes_accumulate_oldest_first(self, store, config):
-        for day in range(1, 4):
-            store.record_note(config, {"date": f"2026-09-0{day}", "note": f"Note {day}"})
-        assert store.recent_notes(config, 30) == ["Note 1", "Note 2", "Note 3"]
-
-    def test_only_the_last_kept_entries_survive(self, store, config, tmp_path):
-        for day in range(1, 6):
-            store.record_note(config, {"date": f"2026-09-0{day}", "note": f"Note {day}"},
-                              keep=3)
-        assert store.recent_notes(config, 30) == ["Note 3", "Note 4", "Note 5"]
-        assert len(json.loads((tmp_path / "content_history.json").read_text())) == 3
-
-    def test_asking_for_fewer_days_gives_the_most_recent(self, store, config):
-        for day in range(1, 4):
-            store.record_note(config, {"date": f"2026-09-0{day}", "note": f"Note {day}"})
-        assert store.recent_notes(config, 2) == ["Note 2", "Note 3"]
-
-    def test_no_history_yet_is_an_empty_list(self, store, config):
-        assert store.recent_notes(config, 30) == []
 
     def test_a_corrupt_history_does_not_stop_a_board_being_written(self, store, config,
                                                                    tmp_path):
@@ -113,10 +67,13 @@ class TestTheNoteHistory:
         store.record_note(config, {"date": "2026-09-03", "note": "Fresh start"})
         assert store.recent_notes(config, 30) == ["Fresh start"]
 
+    def test_a_history_that_is_not_a_list_is_ignored(self, store, config, tmp_path):
+        (tmp_path / "content_history.json").write_text('{"note": "not a list"}')
+        assert store.recent_notes(config, 30) == []
+
     def test_an_unwritable_history_is_a_warning_not_a_failure(self, store, config,
                                                               monkeypatch):
-        monkeypatch.setattr("dinkydash.store._write_json",
-                            _explode("the disk is full"))
+        monkeypatch.setattr("dinkydash.store._write_json", _explode("the disk is full"))
         store.record_note(config, {"date": "2026-09-03", "note": "Lost"})  # no exception
 
 
@@ -137,6 +94,16 @@ class TestWhereTheFilesGo:
         store.save_payload(config, PAYLOAD)
         assert json.loads((tmp_path / "elsewhere.json").read_text()) == PAYLOAD
 
+    def test_the_history_file_is_really_trimmed_on_disk(self, store, config, tmp_path):
+        # Not just what `recent_notes` returns — the file itself, because this
+        # one lives on a Pi's SD card for years.
+        for day in range(1, 6):
+            store.record_note(config, {"date": f"2026-09-0{day}", "note": f"Note {day}"},
+                              keep=3)
+        assert len(json.loads((tmp_path / "content_history.json").read_text())) == 3
+
+
+class TestWritingIsAtomic:
     def test_a_half_written_board_is_never_visible(self, store, config, tmp_path):
         # The write goes to a temporary file and is renamed, so a browser
         # loading the board mid-write reads the old one or the new one.

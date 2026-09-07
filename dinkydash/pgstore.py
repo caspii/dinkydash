@@ -1,0 +1,273 @@
+"""The cloud half of the storage seam: one family's rows in Postgres.
+
+Same six operations as `FileStore`, same dicts in and out, so the runner, the
+board route and the settings routes cannot tell which one they were handed
+(PLAN.md decision 10, and the seam named in DIN-19).
+
+Kept in its own module rather than beside `FileStore` for one reason: single
+mode must never import psycopg. A Raspberry Pi has no database and should not
+install a driver for one, so `psycopg` lives in `requirements-cloud.txt` and
+`dinkydash/store.py` stays importable with nothing but the standard library and
+ruamel.
+
+**Every query is scoped to `self.family_id`.** There is no unscoped read and no
+unscoped write in this file, and there must never be one — an id arriving in a
+URL is a claim, not a fact, and the place to check it is before it reaches a
+store, not inside one.
+
+Where the payload lives:
+
+    events, calendar_statuses, calendars_fetched_at  ->  agendas    (one row)
+    headline, note, note_kind                        ->  generations.brief
+    generated_for_date, generated_at, model, tokens  ->  generations columns
+
+That split is `runner.REFRESH_KEYS`, which already names which half a refresh
+owns. `load_payload` puts the two back together as the dict the engine takes.
+"""
+
+import logging
+from datetime import date, datetime, timezone
+
+from psycopg.types.json import Jsonb
+
+from . import config as config_module
+
+log = logging.getLogger(__name__)
+
+# The keys a calendar refresh owns, and the only ones that reach `agendas`.
+# Deliberately a copy rather than an import from `runner`: the store is below
+# the runner, and importing upwards would make the engine's own dependency graph
+# a circle. The test suite asserts the two lists agree.
+REFRESH_KEYS = ("events", "calendar_statuses", "calendars_fetched_at")
+
+# What `generations` holds in real columns rather than inside `brief`.
+GENERATION_COLUMNS = ("generated_for_date", "generated_at", "model",
+                      "input_tokens", "output_tokens")
+
+# Everything else the model wrote. Anything the payload gains that is not named
+# above lands here too, so a new key needs no migration.
+BRIEF_KEYS = ("headline", "note", "note_kind")
+
+
+class PostgresStore:
+    """One family, as rows. Construct one per request or per worker iteration."""
+
+    def __init__(self, pool, family_id):
+        self.pool = pool
+        self.family_id = family_id
+
+    # -- the config ---------------------------------------------------------
+
+    def load_config(self):
+        with self.pool.connection() as conn, conn.cursor() as cur:
+            cur.execute("SELECT config FROM families WHERE id = %s", (self.family_id,))
+            row = cur.fetchone()
+        if row is None:
+            raise LookupError(f"No family {self.family_id}")
+        return config_module.with_defaults(dict(row[0] or {}))
+
+    def save_config(self, config):
+        with self.pool.connection() as conn, conn.transaction():
+            with conn.cursor() as cur:
+                cur.execute(
+                    "UPDATE families SET config = %s, updated_at = now() WHERE id = %s",
+                    (Jsonb(_plain(config)), self.family_id),
+                )
+
+    # -- the board ----------------------------------------------------------
+
+    def load_payload(self, config=None):
+        """The stored board, or None when this family has never had one."""
+        with self.pool.connection() as conn, conn.cursor() as cur:
+            cur.execute(
+                "SELECT events, statuses, fetched_at FROM agendas WHERE family_id = %s",
+                (self.family_id,),
+            )
+            agenda = cur.fetchone()
+            cur.execute(
+                """SELECT brief, generated_for_date, generated_at, model,
+                          input_tokens, output_tokens
+                   FROM generations
+                   WHERE family_id = %s AND status = 'ok'
+                   ORDER BY generated_for_date DESC
+                   LIMIT 1""",
+                (self.family_id,),
+            )
+            generation = cur.fetchone()
+
+        if agenda is None and generation is None:
+            return None
+
+        payload = {}
+        if generation is not None:
+            brief, for_date, at, model, tokens_in, tokens_out = generation
+            payload.update(brief or {})
+            payload["generated_for_date"] = _iso(for_date)
+            payload["generated_at"] = _iso(at)
+            payload["model"] = model
+            payload["input_tokens"] = tokens_in
+            payload["output_tokens"] = tokens_out
+        if agenda is not None:
+            events, statuses, fetched_at = agenda
+            payload["events"] = events or []
+            payload["calendar_statuses"] = statuses or []
+            payload["calendars_fetched_at"] = _iso(fetched_at)
+        return payload
+
+    def save_payload(self, config, payload):
+        """Split the payload across the two tables, in one transaction.
+
+        Both halves are written together because `refresh_calendars` and
+        `write_brief` each hand over a whole payload, and a board that had the
+        new agenda under no headline — or the reverse — would be a state neither
+        function believes it can produce.
+        """
+        agenda = tuple(payload.get(key) for key in REFRESH_KEYS)
+        for_date = payload.get("generated_for_date")
+
+        with self.pool.connection() as conn, conn.transaction():
+            with conn.cursor() as cur:
+                cur.execute(
+                    """INSERT INTO agendas (family_id, events, statuses, fetched_at)
+                       VALUES (%s, %s, %s, %s)
+                       ON CONFLICT (family_id) DO UPDATE
+                       SET events = EXCLUDED.events,
+                           statuses = EXCLUDED.statuses,
+                           fetched_at = EXCLUDED.fetched_at""",
+                    (self.family_id, Jsonb(agenda[0] or []), Jsonb(agenda[1] or []),
+                     _stamp(agenda[2])),
+                )
+                if not for_date:
+                    # A refresh that ran before the first brief. There is no
+                    # generation to write, and inventing one would put a board
+                    # with no words on the wall claiming a date.
+                    return
+                cur.execute(
+                    """INSERT INTO generations
+                           (family_id, generated_for_date, generated_at, brief,
+                            model, input_tokens, output_tokens)
+                       VALUES (%s, %s, %s, %s, %s, %s, %s)
+                       ON CONFLICT (family_id, generated_for_date) DO UPDATE
+                       SET generated_at = EXCLUDED.generated_at,
+                           brief = EXCLUDED.brief,
+                           model = EXCLUDED.model,
+                           input_tokens = EXCLUDED.input_tokens,
+                           output_tokens = EXCLUDED.output_tokens""",
+                    (self.family_id, _as_date(for_date), _stamp(payload.get("generated_at")),
+                     Jsonb(_brief(payload)), payload.get("model"),
+                     payload.get("input_tokens"), payload.get("output_tokens")),
+                )
+
+    # -- what was written recently ------------------------------------------
+
+    def recent_notes(self, config, days):
+        with self.pool.connection() as conn, conn.cursor() as cur:
+            cur.execute(
+                """SELECT note FROM (
+                       SELECT id, note FROM content_history
+                       WHERE family_id = %s
+                       ORDER BY id DESC LIMIT %s
+                   ) recent ORDER BY id ASC""",
+                (self.family_id, days),
+            )
+            return [row[0] for row in cur.fetchall() if row[0]]
+
+    def record_note(self, config, entry, keep=30):
+        """Add one entry and trim to the last `keep`. Never raises.
+
+        A history that cannot be written costs a repeated octopus fact in a
+        fortnight; it is not worth losing a written board over. Same promise
+        `FileStore` makes, for the same reason.
+        """
+        try:
+            with self.pool.connection() as conn, conn.transaction():
+                with conn.cursor() as cur:
+                    cur.execute(
+                        """INSERT INTO content_history
+                               (family_id, date, headline, note, note_kind)
+                           VALUES (%s, %s, %s, %s, %s)""",
+                        (self.family_id, _as_date(entry.get("date")),
+                         entry.get("headline"), entry.get("note"), entry.get("note_kind")),
+                    )
+                    # Trimmed here rather than by a nightly job, so the table
+                    # cannot grow between sweeps and Phase 5's retention answer
+                    # stays "the last thirty, always".
+                    cur.execute(
+                        """DELETE FROM content_history
+                           WHERE family_id = %s AND id NOT IN (
+                               SELECT id FROM content_history
+                               WHERE family_id = %s ORDER BY id DESC LIMIT %s
+                           )""",
+                        (self.family_id, self.family_id, keep),
+                    )
+        except Exception as exc:
+            log.warning("Could not write the note history: %s", exc)
+
+
+def _brief(payload):
+    """The model's words, plus anything new the payload has grown.
+
+    Named keys go in explicitly; the rest is swept up so a payload that gains a
+    key still round-trips without a migration. The refresh keys and the columns
+    above are the only things kept out.
+    """
+    kept = set(REFRESH_KEYS) | set(GENERATION_COLUMNS)
+    brief = {key: value for key, value in payload.items() if key not in kept}
+    for key in BRIEF_KEYS:
+        brief.setdefault(key, payload.get(key))
+    return brief
+
+
+def _plain(value):
+    """A config dict as plain JSON types.
+
+    Single mode's dict is ruamel's CommentedMap with DoubleQuotedScalarString
+    values — both subclasses of dict and str, so they serialise, but they carry
+    comment and style objects that mean nothing here.
+    """
+    if isinstance(value, dict):
+        return {str(k): _plain(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_plain(v) for v in value]
+    if isinstance(value, str):
+        return str(value)
+    return value
+
+
+def _iso(value):
+    """A stamp as the payload holds it: an ISO string in UTC, or None.
+
+    `FileStore` stores what the runner wrote, which is always UTC ISO. Postgres
+    hands back an aware datetime in whatever the session zone is, so it is
+    converted rather than formatted — otherwise the two stores would disagree
+    about what time a board was written, and only one of them would be right.
+    """
+    if value is None:
+        return None
+    if isinstance(value, datetime):
+        return value.astimezone(timezone.utc).isoformat()
+    if isinstance(value, date):
+        return value.isoformat()
+    return str(value)
+
+
+def _stamp(value):
+    """An ISO string from the payload as a datetime Postgres will take."""
+    if not value:
+        return None
+    if isinstance(value, datetime):
+        return value
+    try:
+        moment = datetime.fromisoformat(str(value))
+    except ValueError:
+        return None
+    return moment if moment.tzinfo else moment.replace(tzinfo=timezone.utc)
+
+
+def _as_date(value):
+    if not value or isinstance(value, date):
+        return value or None
+    try:
+        return date.fromisoformat(str(value))
+    except ValueError:
+        return None
