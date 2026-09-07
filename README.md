@@ -1,3 +1,5 @@
+![DinkyDash — the digital family calendar for screens you already own](website/images/social-preview.png)
+
 # DinkyDash
 
 The digital family calendar for screens you already own — a TV, an old tablet, or a Raspberry Pi.
