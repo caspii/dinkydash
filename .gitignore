@@ -10,7 +10,6 @@ dashboard_data.json
 content_history.json
 generate.log
 .tick.lock
-dashboard_data.json.lock
 
 # Personal data (not for public repo)
 config.yaml

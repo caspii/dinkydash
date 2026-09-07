@@ -90,7 +90,8 @@ class FileStore:
 
     def save_agenda(self, config, agenda):
         """Replace the fetched window, leaving the brief exactly as it was."""
-        self._merge(config, {k: agenda.get(k) for k in AGENDA_KEYS if k in agenda})
+        self._replace(config, _is_agenda_key,
+                      {k: agenda[k] for k in AGENDA_KEYS if k in agenda})
 
     def save_brief(self, config, brief):
         """Replace the model's words, leaving the fetched window alone.
@@ -98,24 +99,31 @@ class FileStore:
         Agenda keys are dropped rather than trusted, so a caller handing over a
         whole payload cannot resurrect a stale agenda through this door.
         """
-        self._merge(config, {k: v for k, v in brief.items() if k not in AGENDA_KEYS})
+        self._replace(config, lambda key: not _is_agenda_key(key),
+                      {k: v for k, v in brief.items() if not _is_agenda_key(k)})
 
-    def _merge(self, config, updates):
-        """Read, replace those keys, write — all inside one lock.
+    def _replace(self, config, owns, updates):
+        """Swap out everything this half owns, inside one lock.
 
-        The lock is the small one. It covers a read and a write a microsecond
-        apart, not a model call, so nothing ever waits on it in practice — and
-        without it two processes on a Pi could still interleave, which is the
-        same bug this split exists to remove, just a great deal narrower.
+        **Replace, not merge.** A key the caller has stopped sending has to
+        disappear, because that is what `PostgresStore` does — it writes whole
+        rows, so an omitted `model` or token count comes back as None. Merging
+        instead would leave a stale value behind on a Pi and not in the cloud,
+        which is exactly the sort of quiet divergence the storage seam exists to
+        prevent.
 
-        Cloud mode needs no equivalent: there the two halves are separate rows
-        and each write is a single statement.
+        The lock covers a read and a write a microsecond apart, never a model
+        call, so nothing waits on it in practice. Without it two processes on
+        one Pi could still interleave — the same bug the split removes, only
+        very much narrower. Cloud mode needs no equivalent: there each half is
+        a row and each write is one statement.
         """
         path = self._data_path(config)
-        with _locked(path):
-            payload = _read_json(path, "the stored board") or {}
-            if not isinstance(payload, dict):
-                payload = {}
+        with _locked(path.parent):
+            stored = _read_json(path, "the stored board")
+            if not isinstance(stored, dict):
+                stored = {}
+            payload = {k: v for k, v in stored.items() if not owns(k)}
             payload.update(updates)
             _write_json(path, payload)
 
@@ -160,24 +168,42 @@ class FileStore:
         return path if path.is_absolute() else self.base / path
 
 
-@contextmanager
-def _locked(path):
-    """An exclusive lock beside the file, for the length of one read and write.
+def _is_agenda_key(key):
+    return key in AGENDA_KEYS
 
-    `flock` is per-machine, which is all single mode needs — its web process and
-    its tick are on the same Pi. It is deliberately not the answer for cloud
-    mode, where `web` and `worker` are separate containers; there the split into
-    two rows is what makes concurrent writes safe.
+
+@contextmanager
+def _locked(directory):
+    """An exclusive lock on the directory, for one read and one write.
+
+    **The directory rather than a lock file beside the data**, and that is the
+    point: a sidecar would have to be kept out of `deploy_to_pi.sh`'s
+    `rsync --delete`, and if it ever were not, a deploy landing mid-write would
+    unlink the inode a running tick still holds. The next writer would then
+    create a fresh file, take a lock on a different inode, and serialise against
+    nobody — silently. A directory's inode survives all of that, and there is no
+    file to remember to exclude.
+
+    `flock` is per-machine, which is all single mode needs: the web process and
+    the tick are on the same Pi. It is deliberately not the answer for cloud
+    mode, where `web` and `worker` are separate containers — there the split
+    into two rows is what makes concurrent writes safe.
     """
     if fcntl is None:  # Windows; the board runs on Linux and macOS
         yield
         return
-    handle = open(str(path) + ".lock", "a")
     try:
-        fcntl.flock(handle, fcntl.LOCK_EX)
+        fd = os.open(str(directory), os.O_RDONLY)
+    except OSError:
+        # No directory to lock means the write is about to fail anyway, and it
+        # will say why far more clearly than a lock error would.
+        yield
+        return
+    try:
+        fcntl.flock(fd, fcntl.LOCK_EX)
         yield
     finally:
-        handle.close()  # releases the lock, and so does the process exiting
+        os.close(fd)
 
 
 def _read_json(path, what):

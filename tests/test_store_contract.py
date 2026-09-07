@@ -228,6 +228,33 @@ class TestNeitherDoorWritesTheOthersKeys:
         assert after["headline"] == "Big morning"
         assert after["generated_for_date"] == "2026-09-03"
 
+    def test_a_key_the_caller_stops_sending_disappears(self, store, config):
+        """Each half is *replaced*, not merged into.
+
+        `PostgresStore` writes whole rows, so an omitted `model` or token count
+        comes back as None. `FileStore` merged instead and left the old value
+        behind — a Pi and the cloud disagreeing about what was stored, which is
+        the one thing this suite exists to catch. It did not, until now.
+        """
+        save_board(store, config, dict(PAYLOAD))
+        leaner = {k: v for k, v in PAYLOAD.items()
+                  if k not in ("model", "input_tokens", "output_tokens")}
+        store.save_brief(config, leaner)
+
+        after = store.load_payload(config)
+        assert after.get("model") is None
+        assert after.get("input_tokens") is None
+        assert after["headline"] == "Big morning"      # what was sent is kept
+
+    def test_the_same_is_true_of_the_agenda_half(self, store, config):
+        save_board(store, config, dict(PAYLOAD))
+        store.save_agenda(config, {"events": []})      # no statuses, no stamp
+        after = store.load_payload(config)
+        assert after["events"] == []
+        assert not after.get("calendar_statuses")
+        assert after.get("calendars_fetched_at") is None
+        assert after["headline"] == "Big morning"      # the other half untouched
+
     def test_a_brief_written_after_a_concurrent_refresh_keeps_the_new_agenda(
             self, store, config):
         """The bug DIN-28 describes, end to end.

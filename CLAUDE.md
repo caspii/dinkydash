@@ -286,8 +286,14 @@ Four rules keep it a seam rather than a name:
   `save_agenda` drops anything that is not in `store.AGENDA_KEYS`; `save_brief` drops anything that
   is. Enforced by the store rather than by the caller, because the caller that would get it wrong is
   `write_brief` — it reads the payload, waits seconds on a model call, and writes, so the agenda in
-  its hand is stale by then (DIN-28). `FileStore` takes a short `flock` around its read-modify-write;
-  cloud mode needs none, because there the halves are separate rows and each write is one statement.
+  its hand is stale by then (DIN-28). Each half is **replaced, not merged into**: a key the caller
+  stops sending disappears, because that is what whole-row writes do in Postgres, and a stale value
+  surviving on a Pi but not in the cloud is exactly the divergence the seam exists to prevent.
+  `FileStore` takes a short `flock` **on the containing directory** for its read-modify-write — a
+  lock file beside the data would have to be kept out of `deploy_to_pi.sh`'s `rsync --delete`, and a
+  deploy landing mid-write would otherwise unlink the inode a running tick still held, leaving the
+  next writer to lock a fresh file and serialise against nobody. Cloud mode needs no lock at all:
+  there the halves are separate rows and each write is one statement.
 - **`tests/test_store_contract.py` runs every one of its assertions against both**, parametrised over
   the two backends with no branching. That parity is most of the value of having named the seam: a
   suite that only ran against files would not notice the day the two drifted. The Postgres half
