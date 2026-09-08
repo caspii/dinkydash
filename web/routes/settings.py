@@ -115,7 +115,12 @@ SECTIONS = {
                  "sent to Anthropic each morning so Claude can write the day's line; an event "
                  "kept off the board by a guest list is never stored and never sent.",
         "fields": [
-            ("label", "Call it", "text", True, ""),
+            # "Name", like People and Pets, rather than an instruction. The
+            # heading above already says what is being named, and this string
+            # never reaches the board — it is how the settings list and the
+            # feed status refer to this calendar, so the hint says so.
+            ("label", "Name", "text", True,
+             "Only you see this — try “Family” or “School”."),
             ("url", "iCal link", "url", True,
              "Google → Settings and sharing → Integrate calendar → Secret address in iCal format. "
              "iCloud → share the calendar → Public Calendar → Copy Link (a webcal:// link is "
@@ -769,6 +774,17 @@ def delete_account():
 
 @bp.route("/system", methods=["GET", "POST"])
 def system():
+    """The family's name, clock and whereabouts — and, self-hosted, the model.
+
+    **Which model runs is not a hosted family's setting**, because it is not
+    their API key. Self-hosted, the key is theirs and so is the bill, so the
+    model is a free text box with its price beside it. Hosted, the box would
+    let anybody move the whole account onto an expensive model on our key, and
+    `budget.py` would not notice: it counts *calls*, deliberately, because a
+    price table goes stale silently. So cloud mode drops the field from the
+    form and ignores it here — the template is the courtesy, this is the
+    control.
+    """
     config = current_config()
     if request.method == "POST":
         config["family_name"] = request.form.get("family_name", "").strip()
@@ -777,7 +793,7 @@ def system():
         if timezone:
             config["timezone"] = timezone
         model = request.form.get("claude_model", "").strip()
-        if model:
+        if model and current_app.config["MODE"] != CLOUD:
             config["claude_model"] = model
         save(config)
         flash("Saved.", "ok")
