@@ -267,6 +267,64 @@ knowing are:
 A Cloudflare rate-limit rule on `/s/*` was the original plan (DIN-29) and is still worth adding. It
 is not what the app depends on, and the in-process limiter is what actually runs today.
 
+## The spend breaker, 8 September 2026 (DIN-43)
+
+**There is now a ceiling on the Anthropic bill**, and there was not one before. `model_spend` counts
+calls and tokens per family per UTC day; `budget.PostgresBudget.allow()` charges one call before it
+is made and refuses when either cap is reached.
+
+**The numbers, and what they cost.** The caps are in **model calls**, not money — a price table in
+code goes stale silently and the wrong way. The multiplication lives here instead, from the cost
+model in PLAN.md: roughly **2,500 input and 350 output tokens a call**, which on `claude-haiku-4-5`
+is about **$0.0043 a call**, or about $0.13 per family per month at the one-a-day the product
+actually makes.
+
+| Setting | Default | What it costs a day if fully spent |
+|---|---|---|
+| `DINKYDASH_FAMILY_CALLS_A_DAY` | 12 | ~$0.05 per family |
+| `DINKYDASH_GLOBAL_CALL_FLOOR` | 50 | ~$0.22 |
+| `DINKYDASH_GLOBAL_CALLS_PER_FAMILY` | 4 | ~$0.017 per family |
+
+So the global ceiling is `50 + 4 × families` calls a day — about **$0.22 + $0.017 a family**, against
+a legitimate spend of about $0.0043 a family. Roughly four times headroom, and it grows with the
+product rather than needing to be re-tuned.
+
+**If a bill starts running away, this is the brake:**
+
+```
+DINKYDASH_FAMILY_CALLS_A_DAY=0
+DINKYDASH_GLOBAL_CALL_FLOOR=0
+DINKYDASH_GLOBAL_CALLS_PER_FAMILY=0
+```
+
+Every call is refused, every board on every wall stays exactly as it is, and calendars keep
+refreshing — the refresh costs requests rather than money and is deliberately outside the budget.
+Set it in the App Platform dashboard for immediate effect, then **put the same value in
+`.do/app.yaml` the same day**: the spec is the whole app, so the next `doctl apps update` undoes a
+dashboard-only change.
+
+**Where to look.** The refusals are `WARNING` lines from `dinkydash.budget`:
+
+```bash
+doctl apps logs <id> worker --type run | grep "over the daily budget"
+```
+
+and the running total is one query:
+
+```sql
+SELECT day, sum(calls) AS calls, sum(input_tokens) AS tok_in, sum(output_tokens) AS tok_out
+FROM model_spend GROUP BY day ORDER BY day DESC LIMIT 14;
+```
+
+**Two things it does not do.** It does not know about money, so a model change (Haiku to Sonnet is
+three times the cost) moves the real spend without moving the ceiling — the table above is what has
+to be corrected then. And the global half is approximate by the number of simultaneous callers,
+which with one worker and two web processes is a handful of calls, not a category of problem.
+
+**Applied by the pre-deploy job**, like every migration, so this needs no separate step. The app
+spec *did* change — three new environment variables — so it joins the applies already outstanding
+below.
+
 ## GitHub's own secret scanning
 
 **Do not rely on it yet.** Minutes after it was enabled, a correctly shaped fake

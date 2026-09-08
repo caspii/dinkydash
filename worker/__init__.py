@@ -77,7 +77,8 @@ def family_ids(pool):
         return [row[0] for row in cur.fetchall()]
 
 
-def tick_all(pool, store_factory=None, tick=None, stopping=None):
+def tick_all(pool, store_factory=None, tick=None, stopping=None,
+             budget_factory=None):
     """Tick every family once. Returns how many were ticked without raising.
 
     One family's bad calendar feed, missing config or Anthropic outage must not
@@ -85,9 +86,18 @@ def tick_all(pool, store_factory=None, tick=None, stopping=None):
     worker that serves the quietest ones worst. Each family is therefore its
     own try, and a failure is logged and left — the next pass simply finds the
     same thing still due, which is how the whole tick handles failure already.
+
+    **Every family is ticked against a budget** (DIN-43), and it is built here
+    rather than inside the tick for the same reason the store is: this is the
+    only place that knows both the pool and which family. A refusal is an
+    ordinary `GenerationError` inside `tick`, so it is already handled — the
+    board on the wall stays, and the next pass asks again.
     """
     from dinkydash.pgstore import PostgresStore
     store_factory = store_factory or (lambda fid: PostgresStore(pool, fid))
+    if budget_factory is None:
+        from dinkydash import budget as budget_module
+        budget_factory = lambda fid: budget_module.for_family(pool, fid)  # noqa: E731
     if tick is None:
         from generate import tick
 
@@ -98,7 +108,7 @@ def tick_all(pool, store_factory=None, tick=None, stopping=None):
             break
         try:
             store = store_factory(family_id)
-            tick(store.load_config(), store)
+            tick(store.load_config(), store, budget=budget_factory(family_id))
             done += 1
         except Exception:
             # The id, never the config: a family's config holds children's

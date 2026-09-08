@@ -49,23 +49,44 @@ class FakeStore:
         return {"family_id": self.family_id}
 
 
-def run(ids, tick, stopping=None):
-    return tick_all(FakePool(ids), store_factory=FakeStore, tick=tick, stopping=stopping)
+class FakeBudget:
+    """A budget that allows everything and remembers it was asked."""
+
+    def __init__(self, family_id):
+        self.family_id = family_id
+
+    def allow(self):
+        return None
+
+    def record(self, input_tokens, output_tokens):
+        return None
+
+
+def run(ids, tick, stopping=None, budget_factory=FakeBudget):
+    """`tick_all` with every seam filled by a fake.
+
+    The tick signature is `(config, store, budget=...)`, so the lambdas below
+    take a `budget` keyword whether or not they look at it — the point of
+    passing one at all is that a family's spend is decided per family, out here
+    where the pool and the id are both known (DIN-43).
+    """
+    return tick_all(FakePool(ids), store_factory=FakeStore, tick=tick,
+                    stopping=stopping, budget_factory=budget_factory)
 
 
 class TestWalkingTheFamilies:
     def test_every_family_is_ticked(self):
         seen = []
-        done = run(["a", "b", "c"], lambda config, store: seen.append(store.family_id))
+        done = run(["a", "b", "c"], lambda config, store, budget=None: seen.append(store.family_id))
         assert seen == ["a", "b", "c"]
         assert done == 3
 
     def test_no_families_is_not_an_error(self):
-        assert run([], lambda config, store: None) == 0
+        assert run([], lambda config, store, budget=None: None) == 0
 
     def test_the_config_comes_from_that_family_s_store(self):
         configs = []
-        run(["a", "b"], lambda config, store: configs.append(config))
+        run(["a", "b"], lambda config, store, budget=None: configs.append(config))
         assert configs == [{"family_id": "a"}, {"family_id": "b"}]
 
     def test_lapsed_families_are_excluded_by_the_query(self):
@@ -80,7 +101,7 @@ class TestOneBadFamily:
         """A shared worker that dies on the noisiest tenant serves the quietest worst."""
         seen = []
 
-        def tick(config, store):
+        def tick(config, store, budget=None):
             seen.append(store.family_id)
             if store.family_id == "b":
                 raise RuntimeError("their calendar feed is down")
@@ -90,14 +111,14 @@ class TestOneBadFamily:
         assert done == 2
 
     def test_every_family_can_fail_without_raising(self):
-        def tick(config, store):
+        def tick(config, store, budget=None):
             raise RuntimeError("everything is down")
 
         assert run(["a", "b"], tick) == 0
 
     def test_the_failure_log_names_the_id_and_not_the_config(self, caplog):
         """A config holds children's names, and a calendar URL is a password."""
-        def tick(config, store):
+        def tick(config, store, budget=None):
             raise RuntimeError("failed fetching https://cal.example/private-abc123/basic.ics")
 
         with caplog.at_level(logging.DEBUG):
@@ -113,7 +134,7 @@ class TestStopping:
         stopping = Stopping()
         seen = []
 
-        def tick(config, store):
+        def tick(config, store, budget=None):
             seen.append(store.family_id)
             stopping.request()
 

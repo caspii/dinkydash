@@ -65,6 +65,22 @@ def current_family_id():
     return _family_on_the_session()
 
 
+def current_budget():
+    """What this request's family may still spend on the model.
+
+    `NoBudget` in single mode — a self-hoster's key is their own bill, and the
+    board is not multi-tenant. In cloud mode a Postgres-backed breaker for the
+    family on the session, which is the same money the worker spends and so is
+    counted in the same place (DIN-43).
+    """
+    from dinkydash import budget as budget_module
+    from . import CLOUD
+
+    if current_app.config["MODE"] != CLOUD:
+        return budget_module.NoBudget()
+    return budget_module.for_family(_the_pool(), _family_on_the_session())
+
+
 def current_screen_token():
     """The screen token of the family on the session. Cloud mode only.
 
