@@ -124,8 +124,12 @@ Relative links like `[PLAN.md](PLAN.md)` break once a document is in Linear. Rew
   socket a hostile resolver can answer differently, and closing it means connecting to the checked
   address with an explicit `Host` header.
 - **Calendar contents leave the machine.** They go to Anthropic to write the daily line. A fair
-  trade, but it has to be *said* — in the privacy policy, the sub-processor list, and the UI
-  (PLAN.md phase 5).
+  trade, and it *is* said now (DIN-44): in `website/content/privacy.md`, in the sub-processor list
+  on it, on `/settings/account`, and — the one that matters — in the blurb beside the field where
+  somebody pastes a calendar link. **Those pages are claims about what this code does.** A retention
+  period is a promise that a `DELETE` exists; a sub-processor list is a promise that nothing else is
+  called. Change what the app stores, sends, or sends it to, and the policy changes in the same
+  commit.
 - **Log the label, not the URL.** `fetch_events` logs `entry["label"]` on purpose. The exception
   text does not follow that rule by itself — see the gotcha below.
 
@@ -291,6 +295,7 @@ dinkydash/
 ├── accounts.py        users, the links that sign them in, and sign-up (cloud only)
 ├── screens.py         the token that puts a board on a wall (cloud only)
 ├── budget.py          what a family may spend on the model, and what everybody may
+│                     (`accounts.delete_family` is the hard delete; see phase 5)
 └── runner.py          the two halves of the day, reading and writing through a store
 
 web/

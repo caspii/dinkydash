@@ -40,6 +40,17 @@ DEFAULT_TIMEOUT = 10
 DEFAULT_FROM = "hello@dinkydash.co"
 DEFAULT_FROM_NAME = "DinkyDash"
 
+# **Where a reply goes, which is not the `From` address.** `dinkydash.co` has no
+# MX records — it is authenticated for *sending* and nothing receives on it — so
+# anybody replying to a sign-in email was writing to a mailbox that does not
+# exist, and the bounce went nowhere either. That is a poor thing to discover
+# from the person who was trying to tell you their link did not work.
+#
+# `keepthescore.com` is on Google Workspace and is the same person, which is
+# also what the privacy policy gives as the contact address. When DinkyDash gets
+# MX records of its own, this moves and the policy moves with it.
+DEFAULT_REPLY_TO = "hi@keepthescore.com"
+
 
 class MailError(Exception):
     """A message did not go out.
@@ -77,6 +88,7 @@ def send(to, subject, text, html=None, transport=None, api_key=None,
     body = {
         "personalizations": [{"to": [{"email": recipient}]}],
         "from": {"email": sender or _sender(), "name": sender_name or DEFAULT_FROM_NAME},
+        "reply_to": {"email": _reply_to(), "name": DEFAULT_FROM_NAME},
         "subject": subject,
         "content": _content(text, html),
     }
@@ -182,6 +194,11 @@ def _clean_key(key):
 
 def _sender():
     return os.environ.get("DINKYDASH_MAIL_FROM") or DEFAULT_FROM
+
+
+def _reply_to():
+    """Where a reply lands. Overridable, and never the send-only address."""
+    return os.environ.get("DINKYDASH_MAIL_REPLY_TO") or DEFAULT_REPLY_TO
 
 
 def _why(exc):

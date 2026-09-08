@@ -1,0 +1,95 @@
+{# Your data, and getting rid of it. Cloud mode only — a self-hoster has no
+   account to delete, and their data is three files they already have.
+
+   The two halves are deliberately far apart on the page and look nothing like
+   each other: one is a link, the other is a form that will not submit until an
+   address has been typed into it. #}
+{% extends "settings/base.html" %}
+{% import "settings/_icons.html" as icons %}
+{% block title %}Your data{% endblock %}
+
+{% block head %}
+<style>
+    /* `.field > label` uppercases every label in the settings UI, which is
+       right for "EMAIL ADDRESS" and wrong for an address somebody has to copy
+       character by character. This is the most dangerous button in the app;
+       the string beside it should look exactly like the one they will type. */
+    .confirm-field > label { text-transform: none; letter-spacing: 0; font-size: 0.8125rem; }
+    .confirm-field > label strong { word-break: break-all; }
+</style>
+{% endblock %}
+
+{% block appbar %}
+<a class="back" href="{{ url_for('settings.home') }}">{{ icons.back() }}</a>
+<h1>Your data</h1>
+{% endblock %}
+
+{% block content %}
+<div>
+    <div class="label">Signed in as</div>
+    <div class="card pad">
+        <div style="font-weight:800;word-break:break-all;">{{ address or "—" }}</div>
+        <div class="hint" style="margin-top:0.1875rem;">
+            There is no password on this account. Whoever can read that mailbox can sign in,
+            so look after it the way you would a password.
+        </div>
+    </div>
+</div>
+
+<div>
+    <div class="label">Take it with you</div>
+    <div class="card pad" style="display:flex;flex-direction:column;gap:0.875rem;">
+        <div class="hint">
+            Everything we hold about your family in one file: your details, your calendar
+            links, the agenda we last fetched, and every line the model has written.
+        </div>
+        <a class="btn outline" href="{{ url_for('settings.export_account') }}">Download my data</a>
+    </div>
+</div>
+
+<div>
+    <div class="label">Where it goes</div>
+    <div class="card pad" style="display:flex;flex-direction:column;gap:0.625rem;">
+        {# Said here as well as in the policy, because this is the page somebody
+           opens when they are actually wondering. #}
+        <div class="hint">
+            <strong>Anthropic</strong> sees your family's day. Once each morning the agenda,
+            names and interests go to Claude so it can write the headline and the one line.
+        </div>
+        <div class="hint">
+            <strong>SendGrid</strong> sees who is signing in, and nothing else — your address
+            and the link, never a calendar.
+        </div>
+        <div class="hint">
+            The full list is in the <a href="https://dinkydash.co/privacy/">privacy policy</a>.
+        </div>
+    </div>
+</div>
+
+<div>
+    <div class="label">Delete everything</div>
+    <div class="card pad" style="display:flex;flex-direction:column;gap:0.875rem;">
+        <div class="note-box">
+            This removes your family, this account, your calendar links, the stored agenda and
+            every written line. <strong>Every screen showing your board stops working.</strong>
+            It cannot be undone, and we cannot get it back for you.
+        </div>
+        <form method="post" style="display:flex;flex-direction:column;gap:0.875rem;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="field confirm-field">
+                {# The account's own address, typed back — the way a repository
+                   host asks for the repository name. A button on its own is one
+                   mis-tap away from losing a board somebody spent an evening
+                   setting up. #}
+                <label for="confirm">Type <strong>{{ address }}</strong> to confirm</label>
+                <input type="text" id="confirm" name="confirm" autocomplete="off"
+                       autocapitalize="off" autocorrect="off" spellcheck="false" required>
+            </div>
+            <button class="btn" type="submit"
+                    style="background:var(--danger);border-color:var(--danger);">
+                Delete my account
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

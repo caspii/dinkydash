@@ -114,4 +114,12 @@ after creation, so an app made with a plain git URL has to be recreated rather t
 
 ## Deployment
 
-The website is automatically deployed via GitHub Pages from the `docs/` directory when changes are pushed to the main branch.
+Pushed to `main`, and DigitalOcean App Platform rebuilds from the commit — `deploy_on_push` in
+`.do/app.yaml`. There is no build step and nothing to commit but the source: `website/site.py`
+renders `content/*.md` through `templates/` on request.
+
+**It shares one container with the board.** `wsgi.py` routes on the `Host` header —
+`dinkydash.co` here, `app.dinkydash.co` to the board — so a change to either deploys both.
+
+This section used to say GitHub Pages served `docs/`. That was true until DIN-27 and is not
+now; the directory is gone.
