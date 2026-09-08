@@ -110,32 +110,38 @@ class TestTheSessionKey:
         assert create_app(FileStore(tmp_path / "config.yaml")).secret_key == "mine"
 
 
+@pytest.fixture
+def client(pg_pool, pg_family, monkeypatch):
+    """A signed-in cloud app with one family's board already written.
+
+    Module level rather than nested, because more than one class below needs
+    the same thing: a real cloud app, over a real pool, with a session on it.
+    """
+    from dinkydash.pgstore import PostgresStore
+
+    store = PostgresStore(pg_pool, pg_family)
+    store.save_config(dict(CONFIG))
+    today = payload_for_today()
+    store.save_agenda(store.load_config(), today)
+    store.save_brief(store.load_config(), today)
+
+    monkeypatch.setenv("DINKYDASH_MODE", "cloud")
+    monkeypatch.setenv("DINKYDASH_SECRET_KEY", "a-real-one")
+    # The pool, not the store. Cloud mode builds a `PostgresStore` per
+    # request from the family on the session, so handing one in would
+    # test a path production does not have.
+    client = client_for(create_app(pool=pg_pool))
+    # These tests are about the rows, not the login. Signing in by hand is
+    # what keeps them that way; `tests/test_auth.py` is where the gate
+    # itself is tested, and `tests/test_tenancy.py` the scoping.
+    with client.session_transaction() as stored:
+        stored["user_id"] = 1
+        stored["family_id"] = str(pg_family)
+    return client
+
+
 class TestABoardOutOfPostgres:
     """DIN-31's "done when": a board renders in cloud mode, from rows."""
-
-    @pytest.fixture
-    def client(self, pg_pool, pg_family, monkeypatch):
-        from dinkydash.pgstore import PostgresStore
-
-        store = PostgresStore(pg_pool, pg_family)
-        store.save_config(dict(CONFIG))
-        today = payload_for_today()
-        store.save_agenda(store.load_config(), today)
-        store.save_brief(store.load_config(), today)
-
-        monkeypatch.setenv("DINKYDASH_MODE", "cloud")
-        monkeypatch.setenv("DINKYDASH_SECRET_KEY", "a-real-one")
-        # The pool, not the store. Cloud mode builds a `PostgresStore` per
-        # request from the family on the session, so handing one in would
-        # test a path production does not have.
-        client = client_for(create_app(pool=pg_pool))
-        # These tests are about the rows, not the login. Signing in by hand is
-        # what keeps them that way; `tests/test_auth.py` is where the gate
-        # itself is tested, and `tests/test_tenancy.py` the scoping.
-        with client.session_transaction() as stored:
-            stored["user_id"] = 1
-            stored["family_id"] = str(pg_family)
-        return client
 
     def test_the_board_renders_the_stored_brief(self, client, pg_pool, pg_family):
         page = client.get(board_path(pg_pool, pg_family)).get_data(as_text=True)
@@ -206,3 +212,84 @@ class TestABoardOutOfPostgres:
         manifest = re.compile(r'<link rel="manifest" href="[^"]+">')
         assert manifest.search(from_file) and manifest.search(from_rows)
         assert manifest.sub("[manifest]", from_rows) == manifest.sub("[manifest]", from_file)
+
+
+class TestWhichModelRunsIsNotAHostedSetting:
+    """The model box is self-hosted only, and the route is what enforces it.
+
+    Self-hosted, the API key is the family's own: the model is their choice and
+    the price beside the field is theirs to read. Hosted, the key is ours, so a
+    free text box naming a model is a way to move an account onto an expensive
+    one at our expense — and `budget.py` counts *calls*, deliberately, so it
+    would not see it. Hiding the input is the courtesy; ignoring the field is
+    the control, which is why both are asserted here.
+    """
+
+    def test_the_field_is_not_offered(self, client):
+        page = client.get("/settings/system").get_data(as_text=True)
+        assert 'name="claude_model"' not in page
+        assert "claude-sonnet-5" not in page
+
+    def test_nor_is_a_key_a_hosted_family_does_not_have(self, client):
+        page = client.get("/settings/system").get_data(as_text=True)
+        assert "ANTHROPIC_API_KEY" not in page
+
+    def test_and_a_posted_one_is_ignored(self, client, pg_pool, pg_family):
+        client.post("/settings/system",
+                    data={"family_name": "The Wilsons", "timezone": "Europe/Berlin",
+                          "claude_model": "claude-opus-5"})
+        with pg_pool.connection() as conn, conn.cursor() as cur:
+            cur.execute("SELECT config ->> 'claude_model' FROM families WHERE id = %s",
+                        (pg_family,))
+            assert cur.fetchone()[0] == "claude-haiku-4-5"
+        # The rest of the form still saved, so this is a dropped field rather
+        # than a rejected request.
+        assert "The Wilsons" in client.get("/settings/system").get_data(as_text=True)
+
+    def test_but_a_self_hoster_still_chooses(self, tmp_path, monkeypatch):
+        """The same page on a Pi keeps the field, the price and the key note."""
+        import yaml
+
+        from dinkydash.store import FileStore
+
+        monkeypatch.delenv("DINKYDASH_MODE", raising=False)
+        (tmp_path / "config.yaml").write_text(yaml.safe_dump(CONFIG, allow_unicode=True))
+        app = create_app(FileStore(tmp_path / "config.yaml"))
+        page = app.test_client().get("/settings/system").get_data(as_text=True)
+        assert 'name="claude_model"' in page
+        assert "ANTHROPIC_API_KEY" in page
+
+        client_for(app).post("/settings/system",
+                             data={"family_name": "The Wilsons",
+                                   "timezone": "Europe/Berlin",
+                                   "claude_model": "claude-sonnet-5"})
+        saved = yaml.safe_load((tmp_path / "config.yaml").read_text())
+        assert saved["claude_model"] == "claude-sonnet-5"
+
+
+class TestSelfHostingInstructionsStayThere:
+    """Copy that tells a self-hoster what to do is not shown to a hosted one.
+
+    The crontab note on /settings/refresh is the case that matters: what drives
+    the scheduler is one of the four things mode gates, so hosted there is no
+    crontab — and the note does not say "ignore this", it says nothing on the
+    page has any effect. Wrong, and alarming, to somebody paying for it.
+    """
+
+    def test_the_crontab_note_is_not_shown_to_a_hosted_family(self, client):
+        page = client.get("/settings/refresh").get_data(as_text=True)
+        assert "crontab" not in page
+        # The settings themselves are still there — this is one note box, not
+        # the page.
+        assert 'name="brief_time"' in page
+
+    def test_but_a_self_hoster_is_still_told(self, tmp_path, monkeypatch):
+        import yaml
+
+        from dinkydash.store import FileStore
+
+        monkeypatch.delenv("DINKYDASH_MODE", raising=False)
+        (tmp_path / "config.yaml").write_text(yaml.safe_dump(CONFIG, allow_unicode=True))
+        app = create_app(FileStore(tmp_path / "config.yaml"))
+        page = app.test_client().get("/settings/refresh").get_data(as_text=True)
+        assert "crontab" in page

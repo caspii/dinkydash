@@ -35,6 +35,14 @@
         <div class="hint">Gives the daily line some local flavour. Optional.</div>
     </div>
 
+    {# Self-hosted only, and it is the bill that decides that. On a Pi the key is
+       the family's own, so the model is their choice and the price is theirs to
+       read. Hosted, the key is ours: the cost line is about a bill they do not
+       pay, and a text box naming a model is a way to spend our money that
+       budget.py cannot see — it counts calls, not what a call cost. The route
+       ignores the field in cloud mode as well; hiding an input is not a
+       control. #}
+    {% if not cloud %}
     <div class="field">
         <label for="claude_model">Model</label>
         <input type="text" id="claude_model" name="claude_model" value="{{ config.claude_model or '' }}">
@@ -43,12 +51,14 @@
             <strong>claude-sonnet-5</strong> writes better for about three times that.
         </div>
     </div>
-
-    <button class="btn" type="submit">Save</button>
+    {% endif %}
 </form>
 
+{# Nothing to say to a hosted family: there is no .env of theirs to put a key in. #}
+{% if not cloud %}
 <div class="note-box">
     The API key is read from <strong>ANTHROPIC_API_KEY</strong> in your <strong>.env</strong> file,
     not from here — a key does not belong in a config file that gets committed.
 </div>
+{% endif %}
 {% endblock %}

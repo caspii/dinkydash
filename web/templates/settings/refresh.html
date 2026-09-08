@@ -38,8 +38,6 @@
             <strong>Rewrite now</strong> if you want a fresh one sooner.
         </div>
     </div>
-
-    <button class="btn" type="submit">Save</button>
 </form>
 
 <div class="note-box">
@@ -47,9 +45,15 @@
     The daily line is the part that costs money: one call to Claude, once a day.
 </div>
 
+{# Self-hosted only, and not merely irrelevant hosted — false. What drives the
+   scheduler is one of the four things mode gates, so a hosted family has no
+   crontab to be wrong, and telling them this page has no effect unless they fix
+   one is alarming and untrue. #}
+{% if not cloud %}
 <div class="note-box">
     Both need <strong>generate.py --tick</strong> in your crontab, every five minutes. If yours
     still says <strong>0 6 * * *</strong> without <strong>--tick</strong> — the line older setup
     guides gave — nothing on this page has any effect, and the board updates once at 6am as before.
 </div>
+{% endif %}
 {% endblock %}
