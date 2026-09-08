@@ -20,8 +20,9 @@ from dinkydash import board as board_view
 from dinkydash import config as config_module
 from web import CLOUD
 from web import manifest as manifest_module
-from web.family import current_screen_token, current_store
+from web.family import current_store
 from web.session import guard
+from web.urls import board_path
 
 bp = Blueprint("board", __name__)
 
@@ -116,27 +117,9 @@ def manifest():
 
 @bp.route("/preview")
 def preview():
-    """Every target screen at once, so a layout change can be checked in one go.
-
-    **What it frames is wherever the board actually is.** In cloud mode `/` is
-    a redirect, so framing it would show three iframes of the settings page —
-    the harness has to follow the board to `/s/<token>` or it stops being a
-    harness.
-    """
+    """Show the board at each target screen size."""
     return render_template("preview.html", sizes=PREVIEW_SIZES,
-                           board_url=board_url())
-
-
-def board_url():
-    """Where this family's board is served, for this mode.
-
-    The token is a column on `families`, not a key in the config dict — it is
-    the platform's business rather than a family setting, so it is asked for
-    rather than read out of what the store returned.
-    """
-    if current_app.config["MODE"] != CLOUD:
-        return url_for("board.index")
-    return url_for("screen.board", token=current_screen_token())
+                           board_url=board_path())
 
 
 @bp.route("/healthz")

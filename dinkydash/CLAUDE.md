@@ -17,8 +17,9 @@ recent_notes(config, days)   record_note(config, entry, keep)
 Both implementations exist. `FileStore(config_path)` is `config.yaml` and two JSON files in one
 directory. `PostgresStore(pool, family_id)` is the same six operations against rows, with the
 payload composed from `generations` (the brief) and `agendas` (the fetched window) and handed back
-as the same dict. The runner, the board route and the settings routes all take a store;
-`create_app(store=None)` builds one and every route reads `app.config["STORE"]`.
+as the same dict. The runner takes a store; web routes get theirs from
+`web.family.current_store()`. `create_app(store=None, *, pool=None)` accepts a store in single
+mode or a pool in cloud mode. Cloud stores are scoped to the authenticated request.
 
 Four rules keep it a seam rather than a name:
 
@@ -91,10 +92,11 @@ are load-bearing, and each is asserted in `tests/test_auth.py`:
 - **Expired, spent and never-issued are one answer.** `consume_link` returns `None` for all three,
   so there is nothing for a caller to leak by accident.
 
-The per-address rate limit lives in the same `INSERT` — at most `MOST_LIVE_LINKS` unexpired tokens
-per user — so two requests arriving together cannot both read "two live links" and both make a
-third. The per-IP half is in `web/ratelimit.py` and is in-process, because a database write on
-every unauthenticated request is itself something to flood.
+Login and signup share `_issue_link`: at most `MOST_LIVE_LINKS` unexpired tokens per subject,
+including used tokens. A transaction advisory lock serialises issuance for the user id or normalised
+signup email. Acquire it before the INSERT so READ COMMITTED sees the previous issuer's commit;
+putting the count inside an INSERT alone does not prevent concurrent requests exceeding the limit.
+The per-IP limit in `web/ratelimit.py` is in-process.
 
 **Sign-up is the same token and the same `consume_link`** (DIN-41). An address with no account gets
 a row carrying the address instead of a `user_id`; spending it creates the family, the parent and a
@@ -246,24 +248,15 @@ calendars are fetched just redraws the same thing. A parent picks "how soon does
 not a browser knob — so there is no separate setting for it and the template reads
 `view.reload_seconds` rather than deciding.
 
-Three rules hold this together:
+These rules hold this together:
 
 - **`due()` is pure and takes `now` as an aware datetime.** No clock, no I/O. That is what lets the
   same function drive a Pi's cron tick and, later, a worker loop walking every family. A brief is
   due when `generated_for_date` is not today *in the family's timezone* and the local clock has
   passed `brief_time`; a refresh is due when `calendars_fetched_at` is missing or older than
   `refresh_minutes`.
-- **The first brief is the one exception, and it is owed at once** (DIN-45). `brief_time` decides
-  when to *replace* yesterday's line, and before the first one there is nothing to replace — a
-  family with no `generated_for_date` at all has the waiting screen on the wall, which is not a
-  board at any hour. So a sign-up at 03:00 gets a board on the worker's next tick rather than at
-  06:00, and a freshly cloned Pi gets one from its first `--tick` rather than the next morning.
-  The condition is exact and needs no mode check and no new column: `save_agenda` writes only
-  `AGENDA_KEYS` and `PostgresStore.load_payload` adds `generated_for_date` only for a successful
-  generation, so the key is absent for a family that has never had a brief and present for one
-  whose calendars have merely been fetched. What it costs is that a *failing* first brief now
-  retries around the clock instead of from `brief_time`; the bound is the same one as before, which
-  is `budget.FAMILY_CALLS_A_DAY`.
+- **The first brief is due immediately** when `generated_for_date` is absent. Calendar-only
+  payloads still qualify. See [The first board](../PLAN.md#the-first-board) for retry behaviour.
 - **A refresh must not touch `headline`, `note` or `generated_for_date`**, and it now cannot: it
   writes through `store.save_agenda`, which only accepts `store.AGENDA_KEYS`. A fresh agenda under
   yesterday's brief is exactly the amber-banner state `board.build_view` already handles, and the

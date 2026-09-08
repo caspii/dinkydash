@@ -26,10 +26,10 @@ from dinkydash.runner import forget_calendar, refresh_calendars
 from dinkydash.runner import run as run_generation
 from web import CLOUD
 from web import manifest as manifest_module
-from web.family import (current_budget, current_family_id, current_screen_token,
-                        current_store)
+from web.family import current_budget, current_family_id, current_store
 from web import session as session_module
 from web.session import guard
+from web.urls import absolute_url, board_path
 
 log = logging.getLogger(__name__)
 
@@ -219,10 +219,7 @@ def home():
     payload = current_store().load_payload(config)
 
     tzinfo = config_module.tzinfo_for(config)
-    # "The next run" rather than a number of minutes: it is a worker tick in
-    # cloud mode and a cron line on a Pi, and only one of those is ours to
-    # promise. Either way the first brief is owed at once rather than at
-    # `brief_time` (DIN-45), so there is no morning to wait for.
+    # The first brief is due immediately; the next tick's timing depends on the host.
     status = {"state": "waiting",
               "detail": "No board has been generated yet. The next run writes it."}
     if payload:
@@ -253,9 +250,7 @@ def home():
         "settings/home.html", config=config, status=status, counts=counts,
         broken=broken, sections=SECTIONS, cadence=cadence_summary(config),
         first_run=looks_untouched(config),
-        # Where "View board" goes. In cloud mode `/` is a redirect back to this
-        # page, so a button pointing at it would be a button that does nothing.
-        board_link=screen_url()["screen_path"] or url_for("board.index"),
+        board_link=board_path(),
     )
 
 
@@ -501,11 +496,7 @@ def section_move(section_name, item_id):
 
 @bp.route("/screen", methods=["GET", "POST"])
 def screen():
-    """Colours, and — in cloud mode — the URL a wall panel opens.
-
-    Both live here because they are the same question from a parent's side:
-    what the screen in the kitchen shows, and how it gets there.
-    """
+    """Edit colours and, in cloud mode, show or rotate the screen URL."""
     config = current_config()
     if request.method == "POST":
         if request.form.get("action") == "rotate":
@@ -516,68 +507,20 @@ def screen():
             save(config)
             flash(f"Board set to {theme}.", "ok")
         return redirect(url_for("settings.screen"))
+    link = absolute_url(board_path()) if current_app.config["MODE"] == CLOUD else None
     return render_template("settings/screen.html", config=config,
-                           themes=config_module.THEMES, **screen_url())
-
-
-def screen_url():
-    """The board's public URL and a QR of it, or empty in single mode.
-
-    Empty rather than absent so the template can ask for it either way. A
-    self-hosted board has no token — it is at `/` on a home network, and the
-    page already says what that means.
-    """
-    nothing = {"screen_link": None, "screen_path": None, "screen_qr": None}
-    if current_app.config["MODE"] != CLOUD:
-        return nothing
-    token = current_screen_token()
-    if token is None:
-        return nothing
-    # Two forms on purpose. The absolute one is what a person copies, types
-    # into a television or scans, so it has to carry the hostname. The path is
-    # what a link on this site uses, because an absolute URL in an `href` would
-    # send somebody through DNS and TLS again to reach the page next door.
-    link = url_for("screen.board", token=token, _external=True)
-    return {"screen_link": link,
-            "screen_path": url_for("screen.board", token=token),
-            "screen_qr": qr_svg(link)}
+                           themes=config_module.THEMES, screen_link=link,
+                           screen_qr=qr_svg(link) if link else None)
 
 
 def qr_svg(link):
-    """The link as an inline SVG QR code, or None if it cannot be drawn.
-
-    **Inline, not a file and not a third-party image.** The screen URL is a
-    bearer credential, so handing it to any QR service — or writing it into a
-    filename on disk — would be publishing it. Drawn on the page, it never
-    leaves this response.
-
-    `segno` is a pure-Python encoder with no dependencies of its own, and it
-    lives in `requirements-cloud.txt` rather than `requirements.txt`: a Pi has
-    no screen token and should not install a library it can never use. Hence
-    the import here rather than at the top of the file.
-    """
+    """Draw the credential locally as inline SVG; segno is a cloud-only dependency."""
     try:
         import segno
     except ImportError:  # pragma: no cover - cloud installs it
         log.warning("segno is not installed, so the screen QR code is missing.")
         return None
-    # `xmldecl=False` because an `<svg>` inside an HTML document must not carry
-    # one, and `svgns=False` because inline SVG inherits the namespace from the
-    # page. `omitsize` lets the surrounding CSS size it. Nothing here reaches
-    # outside the response.
-    #
-    # **Black modules, and the template puts a white plate behind them** — in
-    # both themes, which is the one place in this UI that ignores the theme
-    # tokens on purpose. A QR follows the same rules a barcode does: scanners
-    # expect dark on light, and an inverted code is read by some phones and not
-    # others. Drawing it in `currentColor` looked better in dark mode and would
-    # have shipped a QR that half the phones in a kitchen could not read.
-    #
-    # `border=4` is the quiet zone the QR specification asks for. Trimming it to
-    # save space is the other classic way to make a code that scans on a desk
-    # and not across a room.
-    #
-    # A bytes buffer, because segno's SVG writer encodes before it writes.
+    # Black on the template's white background, with a four-module quiet zone.
     out = io.BytesIO()
     segno.make(link, error="m").save(
         out, kind="svg", xmldecl=False, svgns=False, omitsize=True, border=4,

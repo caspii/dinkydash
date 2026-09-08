@@ -53,9 +53,6 @@
         </form>
         <div style="display:flex;gap:0.625rem;">
             <a class="btn outline" style="flex:1;" href="{{ board_link }}">{{ icons.screen() }} View board</a>
-            {# "Rewrite" is the wrong word when there is nothing written yet,
-               and the waiting screen on the board points at this button by
-               name, so the two have to agree (DIN-45). #}
             <form class="inline-form" method="post" action="{{ url_for('settings.generate_now') }}" style="flex:1;">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <button class="btn outline" type="submit">

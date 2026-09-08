@@ -2,7 +2,8 @@
 
 *Last updated: September 8, 2026. Supersedes `HOSTING_ANALYSIS.md` (deleted — it predated both the AI generation feature and the July 2026 calendar-display repositioning, and its recommended stack and data model no longer matched the product).*
 
-*September 8, newest: **a new family gets a board within five minutes, at any hour** (DIN-45). The one thing DIN-41 left behind: the brief waited for `brief_time`, so signing up at 03:00 meant a waiting screen until 06:00 — which is most of the day, and was every family's first impression. `schedule.brief_due` now treats the **first** brief as owed at once, because `brief_time` is when to replace yesterday's line and there is nothing to replace before the first one. No queue, no column, no call to Anthropic from a web request: a payload with no `generated_for_date` already meant "never had a brief" in both stores, so the worker's existing tick answers it. Pure, so a Pi set up after dinner gets a board that evening too. See [The first board](#the-first-board).*
+*September 8: the first brief is due immediately in both modes (DIN-45).
+See [The first board](#the-first-board).*
 
 *September 8, last: **the multi-tenancy is real** (DIN-39). `web/family.py` builds one `PostgresStore` per request from the family on the session, over a pool built once per process; `create_app` holds no store at all in cloud mode, and the environment variable that used to name "the" family is deleted from the code, the app spec and the docs. Nothing a caller can send — path segment, query parameter, form field or header — reaches a query as a family selector, which is a stronger property than checking an id against the session. The ids that do appear in URLs are item ids inside one family's config document, and another family's is not in the list: `tests/test_tenancy.py` walks every section and every write route and asserts a 404, never a 403. **Phase 1's "done when" is met.** `login_link.py` prints a sign-in link without waiting on email, because the preview and the support inbox both need one.*
 
@@ -145,8 +146,9 @@ recent_notes  / record_note
 
 One object with those six methods, in `dinkydash/store.py`. `FileStore` is what
 exists now, gathered up; `PostgresStore` is the cloud one. The runner, the board
-route and the settings routes take a store and never learn which — `create_app`
-accepts one, and every route reads `app.config["STORE"]`. In single mode the
+route and the settings routes use the same storage interface. `create_app`
+accepts a store in single mode or a shared pool in cloud mode; routes call
+`web.family.current_store()` to get the store for their authenticated family. In single mode the
 payload is `dashboard_data.json`. In cloud mode it is composed from two rows —
 the brief in `generations`, the fetched calendar window in `agendas` — and
 comes back as the same dict.
@@ -177,10 +179,9 @@ sweep that already deletes expired tokens is the cleanup. It also makes "signing
 *is* email verification" true of sign-up as well — otherwise a family exists for an address nobody
 has proved they can read.
 
-That is a rate limit's worth of protection and not a cap. The cap is the **global spend breaker**,
-which is Phase 2 and still to come. A CAPTCHA is deliberately last: it puts a third-party script on
-the page where a parent types their email, and friction on the one conversion step that matters, so
-it waits until abuse actually appears.
+The **global spend breaker** now caps model calls (DIN-43). A CAPTCHA is deliberately last: it puts
+a third-party script on the page where a parent types their email, and friction on the one
+conversion step that matters, so it waits until abuse actually appears.
 
 **The cost was a schema change, and it bought one table rather than two.** `login_tokens.user_id` is
 now nullable, with an `email` column beside it and a CHECK that exactly one of the two is set. A
@@ -197,52 +198,22 @@ else's appointments on a stranger's wall. The settings home says so while the bo
 untouched, which is `settings.looks_untouched` — no calendar and the default family name, a signal
 that is equally true of a freshly cloned Pi, so it needs no mode check.
 
-**The gap between the click and the first board is closed** (DIN-45). It was the one thing DIN-41
-left: the worker's next tick refreshed the calendars within five minutes, but the brief waited for
-`brief_time` on the family's clock, so a 03:00 sign-up looked at a waiting screen until 06:00.
-`schedule.brief_due` now treats the *first* brief as owed at once — `brief_time` decides when to
-replace yesterday's line, and before the first one there is nothing to replace. Nothing was added
-to make that decision: a payload with no `generated_for_date` is a family that has never had a
-brief, in both stores, and it needed neither a column nor a queue nor a mode check. A web request
-still does not call Anthropic; the worker does, on the next tick, against the same budget. See
-[The first board](#the-first-board).
-
 ### The first board
 
-*Built in DIN-45.* The first brief is owed the moment there is a family to write it for, rather than
-at `brief_time`. Every family that has ever signed up has met the old behaviour, because the odds of
-signing up in the hour before six are small — so this was not an edge case, it was the ordinary path.
+*Built in DIN-45.* `schedule.brief_due` owes the first brief immediately. This prevents a sign-up
+before `brief_time` from waiting until morning. The existing cloud worker attempts it on its next
+five-minute tick; self-hosters get it on their next cron tick.
 
-**The exception belongs in `schedule.brief_due` and nowhere else.** The alternatives were a queue, a
-column, or a call from the sign-up route, and each one would have been a second place that decides
-what a tick owes. The worker's docstring says *nothing about what is owed is decided here*, and that
-is only worth writing if it stays true. So the rule moved instead: `brief_time` is when to **replace**
-yesterday's line, and before the first one there is nothing to replace.
+The signal is an absent `generated_for_date`. Fetching calendars alone leaves it absent in both
+stores; a successful generation supplies it. This keeps scheduling in one pure function without
+adding a queue, a database column or a model call to signup. Later briefs follow `brief_time` in
+the family's timezone.
 
-**The signal is exact and it was already stored.** `save_agenda` writes only `store.AGENDA_KEYS`, and
-`PostgresStore.load_payload` adds `generated_for_date` only for a generation with `status = 'ok'`. A
-payload without that key is therefore a family that has never had a brief — never a family whose
-calendars have merely been fetched, which is the state the first tick passes through between its two
-halves. Nothing had to be added to make the question answerable.
+Failed first briefs remain due on every tick. Cloud attempts are bounded by
+`budget.FAMILY_CALLS_A_DAY`; self-hosters use their own API key without this cap.
 
-**It is a pure change, so a Pi gets it too**, and wanted it: `generate.py --tick` used to write
-nothing at all on a machine set up after dinner. No mode check, and none of the four things mode is
-allowed to gate is involved.
-
-**What it costs is a failing first brief retried around the clock** rather than from `brief_time`
-onwards. The bound is unchanged — the per-family cap of `budget.FAMILY_CALLS_A_DAY`, tripped within
-an hour by a five-minute loop (DIN-43). Charging on the attempt is what makes that true of a revoked
-key as well as a refused one.
-
-**The copy on the waiting screen changed with it**, and had to. `board.html` is byte-identical in
-both modes, and it said "Run `python generate.py` to fill this in" — a Pi's instruction on a hosted
-family's wall panel, and after this the wrong advice on the Pi as well, because the next tick writes
-it. It names no command now, and points at the settings button by name; that button says **Write it
-now** rather than "Rewrite now" when there is nothing written yet, so the two agree. It is the short
-label rather than the clearer one because `.btn` is a fixed `3rem` high and has no second line to
-wrap onto: the half-row it sits in measures **131px on a 375px phone and 103px on a 320px one**,
-against 92px for "Write it now", 95px for "Rewrite now", 118px for "Write the board" and **152px for
-"Write the first board"**. Only the first two survive the small phone.
+The shared waiting screen points to **Write it now** in settings, which becomes **Rewrite now**
+after the first brief. Keep these short labels: the button has 103px of space on a 320px phone.
 
 ### The screen
 

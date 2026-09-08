@@ -67,14 +67,31 @@ class TestTheSessionKey:
         with pytest.raises(RuntimeError, match="DINKYDASH_SECRET_KEY"):
             create_app()
 
-    def test_cloud_mode_starts_with_one(self, monkeypatch, tmp_path):
+    def test_cloud_mode_starts_with_one(self, monkeypatch, pg_pool):
         monkeypatch.setenv("DINKYDASH_MODE", "cloud")
         monkeypatch.setenv("DINKYDASH_SECRET_KEY", "a-real-one")
-        # A store is supplied, so nothing tries to connect.
-        from dinkydash.store import FileStore
-        (tmp_path / "config.yaml").write_text('family_name: "The Wilsons"\n')
-        app = create_app(FileStore(tmp_path / "config.yaml"))
+        app = create_app(pool=pg_pool)
         assert app.secret_key == "a-real-one"
+        assert app.config["POOL"] is pg_pool
+        assert app.config["STORE"] is None
+
+    def test_cloud_mode_rejects_a_store(self, monkeypatch, tmp_path):
+        from dinkydash.store import FileStore
+
+        monkeypatch.setenv("DINKYDASH_MODE", "cloud")
+        monkeypatch.setenv("DINKYDASH_SECRET_KEY", "a-real-one")
+        with pytest.raises(ValueError, match="Cloud mode accepts a pool"):
+            create_app(FileStore(tmp_path / "config.yaml"))
+
+    def test_single_mode_rejects_a_pool(self, monkeypatch):
+        monkeypatch.setenv("DINKYDASH_MODE", "single")
+        with pytest.raises(ValueError, match="Single mode accepts a store"):
+            create_app(pool=object())
+
+    def test_unknown_mode_cannot_silently_disable_authentication(self, monkeypatch):
+        monkeypatch.setenv("DINKYDASH_MODE", "cluod")
+        with pytest.raises(ValueError, match="DINKYDASH_MODE"):
+            create_app()
 
     def test_single_mode_still_has_its_fallback(self, monkeypatch, tmp_path):
         # A self-hoster is not made to invent a secret for a LAN-local app that
