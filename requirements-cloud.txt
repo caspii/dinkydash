@@ -1,9 +1,15 @@
--r requirements.txt
+-r requirements-site.txt
 
-# Cloud mode only. Deliberately not in requirements.txt, which is what
-# deploy_to_pi.sh installs: a self-hosted board has no database and serves with
-# Flask's own server, so a Pi should carry neither a Postgres driver nor a
-# production WSGI server.
+# Cloud mode only, and a superset of the marketing site's list rather than a
+# sibling of it. One App Platform container serves both hostnames — `wsgi.py`
+# routes on the `Host` header — so the cloud build needs the site's Markdown
+# renderer as well as a Postgres driver. `requirements-site.txt` in turn pulls
+# in `requirements.txt`, so this one file installs everything the container
+# runs. `gunicorn` is inherited from it and is deliberately not repeated here.
+#
+# Deliberately not in requirements.txt, which is what deploy_to_pi.sh installs:
+# a self-hosted board has no database, serves with Flask's own server, and has
+# no business rendering landing pages.
 #
 # App Platform installs this file with a build_command in `.do/app.yaml` — its
 # Python buildpack installs requirements.txt on its own, which is deliberately
@@ -12,4 +18,3 @@
 # Pinned with == like the rest, so a clean build gets what CI passed on.
 psycopg[binary]==3.3.5
 psycopg-pool==3.3.1
-gunicorn==23.0.0
