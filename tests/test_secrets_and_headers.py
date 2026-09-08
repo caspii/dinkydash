@@ -127,8 +127,7 @@ class TestHealthz:
         assert client.get("/healthz").get_json()["commit"] == "abc1234"
 
     def test_an_unknown_commit_is_not_an_error(self, client, monkeypatch):
-        for name in ("GIT_SHA", "APP_PLATFORM_COMPONENT_COMMIT", "SOURCE_COMMIT"):
-            monkeypatch.delenv(name, raising=False)
+        monkeypatch.delenv("GIT_SHA", raising=False)
         assert client.get("/healthz").get_json()["commit"] == "unknown"
 
     def test_it_touches_no_storage(self, client, monkeypatch):
