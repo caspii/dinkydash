@@ -31,6 +31,17 @@ venv/bin/python sample_board.py
 # It refuses to start without a database, and says why. That is the right
 # failure: a fallback would be indistinguishable from success.
 #
+# **It opens on /login, because the board is one family's board and cloud mode
+# reads which family from the session.** `login_link.py` prints a working link
+# without waiting on email — the same token the email would carry, minted by
+# the same code. The script above prints the exact command with this
+# workspace's port already in it.
+#
+# **Chrome or Firefox, not Safari.** The session cookie is `Secure` in cloud
+# mode, and Safari has no loopback exception for that — it silently drops the
+# cookie over `http://localhost`, so signing in fails and looks like a broken
+# form rather than a cookie policy. `web/CLAUDE.md` has the table.
+#
 # **This talks to the production database.** `DATABASE_URL` in `.env` is the
 # live cluster, so anything saved in /settings edits the real family. Export a
 # different DATABASE_URL before starting to point it somewhere safer — the
@@ -43,12 +54,16 @@ venv/bin/python sample_board.py
 available_in = [ "local" ]
 command = """
 set -a; [ -f .env ] && . ./.env; set +a
-if [ -z "$DATABASE_URL" ] || [ -z "$DINKYDASH_FAMILY_ID" ]; then
-  echo "Cloud mode needs DATABASE_URL and DINKYDASH_FAMILY_ID in .env."
-  echo "They are gitignored, so a new workspace only gets them through Files to copy."
+if [ -z "$DATABASE_URL" ]; then
+  echo "Cloud mode needs DATABASE_URL in .env."
+  echo "It is gitignored, so a new workspace only gets it through Files to copy."
   exit 1
 fi
 export DINKYDASH_MODE=cloud
+echo "The board is behind a sign-in. For a link without waiting on email:"
+echo "  venv/bin/python login_link.py you@example.com --base-url http://127.0.0.1:${CONDUCTOR_PORT:-5000}"
+echo "Open it in Chrome or Firefox. Safari will not send a Secure cookie over"
+echo "http://localhost, so signing in there fails and looks like a broken form."
 FLASK_APP=app.py venv/bin/flask run --port ${CONDUCTOR_PORT:-5000} --debug
 """
 default = true

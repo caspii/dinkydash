@@ -80,9 +80,10 @@ header. `dinkydash.co` is the marketing site; `app.dinkydash.co` is the board, r
 Postgres in cloud mode. Both verified live over TLS, and the `PRE_DEPLOY` migration job reported
 `Schema is up to date`.
 
-One family exists, seeded from `config.example.yaml` — invented people, no calendar URL — and
-`DINKYDASH_FAMILY_ID` points at it. Nothing outside `tests/conftest.py` creates a family, so that
-was done by hand and will be until the signup flow exists.
+One family exists, seeded from `config.example.yaml` — invented people, no calendar URL — and an
+app-level environment variable pointed at it. Nothing outside `tests/conftest.py` creates a family,
+so that was done by hand and will be until the signup flow exists. (That variable is gone as of
+DIN-39, below; the family it named is still the only one.)
 
 **Omitting the value of a `type: SECRET` env var does NOT work, and the way it fails is the
 problem.** The earlier note here said it did, on the strength of a canary test: a throwaway
@@ -121,7 +122,7 @@ is a later issue — so the one family seeded from `config.example.yaml` needs a
 before anybody can sign in:
 
 ```sql
-INSERT INTO users (family_id, email) VALUES ('<DINKYDASH_FAMILY_ID>', 'you@example.com');
+INSERT INTO users (family_id, email) VALUES ('<the family uuid>', 'you@example.com');
 ```
 
 One outstanding action, and it is a security one. **`.do/app.yaml` now sets a gunicorn
@@ -141,6 +142,63 @@ them.
 per-address rate limit is three live links; the per-caller-address one is twenty an hour **per
 process**, and the service runs `--workers 2`, so the real ceiling is forty and a redeploy resets
 it. That is a bound on abuse, not a quota.
+
+
+## Multi-tenancy, 8 September 2026 (DIN-39)
+
+**The environment variable that named "the" family is deleted**, from the code, from `.do/app.yaml`
+and from these notes. Cloud mode builds one `PostgresStore` per request from the family on the
+session, over one pool per process. A `git grep` for that variable's name returning nothing is
+itself a test (`tests/test_tenancy.py`), which is why the name no longer appears above either — the
+notes were corrected rather than left, because what they recorded stopped being true.
+
+**The app spec needs applying again.** Removing an env var is a spec change, and `deploy_on_push`
+does not apply one — same merge-values-from-`.env` dance as every other change to that file. Leaving
+it applied-late is harmless here: the variable is simply ignored by code that no longer reads it.
+
+**Signing in for development or support:** `venv/bin/python login_link.py you@example.com` prints a
+working link without waiting on email. Same token, same fifteen minutes, same single use, same
+per-address limit — the only thing it skips is SendGrid. **What it prints is a credential**, so it
+does not go in an issue or a screenshot. It does not create accounts; the `INSERT` above still does.
+
+**What the sign-in limits write to the log**, which is the reason for keeping them in the app
+rather than moving them to a Cloudflare rule. Grep `web.routes.auth`:
+
+```
+INFO    Sent a sign-in link to a @example.com address.
+WARNING Sign-in requests from 93.184.216.34 are over the limit (20 per 60 minutes, in this process).
+WARNING No sign-in link minted for a @example.com address from 93.184.216.42: 3 live links already.
+WARNING No caller address on this request: none of DO-Connecting-IP, CF-Connecting-IP was set ...
+```
+
+Three deliberate choices in there. **The caller's address appears in full** — without it a warning
+says only "something happened", and one script and a hundred parents look the same. **The address
+asked about never does, only its domain** — a flood of `@mailinator.com` is what you want to see,
+and the list of who has an account is what this endpoint exists not to publish, least of all into a
+third party's log. **An address with no account logs nothing at all**, so the log is not an
+enumeration oracle either.
+
+The last line fires once per process and means the per-caller limit has quietly stopped working —
+the platform stopped sending a header that identifies callers. The per-address limit in Postgres
+still holds, so it is a weakened control rather than an open door, but it is worth an alert.
+
+**The caller's address is in `DO-Connecting-IP`, and `X-Forwarded-For` is a trap here.** The access
+log showed `%(h)s` as an internal `10.244.x` that differs between requests, which prompted a look.
+DigitalOcean's own documentation: *"App Platform adds a `do-connecting-ip` HTTP header that contains
+the client's IP address... While the `x-forwarded-for` header is often used for this purpose, App
+Platform uses this header for the IP address of the DigitalOcean ingress server that forwarded the
+request to your app."* So the obvious code is wrong in a quiet way — a per-caller limit keyed on
+`X-Forwarded-For` is keyed on DigitalOcean, and every family in the world shares one bucket.
+`web/ratelimit.client_ip` reads `DO-Connecting-IP` first, `CF-Connecting-IP` second, and returns
+**no key at all** rather than falling back to something shared: an unidentifiable caller should mean
+"this limit does not fire", not "everybody is limited together".
+
+**`app.dinkydash.co` answers with a `cf-ray`, and that is not our Cloudflare.** Our zone is
+DNS-only for every record — checked against the API, not assumed. **App Platform itself is served
+through Cloudflare**: the CNAME target `clownfish-app-7xt89.ondigitalocean.app` resolves to
+`162.159.140.98` and `172.66.0.96`, both in Cloudflare's published ranges, and the DigitalOcean
+hostname carries a `cf-ray` too. So a Cloudflare header on a response says nothing about our proxy
+setting, and `CF-Connecting-IP` may well be present without us having put it there.
 
 
 ## GitHub's own secret scanning

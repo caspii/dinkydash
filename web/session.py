@@ -86,12 +86,11 @@ def signed_in():
 
 
 def guard():
-    """Cloud mode: no session, no settings. Returns a redirect, or None.
+    """Cloud mode: no session, no family. Returns a redirect, or None.
 
-    This is authentication and not yet authorisation. Cloud mode still serves
-    the one family in `DINKYDASH_FAMILY_ID`; scoping every read and write to
-    the family on the session is its own issue, and is the actual "done when"
-    of PLAN.md phase 1.
+    Authentication and authorisation are the same act here, because the session
+    is not merely permission to see a board — it *is* which board. The family
+    on it is the only thing `web/family.py` will build a store from (DIN-39).
 
     No `next` parameter. A redirect target taken from a URL is an open redirect
     waiting to be written wrongly, and everything behind this gate is one page

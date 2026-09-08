@@ -135,8 +135,14 @@ Self-hosted is one family on their own network and has **no authentication by de
 reaches the port can edit the config, which is the same trust model as the file it writes. Cloud
 mode is a different product on the same code.
 
-- **Every read and write is scoped to a `family_id`.** There is no unscoped query. An id arriving in
-  a URL or a form is a claim, not a fact — check it against the session before it reaches a query.
+- **Every read and write is scoped to a `family_id`, and that id comes from the session.**
+  `web/family.py` builds one `PostgresStore` per request out of it, over a pool built once per
+  process — never one pool per request, because the cluster has 22 connections and a PgBouncer in
+  front. Nothing a caller can send names a family: no path segment, no query parameter, no form
+  field, no header. That is stronger than checking an id, and it is why there is no "the" family
+  anywhere. When a route does one day take a family id — the admin view is the likely first — the
+  check goes in `family.py`, before the store is built, and **a mismatch is a 404 and never a 403**:
+  "forbidden" confirms the row exists, which tells one family that another one does.
 - **`web/__init__.py` falls back to a hardcoded `app.secret_key`.** Harmless with no auth; in cloud
   mode the session *is* the authentication, so cloud mode must refuse to start without a real
   `DINKYDASH_SECRET_KEY`.
@@ -154,6 +160,11 @@ mode is a different product on the same code.
   switch to turn it off. A test walks the templates and fails on a form without one.
 - **Screen tokens are bearer credentials.** Rate-limited, `noindex`, no referrer leakage, rotatable,
   and never written to a log or an error page.
+- **The sign-in rate limits are ours, not an edge rule, so that a refusal is a line somebody can
+  read.** That is the trade being made — a Cloudflare rule would be sturdier and invisible. What
+  goes in the line is chosen: the caller's address in full, the *domain* of the address asked about
+  and never the address, and nothing at all for an address with no account. `tests/test_auth.py`
+  asserts each of those, because a log policy nobody tests is a log policy that drifts.
 - **Spend caps are a security control.** The per-family and global breaker (PLAN.md phase 2) is what
   stops a bug or an abusive account becoming an unbounded Anthropic bill.
 
@@ -255,7 +266,8 @@ dinkydash/
 └── runner.py          the two halves of the day, reading and writing through a store
 
 web/
-├── __init__.py        create_app()
+├── __init__.py        create_app(): the pool, the mode gates, the blueprints
+├── family.py          which family a request is for, and its store
 ├── session.py         what the cookie carries: who is signed in, and CSRF
 ├── ratelimit.py       a per-key counter, in this process (the per-IP half)
 ├── routes/board.py    the board and the preview harness

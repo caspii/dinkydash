@@ -50,8 +50,15 @@ Four rules keep it a seam rather than a name:
   green suite — and CI runs the suite twice, once with the variable and once without.
 
 **Every `PostgresStore` query is scoped to `self.family_id`.** There is no unscoped read and no
-unscoped write in that file, and there must never be one. An id arriving in a URL is a claim, not a
-fact, and the place to check it is before it reaches a store.
+unscoped write in that file, and there must never be one. That only protects anybody if the id the
+store was *built* with is trustworthy, which is `web/family.py`'s job: in cloud mode it comes from
+the session and from nowhere else, and one store is built per request. `PostgresStore` is two
+attributes round a pool and costs nothing to build; the pool is process-wide and must stay that way.
+
+`load_config` raises **`NoSuchFamily`**, a named `LookupError`, because the web app handles it — a
+thirty-day session can outlive the account it names, and that should sign the holder out rather than
+500. Catching the bare parent would swallow `KeyError` and `IndexError` too, which is to say every
+real bug, and send it to the login page.
 
 Two things are unscoped, both deliberately outside the store rather than weakening it:
 `worker.family_ids`, whose whole job is to walk every family, and `dinkydash/accounts.py`, which

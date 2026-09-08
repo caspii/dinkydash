@@ -82,7 +82,7 @@ def cloud(pg_pool, pg_family, monkeypatch):
     store.save_config(yaml.safe_load(CONFIG))
     monkeypatch.setenv("DINKYDASH_MODE", "cloud")
     monkeypatch.setenv("DINKYDASH_SECRET_KEY", "a-real-one")
-    return create_app(store)
+    return create_app(pool=pg_pool)
 
 
 @pytest.fixture
@@ -249,49 +249,79 @@ class TestTheLimiter:
 
 
 class TestWhichAddressItCounts:
-    """`X-Forwarded-For` read from the right, stepping over private hops.
+    """`DO-Connecting-IP` first, and `X-Forwarded-For` never.
+
+    DigitalOcean's documentation: "App Platform adds a do-connecting-ip HTTP
+    header that contains the client's IP address... While the x-forwarded-for
+    header is often used for this purpose, App Platform uses this header for
+    the IP address of the DigitalOcean ingress server." So that header holds a
+    *public* address shared by every request that reaches us, and reading it
+    at all — even last, even from the right — is the shared-bucket bug.
 
     The addresses here are real public ones on purpose. Python's `ipaddress`
-    counts the documentation ranges — `203.0.113.0/24` and friends — as
-    *private*, so a test written with those would pass through the fallback
-    branch and prove nothing.
+    counts the documentation ranges as *private*, so a test written with those
+    would go down the fallback branch and prove nothing. That is exactly how
+    the bug above survived its first round of tests.
     """
 
-    CLIENT = "93.184.216.34"      # what our proxy saw
-    CLAIMED = "8.8.8.8"           # what the caller put in the header
-    INTERNAL = "10.1.2.3"         # a hop inside the platform
+    CLIENT = "93.184.216.34"      # the caller
+    CLAIMED = "8.8.8.8"           # what the caller put in a header
+    INGRESS = "104.16.0.1"        # public, shared, and not the caller
+    INTERNAL = "10.244.5.194"     # the socket, inside the platform
 
     class _Request:
-        def __init__(self, headers, remote_addr):
-            self.headers = headers
+        def __init__(self, headers=None, remote_addr=None):
+            self.headers = headers or {}
             self.remote_addr = remote_addr
 
-    def _asking_from(self, forwarded, remote_addr="10.0.0.1"):
-        headers = {"X-Forwarded-For": forwarded} if forwarded else {}
-        return self._Request(headers, remote_addr)
+    def test_the_platforms_own_header_wins(self):
+        assert client_ip(self._Request(
+            {"DO-Connecting-IP": self.CLIENT,
+             "X-Forwarded-For": self.INGRESS},
+            self.INTERNAL)) == self.CLIENT
 
-    def test_with_no_proxy_it_is_the_socket(self):
-        assert client_ip(self._asking_from(None, self.CLIENT)) == self.CLIENT
+    def test_the_cloudflare_one_is_second(self):
+        assert client_ip(self._Request(
+            {"CF-Connecting-IP": self.CLIENT,
+             "X-Forwarded-For": self.INGRESS})) == self.CLIENT
 
-    def test_the_last_public_hop_wins(self):
-        assert client_ip(
-            self._asking_from(f"{self.CLAIMED}, {self.CLIENT}")) == self.CLIENT
+    def test_and_the_platforms_beats_cloudflares(self):
+        assert client_ip(self._Request(
+            {"DO-Connecting-IP": self.CLIENT,
+             "CF-Connecting-IP": self.CLAIMED})) == self.CLIENT
 
-    def test_a_caller_cannot_pretend_to_be_someone_else(self):
-        """Everything before the last hop is whatever the caller sent."""
-        assert client_ip(
-            self._asking_from(f"invented, {self.CLIENT}")) == self.CLIENT
+    def test_forwarded_for_is_never_read(self):
+        """The regression test. A public value there is the *ingress*."""
+        assert client_ip(self._Request({"X-Forwarded-For": self.INGRESS})) == ""
+        assert client_ip(self._Request(
+            {"X-Forwarded-For": f"{self.CLAIMED}, {self.CLIENT}"})) == ""
 
-    def test_an_internal_hop_is_stepped_over(self):
-        """Otherwise a second proxy would put every family in one bucket."""
-        assert client_ip(self._asking_from(
-            f"{self.CLAIMED}, {self.CLIENT}, {self.INTERNAL}")) == self.CLIENT
+    def test_two_callers_behind_one_ingress_do_not_share_a_key(self):
+        """The bug this ordering exists to prevent, stated as its symptom."""
+        first = self._Request({"X-Forwarded-For": self.INGRESS}, "10.244.5.194")
+        second = self._Request({"X-Forwarded-For": self.INGRESS}, "10.244.0.79")
+        assert client_ip(first) == client_ip(second) == ""
+        # Both empty, and an empty key is one the limiter always allows — so
+        # they are not one bucket, they are no bucket.
+        limiter = Limiter(most=1, per=60)
+        assert limiter.allow(client_ip(first)) is True
+        assert limiter.allow(client_ip(second)) is True
 
-    def test_all_private_falls_back_to_the_last_hop(self):
-        assert client_ip(self._asking_from(self.INTERNAL)) == self.INTERNAL
+    def test_a_public_socket_address_is_the_last_resort(self):
+        """A plain deployment with nothing in front of it."""
+        assert client_ip(self._Request({}, self.CLIENT)) == self.CLIENT
 
-    def test_nonsense_is_not_an_address(self):
-        assert client_ip(self._asking_from("not-an-ip")) == "not-an-ip"
+    def test_an_internal_socket_address_is_no_key_at_all(self):
+        """On App Platform it differs per request, so it is worse than nothing."""
+        assert client_ip(self._Request({}, self.INTERNAL)) == ""
+        assert client_ip(self._Request({}, "127.0.0.1")) == ""
+
+    def test_nothing_at_all_is_no_key_either(self):
+        assert client_ip(self._Request()) == ""
+
+    def test_and_an_empty_key_is_allowed_through(self):
+        assert Limiter(most=1, per=60).allow("") is True
+        assert Limiter(most=1, per=60).allow("") is True
 
 
 # -- what single mode must not grow -----------------------------------------
@@ -406,7 +436,7 @@ class TestWhereTheLinkPoints:
         monkeypatch.setenv("DINKYDASH_MODE", "cloud")
         monkeypatch.setenv("DINKYDASH_SECRET_KEY", "a-real-one")
         monkeypatch.setenv("DINKYDASH_APP_HOST", "app.dinkydash.co")
-        return client_for(create_app(store))
+        return client_for(create_app(pool=pg_pool))
 
     def test_it_uses_the_configured_host(self, hosted, sent, pg_user):
         hosted.post("/login", data={"email": ADDRESS})
@@ -534,6 +564,17 @@ class TestTheLimitPerAddress:
         # If being limited looked different, it would say the address exists.
         assert len(set(pages)) == 1
 
+    def test_spending_one_does_not_free_a_slot(self, client, sent, pg_user, pg_pool):
+        """The limit is on emails sent in a window, and the email has gone.
+
+        Misread twice — once in `login_link.py`'s own error message, which
+        told people to click a link that would not help.
+        """
+        for _ in range(accounts.MOST_LIVE_LINKS):
+            client.post("/login", data={"email": ADDRESS})
+        assert accounts.consume_link(pg_pool, token_in(sent[0])) is not None
+        assert accounts.issue_link(pg_pool, pg_user) is None
+
     def test_the_links_already_sent_still_work(self, client, sent, pg_user):
         for _ in range(5):
             client.post("/login", data={"email": ADDRESS})
@@ -542,19 +583,111 @@ class TestTheLimitPerAddress:
 
 
 class TestTheLimitPerAddressOfTheCaller:
+    """`DO-Connecting-IP` is what identifies a caller, so the tests send one —
+    a test client's socket address is loopback, which is deliberately no key."""
+
+    CALLER = {"DO-Connecting-IP": "93.184.216.34"}
+    SOMEBODY_ELSE = {"DO-Connecting-IP": "8.8.8.8"}
+
     def test_a_flooding_caller_sends_no_more_email(self, cloud, sent, pg_user):
         cloud.config["LOGIN_LIMITER"] = Limiter(most=1, per=3600)
         client = client_for(cloud)
-        client.post("/login", data={"email": ADDRESS})
-        client.post("/login", data={"email": ADDRESS})
+        client.post("/login", data={"email": ADDRESS}, headers=self.CALLER)
+        client.post("/login", data={"email": ADDRESS}, headers=self.CALLER)
         assert len(sent) == 1
 
     def test_and_that_page_is_the_same_page_too(self, cloud, sent, pg_user):
         cloud.config["LOGIN_LIMITER"] = Limiter(most=1, per=3600)
         client = client_for(cloud)
-        first = client.post("/login", data={"email": ADDRESS})
-        second = client.post("/login", data={"email": ADDRESS})
+        first = client.post("/login", data={"email": ADDRESS}, headers=self.CALLER)
+        second = client.post("/login", data={"email": ADDRESS}, headers=self.CALLER)
         assert first.get_data() == second.get_data()
+
+    def test_one_caller_does_not_limit_another(self, cloud, sent, pg_user):
+        """The whole point of the header ordering, end to end."""
+        cloud.config["LOGIN_LIMITER"] = Limiter(most=1, per=3600)
+        client = client_for(cloud)
+        client.post("/login", data={"email": ADDRESS}, headers=self.CALLER)
+        client.post("/login", data={"email": ADDRESS}, headers=self.SOMEBODY_ELSE)
+        assert len(sent) == 2
+
+
+class TestWhatTheLogSays:
+    """Rolling our own limits rather than using an edge rule buys exactly one
+    thing: a refusal is a line somebody can read. So the lines are tested.
+
+    What may appear and what may not is a decision, not an accident. The
+    caller's address, yes — without it a warning says only "something
+    happened". The address that was asked about, **no**: who has an account is
+    what this endpoint exists not to publish, and a platform log is not ours.
+    """
+
+    CALLER = {"DO-Connecting-IP": "93.184.216.34"}
+
+    @pytest.fixture(autouse=True)
+    def forget_the_once_only_warning(self):
+        from web.routes import auth
+        auth._warned_about_anonymous = False
+        yield
+        auth._warned_about_anonymous = False
+
+    def test_a_limited_caller_is_named(self, cloud, sent, pg_user, caplog):
+        cloud.config["LOGIN_LIMITER"] = Limiter(most=1, per=3600)
+        client = client_for(cloud)
+        client.post("/login", data={"email": ADDRESS}, headers=self.CALLER)
+        with caplog.at_level("WARNING"):
+            client.post("/login", data={"email": ADDRESS}, headers=self.CALLER)
+        assert "93.184.216.34" in caplog.text
+        assert "over the limit" in caplog.text
+
+    def test_the_per_address_limit_is_not_silent(self, cloud, sent, pg_user, caplog):
+        """It used to be. It is the one that caps the SendGrid bill."""
+        client = client_for(cloud)
+        for _ in range(accounts.MOST_LIVE_LINKS):
+            client.post("/login", data={"email": ADDRESS}, headers=self.CALLER)
+        with caplog.at_level("WARNING"):
+            client.post("/login", data={"email": ADDRESS}, headers=self.CALLER)
+        assert "live links already" in caplog.text
+        assert "@example.com" in caplog.text
+
+    def test_and_it_names_the_domain_rather_than_the_person(
+            self, cloud, sent, pg_user, caplog):
+        client = client_for(cloud)
+        for _ in range(accounts.MOST_LIVE_LINKS + 1):
+            with caplog.at_level("INFO"):
+                client.post("/login", data={"email": ADDRESS}, headers=self.CALLER)
+        assert "parent@" not in caplog.text
+        assert ADDRESS not in caplog.text
+
+    def test_an_ordinary_send_is_visible_too(self, cloud, sent, pg_user, caplog):
+        """Refusals alone tell you nothing about the shape of normal traffic."""
+        client = client_for(cloud)
+        with caplog.at_level("INFO"):
+            client.post("/login", data={"email": ADDRESS}, headers=self.CALLER)
+        assert "Sent a sign-in link to a @example.com address." in caplog.text
+        assert ADDRESS not in caplog.text
+
+    def test_nothing_is_logged_about_an_address_with_no_account(
+            self, cloud, sent, pg_user, caplog):
+        with caplog.at_level("INFO"):
+            client_for(cloud).post("/login", data={"email": "stranger@nowhere.test"},
+                                   headers=self.CALLER)
+        assert "nowhere.test" not in caplog.text
+
+    def test_a_caller_we_cannot_identify_says_so_once(self, cloud, sent, pg_user, caplog):
+        """A control that has stopped working silently is worse than none."""
+        client = client_for(cloud)  # no DO-Connecting-IP, loopback socket
+        with caplog.at_level("WARNING"):
+            client.post("/login", data={"email": ADDRESS})
+            client.post("/login", data={"email": ADDRESS})
+        assert caplog.text.count("No caller address on this request") == 1
+        assert "DO-Connecting-IP" in caplog.text
+
+    def test_no_log_line_anywhere_carries_a_token(self, cloud, sent, pg_user, caplog):
+        with caplog.at_level("INFO"):
+            client_for(cloud).post("/login", data={"email": ADDRESS},
+                                   headers=self.CALLER)
+        assert token_in(sent[0]) not in caplog.text
 
 
 # -- the gate ---------------------------------------------------------------

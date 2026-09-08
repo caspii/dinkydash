@@ -73,37 +73,59 @@ class Limiter:
             self._seen.popitem(last=False)
 
 
+# Which header carries the caller's address, in the order they are trusted.
+#
+# **`X-Forwarded-For` is not in this list, and that is the whole point.**
+# DigitalOcean's documentation is explicit: "App Platform adds a
+# `do-connecting-ip` HTTP header that contains the client's IP address... While
+# the `x-forwarded-for` header is often used for this purpose, App Platform uses
+# this header for the IP address of the DigitalOcean ingress server that
+# forwarded the request to your app."
+#
+# So `X-Forwarded-For` here is a *public* address shared by every request that
+# reaches us. Reading it — even as a last resort, even from the right — hands
+# every caller in the world the same key, which is the shared bucket this
+# ordering exists to prevent: twenty sign-in requests an hour between all of
+# them, and it would look like a mail problem. It was written that way once,
+# with a fallback that only ever ran on App Platform and therefore only ever
+# recreated the bug.
+#
+# `CF-Connecting-IP` is the same idea from Cloudflare, and it is second because
+# App Platform *is* served through Cloudflare — `app.dinkydash.co` resolves to
+# Cloudflare addresses and answers with a `cf-ray`, even though our own zone is
+# DNS-only. Ours is not the edge in front of this app; DigitalOcean's is.
+CALLER_HEADERS = ("DO-Connecting-IP", "CF-Connecting-IP")
+
+
 def client_ip(request):
-    """The address the request came from, as far as it can be known.
+    """The address the request came from, or `""` if it cannot be known.
 
-    **Read `X-Forwarded-For` from the right, not the left.** A proxy appends
-    the address it saw, so entries near the end were written by our own
-    infrastructure and entries near the front are whatever the caller sent.
-    Trusting the leftmost — which is the obvious reading, and the wrong one —
-    would let one script claim a thousand addresses and walk straight past the
-    limit above.
+    **`""` is a real answer, not a failure to produce one**, and the limiter
+    always allows an empty key. If callers cannot be told apart, the failure
+    worth having is "the per-caller limit does not fire" rather than "everybody
+    shares one bucket", which is an outage wearing a rate limit's clothes. The
+    per-address limit in `accounts.issue_link` is in Postgres and still bounds
+    what any one account can spend. `web.routes.auth` logs the empty case once
+    per process, so a control that has stopped working says so.
 
-    **Skipping private addresses on the way is what makes it safe either way.**
-    If App Platform ever puts a second hop in front of the container, the last
-    entry becomes an internal `10.x` and every family in the world would share
-    one bucket — twenty sign-ins an hour, globally, and it would look like a
-    mail problem rather than a rate limit. An internal hop is always a private
-    address and a real client on the internet never is, so the first public
-    address from the right is the client under either arrangement.
+    The socket address is the last resort and is only used when it is public —
+    a plain deployment with no proxy in front. On App Platform it is an
+    internal `10.244.x` that differs between requests, which is no more use as
+    a key than nothing at all.
 
-    Falls back to the socket address, which is what a Pi and a test see.
+    A header can be forged by anyone who can reach the container without going
+    through the edge that sets it. There is no such path here — every hostname
+    this app answers on resolves to Cloudflare addresses in front of
+    DigitalOcean's ingress — and if there were, the cost is a bypassed spend
+    control with a database-backed one behind it.
     """
-    forwarded = request.headers.get("X-Forwarded-For", "")
-    hops = [hop.strip() for hop in forwarded.split(",") if hop.strip()]
-    for hop in reversed(hops):
-        if _is_public(hop):
-            return hop
-    # Everything was private or unparseable: local development, or a proxy
-    # arrangement nobody here anticipated. The rightmost is still the closest
-    # thing to the truth, and being over-strict is the safe direction.
-    if hops:
-        return hops[-1]
-    return request.remote_addr or ""
+    for header in CALLER_HEADERS:
+        value = request.headers.get(header, "").strip()
+        if value:
+            return value
+
+    remote = (request.remote_addr or "").strip()
+    return remote if _is_public(remote) else ""
 
 
 def _is_public(address):

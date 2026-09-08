@@ -56,8 +56,14 @@ TOKEN_BYTES = 32
 
 # The per-person rate limit, and it is a spend control as much as a security
 # one: every request sends an email on an account whose sender reputation is
-# shared with KeepTheScore. Counted as "unexpired links", so it is exactly
-# "at most three live links at a time" and the sweep below cannot affect it.
+# shared with KeepTheScore.
+#
+# Counted as "unexpired links", which has two consequences worth stating
+# because both have been misread:
+#
+# * the sweep cannot affect it — a row it deletes is one this no longer counts;
+# * **a used link still counts.** Spending one does not free a slot. The limit
+#   is on emails sent in a window, and the email went whatever happened next.
 MOST_LIVE_LINKS = 3
 
 # Anything longer than a real token is not one, and there is no reason to hash

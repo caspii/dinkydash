@@ -76,6 +76,11 @@ PER_SECONDS = 3600
 
 SUBJECT = "Your DinkyDash sign-in link"
 
+# Set once, by `_warn_once_if_anonymous`. Module level rather than app config
+# because it is a fact about the platform this process is running on, not about
+# any one app built inside it.
+_warned_about_anonymous = False
+
 
 # The two loggers that write a request line: Flask's development server, and
 # gunicorn's access log. Both get the filter below.
@@ -162,12 +167,24 @@ def login():
 
 
 def _send_a_link(address):
-    """Do whatever there is to do, and tell the caller nothing about it.
+    """Do whatever there is to do, and tell the *caller* nothing about it.
 
     Every branch below returns the same None, and the page above is the same
     page, because each of them is something an attacker would otherwise learn:
     whether the address exists, whether it has asked recently, and whether our
     mail provider is up.
+
+    **The log is the exception, and that is the point of having one.** The
+    limits are ours rather than an edge rule precisely so that a refusal is a
+    line somebody can read. What goes in that line is chosen, not accidental:
+
+    * **the caller's address, in full.** Without it a rate-limit warning says
+      only "something happened", which is not worth writing. One script and a
+      hundred parents look identical.
+    * **the domain of the address asked about, never the address.** A flood of
+      `@mailinator.com` is the thing you want to see at a glance, and the list
+      of who has an account is the thing this endpoint exists not to publish —
+      in a page or in a third-party log we do not control.
 
     **Known and not closed: this takes longer when the address exists**, by
     roughly the time SendGrid takes to answer. Somebody timing the two could
@@ -175,11 +192,18 @@ def _send_a_link(address):
     a background worker's job rather than a login route's, and the enumeration
     it would buy is a list of addresses somebody already had.
     """
+    caller = ratelimit.client_ip(request)
+    _warn_once_if_anonymous(caller)
+
     limiter = current_app.config["LOGIN_LIMITER"]
-    if not limiter.allow(ratelimit.client_ip(request)):
-        # The caller's address, never the one they typed. Which addresses were
-        # asked about is the thing this endpoint exists not to say.
-        log.warning("A sign-in request was rate-limited by caller address.")
+    if not limiter.allow(caller):
+        # The limiter's own numbers, not the constants above. A line that
+        # reports a limit it did not apply is the kind of thing that misleads
+        # somebody at two in the morning.
+        log.warning("Sign-in requests from %s are over the limit "
+                    "(%s per %s minutes, in this process).",
+                    caller or "an unknown caller",
+                    limiter.most, round(limiter.per / 60))
         return
 
     pool = _pool()
@@ -189,6 +213,11 @@ def _send_a_link(address):
 
     token = accounts.issue_link(pool, user[0])
     if token is None:
+        # The limit that actually caps the SendGrid bill, and it used to be
+        # silent — the one refusal nobody could see.
+        log.warning("No sign-in link minted for a %s address from %s: "
+                    "%s live links already.", _domain(address),
+                    caller or "an unknown caller", accounts.MOST_LIVE_LINKS)
         return
 
     link = _link_for(token)
@@ -200,6 +229,39 @@ def _send_a_link(address):
         # must not add the link back. A failed send is a failed login, and the
         # person will ask again.
         log.warning("A sign-in link did not go out: %s", exc)
+    else:
+        # So the ordinary shape of the traffic is visible too, not only the
+        # refusals. `mail` logs that *an* email went; this says what kind.
+        log.info("Sent a sign-in link to a %s address.", _domain(address))
+
+
+def _domain(address):
+    """The part of an address that is not a person. `@example.com`, or `@?`."""
+    _, _, domain = accounts.normalise(address).partition("@")
+    return f"@{domain}" if domain else "@?"
+
+
+def _warn_once_if_anonymous(caller):
+    """Say so, once per process, if callers cannot be told apart.
+
+    `client_ip` returns `""` when no header identifies the caller, and an empty
+    key is one the limiter always allows — the deliberate choice, because
+    "everybody shares one bucket" is an outage wearing a rate limit's clothes.
+    But it means the per-caller limit has quietly stopped working, and a
+    control that fails silently is worse than one that is not there.
+
+    Once per process rather than per request: this is a platform-shaped fault,
+    so the second line would say nothing the first did not.
+    """
+    global _warned_about_anonymous
+    if caller or _warned_about_anonymous:
+        return
+    _warned_about_anonymous = True
+    log.warning(
+        "No caller address on this request: none of %s was set and the socket "
+        "address is not public. The per-caller sign-in limit is not firing; "
+        "the per-address one in Postgres still is.",
+        ", ".join(ratelimit.CALLER_HEADERS))
 
 
 def _link_for(token):
