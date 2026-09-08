@@ -77,12 +77,21 @@ def pg_family(pg_pool):
     is also a live check that the foreign keys really do cascade — Phase 5's
     hard delete depends on exactly that.
     """
+    from dinkydash import config as config_module
+
     with pg_pool.connection() as conn, conn.transaction():
         with conn.cursor() as cur:
             cur.execute(
                 """INSERT INTO families (screen_token, config)
                    VALUES (%s, '{}'::jsonb) RETURNING id""",
-                ("tok" + os.urandom(6).hex(),),
+                # A real one, from `config.ID_ALPHABET`. It used to be
+                # `"tok" + urandom(6).hex()`, which is a fine unique string and
+                # is **not a token this app would ever issue** — hex has `0` and
+                # `1` in it and the alphabet deliberately does not. Once
+                # `/s/<token>` started refusing malformed tokens before querying
+                # (DIN-42), a fixture token that could not exist made every
+                # screen test fail for the wrong reason.
+                (config_module.new_screen_token(),),
             )
             family_id = cur.fetchone()[0]
     yield family_id
@@ -128,6 +137,18 @@ class SigningClient(FlaskClient):
             elif isinstance(data, dict):
                 data.setdefault(CSRF_FIELD, token)
         return super().open(*args, **kwargs)
+
+
+def board_path(pg_pool, family_id):
+    """Where that family's board is served in cloud mode: `/s/<token>`.
+
+    A wall panel cannot sign in, so the board moved off `/` (DIN-42) and `/`
+    became the way in to the settings. Every test that used to GET `/` for a
+    board in cloud mode goes through here instead.
+    """
+    from dinkydash import screens
+
+    return f"/s/{screens.token_for(pg_pool, family_id)}"
 
 
 def client_for(app):

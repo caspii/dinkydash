@@ -30,7 +30,7 @@
 {% for label, width, height in sizes %}
 <figure>
     <div class="frame" style="width: {{ (width * 0.62) | round | int }}px;">
-        <iframe src="{{ url_for('board.index') }}" width="{{ width }}" height="{{ height }}"
+        <iframe src="{{ board_url }}" width="{{ width }}" height="{{ height }}"
                 style="transform: scale(0.62); transform-origin: top left;
                        width: {{ width }}px; height: {{ height }}px;
                        margin-bottom: {{ ((height * 0.38) | round | int) * -1 }}px;"></iframe>

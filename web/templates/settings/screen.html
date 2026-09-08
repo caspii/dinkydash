@@ -1,10 +1,22 @@
 {% extends "settings/base.html" %}
 {% import "settings/_icons.html" as icons %}
-{% block title %}Colours{% endblock %}
+{% block title %}The screen{% endblock %}
+
+{% block head %}
+<style>
+    /* **A white plate, in both themes.** The one place in this UI that ignores
+       the theme tokens, and not an oversight: scanners expect a QR to be dark
+       on light, and an inverted one is read by some phones and not others.
+       Better a code that looks slightly out of place on a dark settings page
+       than one somebody cannot scan from the kitchen doorway. */
+    .qr-code { background: #ffffff; border-radius: 0.875rem; padding: 0.75rem; }
+    .qr-code svg { display: block; width: 100%; height: auto; }
+</style>
+{% endblock %}
 
 {% block appbar %}
 <a class="back" href="{{ url_for('settings.home') }}">{{ icons.back() }}</a>
-<h1>Colours</h1>
+<h1>{{ "The screen" if screen_link else "Colours" }}</h1>
 {% endblock %}
 
 {% block content %}
@@ -41,6 +53,61 @@
     <noscript><button class="btn" type="submit" style="margin-top:0.75rem;">Save</button></noscript>
 </form>
 
+{% if screen_link %}
+{# Cloud mode: the board is not at `/`, because a wall panel cannot sign in.
+   This link is how it gets there, and it is a credential — see the warning
+   below it, which is not boilerplate. #}
+<div>
+    <div class="label">Where the board is</div>
+    <div class="card pad" style="display:flex;flex-direction:column;gap:0.875rem;">
+        <div class="hint">
+            Open this on the TV, tablet or Pi and leave the page up. It redraws itself; how
+            often is under <a href="{{ url_for('settings.refresh') }}">How often it updates</a>.
+        </div>
+        {# `word-break` because the URL must wrap on a phone rather than push the
+           card sideways, and `user-select:all` so one tap selects the whole thing. #}
+        <div style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.875rem;
+                    background:var(--warm);border-radius:0.875rem;padding:0.75rem 0.875rem;
+                    word-break:break-all;user-select:all;">{{ screen_link }}</div>
+        {% if screen_qr %}
+        <div style="display:flex;flex-direction:column;align-items:center;gap:0.5rem;">
+            {# Drawn here rather than fetched: handing this URL to a QR service
+               would be publishing the credential. `currentColor` is what makes
+               it work in both themes without a second copy.
+
+               **The one `|safe` in `web/`, and it is on machine-generated
+               markup.** `segno` emits the SVG from a URL this app built out of
+               its own alphabet and its own configured hostname — no feed, no
+               form field and no calendar text reaches it. Autoescaping stays on
+               for everything else on this page, and a `|safe` on anything a
+               person or a calendar wrote would be the bug this note exists to
+               keep visible. #}
+            <div class="qr-code" style="width:11rem;">{{ screen_qr | safe }}</div>
+            <div class="hint" style="text-align:center;">Scan it with the tablet's camera.</div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="note-box">
+    <strong>Anyone with this link can see your board.</strong> There is no password on it — that is
+    what lets a screen on the wall show it without anybody signing in. Treat it like a key: do not
+    post it, and crop it out of screenshots.
+</div>
+
+<div>
+    <div class="label">If the link gets out</div>
+    <form method="post" class="card pad" style="display:flex;flex-direction:column;gap:0.875rem;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="action" value="rotate">
+        <div class="hint">
+            Changing it is the only way to stop an old link working. Every screen showing this
+            board will go blank until you open the new link on it.
+        </div>
+        <button class="btn outline" type="submit">Change the link</button>
+    </form>
+</div>
+{% elif not cloud %}
 <div class="note-box">
     The board lives at <strong>{{ url_for('board.index', _external=True) }}</strong> — open that on the
     TV, tablet or Pi and leave the page up. It redraws itself on its own; how often is under
@@ -51,4 +118,5 @@
     There is no password on this. Anyone on your network can see the board and change these settings,
     so keep the port off the public internet.
 </div>
+{% endif %}
 {% endblock %}

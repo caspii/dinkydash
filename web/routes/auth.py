@@ -66,6 +66,18 @@ bp = Blueprint("auth", __name__)
 A_TOKEN = re.compile(r"([?&]t=)[^&\s\"']+")
 REDACTED = r"\1[redacted]"
 
+# A screen token in a *path*, which is the other bearer credential this app
+# serves and the one the access log format cannot help with. `%(U)s` is the
+# path without the query string, which is exactly what keeps `?t=` out — and
+# exactly what puts `/s/<token>` in. A panel reloading every five minutes would
+# otherwise write its own credential to the platform's log for years.
+#
+# Matched on the alphabet rather than on `\S+`, so `/settings` and `/static`
+# are untouched: `config.ID_ALPHABET` has no `i`, `l`, `o` or `0`, and the
+# length bounds are the column's.
+A_SCREEN = re.compile(r"(/s/)[23456789abcdefghjkmnpqrstuvwxyz]{10,32}")
+SCREEN_REDACTED = r"\1[redacted]"
+
 # The one answer a login request ever gets. It used to begin "If that address
 # has an account", because an unknown one got nothing at all. Now that the same
 # form starts a board, a link really does go to every address that asks — so
@@ -101,7 +113,13 @@ REQUEST_LOGGERS = ("werkzeug", "gunicorn.access")
 
 
 class NoTokens(logging.Filter):
-    """Take the token out of anything a server writes about a request.
+    """Take both kinds of token out of anything a server writes about a request.
+
+    Two credentials travel in URLs here and they need different treatment. A
+    sign-in link is `?t=` in the query string, which gunicorn's `%(U)s` format
+    already leaves out; a screen URL is `/s/<token>` in the *path*, which that
+    same format writes down every time. So the access log format covers one and
+    this filter is the only thing covering the other.
 
     Belt to the access log format's braces, and it exists because both halves
     of that format can be missing:
@@ -124,8 +142,9 @@ class NoTokens(logging.Filter):
 
     def filter(self, record):
         message = record.getMessage()
-        if "t=" in message:
-            record.msg = A_TOKEN.sub(REDACTED, message)
+        if "t=" in message or "/s/" in message:
+            record.msg = A_SCREEN.sub(SCREEN_REDACTED,
+                                      A_TOKEN.sub(REDACTED, message))
             record.args = ()
         return True
 

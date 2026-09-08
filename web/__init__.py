@@ -96,6 +96,13 @@ def create_app(store=None, pool=None):
         from .routes.auth import bp as auth_bp
         app.register_blueprint(auth_bp)
 
+        # The board itself, at the one URL a wall panel can open without a
+        # session. Cloud only for the same reason as `auth`: a self-hosted
+        # board is at `/` and has no token, so `/s/...` is a 404 there rather
+        # than a route that exists and refuses.
+        from .routes.screen import bp as screen_bp
+        app.register_blueprint(screen_bp)
+
         from dinkydash.pgstore import NoSuchFamily
 
         @app.errorhandler(NoSuchFamily)

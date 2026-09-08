@@ -248,7 +248,7 @@ class TestTheStartingConfig:
         assert "content_history_file" not in config
 
     def test_the_board_renders_for_a_family_that_has_typed_nothing(
-            self, client, sent):
+            self, client, sent, pg_pool):
         """It shows the waiting screen, not the seeded people, and that is
         right: there is no payload until the worker's next tick writes one.
 
@@ -257,10 +257,16 @@ class TestTheStartingConfig:
         with nothing on it but a date. PLAN.md's "Generate now on signup" is
         what closes the gap between the click and the first board, and it is a
         phase 2 worker item: a web request must not call Anthropic.
+
+        Read at the screen URL, which sign-up gave the family a token for
+        before anybody asked. That is the point of writing it at creation
+        rather than later: a board is reachable from the first second.
         """
+        from tests.conftest import board_path
+
         client.post("/login", data={"email": NEWCOMER})
         client.get(link_in(sent[0]))
-        page = client.get("/")
+        page = client.get(board_path(pg_pool, family_of(pg_pool, NEWCOMER)["id"]))
         assert page.status_code == 200
         assert "Our family" in page.get_data(as_text=True)
 

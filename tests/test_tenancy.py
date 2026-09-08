@@ -89,7 +89,12 @@ def families(pg_pool):
                 cur.execute(
                     """INSERT INTO families (screen_token, config)
                        VALUES (%s, %s::jsonb) RETURNING id""",
-                    (f"tok-{name}", json.dumps(config)),
+                    # A real token, from `config.ID_ALPHABET`. `tok-wilsons`
+                    # was unique and readable and is **not a shape this app
+                    # issues** — no hyphen in the alphabet, and no `o` — so
+                    # once `/s/<token>` started refusing malformed tokens
+                    # before querying (DIN-42) it named nobody.
+                    (config_module.new_screen_token(), json.dumps(config)),
                 )
                 family_id = cur.fetchone()[0]
                 cur.execute(
@@ -135,6 +140,15 @@ def signed_in_as(app, family):
 
 
 @pytest.fixture
+def boards(pg_pool, families):
+    """Each family's screen URL — where the board lives in cloud mode."""
+    from tests.conftest import board_path
+
+    return {name: board_path(pg_pool, family[0])
+            for name, family in families.items()}
+
+
+@pytest.fixture
 def wilson(app, families):
     return signed_in_as(app, families["wilsons"])
 
@@ -176,27 +190,43 @@ class TestTwoFamiliesSideBySide:
         assert mine in page
         assert theirs not in page
 
-    def test_the_board_is_each_familys_own(self, wilson, baker):
+    def test_the_board_is_each_familys_own(self, wilson, baker, boards):
         """The headline comes out of `generations`, and the chore is recomputed
-        from `families.config` — so this covers both tables at once."""
-        ours = wilson.get("/").get_data(as_text=True)
-        theirs = baker.get("/").get_data(as_text=True)
+        from `families.config` — so this covers both tables at once.
+
+        Read at each family's screen URL rather than at `/`, because that is
+        where a board lives in cloud mode now (DIN-42). **The clients are still
+        the signed-in ones** — a screen URL needs no session, and using them
+        here checks the stronger thing: holding one family's cookie does not
+        change what the other family's token shows.
+        """
+        ours = wilson.get(boards["wilsons"]).get_data(as_text=True)
+        theirs = baker.get(boards["bakers"]).get_data(as_text=True)
         assert "Swimming, then football" in ours and "Set the table" in ours
         assert "Sailing at low tide" in theirs and "Feed the cat" in theirs
 
-    def test_and_neither_board_carries_the_others_words(self, wilson, baker):
-        assert "Sailing at low tide" not in wilson.get("/").get_data(as_text=True)
-        assert "Swimming, then football" not in baker.get("/").get_data(as_text=True)
+    def test_and_neither_board_carries_the_others_words(self, wilson, baker, boards):
+        assert "Sailing at low tide" not in wilson.get(boards["wilsons"]).get_data(as_text=True)
+        assert "Swimming, then football" not in baker.get(boards["bakers"]).get_data(as_text=True)
 
-    def test_even_the_theme_follows_the_session(self, wilson, baker):
+    def test_a_screen_token_shows_its_own_family_and_no_session_changes_that(
+            self, wilson, boards):
+        """The token decides which board, not the cookie that happens to be on
+        the request. A screen has no session at all, so if a signed-in one could
+        steer this the anonymous case would be the odd one out."""
+        theirs = wilson.get(boards["bakers"]).get_data(as_text=True)
+        assert "Sailing at low tide" in theirs
+        assert "Swimming, then football" not in theirs
+
+    def test_even_the_theme_follows_the_board(self, wilson, baker, boards):
         # The Bakers are on dark and the Wilsons on light. A shared store would
         # give both the same one.
-        assert 'data-theme="light"' in wilson.get("/").get_data(as_text=True)
-        assert 'data-theme="dark"' in baker.get("/").get_data(as_text=True)
+        assert 'data-theme="light"' in wilson.get(boards["wilsons"]).get_data(as_text=True)
+        assert 'data-theme="dark"' in baker.get(boards["bakers"]).get_data(as_text=True)
 
-    def test_a_calendar_url_never_crosses(self, wilson):
+    def test_a_calendar_url_never_crosses(self, wilson, boards):
         """The one value in a config that is a password."""
-        for path in ("/settings/", "/settings/calendars", "/"):
+        for path in ("/settings/", "/settings/calendars", boards["wilsons"]):
             assert "private-bbbb" not in wilson.get(path).get_data(as_text=True)
 
 

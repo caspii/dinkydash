@@ -7,14 +7,24 @@ One line decides the whole of multi-tenancy:
     cloud    one store per request, built from the family on the session
     single   one store per process, because there is one family and no session
 
-**In cloud mode the family comes from the session and from nowhere else.**
-Not from a path segment, not from a query parameter, not from a form field and
-not from a header. That is a stronger promise than checking an id against the
-session, because there is no id to check: nothing a caller can send reaches a
-query as a family selector. When a route does one day need to name a family in
-its URL — the admin view is the likely first — the check belongs here, before
-the store is built, and **a mismatch is a 404 and never a 403**: "forbidden"
-confirms the row exists, which tells one family that another one does.
+**In cloud mode the family comes from the session and from nowhere else** —
+with exactly one exception, which is below and is the whole of it. Not from a
+path segment, not from a query parameter, not from a form field and not from a
+header. That is a stronger promise than checking an id against the session,
+because there is no id to check: nothing a caller can send reaches a query as a
+family selector. When a route does one day need to name a *family* in its URL —
+the admin view is the likely first — the check belongs here, before the store
+is built, and **a mismatch is a 404 and never a 403**: "forbidden" confirms the
+row exists, which tells one family that another one does.
+
+**The exception is the screen, and it is not a hole in that rule.** A wall
+panel cannot sign in, so `/s/<token>` names a family with an unguessable
+credential instead of a session (DIN-42). What a caller sends is still not a
+family *id*: it is a 59-bit secret that `screens.family_for_token` either
+resolves to exactly one family or does not resolve at all, and everything read
+afterwards goes through a `PostgresStore` scoped to that family like any other.
+Both doors are here, in one file, on purpose — if a third is ever added it
+should be as obvious as these two are.
 
 The ids that *do* appear in URLs today are item ids inside one family's config
 document — `/settings/people/<item_id>`. They are already scoped by which
@@ -55,6 +65,53 @@ def current_family_id():
     return _family_on_the_session()
 
 
+def current_screen_token():
+    """The screen token of the family on the session. Cloud mode only.
+
+    Lives here rather than in a route because it needs the same two things
+    `current_store` does — the process pool, and the family the session names —
+    and because "which family" should be answered in one file however it is
+    being asked.
+    """
+    from dinkydash import screens
+
+    return screens.token_for(_the_pool(), _family_on_the_session())
+
+
+def store_for_token(token):
+    """The store for the family that screen token belongs to, or None.
+
+    The screen's half of `current_store`, and the only place a caller's own
+    string decides which family gets read. Two things keep that safe:
+
+    * **the token is a secret, not an identifier.** A wrong one names nothing —
+      there is no neighbouring family to land on the way an off-by-one id would
+      find one — so guessing is the only attack, and 59 bits is the answer to it;
+    * **one answer for every kind of miss.** Never issued, mistyped and rotated
+      away this morning all return None here, and `web/routes/screen.py` turns
+      that into a 404 and never a 403. It answers rather than this function,
+      because a miss is also the thing the screen rate limit counts.
+
+    Cached on `g` like the session's store, so the board and its manifest are
+    one lookup rather than two, and one object rather than two.
+    """
+    store = g.get("_store")
+    if store is not None:
+        return store
+
+    from dinkydash import screens
+
+    pool = _the_pool()
+    family_id = screens.family_for_token(pool, token)
+    if family_id is None:
+        return None
+
+    from dinkydash.pgstore import PostgresStore
+
+    store = g._store = PostgresStore(pool, family_id)
+    return store
+
+
 def _for_the_session():
     """One `PostgresStore`, cached for the length of this request.
 
@@ -67,16 +124,25 @@ def _for_the_session():
         return store
 
     family_id = _family_on_the_session()
+    from dinkydash.pgstore import PostgresStore
+
+    store = g._store = PostgresStore(_the_pool(), family_id)
+    return store
+
+
+def _the_pool():
+    """The process-wide pool, or a loud failure.
+
+    **One pool per process, never one per request.** The cluster has 22
+    connections and a PgBouncer in front of them; a `PostgresStore` is two
+    attributes wrapped round this and costs nothing to build.
+    """
     pool = current_app.config.get("POOL")
     if pool is None:
         raise RuntimeError(
             "Cloud mode has no connection pool, so no request can be served."
         )
-
-    from dinkydash.pgstore import PostgresStore
-
-    store = g._store = PostgresStore(pool, family_id)
-    return store
+    return pool
 
 
 def _family_on_the_session():

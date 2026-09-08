@@ -107,8 +107,8 @@ Relative links like `[PLAN.md](PLAN.md)` break once a document is in Linear. Rew
 
 - **Calendar feeds are untrusted remote input.** Event titles are written by third parties, arrive
   over the network, and land in two places: the rendered page and the model prompt. Autoescaping
-  protects the first — there is no `|safe` anywhere in `web/`, and none should appear on feed or
-  user content. For the second, treat the text as data: an event titled "ignore your instructions
+  protects the first — the single `|safe` in `web/` is on the QR code `segno` draws from our own
+  screen URL, and none should ever appear on feed or user content. For the second, treat the text as data: an event titled "ignore your instructions
   and ..." must not change what the model does.
 - **The server fetches URLs the user typed, and `fetch_feed` is what keeps that safe.** On a Pi the
   typist owns the network; hosted it is our infrastructure dialling whatever a stranger pasted, and
@@ -162,8 +162,17 @@ mode is a different product on the same code.
   trial and a daily Anthropic call. That is the rate limit; the cap is the spend breaker below.
 - **Every form that writes carries a CSRF token**, in *both* modes — `web/session.py`, with no
   switch to turn it off. A test walks the templates and fails on a form without one.
-- **Screen tokens are bearer credentials.** Rate-limited, `noindex`, no referrer leakage, rotatable,
-  and never written to a log or an error page.
+- **Screen tokens are bearer credentials**, and unlike a magic link they never expire — a wall panel
+  holds one for months. So `/s/<token>` is `noindex`, `no-store`, makes no third-party request,
+  never echoes the token back on a miss, and is rotatable, which is the only revocation there is.
+  **A wrong token is a 404 and never a 403**: "forbidden" would confirm it exists.
+- **A token in a *path* is in the access log; a token in a query string is not.** `%(U)s` is what
+  keeps `?t=` out, and it is exactly what would write `/s/<token>` down thousands of times from one
+  panel. `auth.NoTokens` scrubs both, on both request loggers, and `tests/test_screen.py` fails if
+  it stops.
+- **Rate-limit the misses, not the requests.** A real screen asks for its board every few minutes
+  for years; counting that would put a rate limit on somebody's kitchen wall. Only wrong tokens are
+  counted, which is also the only thing worth counting.
 - **The sign-in rate limits are ours, not an edge rule, so that a refusal is a line somebody can
   read.** That is the trade being made — a Cloudflare rule would be sturdier and invisible. What
   goes in the line is chosen: the caller's address in full, the *domain* of the address asked about
@@ -229,6 +238,13 @@ and the settings UI are shared verbatim; mode gates four things and no others �
 billing, where the config is stored, and what drives the scheduler. A mode check anywhere else means
 the change is in the wrong layer.
 
+**Where the board is served is part of the authentication gate**, not a fifth thing. Single mode
+puts it at `/`: one family, no session, the URL somebody types into a Pi's kiosk browser. Cloud mode
+cannot, because a wall panel has no way to sign in — so there the board is at `/s/<token>` and `/`
+is the front door of the signed-in area. `board.render_board` is what the two routes share, so it is
+one board reached two ways rather than two that drift, and `tests/test_cloud_mode.py` asserts the
+two are byte-identical apart from the one link that has to differ.
+
 - **Self-hosted keeps working with no Postgres, no Stripe, no email provider**, and no network
   beyond the two things it fetches. A feature that needs a database is a cloud feature, or it is not
   a feature yet.
@@ -267,6 +283,7 @@ dinkydash/
 ├── db.py              the connection pool and the migration runner (cloud only)
 ├── mail.py            one transactional email, over SendGrid (cloud only)
 ├── accounts.py        users, the links that sign them in, and sign-up (cloud only)
+├── screens.py         the token that puts a board on a wall (cloud only)
 └── runner.py          the two halves of the day, reading and writing through a store
 
 web/
@@ -277,6 +294,7 @@ web/
 ├── routes/board.py    the board and the preview harness
 ├── routes/settings.py the settings UI (one table drives every list section)
 ├── routes/auth.py     /login, /login/link, /logout — cloud mode only
+├── routes/screen.py   /s/<token> — the board with no session, cloud mode only
 └── templates/         board.html, preview.html, auth/*.html, settings/*.html
 ```
 

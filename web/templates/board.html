@@ -18,7 +18,10 @@
     <link rel="icon" href="{{ url_for('static', filename='favicon.svg') }}" type="image/svg+xml">
     <!-- On a tablet used as the panel, saving this to the home screen gives a
          full-screen board with no browser around it. -->
-    <link rel="manifest" href="{{ url_for('board.manifest') }}">
+    {# Which manifest depends on how this board was reached: the signed-in view
+   has one behind the session, a wall panel needs the token-scoped one, or
+   "save to home screen" gets a redirect to /login instead of a name. #}
+<link rel="manifest" href="{{ manifest_url }}">
     <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
     <meta name="apple-mobile-web-app-title" content="{{ view.family_name or 'DinkyDash' }}">
     <meta name="apple-mobile-web-app-capable" content="yes">

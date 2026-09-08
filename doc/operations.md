@@ -240,6 +240,33 @@ removed, and `GIT_SHA` bound to `${_self.COMMIT_HASH}` so `/healthz` stops answe
 `"commit": "unknown"`. That variable is *bindable*, not automatic — App Platform sets nothing on its
 own, which is why the two guessed fallbacks that used to be in `healthz` never fired.
 
+## The screen, 8 September 2026 (DIN-42)
+
+**The board is reachable on a wall.** `/s/<token>` serves it with no session, `/settings/screen`
+shows the link and a QR of it, and the same page rotates the token. In cloud mode `/` is now a
+redirect — signed in to `/settings/`, signed out to `/login` — so the board is *only* at the screen
+URL.
+
+**No spec change and no `doctl apps update` for this one.** `segno` is a new dependency but it is in
+`requirements-cloud.txt`, which the app spec's `build_command` already installs, and the migration
+list is unchanged. `deploy_on_push` is enough.
+
+**What to watch.** The screen token is a bearer credential that never expires, so the things worth
+knowing are:
+
+* **it must not appear in the platform's log.** `auth.NoTokens` scrubs `/s/<token>` as well as
+  `?t=`, on both request loggers. The check is
+  `doctl apps logs <id> site --type run | grep -c "/s/\[redacted\]"` — a real token showing up
+  there instead is a regression, not a curiosity;
+* **rotation is the only revocation.** If a family reports a leak, the button on their settings page
+  is the whole remedy. There is no way to expire one from here that is not that;
+* **the miss limiter is per process.** `--workers 2`, so 60 wrong tokens an hour rather than 30, and
+  a redeploy resets it. It is a bound on somebody making us do the looking, not a quota — enumeration
+  is answered by the 59 bits, not by the counter.
+
+A Cloudflare rate-limit rule on `/s/*` was the original plan (DIN-29) and is still worth adding. It
+is not what the app depends on, and the in-process limiter is what actually runs today.
+
 ## GitHub's own secret scanning
 
 **Do not rely on it yet.** Minutes after it was enabled, a correctly shaped fake
