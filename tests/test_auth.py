@@ -605,6 +605,84 @@ class TestTheLimitPerAddressOfTheCaller:
         assert len(sent) == 2
 
 
+class TestWhatTheLogSays:
+    """Rolling our own limits rather than using an edge rule buys exactly one
+    thing: a refusal is a line somebody can read. So the lines are tested.
+
+    What may appear and what may not is a decision, not an accident. The
+    caller's address, yes — without it a warning says only "something
+    happened". The address that was asked about, **no**: who has an account is
+    what this endpoint exists not to publish, and a platform log is not ours.
+    """
+
+    CALLER = {"DO-Connecting-IP": "93.184.216.34"}
+
+    @pytest.fixture(autouse=True)
+    def forget_the_once_only_warning(self):
+        from web.routes import auth
+        auth._warned_about_anonymous = False
+        yield
+        auth._warned_about_anonymous = False
+
+    def test_a_limited_caller_is_named(self, cloud, sent, pg_user, caplog):
+        cloud.config["LOGIN_LIMITER"] = Limiter(most=1, per=3600)
+        client = client_for(cloud)
+        client.post("/login", data={"email": ADDRESS}, headers=self.CALLER)
+        with caplog.at_level("WARNING"):
+            client.post("/login", data={"email": ADDRESS}, headers=self.CALLER)
+        assert "93.184.216.34" in caplog.text
+        assert "over the limit" in caplog.text
+
+    def test_the_per_address_limit_is_not_silent(self, cloud, sent, pg_user, caplog):
+        """It used to be. It is the one that caps the SendGrid bill."""
+        client = client_for(cloud)
+        for _ in range(accounts.MOST_LIVE_LINKS):
+            client.post("/login", data={"email": ADDRESS}, headers=self.CALLER)
+        with caplog.at_level("WARNING"):
+            client.post("/login", data={"email": ADDRESS}, headers=self.CALLER)
+        assert "live links already" in caplog.text
+        assert "@example.com" in caplog.text
+
+    def test_and_it_names_the_domain_rather_than_the_person(
+            self, cloud, sent, pg_user, caplog):
+        client = client_for(cloud)
+        for _ in range(accounts.MOST_LIVE_LINKS + 1):
+            with caplog.at_level("INFO"):
+                client.post("/login", data={"email": ADDRESS}, headers=self.CALLER)
+        assert "parent@" not in caplog.text
+        assert ADDRESS not in caplog.text
+
+    def test_an_ordinary_send_is_visible_too(self, cloud, sent, pg_user, caplog):
+        """Refusals alone tell you nothing about the shape of normal traffic."""
+        client = client_for(cloud)
+        with caplog.at_level("INFO"):
+            client.post("/login", data={"email": ADDRESS}, headers=self.CALLER)
+        assert "Sent a sign-in link to a @example.com address." in caplog.text
+        assert ADDRESS not in caplog.text
+
+    def test_nothing_is_logged_about_an_address_with_no_account(
+            self, cloud, sent, pg_user, caplog):
+        with caplog.at_level("INFO"):
+            client_for(cloud).post("/login", data={"email": "stranger@nowhere.test"},
+                                   headers=self.CALLER)
+        assert "nowhere.test" not in caplog.text
+
+    def test_a_caller_we_cannot_identify_says_so_once(self, cloud, sent, pg_user, caplog):
+        """A control that has stopped working silently is worse than none."""
+        client = client_for(cloud)  # no DO-Connecting-IP, loopback socket
+        with caplog.at_level("WARNING"):
+            client.post("/login", data={"email": ADDRESS})
+            client.post("/login", data={"email": ADDRESS})
+        assert caplog.text.count("No caller address on this request") == 1
+        assert "DO-Connecting-IP" in caplog.text
+
+    def test_no_log_line_anywhere_carries_a_token(self, cloud, sent, pg_user, caplog):
+        with caplog.at_level("INFO"):
+            client_for(cloud).post("/login", data={"email": ADDRESS},
+                                   headers=self.CALLER)
+        assert token_in(sent[0]) not in caplog.text
+
+
 # -- the gate ---------------------------------------------------------------
 
 class TestTheSettingsAreBehindIt:

@@ -160,6 +160,11 @@ mode is a different product on the same code.
   switch to turn it off. A test walks the templates and fails on a form without one.
 - **Screen tokens are bearer credentials.** Rate-limited, `noindex`, no referrer leakage, rotatable,
   and never written to a log or an error page.
+- **The sign-in rate limits are ours, not an edge rule, so that a refusal is a line somebody can
+  read.** That is the trade being made — a Cloudflare rule would be sturdier and invisible. What
+  goes in the line is chosen: the caller's address in full, the *domain* of the address asked about
+  and never the address, and nothing at all for an address with no account. `tests/test_auth.py`
+  asserts each of those, because a log policy nobody tests is a log policy that drifts.
 - **Spend caps are a security control.** The per-family and global breaker (PLAN.md phase 2) is what
   stops a bug or an abusive account becoming an unbounded Anthropic bill.
 

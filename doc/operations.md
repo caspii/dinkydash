@@ -161,6 +161,27 @@ working link without waiting on email. Same token, same fifteen minutes, same si
 per-address limit — the only thing it skips is SendGrid. **What it prints is a credential**, so it
 does not go in an issue or a screenshot. It does not create accounts; the `INSERT` above still does.
 
+**What the sign-in limits write to the log**, which is the reason for keeping them in the app
+rather than moving them to a Cloudflare rule. Grep `web.routes.auth`:
+
+```
+INFO    Sent a sign-in link to a @example.com address.
+WARNING Sign-in requests from 93.184.216.34 are over the limit (20 per 60 minutes, in this process).
+WARNING No sign-in link minted for a @example.com address from 93.184.216.42: 3 live links already.
+WARNING No caller address on this request: none of DO-Connecting-IP, CF-Connecting-IP was set ...
+```
+
+Three deliberate choices in there. **The caller's address appears in full** — without it a warning
+says only "something happened", and one script and a hundred parents look the same. **The address
+asked about never does, only its domain** — a flood of `@mailinator.com` is what you want to see,
+and the list of who has an account is what this endpoint exists not to publish, least of all into a
+third party's log. **An address with no account logs nothing at all**, so the log is not an
+enumeration oracle either.
+
+The last line fires once per process and means the per-caller limit has quietly stopped working —
+the platform stopped sending a header that identifies callers. The per-address limit in Postgres
+still holds, so it is a weakened control rather than an open door, but it is worth an alert.
+
 **The caller's address is in `DO-Connecting-IP`, and `X-Forwarded-For` is a trap here.** The access
 log showed `%(h)s` as an internal `10.244.x` that differs between requests, which prompted a look.
 DigitalOcean's own documentation: *"App Platform adds a `do-connecting-ip` HTTP header that contains
