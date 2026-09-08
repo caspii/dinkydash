@@ -2,13 +2,15 @@
 
 *Last updated: September 8, 2026. Supersedes `HOSTING_ANALYSIS.md` (deleted — it predated both the AI generation feature and the July 2026 calendar-display repositioning, and its recommended stack and data model no longer matched the product).*
 
-*September 8, later still: **magic-link auth is built** (DIN-38). `dinkydash/accounts.py` is the token lifecycle — 32 bytes from `secrets`, only the SHA-256 stored, fifteen minutes, spent by one `UPDATE ... WHERE used_at IS NULL RETURNING`; `web/routes/auth.py` is `/login`, `/login/link` and `/logout`; `web/session.py` is the cookie and a CSRF token on every form that writes, in both modes. `/settings` in cloud mode is behind a session. What is deliberately still missing is the **scoping**: cloud mode still serves `DINKYDASH_FAMILY_ID` rather than the family on the session, which is the actual "done when" of this phase and its own issue. The token rides in the query string rather than the path because the app runs `gunicorn --access-logfile -` and a login link in a log is a login in a log — see the access log format in `.do/app.yaml`, which is now a security control.*
+*September 8, last: **the multi-tenancy is real** (DIN-39). `web/family.py` builds one `PostgresStore` per request from the family on the session, over a pool built once per process; `create_app` holds no store at all in cloud mode, and the environment variable that used to name "the" family is deleted from the code, the app spec and the docs. Nothing a caller can send — path segment, query parameter, form field or header — reaches a query as a family selector, which is a stronger property than checking an id against the session. The ids that do appear in URLs are item ids inside one family's config document, and another family's is not in the list: `tests/test_tenancy.py` walks every section and every write route and asserts a 404, never a 403. **Phase 1's "done when" is met.** `login_link.py` prints a sign-in link without waiting on email, because the preview and the support inbox both need one.*
+
+*September 8, later still: **magic-link auth is built** (DIN-38). `dinkydash/accounts.py` is the token lifecycle — 32 bytes from `secrets`, only the SHA-256 stored, fifteen minutes, spent by one `UPDATE ... WHERE used_at IS NULL RETURNING`; `web/routes/auth.py` is `/login`, `/login/link` and `/logout`; `web/session.py` is the cookie and a CSRF token on every form that writes, in both modes. `/settings` in cloud mode is behind a session. What was deliberately still missing at that point was the **scoping**, which DIN-39 above then did. The token rides in the query string rather than the path because the app runs `gunicorn --access-logfile -` and a login link in a log is a login in a log — see the access log format in `.do/app.yaml`, which is now a security control.*
 
 *September 8, later: **one service, not two.** The board joins the marketing site in the existing `dinkydash-site` app rather than getting its own, because that is how `qrpage.co` and `abc-league` already run in this account — one container, one gunicorn, everything in it. Staging is dropped until there is a paying family to protect. The `worker` is the one genuine addition, because the tick has no lock and two web instances would tick twice. See [Hosting and deployment](#hosting-and-deployment).*
 
 *September 8: the transactional email provider is settled — decision 13, **SendGrid**, on the account KeepTheScore already sends from. The open question is closed. `dinkydash.co` is an authenticated sending domain on that account (DKIM and a monitor-only DMARC record are live in Cloudflare), and this repo has its own send-only API key. What is not built is the sending itself — that arrives with magic links in Phase 1.*
 
-*September 7, later still: the Postgres layer is built (DIN-31) — `migrations/001_initial_schema.sql`, `migrate.py`, `dinkydash/db.py`, `dinkydash/pgstore.py`, and a contract suite that runs the same assertions over both stores in CI. Connection pooling is settled above. What is deliberately still missing is the multi-tenancy: cloud mode serves one family from `DINKYDASH_FAMILY_ID`, because auth and scoping are Phase 1.*
+*September 7, later still: the Postgres layer is built (DIN-31) — `migrations/001_initial_schema.sql`, `migrate.py`, `dinkydash/db.py`, `dinkydash/pgstore.py`, and a contract suite that runs the same assertions over both stores in CI. Connection pooling is settled above. What is deliberately still missing is the multi-tenancy: cloud mode serves one family, named by an environment variable, because auth and scoping are Phase 1.*
 
 *September 7, later: the storage seam is built (DIN-19). `dinkydash/store.py` holds the six operations, `FileStore` is the one implementation, and the runner and both blueprints take a store rather than a path. The seam section below describes what exists; `PostgresStore` is now a constructor argument away.*
 
@@ -685,9 +687,10 @@ missing is the multi-tenant half — a schema, auth, and scoping every read and 
 - [ ] Multi-calendar management: add/label/enable/remove iCal feeds, with live validation on paste
 - [ ] Per-provider help content — Google, iCloud, Outlook each expose iCal URLs differently
 - [ ] Settings: timezone, family name, refresh cadence, screen URL display + rotation, account deletion. `claude_model` hidden in cloud mode.
+- [x] Every read and write scoped to the family on the session; the hardcoded family id deleted *(DIN-39)*
 - [ ] The URL map above: `/` redirects, `/login`, `/s/<token>`
 
-**Done when:** two different families can be configured independently through the UI, and a request carrying the wrong family's id in a URL gets a 404, never a row.
+**Done when:** two different families can be configured independently through the UI, and a request carrying the wrong family's id in a URL gets a 404, never a row. **Met by DIN-39**, and asserted in `tests/test_tenancy.py`.
 
 ### Phase 2 — Generation pipeline
 

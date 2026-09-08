@@ -16,6 +16,25 @@ branch in `parse_field` and a branch in `web/templates/settings/edit.html`; noth
 `web/templates/settings/home.html`. The list, edit, delete and reorder routes are generic and need
 no changes.
 
+**A route gets its store from `web.family.current_store()`, never from `app.config`.** In single
+mode that is the one `FileStore` the process was built with. In cloud mode it is a `PostgresStore`
+built for this request from the family on the session, cached on `g`, over the process-wide pool.
+A route that reads `app.config["STORE"]` directly works in single mode and serves `None` in cloud
+mode, which is the failure that looks like a bug in something else.
+
+**Poking at cloud mode locally: the session cookie is `Secure`, and http clients disagree about
+what that means.** Cloud mode is https-only, so the cookie is marked `Secure` and a laptop serving
+plain http is the odd case. Browsers treat `http://localhost` as a secure context and send it, so
+the preview works. `curl` sometimes does. **`requests` never does**, which makes every request
+arrive with no session — GETs redirect to `/login` and POSTs come back 400 from the CSRF check,
+which looks exactly like a broken feature. Drive `app.test_client()` in process instead: it has no
+cookie policy and exercises the same code. An hour went into that once.
+
+**A route that touches a store needs `session.guard`**, and the board blueprint's `before_request`
+is where that is decided. `board.healthz` is the one exemption and it is load-bearing: App
+Platform's health check arrives with no cookie, and a 302 there fails it three times and rolls the
+release back. It is also the only route that reads nothing, so it needs no family.
+
 **Every form that writes needs one hidden field.** `<input type="hidden" name="csrf_token"
 value="{{ csrf_token() }}">`, right inside the `<form>`. `csrf_token()` is a Jinja global set up by
 `web/session.py`, so no route has to remember to pass anything — but a form without the field is a

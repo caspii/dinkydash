@@ -80,9 +80,10 @@ header. `dinkydash.co` is the marketing site; `app.dinkydash.co` is the board, r
 Postgres in cloud mode. Both verified live over TLS, and the `PRE_DEPLOY` migration job reported
 `Schema is up to date`.
 
-One family exists, seeded from `config.example.yaml` — invented people, no calendar URL — and
-`DINKYDASH_FAMILY_ID` points at it. Nothing outside `tests/conftest.py` creates a family, so that
-was done by hand and will be until the signup flow exists.
+One family exists, seeded from `config.example.yaml` — invented people, no calendar URL — and an
+app-level environment variable pointed at it. Nothing outside `tests/conftest.py` creates a family,
+so that was done by hand and will be until the signup flow exists. (That variable is gone as of
+DIN-39, below; the family it named is still the only one.)
 
 **Omitting the value of a `type: SECRET` env var does NOT work, and the way it fails is the
 problem.** The earlier note here said it did, on the strength of a canary test: a throwaway
@@ -121,7 +122,7 @@ is a later issue — so the one family seeded from `config.example.yaml` needs a
 before anybody can sign in:
 
 ```sql
-INSERT INTO users (family_id, email) VALUES ('<DINKYDASH_FAMILY_ID>', 'you@example.com');
+INSERT INTO users (family_id, email) VALUES ('<the family uuid>', 'you@example.com');
 ```
 
 One outstanding action, and it is a security one. **`.do/app.yaml` now sets a gunicorn
@@ -141,6 +142,32 @@ them.
 per-address rate limit is three live links; the per-caller-address one is twenty an hour **per
 process**, and the service runs `--workers 2`, so the real ceiling is forty and a redeploy resets
 it. That is a bound on abuse, not a quota.
+
+
+## Multi-tenancy, 8 September 2026 (DIN-39)
+
+**The environment variable that named "the" family is deleted**, from the code, from `.do/app.yaml`
+and from these notes. Cloud mode builds one `PostgresStore` per request from the family on the
+session, over one pool per process. A `git grep` for that variable's name returning nothing is
+itself a test (`tests/test_tenancy.py`), which is why the name no longer appears above either — the
+notes were corrected rather than left, because what they recorded stopped being true.
+
+**The app spec needs applying again.** Removing an env var is a spec change, and `deploy_on_push`
+does not apply one — same merge-values-from-`.env` dance as every other change to that file. Leaving
+it applied-late is harmless here: the variable is simply ignored by code that no longer reads it.
+
+**Signing in for development or support:** `venv/bin/python login_link.py you@example.com` prints a
+working link without waiting on email. Same token, same fifteen minutes, same single use, same
+per-address limit — the only thing it skips is SendGrid. **What it prints is a credential**, so it
+does not go in an issue or a screenshot. It does not create accounts; the `INSERT` above still does.
+
+**Unverified, and worth an eye.** The access log shows `%(h)s` as an internal `10.244.x` address
+that differs between requests, so App Platform is putting a hop in front of the container.
+`web/ratelimit.client_ip` reads `X-Forwarded-For` from the right and steps over private addresses,
+which is correct *if* the platform sets that header. Nothing has confirmed it does. If it does not,
+the per-caller rate limit is keyed on a value that changes every request and therefore never fires —
+the per-address limit in Postgres would still hold, so this is a weakened control rather than an
+open door.
 
 
 ## GitHub's own secret scanning

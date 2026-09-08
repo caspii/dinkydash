@@ -87,11 +87,6 @@ envs:
   - key: DINKYDASH_SECRET_KEY
     scope: RUN_TIME
     type: SECRET
-  # One family until Phase 1 puts the family on the session. The worker does
-  # not read this — it walks every family itself.
-  - key: DINKYDASH_FAMILY_ID
-    scope: RUN_TIME
-    type: SECRET
   # DigitalOcean's pool, transaction mode, port 25061.
   - key: DATABASE_URL
     scope: RUN_TIME

@@ -22,6 +22,7 @@ from dinkydash.context import compute_birthday_info, upcoming_for
 from dinkydash.runner import forget_calendar, refresh_calendars
 from dinkydash.runner import run as run_generation
 from web import manifest as manifest_module
+from web.family import current_store
 from web.session import guard
 
 log = logging.getLogger(__name__)
@@ -135,10 +136,6 @@ MONTHS = ["January", "February", "March", "April", "May", "June", "July",
 # cached, so anything under a quarter of an hour would be a promise we cannot
 # keep. The engine takes any integer — these are what the page offers.
 REFRESH_CHOICES = (15, 30, 60, 360, 1440)
-
-
-def current_store():
-    return current_app.config["STORE"]
 
 
 def current_config():

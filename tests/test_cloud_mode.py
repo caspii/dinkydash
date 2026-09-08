@@ -108,10 +108,13 @@ class TestABoardOutOfPostgres:
 
         monkeypatch.setenv("DINKYDASH_MODE", "cloud")
         monkeypatch.setenv("DINKYDASH_SECRET_KEY", "a-real-one")
-        client = client_for(create_app(store))
+        # The pool, not the store. Cloud mode builds a `PostgresStore` per
+        # request from the family on the session, so handing one in would
+        # test a path production does not have.
+        client = client_for(create_app(pool=pg_pool))
         # These tests are about the rows, not the login. Signing in by hand is
         # what keeps them that way; `tests/test_auth.py` is where the gate
-        # itself is tested.
+        # itself is tested, and `tests/test_tenancy.py` the scoping.
         with client.session_transaction() as stored:
             stored["user_id"] = 1
             stored["family_id"] = str(pg_family)
@@ -142,7 +145,8 @@ class TestABoardOutOfPostgres:
                         (pg_family,))
             assert cur.fetchone()[0] == "The Bakers"
 
-    def test_the_board_is_identical_to_the_one_a_file_would_render(self, client, tmp_path):
+    def test_the_board_is_identical_to_the_one_a_file_would_render(
+            self, client, tmp_path, monkeypatch):
         """The template, the CSS and build_view are shared verbatim.
 
         If cloud mode ever rendered a different board, the mode check would have
@@ -152,6 +156,10 @@ class TestABoardOutOfPostgres:
         import yaml
 
         from dinkydash.store import FileStore
+        # A genuinely self-hosted app for the other side of the comparison. The
+        # fixture above set cloud mode for the whole test, and a cloud app with
+        # no session redirects to `/login` rather than rendering anything.
+        monkeypatch.delenv("DINKYDASH_MODE", raising=False)
         (tmp_path / "config.yaml").write_text(yaml.safe_dump(CONFIG, allow_unicode=True))
         file_store = FileStore(tmp_path / "config.yaml")
         today = payload_for_today()

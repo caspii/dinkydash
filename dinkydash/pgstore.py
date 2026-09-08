@@ -48,6 +48,17 @@ GENERATION_COLUMNS = ("generated_for_date", "generated_at", "model",
 BRIEF_KEYS = ("headline", "note", "note_kind")
 
 
+class NoSuchFamily(LookupError):
+    """That family id has no row.
+
+    Named rather than a bare `LookupError` because the web app handles it: a
+    session naming a family that has since been deleted should sign the holder
+    out, not 500. `KeyError` and `IndexError` are `LookupError`s too, and an
+    error handler catching the parent would swallow real bugs and send them to
+    the login page.
+    """
+
+
 class PostgresStore:
     """One family, as rows. Construct one per request or per worker iteration."""
 
@@ -62,7 +73,7 @@ class PostgresStore:
             cur.execute("SELECT config FROM families WHERE id = %s", (self.family_id,))
             row = cur.fetchone()
         if row is None:
-            raise LookupError(f"No family {self.family_id}")
+            raise NoSuchFamily(f"No family {self.family_id}")
         return config_module.with_defaults(dict(row[0] or {}))
 
     def save_config(self, config):

@@ -82,7 +82,7 @@ def cloud(pg_pool, pg_family, monkeypatch):
     store.save_config(yaml.safe_load(CONFIG))
     monkeypatch.setenv("DINKYDASH_MODE", "cloud")
     monkeypatch.setenv("DINKYDASH_SECRET_KEY", "a-real-one")
-    return create_app(store)
+    return create_app(pool=pg_pool)
 
 
 @pytest.fixture
@@ -406,7 +406,7 @@ class TestWhereTheLinkPoints:
         monkeypatch.setenv("DINKYDASH_MODE", "cloud")
         monkeypatch.setenv("DINKYDASH_SECRET_KEY", "a-real-one")
         monkeypatch.setenv("DINKYDASH_APP_HOST", "app.dinkydash.co")
-        return client_for(create_app(store))
+        return client_for(create_app(pool=pg_pool))
 
     def test_it_uses_the_configured_host(self, hosted, sent, pg_user):
         hosted.post("/login", data={"email": ADDRESS})

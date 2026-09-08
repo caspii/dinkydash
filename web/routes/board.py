@@ -2,11 +2,13 @@
 
 import os
 
-from flask import Blueprint, current_app, render_template, url_for
+from flask import Blueprint, render_template, request, url_for
 
 from dinkydash import board as board_view
 from dinkydash import config as config_module
 from web import manifest as manifest_module
+from web.family import current_store
+from web.session import guard
 
 bp = Blueprint("board", __name__)
 
@@ -16,9 +18,24 @@ PREVIEW_SIZES = [
     ("Old iPad", 1024, 768),
 ]
 
+# **`/healthz` must answer with no session, or every deploy rolls itself back.**
+# App Platform's health check arrives with no cookie and on a hostname nobody
+# signed in on; a 302 to `/login` there fails the check three times and the
+# platform reverts the release. It is also the one route that reads nothing, so
+# there is no family for it to need.
+OPEN_IN_CLOUD_MODE = {"board.healthz"}
 
-def current_store():
-    return current_app.config["STORE"]
+
+@bp.before_request
+def _needs_a_family():
+    """Cloud mode: the board is a family's board, so it needs a session.
+
+    Single mode has one family and no session, and `guard()` returns None there
+    — this is the same code in both modes, deciding differently.
+    """
+    if request.endpoint in OPEN_IN_CLOUD_MODE:
+        return None
+    return guard()
 
 
 def current_config():
