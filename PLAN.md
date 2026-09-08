@@ -8,6 +8,15 @@
 
 *September 8, later: **one service, not two.** The board joins the marketing site in the existing `dinkydash-site` app rather than getting its own, because that is how `qrpage.co` and `abc-league` already run in this account — one container, one gunicorn, everything in it. Staging is dropped until there is a paying family to protect. The `worker` is the one genuine addition, because the tick has no lock and two web instances would tick twice. See [Hosting and deployment](#hosting-and-deployment).*
 
+*September 8, last: **the legal and trust work** (DIN-44). A privacy policy and terms at
+`dinkydash.co/privacy/` and `/terms/`, linked from every page; a sub-processor list that names the
+four who actually receive something and says Stripe is not one of them yet; the Anthropic disclosure
+beside the calendar field as well as in the policy; and export and hard delete as buttons on
+`/settings/account`. **Phase 5's own rule was the hard part** — a retention period is a claim that a
+`DELETE` exists, so the two sweeps that are not written are not promised. Also found and fixed on the
+way: `dinkydash.co` has no MX records, so every sign-in email had a reply address that reached
+nobody.*
+
 *September 8, and this is the one that was overdue: **there is a spend breaker** (DIN-43). Per
 family and globally, checked and recorded in one statement before the call. Nothing bounded the
 Anthropic bill until now — not the worker, and not "Rewrite now", which was a browser button with
@@ -765,12 +774,12 @@ These are latent on a single Pi and actively harmful hosted.
 
 **Still open:**
 
-6. **Stale `.env` keys.** `DATABASE_URL`, `SECRET_KEY`, `UPLOAD_FOLDER`, `MAX_CONTENT_LENGTH` are leftovers from an abandoned plan. No code reads any of them, so removing them changes nothing — but `.env` is not in git, so each copy has to be edited where it lives: the main checkout, and the Pi, whose `.env` `deploy_to_pi.sh` no longer overwrites. There is still no `.env.example`.
-7. **No CI.** The suite runs in under a second and nothing runs it on push.
+6. **Stale `.env` keys.** `DATABASE_URL` and `SECRET_KEY` are now real keys with real meanings (the pool, and the session in cloud mode); `UPLOAD_FOLDER` and `MAX_CONTENT_LENGTH` are still leftovers from an abandoned plan and no code reads either. `.env` is not in git, so each copy has to be edited where it lives: the main checkout, and the Pi, whose `.env` `deploy_to_pi.sh` no longer overwrites. **`.env.example` exists** and documents every key that is read.
+7. ~~**No CI.**~~ Done in DIN-16. `.github/workflows/test.yml` runs pytest and gitleaks on every push and pull request, and the suite runs twice — once against Postgres and once as a self-hoster sees it.
 8. ~~**A failed fetch puts the secret URL in the error text.**~~ Fixed in DIN-32. `calendars._why` reduces a `requests` failure to a category and a status code, leaving out the host as well as the path, and the parse error is scrubbed too — a parser quotes the line it choked on, which is an appointment. Tested.
-9. **`generated_at` is the server's clock.** `generate.py` stamps `datetime.now().astimezone()` and the settings home prints `stamp[11:16]` as "written 06:02". On a UTC host that is the wrong time for every family. Stamp in UTC; render in the family's timezone.
+9. ~~**`generated_at` is the server's clock.**~~ Fixed. Both stamps are written in UTC (`generate.py`, `runner.refresh_calendars`) and `settings._clock` renders them on the family's own clock. It used to slice the characters out of the ISO string, which showed the server's hour.
 10. **`describe_feed` falls back to `date.today()`.** Never reached — the settings route passes the date — but it is the one clock left inside `dinkydash/`.
-11. **No CSRF protection on any form.** Harmless with no accounts; the moment a session exists, a page elsewhere can submit "Rewrite now" or a delete on the parent's behalf. Every POST needs a token in cloud mode.
+11. ~~**No CSRF protection on any form.**~~ Fixed in DIN-38, and in **both** modes with no switch to turn it off — a Pi on a home network has a guessable address too. `tests/test_auth.py` walks the templates and fails on a form without a token.
 
 ---
 
@@ -778,15 +787,15 @@ These are latent on a single Pi and actively harmful hosted.
 
 Each of these is under an hour, needs no database, and ships to the Pi as well as the cloud. Do them before anything in Phase 1.
 
-1. **CI.** A GitHub Actions workflow that runs `pytest` on push and pull request; a `gitleaks` step beside it; push protection switched on in the repo settings. About twenty lines and one toggle.
-2. **`.env.example`** — one line: `ANTHROPIC_API_KEY=`.
-3. **Pin `requirements.txt`.** An unpinned dependency in an app holding other families' calendars is the supply-chain decision CLAUDE.md warns about, made by omission.
-4. **Rotate the Anthropic key.** Five minutes, no code, overdue. Edit it on the Pi in place — `deploy_to_pi.sh` no longer copies `.env`.
+1. ~~**CI.**~~ Done in DIN-16 — pytest and gitleaks on every push, and the suite run both ways.
+2. ~~**`.env.example`.**~~ Done, and it is no longer one line: it documents the session key, the database, SendGrid and the spend caps as well.
+3. ~~**Pin `requirements.txt`.**~~ Done in DIN-16. Every requirements file is pinned with `==` to what CI passes on.
+4. ~~**Rotate the Anthropic key.**~~ Done in DIN-20.
 5. ~~**Self-host Nunito.**~~ Done in DIN-32 — one variable font per subset in `web/static/fonts/`, and its own copy in `website/static/`. Removes a third-party request from every screen, a GDPR sub-processor (a Munich court ruled against dynamically loaded Google Fonts in 2022), the `Referer` path for screen tokens, and it makes a Pi's board render the same when the internet is down.
 6. ~~**Scrub the URL out of `FeedError`**~~ (bug 8). Done in DIN-32.
 7. ~~**`Referrer-Policy: no-referrer`**~~. Done in DIN-32, on every response rather than two templates, so it covers redirects and errors too.
 8. ~~**`/healthz`.**~~ Done in DIN-32. Returns `ok` and the git SHA from the environment, and deliberately reads no config and no database.
-9. **`generated_at` in UTC**, rendered in the family's timezone (bug 9).
+9. ~~**`generated_at` in UTC**, rendered in the family's timezone~~ (bug 9). Done.
 10. ~~**A `Dockerfile`.**~~ Dropped on 7 September, having been built and then removed. App Platform's Python buildpack needs none, and Docker was machinery with nothing here to earn it. `.python-version` and a `build_command` in the app spec are what replaced it *(DIN-30, cancelled)*.
 
 ---
@@ -848,7 +857,7 @@ missing is the multi-tenant half — a schema, auth, and scoping every read and 
 
 - [x] Public tokenized dashboard route, `noindex`, no referrer, no third-party requests *(DIN-42)*. Rate-limited **in the app rather than at the edge**, and on the misses rather than the requests — see [The screen](#the-screen). A Cloudflare rule is still worth adding on top and is not a blocker.
 - [x] Token rotation; QR code display *(DIN-42)*
-- [ ] Renderer to landing-page parity: person cards with ages, time-ordered agenda for today
+- [x] Renderer to landing-page parity *(nothing to build — the parity is there)*. **This box was stale and the correction matters.** It was written when the homepage showed a mockup with person cards on it. The homepage was rewritten around the real board (#72) and now says "every screen on this page shows the real board", promising the time-ordered agenda, tomorrow underneath, whose turn each chore is, the birthday countdowns and one written line — which is exactly what `board.html` renders. Building person cards now would be building something nobody was promised. If they are ever wanted, they are a feature, not parity.
 - [x] Staleness indicator when the brief isn't from today *(built for single mode in #28; DIN-42 renders the same `build_view` from `PostgresStore`, and `tests/test_cloud_mode.py` asserts the two boards are byte-identical apart from the manifest link)*
 - [ ] Offline tolerance and sensible cache headers. `no-store` is deliberate for now: the URL is a credential and a shared cache holding it is a leak, so offline needs a service worker rather than a weaker header.
 - [ ] Verify on the target surfaces: TV browser, old iPad, Pi kiosk
@@ -868,14 +877,14 @@ missing is the multi-tenant half — a schema, auth, and scoping every read and 
 
 ### Phase 5 — Legal & trust
 
-- [ ] Privacy policy and ToS, forked from KeepTheScore
-- [ ] Sub-processor list — Anthropic, DigitalOcean, Stripe, **SendGrid** (decision 13), Cloudflare. **Not Google Fonts**: self-hosted since DIN-32, and nothing on the board, the settings UI or the marketing site requests anything from them.
-- [ ] **DigitalOcean's DPA signed, with standard contractual clauses.** They are a US company; the app and database sit in Frankfurt. Say both — where the data lives, and who the company is. Cloudflare needs the same treatment.
-- [ ] Plain statement that calendar contents are sent to Anthropic for generation
-- [ ] Say what SendGrid receives, which is **the email address and the login link, never the calendar**. The two disclosures are different in kind and should not be merged into one sentence: Anthropic sees a family's appointments, SendGrid sees only who is logging in.
-- [ ] Data export and hard delete — the delete cascades through users, tokens, agendas, generations, history and calendar health; the Stripe customer record stays, as accounting requires
-- [ ] Retention, with numbers: `agendas` is one overwritten row; `content_history` keeps 30 entries of the model's words; `generations` keeps token counts indefinitely and drops the `brief` column after 90 days; a lapsed family is deleted 90 days after lapse
-- [ ] Cookie/analytics review
+- [x] Privacy policy and ToS, forked from KeepTheScore *(DIN-44)*. `website/content/privacy.md` and `terms.md`, linked from the footer of every page and in the sitemap. Same controller, same Berlin address, same supervisory authority.
+- [x] Sub-processor list — Anthropic, DigitalOcean, **SendGrid** (decision 13), Cloudflare *(DIN-44)*. **Not Google Fonts**: self-hosted since DIN-32, and nothing on the board, the settings UI or the marketing site requests anything from them. **Stripe is not on it either, and must not be until payment exists** — the page says so in as many words, because a sub-processor list naming somebody who receives nothing is the same kind of untrue as one omitting somebody who does.
+- [ ] **DigitalOcean's DPA signed, with standard contractual clauses.** *(The policy already says where the data lives and who the company is; what is outstanding is the signature.)* They are a US company; the app and database sit in Frankfurt. Say both — where the data lives, and who the company is. Cloudflare needs the same treatment.
+- [x] Plain statement that calendar contents are sent to Anthropic for generation *(DIN-44)*, and **in three places rather than one**: the policy, the settings page under *Your data*, and — the one that matters — the blurb on the calendars page, beside the field where somebody is about to paste a link.
+- [x] Say what SendGrid receives, which is **the email address and the login link, never the calendar** *(DIN-44)*. The two disclosures are different in kind and should not be merged into one sentence: Anthropic sees a family's appointments, SendGrid sees only who is logging in.
+- [x] Data export and hard delete *(DIN-44)*, both buttons on `/settings/account` rather than requests. The delete cascades through users, tokens, agendas, generations, history, calendar health and `model_spend` — **and one row it cannot cascade to**: a sign-up token has no `user_id`, so it is deleted by address in the same transaction. `tests/test_account.py` asserts every table. The Stripe customer record will stay when there is one, as accounting requires.
+- [ ] Retention, with numbers. **The policy states what is true today** and no more: `agendas` is one overwritten row, `content_history` keeps 30 entries, expired sign-in tokens are swept, and everything else lives until the family is deleted. The two sweeps that do *not* exist — dropping `generations.brief` after 90 days, and deleting a lapsed family after 90 days — are deliberately **not** promised, because a retention period in a policy is a claim that a `DELETE` exists. Write the sweeps, then write the sentence.
+- [x] Cookie/analytics review *(DIN-44)*. One cookie on the hosted app and it is the session; no analytics, no advertising and no third-party script on the board or the settings pages. The marketing site uses Ahrefs Web Analytics, which is cookieless. All of that is in the policy.
 
 **Done when:** you could take money from an EU customer without wincing.
 

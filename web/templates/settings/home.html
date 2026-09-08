@@ -136,6 +136,22 @@
     </div>
 </div>
 
+{# Hosted only. A self-hoster has no account to delete and nothing to export —
+   their data is a YAML file and two JSON files, in a directory they chose. #}
+{% if cloud %}
+<div>
+    <div class="label">Your account</div>
+    <div class="card">
+        <a class="row" href="{{ url_for('settings.account') }}">
+            <div class="row-main">
+                <div class="row-title">Your data</div>
+                <div class="row-sub">Download it, or delete everything</div>
+            </div>{{ icons.chevron() }}
+        </a>
+    </div>
+</div>
+{% endif %}
+
 {# Only hosted. Self-hosted has no accounts, so there is nothing to sign out of. #}
 {% if cloud %}
 <form method="post" action="{{ url_for('auth.logout') }}">

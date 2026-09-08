@@ -85,6 +85,17 @@ def signed_in():
     return bool(session.get(USER_ID))
 
 
+def current_user_id():
+    """Who is signed in, or None. The person, as opposed to the family.
+
+    Almost everything is scoped to the family and reads `web/family.py`
+    instead. This is for the two things that are about the *person*: showing
+    somebody their own address, and confirming that they typed it back before
+    deleting the account.
+    """
+    return session.get(USER_ID)
+
+
 def guard():
     """Cloud mode: no session, no family. Returns a redirect, or None.
 

@@ -328,6 +328,56 @@ def _domain(address):
     return f"@{domain}" if domain else "@?"
 
 
+def address_for(pool, user_id):
+    """The address on that account, or None. For showing somebody their own.
+
+    Deliberately a query rather than a session value: `web/session.py` puts two
+    ids in the cookie and no email, because Flask signs the cookie and does not
+    encrypt it.
+    """
+    with pool.connection() as conn, conn.cursor() as cur:
+        cur.execute("SELECT email FROM users WHERE id = %s", (user_id,))
+        row = cur.fetchone()
+        return row[0] if row else None
+
+
+def delete_family(pool, family_id):
+    """Delete a family and everything belonging to it. Returns True if there was one.
+
+    **The cascade does most of this, and there is exactly one thing it cannot
+    reach.** `families` is the root and every other table references it with
+    `ON DELETE CASCADE` — users, agendas, generations, content_history,
+    calendar_health, model_spend — and `login_tokens` follows its user. But a
+    **sign-up token has no user** (DIN-41): it carries an address instead,
+    precisely so that it can exist before the family does. Nothing cascades to
+    it, so it is deleted here by address, in the same transaction.
+
+    Left alone it would expire in fifteen minutes and be swept, so this is not a
+    security hole — it is the difference between "deleted" meaning what the
+    privacy policy says it means and meaning nearly that.
+
+    One transaction, so a half-deleted family is not a state that can exist.
+    """
+    with pool.connection() as conn, conn.transaction():
+        with conn.cursor() as cur:
+            cur.execute("SELECT email FROM users WHERE family_id = %s", (family_id,))
+            addresses = [row[0] for row in cur.fetchall()]
+            if addresses:
+                cur.execute(
+                    "DELETE FROM login_tokens WHERE user_id IS NULL AND email = ANY(%s)",
+                    (addresses,),
+                )
+            cur.execute("DELETE FROM families WHERE id = %s RETURNING id",
+                        (family_id,))
+            gone = cur.fetchone() is not None
+    if gone:
+        # The id, never the address. A deletion is worth a line — it is the one
+        # thing nobody can undo — and the line must not be the record of who
+        # left that the deletion was supposed to remove.
+        log.info("Deleted family %s and everything belonging to it.", family_id)
+    return gone
+
+
 def sweep(pool):
     """Delete every token that has expired. Returns how many went.
 

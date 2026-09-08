@@ -325,6 +325,46 @@ which with one worker and two web processes is a handful of calls, not a categor
 spec *did* change — three new environment variables — so it joins the applies already outstanding
 below.
 
+## Legal and trust, 8 September 2026 (DIN-44)
+
+**There is a privacy policy and there are terms**, at `dinkydash.co/privacy/` and `/terms/`, linked
+from the footer of every page. Forked from KeepTheScore's: same controller, same Berlin address,
+same supervisory authority.
+
+**Treat both as code.** They state what the app stores, who receives it and how long it is kept —
+each of which is a claim that some behaviour exists. A change to what is stored or sent is a change
+to those pages in the same commit.
+
+**Two things are deliberately *not* promised**, and it matters that they stay unpromised until they
+are built: dropping `generations.brief` after 90 days, and deleting a lapsed family after 90 days.
+Both are in PLAN.md phase 5. Neither sweep is written, so neither is in the policy.
+
+**`dinkydash.co` has no MX records.** It is an authenticated *sending* domain and nothing receives
+on it, so every sign-in email had a reply address that reached nobody and a bounce that went
+nowhere. `dinkydash/mail.py` now sets `Reply-To: hi@keepthescore.com`, which is what the policy also
+gives as the contact address. Three things move together the day DinkyDash gets a mailbox:
+`DEFAULT_REPLY_TO`, `privacy.md` and `terms.md`.
+
+**Export and delete are buttons** on `/settings/account`, not requests to answer by hand:
+
+```sql
+-- what a delete should leave behind, for any family id
+SELECT 'families' t, count(*) FROM families WHERE id = :id
+UNION ALL SELECT 'users', count(*) FROM users WHERE family_id = :id
+UNION ALL SELECT 'agendas', count(*) FROM agendas WHERE family_id = :id
+UNION ALL SELECT 'generations', count(*) FROM generations WHERE family_id = :id
+UNION ALL SELECT 'content_history', count(*) FROM content_history WHERE family_id = :id
+UNION ALL SELECT 'calendar_health', count(*) FROM calendar_health WHERE family_id = :id
+UNION ALL SELECT 'model_spend', count(*) FROM model_spend WHERE family_id = :id;
+```
+
+All zeroes. The cascade does most of it; the one row it cannot reach is a **sign-up token**, which
+has no `user_id` by design, and `accounts.delete_family` deletes those by address in the same
+transaction.
+
+**No spec change and no `doctl apps update` for this one** — no new environment variable, no
+migration. `deploy_on_push` is enough.
+
 ## GitHub's own secret scanning
 
 **Do not rely on it yet.** Minutes after it was enabled, a correctly shaped fake

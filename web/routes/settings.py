@@ -9,12 +9,14 @@ comments in the file survive being edited from a phone.
 """
 
 import io
+import json
 import logging
 from datetime import datetime, time, timezone
 
 from flask import (Blueprint, abort, current_app, flash, redirect,
                    render_template, request, url_for)
 
+from dinkydash import accounts
 from dinkydash import config as config_module
 from dinkydash import schedule, screens
 from dinkydash.calendars import FeedError, addresses, describe_feed, feed_label
@@ -26,6 +28,7 @@ from web import CLOUD
 from web import manifest as manifest_module
 from web.family import (current_budget, current_family_id, current_screen_token,
                         current_store)
+from web import session as session_module
 from web.session import guard
 
 log = logging.getLogger(__name__)
@@ -105,8 +108,12 @@ SECTIONS = {
         "title": "Calendars",
         "singular": "calendar",
         "add_label": "Add a calendar",
+        # **The disclosure where somebody is actually about to paste a calendar
+        # link**, not only in a policy nobody opens. It says what leaves and
+        # what does not, in the same breath as the field that causes it.
         "blurb": "Every calendar you switch on is merged into one agenda. Titles and times are "
-                 "sent to Claude each morning; an event kept off the board by a guest list is not.",
+                 "sent to Anthropic each morning so Claude can write the day's line; an event "
+                 "kept off the board by a guest list is never stored and never sent.",
         "fields": [
             ("label", "Call it", "text", True, ""),
             ("url", "iCal link", "url", True,
@@ -690,6 +697,126 @@ def refresh_now():
                     f"{', '.join(sorted(s['label'] for s in broken))}.")
     flash(message, "error" if broken else "ok")
     return redirect(url_for("settings.home"))
+
+
+@bp.route("/account", methods=["GET", "POST"])
+def account():
+    """Your data, and getting rid of it. Cloud mode only.
+
+    Not registered behind a mode check but hidden behind one: a self-hoster has
+    no account to delete and no export to want — their data is a YAML file and
+    two JSON files they already have, in a directory they chose.
+    """
+    if current_app.config["MODE"] != CLOUD:
+        abort(404)
+    if request.method == "POST":
+        return delete_account()
+    return render_template(
+        "settings/account.html", config=current_config(),
+        address=accounts.address_for(current_app.config["POOL"],
+                                     session_module.current_user_id()))
+
+
+@bp.route("/account/export")
+def export_account():
+    """Everything we hold about this family, as one JSON file.
+
+    **The family's own data comes from the store**, which is the only thing that
+    knows what it is. Two things it deliberately cannot answer are read directly
+    and named as such:
+
+    * the plan, the trial and when the account was made, which are the
+      platform's bookkeeping rather than the family's data;
+    * the **full** written history. `recent_notes` returns note *text* and
+      nothing else, because it exists to stop the model repeating itself — an
+      export needs the date and the headline with it, and widening the store's
+      operation to suit one caller would make every other caller carry it.
+
+    `Cache-Control: no-store` because this is the most concentrated copy of a
+    family's data the app ever produces, and a shared cache holding it is worse
+    than any single page.
+    """
+    if current_app.config["MODE"] != CLOUD:
+        abort(404)
+    store = current_store()
+    config = store.load_config()
+    payload = store.load_payload(config) or {}
+    export = {
+        "exported_at": datetime.now(timezone.utc).isoformat(),
+        "family": _family_facts(),
+        "settings": config,
+        "board": payload,
+        # Everything the model has written, not the 30 the board keeps for
+        # itself: `history_days` is a prompt setting, not a retention rule, and
+        # an export that quietly truncated would be the wrong answer to "give me
+        # my data".
+        "written_lines": _written_lines(),
+    }
+    body = json.dumps(export, indent=2, ensure_ascii=False, default=str)
+    return body, 200, {
+        "Content-Type": "application/json; charset=utf-8",
+        "Content-Disposition": 'attachment; filename="dinkydash-export.json"',
+        "Cache-Control": "no-store",
+        "X-Robots-Tag": "noindex",
+    }
+
+
+def _written_lines():
+    """Every line the model has written for this family, with its date.
+
+    Read directly rather than through `store.recent_notes`, which returns note
+    text alone — see `export_account`. Scoped to the session's family like
+    everything else, and that id never comes from the request.
+    """
+    with current_app.config["POOL"].connection() as conn, conn.cursor() as cur:
+        cur.execute(
+            """SELECT date, headline, note, note_kind, created_at
+               FROM content_history WHERE family_id = %s ORDER BY date, id""",
+            (current_family_id(),),
+        )
+        keys = ("date", "headline", "note", "note_kind", "created_at")
+        return [dict(zip(keys, row)) for row in cur.fetchall()]
+
+
+def _family_facts():
+    """The platform's own bookkeeping about a family, for the export."""
+    with current_app.config["POOL"].connection() as conn, conn.cursor() as cur:
+        cur.execute(
+            """SELECT plan, status, trial_ends_at, created_at
+               FROM families WHERE id = %s""",
+            (current_family_id(),),
+        )
+        row = cur.fetchone()
+    if row is None:
+        return {}
+    # **The screen token is not in here.** An export is a file that gets emailed
+    # to somebody, saved to a downloads folder and forgotten; a live credential
+    # should not ride along in one. It is on the screen page, where it can be
+    # rotated in the same breath as being read.
+    return dict(zip(("plan", "status", "trial_ends_at", "created_at"), row))
+
+
+def delete_account():
+    """Delete this family for good, if they typed their own address back.
+
+    **The confirmation is the address on the account**, the way a repository
+    host asks for the repository name. A button alone is one mis-tap from a
+    family losing a board they set up; typing an address they had to know is
+    friction that only the right person can pass.
+
+    The family comes from the session and from nowhere else, so there is no id
+    to get wrong and no way to be handed somebody else's.
+    """
+    pool = current_app.config["POOL"]
+    address = accounts.address_for(pool, session_module.current_user_id())
+    typed = (request.form.get("confirm") or "").strip().lower()
+    if not address or typed != address.lower():
+        flash("Type the email address on this account to confirm.", "error")
+        return redirect(url_for("settings.account"))
+
+    accounts.delete_family(pool, current_family_id())
+    session_module.sign_out()
+    return redirect(url_for("auth.login", deleted=1))
 
 
 @bp.route("/system", methods=["GET", "POST"])

@@ -6,17 +6,33 @@ Guidance for `website/`. The root `CLAUDE.md` holds the rules that apply to ever
 
 **`website/` never runs on the board**, and that is what settles most questions here.
 
-- **Its dependencies go in `requirements-dev.txt`, never `requirements.txt`.** The runtime
+- **Its dependencies go in `requirements-site.txt`, never `requirements.txt`.** The runtime
   list is what `deploy_to_pi.sh` installs on a Pi, and a Pi serves no marketing site. The
-  site generator needs `jinja2`, `markdown` and `pyyaml`; the two image scripts need
-  `Pillow`, and `generate_social_preview.py` also wants Chrome, which pip cannot install.
-- **`docs/` is the build output, not a place to put documentation.** `build.py` deletes and
-  rewrites it on every run, so a markdown file left there dies at the next build. It is
-  committed because GitHub Pages serves it, which means a template change is not finished
-  until the site is rebuilt.
+  site needs `markdown`, `pyyaml` and `gunicorn`; the two image scripts need `Pillow` and
+  live in `requirements-dev.txt`, and `generate_social_preview.py` also wants Chrome, which
+  pip cannot install. `requirements-cloud.txt` pulls in the site's list, because one
+  container serves both hostnames.
+- **There is no build step and no `docs/` directory.** This said the opposite until DIN-27:
+  `build.py` used to write `docs/` and GitHub Pages served it, so a template change was not
+  finished until the site was rebuilt and the output committed. None of that is true now.
+  `website/site.py` is a Flask app rendering `content/*.md` through `templates/` on request,
+  deployed on the same App Platform container as the board with `wsgi.py` routing on the
+  `Host` header. **Adding a page is writing a Markdown file, and nothing else.**
 - **Nunito lives here twice on purpose.** `website/static/fonts/` and `web/static/fonts/`
   are separate deployables, so editing one means editing both. The site's copy carries the
   italic pair as well; the board's does not, because the board never sets italic.
+
+## The legal pages
+
+`content/privacy.md` and `content/terms.md` are the hosted service's, and they are **claims
+about what the code does**. A retention period is a promise that a `DELETE` exists; a
+sub-processor list is a promise that nothing else is called. Changing what the app stores,
+what it sends, or who it sends it to means changing those pages in the same commit — a
+policy that has drifted from the code is worse than no policy, because somebody relied on it.
+
+The contact address is `hi@keepthescore.com` on purpose: **`dinkydash.co` has no MX records**,
+so it sends email and receives none. `dinkydash/mail.py` sets the same address as `Reply-To`
+for that reason. When DinkyDash gets a mailbox, all three move together.
 
 ## The two image generators
 
