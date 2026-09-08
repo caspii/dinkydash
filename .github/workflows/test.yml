@@ -17,8 +17,17 @@ jobs:
     # ran against files would not notice the day the two drifted apart.
     services:
       postgres:
-        # Pinned to the major version DigitalOcean's managed cluster runs.
-        image: postgres:16
+        # Pinned to the major version DigitalOcean's managed cluster runs, which
+        # is **17** — the `dinkydash` cluster in fra1 is on 17.11 as of
+        # 8 September 2026. This said 16 until then, written before the cluster
+        # existed, so CI was proving migrations against a major the app does not
+        # run. Postgres 15 changed who may write to the `public` schema; a
+        # difference of that size passing here and failing in production is
+        # exactly what this service container exists to prevent.
+        #
+        # When the cluster is upgraded, this line moves with it. `doctl
+        # databases get <id> --format VersionSlug` is the check.
+        image: postgres:17
         env:
           POSTGRES_USER: dinkydash
           POSTGRES_PASSWORD: dinkydash

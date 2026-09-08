@@ -1,47 +1,37 @@
-# DigitalOcean App Platform spec for dinkydash.co.
+# DigitalOcean App Platform spec for dinkydash.co and app.dinkydash.co.
 #
 # Applied with:
 #   doctl apps update ed4158fc-fb49-4c10-bb1e-2c8491b06a86 --spec .do/app.yaml
 #
-# Infrastructure reviewed like code, which is why it is committed. **No secrets
-# here.** App Platform's encrypted environment variables are set with `doctl`
-# or in the dashboard, and this file references them by name.
+# Infrastructure reviewed like code, which is why it is committed.
 #
 # **This spec is the whole app, not a patch.** `doctl apps update` replaces what
-# is there. Anything missing from this file is deleted from the running app,
-# which is why `domains` is written out below even though nothing here changes
-# it — it was absent until 8 September 2026, and applying the file as documented
-# above would have taken dinkydash.co off its own domain.
+# is there, so anything missing from this file is deleted from the running app.
+# `domains` is written out for that reason — it was absent until 8 September
+# 2026, and applying the file as documented above would have taken dinkydash.co
+# off its own domain.
+#
+# **Secrets are the one exception, and it was tested rather than assumed.** An
+# env var with `type: SECRET` and no `value:` keeps the value already set: this
+# was checked on 8 September with a throwaway variable, set to a value, then
+# re-applied without one, and it survived as `EV[...]`. So the values below can
+# stay out of a public repo without this file becoming a loaded gun. Set them
+# with `doctl apps update` from a spec assembled outside the working tree, or in
+# the dashboard. **Never commit an `EV[...]` blob here** — it is ciphertext of a
+# production credential, and this repo is world-readable.
 #
 # No Dockerfile: App Platform's Python buildpack reads .python-version and
-# requirements.txt and runs the command below (DIN-30, reversed).
+# installs what `build_command` says (DIN-30, reversed).
 #
-# --------------------------------------------------------------------------
-# Where this is going (DIN-26)
+# One service serves both hostnames. `wsgi.py` routes on the `Host` header —
+# dinkydash.co to the marketing site, app.dinkydash.co to the board — because
+# qrpage.co and abc-league already run one container each in this account and a
+# second service is $5/month for isolation with no revenue behind it yet. See
+# PLAN.md, Hosting and deployment.
 #
-# The board joins this app rather than getting its own, because that is how
-# qrpage.co and abc-league already run in this account: one service, one
-# container, marketing and application together. `wsgi.py` routes on the `Host`
-# header — dinkydash.co to the marketing site, app.dinkydash.co to the board.
-#
-# Three things have to land before that switch, and none of them has:
-#
-#   1. The Managed Postgres cluster in FRA1. Cloud mode's `create_app()` builds
-#      a PostgresStore at import, so `wsgi:application` cannot boot without it.
-#   2. The app.dinkydash.co CNAME in Cloudflare, DNS-only. Listing a domain here
-#      before it resolves means App Platform fails to issue its certificate.
-#   3. The worker. There is no `worker/` directory yet; the tick loop is
-#      unwritten. It must be its own component — there is no lock on the tick,
-#      so two web instances would tick twice and pay Anthropic twice.
-#
-# When they have, this file gains: `app.dinkydash.co` in `domains`, a
-# `run_command` of `gunicorn "wsgi:application"`, a `build_command` of
-# `pip install -r requirements-cloud.txt`, `DINKYDASH_MODE=cloud`,
-# `DINKYDASH_APP_HOST`, the secret references, a `workers:` block and a
-# `PRE_DEPLOY` migration job. Until then this app serves the marketing site and
-# holds nothing worth stealing — a property it loses on that day, deliberately,
-# and this comment should be rewritten rather than left to mislead.
-# --------------------------------------------------------------------------
+# **The `worker` component and `worker/` land in the same commit.** Applying
+# this file from a checkout that predates the package gives a component whose
+# run_command cannot import, and a failed deploy.
 
 name: dinkydash-site
 region: fra
@@ -51,6 +41,54 @@ domains:
     type: PRIMARY
   - domain: www.dinkydash.co
     type: ALIAS
+  # The board. DNS-only in Cloudflare: a proxied CNAME answers as Cloudflare
+  # and App Platform's certificate never issues.
+  - domain: app.dinkydash.co
+    type: ALIAS
+
+# App-level, so the service, the worker and the migration job all see them
+# without three copies to keep in step.
+envs:
+  - key: DINKYDASH_MODE
+    scope: RUN_TIME
+    value: cloud
+  # Which hostname wsgi.py hands to the board. Not defaulted in code: a typo
+  # here would leave the board silently unreachable behind a 404 from the
+  # marketing site, so it refuses to start instead.
+  - key: DINKYDASH_APP_HOST
+    scope: RUN_TIME
+    value: app.dinkydash.co
+  # What the canonical tags, og:url and the sitemap claim to be.
+  - key: DINKYDASH_SITE_URL
+    scope: RUN_TIME
+    value: https://dinkydash.co
+  # In cloud mode the session is the login, so the app refuses to start on the
+  # self-hosted fallback key.
+  - key: DINKYDASH_SECRET_KEY
+    scope: RUN_TIME
+    type: SECRET
+  # One family until Phase 1 puts the family on the session. The worker does
+  # not read this — it walks every family itself.
+  - key: DINKYDASH_FAMILY_ID
+    scope: RUN_TIME
+    type: SECRET
+  # DigitalOcean's pool, transaction mode, port 25061.
+  - key: DATABASE_URL
+    scope: RUN_TIME
+    type: SECRET
+  # The cluster itself, port 25060. Migrations and pg_dump want a real session,
+  # not the far end of a transaction pooler.
+  - key: DATABASE_URL_DIRECT
+    scope: RUN_TIME
+    type: SECRET
+  # The worker's, for the daily brief. The web service never calls Anthropic.
+  - key: ANTHROPIC_API_KEY
+    scope: RUN_TIME
+    type: SECRET
+  # Send-only, scoped to mail.send and nothing else.
+  - key: SENDGRID_API_KEY
+    scope: RUN_TIME
+    type: SECRET
 
 services:
   # Named `site` rather than `web` because renaming a component destroys and
@@ -63,31 +101,60 @@ services:
     source_dir: /
     environment_slug: python
 
-    # The buildpack installs requirements.txt on its own, which is deliberately
-    # the smaller list — no markdown, no pyyaml, no production WSGI server,
-    # because a Raspberry Pi needs none of them.
-    build_command: pip install -r requirements-site.txt
+    # requirements-cloud.txt is the superset: it pulls in requirements-site.txt,
+    # which pulls in requirements.txt, so one file installs everything this
+    # container runs. The buildpack installs requirements.txt on its own, which
+    # is deliberately the smaller list — a Pi needs neither Postgres nor a
+    # Markdown renderer.
+    build_command: pip install -r requirements-cloud.txt
 
-    # Two workers with threads: the work is rendering cached Markdown and
-    # sending files, so it waits on the network far more than on the CPU.
-    run_command: gunicorn --workers 2 --threads 4 --bind 0.0.0.0:8080 --access-logfile - "website.site:app"
+    run_command: gunicorn --workers 2 --threads 4 --bind 0.0.0.0:8080 --access-logfile - "wsgi:application"
 
     instance_size_slug: apps-s-1vcpu-0.5gb
     instance_count: 1
     http_port: 8080
 
+    # The check arrives on the .ondigitalocean.app hostname, which is in no
+    # `domains` block above — so wsgi.py sends unknown hosts to the marketing
+    # site, which answers /healthz. A 404 here would roll every deploy back.
     health_check:
       http_path: /healthz
-      initial_delay_seconds: 10
+      initial_delay_seconds: 15
       period_seconds: 10
       timeout_seconds: 3
       success_threshold: 1
       failure_threshold: 3
 
-    envs:
-      # What the canonical tags, og:url and the sitemap claim to be. Set
-      # explicitly so a preview copy never tells a search engine it is
-      # production.
-      - key: DINKYDASH_SITE_URL
-        scope: RUN_TIME
-        value: https://dinkydash.co
+workers:
+  # The tick, once every five minutes, over every family that is due. Its own
+  # component rather than a thread in `site` because there is no lock on the
+  # tick in cloud mode: two processes would both refresh and both pay Anthropic
+  # for the same brief. One worker, however many web instances.
+  - name: worker
+    github:
+      repo: caspii/dinkydash
+      branch: main
+      deploy_on_push: true
+    source_dir: /
+    environment_slug: python
+    build_command: pip install -r requirements-cloud.txt
+    run_command: python -m worker
+    instance_size_slug: apps-s-1vcpu-0.5gb
+    instance_count: 1
+
+jobs:
+  # Runs before the new code is live, so the schema is always ahead of what
+  # needs it and a failed migration fails the deploy instead of half-updating a
+  # running app. `migrate.py` with no argument reads DATABASE_URL_DIRECT.
+  - name: migrate
+    kind: PRE_DEPLOY
+    github:
+      repo: caspii/dinkydash
+      branch: main
+      deploy_on_push: true
+    source_dir: /
+    environment_slug: python
+    build_command: pip install -r requirements-cloud.txt
+    run_command: python migrate.py
+    instance_size_slug: apps-s-1vcpu-0.5gb
+    instance_count: 1
