@@ -23,6 +23,40 @@ and on the Pi, written in place. CI could not have done it, and a future rotatio
 job: revoke in the Anthropic console, then edit each copy where it lives. `deploy_to_pi.sh` excludes
 `.env`, so pushing one copy over the other is not an option and is not meant to be.
 
+## Managed Postgres, created 8 September 2026
+
+`dinkydash` — PostgreSQL 17.11, `db-s-1vcpu-1gb`, single node, **fra1**, $15.15/month. Cluster id
+`a65a8bae-ea6e-4d0b-a162-b6821e1ddc1a`. Same size `qrpage-db` already runs.
+
+What is on it:
+
+| | |
+|---|---|
+| Databases | `dinkydash` (the app), `dinkydash_test` (the contract suite), `defaultdb` (unused) |
+| Users | `doadmin` (primary), `dinkydash_app` (normal — what the app connects as) |
+| Pool | `dinkydash-pool`, **transaction mode**, size 15, on port 25061 |
+
+`migrations/001_initial_schema.sql` is applied: `families`, `users`, `login_tokens`, `agendas`,
+`generations`, `content_history`, `calendar_health`, `schema_migrations`. The whole suite was run
+against it with `DINKYDASH_TEST_DATABASE_URL` pointed at `dinkydash_test` — **490 passed, nothing
+skipped**, which is the first time the store contract has run against real managed Postgres rather
+than a CI service container.
+
+**Two passwords were rotated the same hour, because `doctl` printed them.** `doctl databases create`
+puts the full `doadmin` URI in its output, and `doctl databases pool create` does the same for the
+pool's user — both landed in a terminal and an agent transcript. Both were reset through
+`POST /v2/databases/{id}/users/{user}/reset_auth` within minutes and the printed ones are dead.
+**Filter `doctl` database output.** The credential is in the success message, not in an error.
+
+**Postgres 15 changed who may write to `public`.** The app user could not create tables until
+`ALTER SCHEMA public OWNER TO dinkydash_app` was run as `doadmin` against each database. A fresh
+cluster will need it again; the migration runner does not do it and should not.
+
+**The cluster has no trusted sources set**, so it is reachable from any address that has the
+password. That is DigitalOcean's default and it is not good enough for a database holding other
+families' calendars. Restricting it to the App Platform app belongs with the deploy (DIN-26) —
+doing it before then locks this laptop out of the migrations it still has to run.
+
 ## GitHub's own secret scanning
 
 **Do not rely on it yet.** Minutes after it was enabled, a correctly shaped fake
