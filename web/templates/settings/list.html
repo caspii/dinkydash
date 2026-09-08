@@ -31,7 +31,11 @@
                 {% elif section_name == 'special_dates' %}
                     {{ item.date }}
                 {% elif section_name == 'calendars' %}
+                    {% if item.shared_with %}
+                    Only events shared with {{ item.shared_with if item.shared_with is string else item.shared_with | join(', ') }}
+                    {% else %}
                     {{ item.url | truncate(38, true) }}
+                    {% endif %}
                 {% endif %}
             </div>
         </a>

@@ -28,6 +28,14 @@
         {% elif kind == 'url' %}
             <input type="url" id="f-{{ name }}" name="{{ name }}" value="{{ item.get(name, '') }}" {{ 'required' if required }} placeholder="https://calendar.google.com/…/basic.ics">
 
+        {% elif kind == 'emails' %}
+            {# Stored as a list, typed as one line. A hand-edited file may hold a string; show it as it is. #}
+            {% set current = item.get(name) %}
+            <input type="text" id="f-{{ name }}" name="{{ name }}"
+                   value="{{ current if current is string else (current or []) | join(', ') }}"
+                   inputmode="email" autocapitalize="none" autocorrect="off" spellcheck="false"
+                   placeholder="sam@example.com">
+
         {% elif kind == 'date' %}
             <input type="date" id="f-{{ name }}" name="{{ name }}" value="{{ item.get(name, '') }}" {{ 'required' if required }}>
 

@@ -9,8 +9,8 @@ file holds the ones that only bite here. Sizing conventions are in the root unde
 **Adding a field to a settings section.** Add a tuple to the section's `fields` list in
 `web/routes/settings.py` — `(name, label, kind, required, help)`. The list template and the edit
 form both render from it, and `parse_field` reads it back. `kind` is one of `text`, `url`, `date`,
-`monthday`, `textarea`, `checkbox`, `emoji`, `color`, `people`. A new `kind` needs a branch in
-`parse_field` and a branch in `web/templates/settings/edit.html`; nothing else.
+`monthday`, `textarea`, `checkbox`, `emoji`, `color`, `people`, `emails`. A new `kind` needs a
+branch in `parse_field` and a branch in `web/templates/settings/edit.html`; nothing else.
 
 **Adding a whole settings section.** Add an entry to `SECTIONS` and a row to
 `web/templates/settings/home.html`. The list, edit, delete and reorder routes are generic and need

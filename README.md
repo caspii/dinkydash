@@ -22,6 +22,8 @@ Every morning, DinkyDash merges your calendars into one agenda, works out whose 
 
 - Today's agenda, in time order, merged from as many Google, Apple iCloud and Outlook
   calendars as you like — anything with an iCal link, pasted in, no account sign-in
+- A personal calendar can show only the events shared with your partner, and keep
+  work and private appointments to itself
 - A look at tomorrow underneath it, on the days today leaves room
 - Whose turn each chore is — rotated daily, nothing to tick off
 - Countdowns to birthdays, holidays and special dates

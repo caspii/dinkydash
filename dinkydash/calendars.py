@@ -4,10 +4,16 @@ Several feeds go in (one per parent, plus a school calendar or two) and one
 chronologically-ordered agenda comes out. Events keep their real start time all
 the way through — the old code formatted them to a string too early and then
 sorted those strings, which ordered the day alphabetically by weekday name.
+
+A feed can carry a guest list (`shared_with`): a personal calendar full of work
+and private appointments then contributes only the events with the other
+parent on them. The filter runs at parse time, so a hidden event never exists
+as data anywhere downstream.
 """
 
 import ipaddress
 import logging
+import re
 import socket
 from datetime import date, datetime, time, timedelta
 from urllib.parse import urljoin, urlsplit, urlunsplit
@@ -91,17 +97,76 @@ def _localise(value, tzinfo):
     return datetime.combine(value, time.min, tzinfo=tzinfo)
 
 
-def parse_feed(ical_text, start, end, tzinfo, label=None):
-    """Parse iCal text into event dicts between `start` and `end` (dates)."""
+def addresses(value):
+    """A `shared_with` value as a list of lowercase email addresses.
+
+    Takes whatever config.yaml or a form might hold — a list, one string with
+    commas or spaces between the addresses, or nothing at all — and gives back
+    one shape, so the comparison in `_people_on` is exact. `mailto:` is
+    stripped because that is how an iCal file spells an address.
+    """
+    if not value:
+        return []
+    if isinstance(value, str):
+        value = re.split(r"[,;\s]+", value)
+    found = []
+    for item in value:
+        address = str(item or "").strip().lower()
+        if address.startswith("mailto:"):
+            address = address[len("mailto:"):]
+        if address and address not in found:
+            found.append(address)
+    return found
+
+
+def _people_on(component):
+    """Everyone on an event: the guests, and whoever organised it.
+
+    Both, because "shared with Jessica" runs in either direction. An event Sam
+    made and invited her to lists her as an ATTENDEE; one she made and invited
+    Sam to lists her as its ORGANIZER — and a Google feed does not always list
+    the organiser as a guest of their own event. The filter this replaced
+    looked at ATTENDEE alone, and so missed everything she had arranged.
+    """
+    people = set()
+    for key in ("ATTENDEE", "ORGANIZER"):
+        value = component.get(key)
+        if value is None:
+            continue
+        for entry in value if isinstance(value, list) else [value]:
+            people.update(addresses([str(entry)]))
+    return people
+
+
+def parse_feed(ical_text, start, end, tzinfo, label=None, shared_with=None):
+    """Parse iCal text into event dicts between `start` and `end` (dates).
+
+    `shared_with` is a list of email addresses. Given one, only the events with
+    one of those people on them — as a guest or as the organiser — come out.
+    The rest of the calendar is dropped here, before an event dict exists, so a
+    hidden appointment never reaches the payload, the board or the prompt. And
+    the dict carries no addresses: nobody's guest list is written anywhere.
+    """
+    return _events(_occurrences(ical_text, start, end), tzinfo, label, shared_with)
+
+
+def _occurrences(ical_text, start, end):
+    """Every event in the window, with recurrences expanded."""
     try:
         cal = Calendar.from_ical(ical_text)
     except Exception as exc:
         # Not `{exc}`: a parser error quotes the line it choked on, which is
         # somebody's appointment.
         raise FeedError(f"could not read the calendar data ({type(exc).__name__})") from exc
+    return list(recurring_events_of(cal).between(start, end + timedelta(days=1)))
 
+
+def _events(occurrences, tzinfo, label, shared_with):
+    wanted = set(addresses(shared_with))
     events = []
-    for component in recurring_events_of(cal).between(start, end + timedelta(days=1)):
+    for component in occurrences:
+        if wanted and not wanted & _people_on(component):
+            continue
         dtstart = component.get("DTSTART")
         if dtstart is None:
             continue
@@ -179,8 +244,19 @@ def _check_address(hostname):
             raise FeedRefused("that link points inside a private network")
 
 
-def fetch_feed(url, start, end, tzinfo, label=None, timeout=DEFAULT_TIMEOUT):
-    """Fetch one iCal URL and return its events.
+def fetch_feed(url, start, end, tzinfo, label=None, timeout=DEFAULT_TIMEOUT,
+               shared_with=None):
+    """Fetch one iCal URL and return its events — `fetch_text`, then `parse_feed`.
+
+    Raises FeedRefused if the URL is one we will not ask for, and FeedError if
+    asking went wrong.
+    """
+    return parse_feed(fetch_text(url, timeout=timeout), start, end, tzinfo,
+                      label=label, shared_with=shared_with)
+
+
+def fetch_text(url, timeout=DEFAULT_TIMEOUT):
+    """Fetch one iCal URL and return its body, unparsed.
 
     Raises FeedRefused if the URL is one we will not ask for, and FeedError if
     asking went wrong. Redirects are followed by hand rather than by requests,
@@ -214,7 +290,7 @@ def fetch_feed(url, start, end, tzinfo, label=None, timeout=DEFAULT_TIMEOUT):
         except Exception as exc:
             response.close()
             raise FeedError(f"could not fetch the calendar: {_why(exc)}") from exc
-        return parse_feed(_read_capped(response), start, end, tzinfo, label=label)
+        return _read_capped(response)
 
     raise FeedError("could not fetch the calendar: too many redirects")
 
@@ -248,6 +324,16 @@ def sort_key(event):
     return (event["date"], 0 if event["all_day"] else 1, event["start"])
 
 
+def feed_label(entry):
+    """The label a calendar entry's events are filed under.
+
+    One place for the fallback, because the label is the key that everything
+    downstream uses — `_with_last_known` keeps events by it, and the settings
+    UI forgets them by it — and the two have to agree about a nameless feed.
+    """
+    return entry.get("label") or "Calendar"
+
+
 def fetch_events(calendars, today, tzinfo, days_ahead=DEFAULT_DAYS_AHEAD,
                  timeout=DEFAULT_TIMEOUT):
     """Fetch every enabled feed and merge into one ordered agenda.
@@ -261,7 +347,7 @@ def fetch_events(calendars, today, tzinfo, days_ahead=DEFAULT_DAYS_AHEAD,
     statuses = []
 
     for entry in calendars or []:
-        label = entry.get("label") or "Calendar"
+        label = feed_label(entry)
         if not entry.get("enabled", True):
             statuses.append({"label": label, "ok": None, "detail": "paused", "count": 0})
             continue
@@ -269,15 +355,19 @@ def fetch_events(calendars, today, tzinfo, days_ahead=DEFAULT_DAYS_AHEAD,
         if not url:
             statuses.append({"label": label, "ok": False, "detail": "no URL set", "count": 0})
             continue
+        wanted = addresses(entry.get("shared_with"))
         try:
-            events = fetch_feed(url, today, end, tzinfo, label=label, timeout=timeout)
+            events = fetch_feed(url, today, end, tzinfo, label=label, timeout=timeout,
+                                shared_with=wanted)
         except FeedError as exc:
             log.warning("Calendar %r failed: %s", label, exc)
             statuses.append({"label": label, "ok": False, "detail": str(exc), "count": 0})
             continue
         merged.extend(events)
         statuses.append({"label": label, "ok": True, "detail": "", "count": len(events)})
-        log.info("Calendar %r: %d events", label, len(events))
+        # How many addresses, not which: they are people, and this is a log.
+        note = f" (only those shared with {len(wanted)} address(es))" if wanted else ""
+        log.info("Calendar %r: %d events%s", label, len(events), note)
 
     merged.sort(key=sort_key)
     return merged, statuses
@@ -290,18 +380,27 @@ def events_on(events, day):
 
 
 def describe_feed(url, tzinfo, today=None, days_ahead=DEFAULT_DAYS_AHEAD,
-                  timeout=DEFAULT_TIMEOUT):
+                  timeout=DEFAULT_TIMEOUT, shared_with=None):
     """Check a pasted URL and describe what came back.
 
     Used by the settings UI so pasting a link answers with a real event count
-    and the next thing in it, rather than a silent success.
+    and the next thing in it, rather than a silent success. With `shared_with`
+    set it also counts the events *before* the filter, because a guest list
+    that matches nobody looks exactly like an empty calendar from the board,
+    and telling the two apart is the whole point of pressing the button.
     """
     today = today or date.today()
-    events = fetch_feed(url, today, today + timedelta(days=days_ahead), tzinfo)
+    end = today + timedelta(days=days_ahead)
+    occurrences = _occurrences(fetch_text(url, timeout=timeout), today, end)
+    wanted = addresses(shared_with)
+    everything = _events(occurrences, tzinfo, None, None)
+    events = _events(occurrences, tzinfo, None, wanted) if wanted else everything
     events.sort(key=sort_key)
     upcoming = [e for e in events if e["date"] >= today.isoformat()]
     return {
         "count": len(events),
+        "total": len(everything),
+        "shared_with": wanted,
         "next": upcoming[0] if upcoming else None,
         "days_ahead": days_ahead,
     }
