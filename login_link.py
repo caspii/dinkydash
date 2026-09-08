@@ -75,8 +75,15 @@ def main(argv=None):
 
         token = accounts.issue_link(pool, user[0])
         if token is None:
+            minutes = int(accounts.TOKEN_TTL.total_seconds() // 60)
+            # **Spending one does not free a slot.** The limit counts every
+            # unexpired token, used or not, so clicking a link does not buy
+            # another. Saying otherwise sends somebody off to click a link that
+            # will not help.
             print(f"{args.email} already has {accounts.MOST_LIVE_LINKS} live links. "
-                  f"Wait for one to expire, or spend one.", file=sys.stderr)
+                  f"They are counted until they expire, whether or not they have "
+                  f"been used, so the wait is up to {minutes} minutes.",
+                  file=sys.stderr)
             return 1
 
         print(f"{base_url(args.base_url)}/login/link?t={token}")

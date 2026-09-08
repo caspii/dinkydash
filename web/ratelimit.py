@@ -75,17 +75,20 @@ class Limiter:
 
 # Which header carries the caller's address, in the order they are trusted.
 #
-# **`X-Forwarded-For` is not first, and on App Platform it is not the caller at
-# all.** DigitalOcean's own documentation is explicit: "App Platform adds a
-# do-connecting-ip HTTP header that contains the client's IP address... While
-# the x-forwarded-for header is often used for this purpose, App Platform uses
+# **`X-Forwarded-For` is not in this list, and that is the whole point.**
+# DigitalOcean's documentation is explicit: "App Platform adds a
+# `do-connecting-ip` HTTP header that contains the client's IP address... While
+# the `x-forwarded-for` header is often used for this purpose, App Platform uses
 # this header for the IP address of the DigitalOcean ingress server that
 # forwarded the request to your app."
 #
-# That is worth stating because the obvious code is wrong here in a quiet way:
-# keying a per-caller limit on `X-Forwarded-For` keys it on DigitalOcean, so
-# every family in the world shares one bucket and the limit either never fires
-# or fires for everybody. It reads correctly and it is wrong.
+# So `X-Forwarded-For` here is a *public* address shared by every request that
+# reaches us. Reading it — even as a last resort, even from the right — hands
+# every caller in the world the same key, which is the shared bucket this
+# ordering exists to prevent: twenty sign-in requests an hour between all of
+# them, and it would look like a mail problem. It was written that way once,
+# with a fallback that only ever ran on App Platform and therefore only ever
+# recreated the bug.
 #
 # `CF-Connecting-IP` is the same idea from Cloudflare, and it is second because
 # App Platform *is* served through Cloudflare — `app.dinkydash.co` resolves to
@@ -95,16 +98,20 @@ CALLER_HEADERS = ("DO-Connecting-IP", "CF-Connecting-IP")
 
 
 def client_ip(request):
-    """The address the request came from, as far as it can be known.
+    """The address the request came from, or `""` if it cannot be known.
 
-    Tries the platform's own header first, then a conventional proxy chain,
-    then the socket. **Returns `""` rather than guessing**, and an empty key is
-    one the limiter always allows — deliberately. If the caller cannot be
-    identified, the failure worth having is "the per-caller limit does not
-    fire" rather than "every caller shares one bucket", which is an outage
-    wearing a rate limit's clothes. The per-address limit in
-    `accounts.issue_link` is in Postgres and still bounds what any one account
-    can spend.
+    **`""` is a real answer, not a failure to produce one**, and the limiter
+    always allows an empty key. If callers cannot be told apart, the failure
+    worth having is "the per-caller limit does not fire" rather than "everybody
+    shares one bucket", which is an outage wearing a rate limit's clothes. The
+    per-address limit in `accounts.issue_link` is in Postgres and still bounds
+    what any one account can spend. `web.routes.auth` logs the empty case once
+    per process, so a control that has stopped working says so.
+
+    The socket address is the last resort and is only used when it is public —
+    a plain deployment with no proxy in front. On App Platform it is an
+    internal `10.244.x` that differs between requests, which is no more use as
+    a key than nothing at all.
 
     A header can be forged by anyone who can reach the container without going
     through the edge that sets it. There is no such path here — every hostname
@@ -117,22 +124,7 @@ def client_ip(request):
         if value:
             return value
 
-    # A conventional proxy chain, for anywhere that is not App Platform. Read
-    # from the right, because a proxy *appends* what it saw: the last entry is
-    # the one our own infrastructure wrote and the earlier ones are whatever
-    # the caller sent. Private addresses are stepped over, because an internal
-    # hop is always private and a real client on the internet never is.
-    hops = [hop.strip()
-            for hop in request.headers.get("X-Forwarded-For", "").split(",")
-            if hop.strip()]
-    for hop in reversed(hops):
-        if _is_public(hop):
-            return hop
-
-    # The socket. On App Platform this is an internal address that differs
-    # between requests, which is why it is last and why `""` is an acceptable
-    # answer above it.
-    remote = request.remote_addr or ""
+    remote = (request.remote_addr or "").strip()
     return remote if _is_public(remote) else ""
 
 

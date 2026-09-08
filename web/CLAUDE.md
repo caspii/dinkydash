@@ -22,13 +22,22 @@ built for this request from the family on the session, cached on `g`, over the p
 A route that reads `app.config["STORE"]` directly works in single mode and serves `None` in cloud
 mode, which is the failure that looks like a bug in something else.
 
-**Poking at cloud mode locally: the session cookie is `Secure`, and http clients disagree about
-what that means.** Cloud mode is https-only, so the cookie is marked `Secure` and a laptop serving
-plain http is the odd case. Browsers treat `http://localhost` as a secure context and send it, so
-the preview works. `curl` sometimes does. **`requests` never does**, which makes every request
-arrive with no session — GETs redirect to `/login` and POSTs come back 400 from the CSRF check,
-which looks exactly like a broken feature. Drive `app.test_client()` in process instead: it has no
-cookie policy and exercises the same code. An hour went into that once.
+**Poking at cloud mode locally: the session cookie is `Secure`, and every client disagrees about
+what that means over `http://localhost`.** Cloud mode is https-only, so the cookie is marked
+`Secure` and a laptop serving plain http is the odd case. Four different answers:
+
+| Client | Sends a `Secure` cookie to `http://localhost`? |
+|---|---|
+| Chrome (89+), Firefox (75+) | Yes — loopback is treated as a secure context |
+| **Safari** | **No.** There is no loopback exception, so the preview cannot sign in at all |
+| `curl` | Sometimes, depending on version |
+| `requests` | Never |
+
+The failure looks identical in all the failing cases and looks nothing like a cookie problem: GETs
+redirect to `/login` and POSTs come back 400 from the CSRF check, because there is no session to
+hold a token. **Use Chrome or Firefox for the Conductor preview**, and drive `app.test_client()` in
+process for anything scripted — it has no cookie policy and exercises the same code. An hour went
+into the `requests` half of that.
 
 **A route that touches a store needs `session.guard`**, and the board blueprint's `before_request`
 is where that is decided. `board.healthz` is the one exemption and it is load-bearing: App

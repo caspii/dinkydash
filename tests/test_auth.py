@@ -249,23 +249,25 @@ class TestTheLimiter:
 
 
 class TestWhichAddressItCounts:
-    """`DO-Connecting-IP` first, because that is what App Platform sets.
+    """`DO-Connecting-IP` first, and `X-Forwarded-For` never.
 
     DigitalOcean's documentation: "App Platform adds a do-connecting-ip HTTP
     header that contains the client's IP address... While the x-forwarded-for
     header is often used for this purpose, App Platform uses this header for
-    the IP address of the DigitalOcean ingress server." Keying a per-caller
-    limit on `X-Forwarded-For` there keys it on DigitalOcean.
+    the IP address of the DigitalOcean ingress server." So that header holds a
+    *public* address shared by every request that reaches us, and reading it
+    at all — even last, even from the right — is the shared-bucket bug.
 
     The addresses here are real public ones on purpose. Python's `ipaddress`
-    counts the documentation ranges — `203.0.113.0/24` and friends — as
-    *private*, so a test written with those proves nothing.
+    counts the documentation ranges as *private*, so a test written with those
+    would go down the fallback branch and prove nothing. That is exactly how
+    the bug above survived its first round of tests.
     """
 
     CLIENT = "93.184.216.34"      # the caller
     CLAIMED = "8.8.8.8"           # what the caller put in a header
-    INGRESS = "104.16.0.1"        # public, and not the caller: DO's ingress
-    INTERNAL = "10.1.2.3"         # a hop inside the platform
+    INGRESS = "104.16.0.1"        # public, shared, and not the caller
+    INTERNAL = "10.244.5.194"     # the socket, inside the platform
 
     class _Request:
         def __init__(self, headers=None, remote_addr=None):
@@ -288,40 +290,34 @@ class TestWhichAddressItCounts:
             {"DO-Connecting-IP": self.CLIENT,
              "CF-Connecting-IP": self.CLAIMED})) == self.CLIENT
 
-    def test_the_ingress_address_is_never_mistaken_for_the_caller(self):
-        """The bug this ordering exists to prevent: one bucket for everybody."""
-        alice = self._Request({"DO-Connecting-IP": self.CLIENT,
-                               "X-Forwarded-For": self.INGRESS})
-        bob = self._Request({"DO-Connecting-IP": self.CLAIMED,
-                             "X-Forwarded-For": self.INGRESS})
-        assert client_ip(alice) != client_ip(bob)
-
-    def test_with_no_platform_header_a_proxy_chain_is_read_from_the_right(self):
+    def test_forwarded_for_is_never_read(self):
+        """The regression test. A public value there is the *ingress*."""
+        assert client_ip(self._Request({"X-Forwarded-For": self.INGRESS})) == ""
         assert client_ip(self._Request(
-            {"X-Forwarded-For": f"{self.CLAIMED}, {self.CLIENT}"})) == self.CLIENT
+            {"X-Forwarded-For": f"{self.CLAIMED}, {self.CLIENT}"})) == ""
 
-    def test_a_caller_cannot_pretend_to_be_someone_else(self):
-        assert client_ip(self._Request(
-            {"X-Forwarded-For": f"invented, {self.CLIENT}"})) == self.CLIENT
-
-    def test_an_internal_hop_is_stepped_over(self):
-        assert client_ip(self._Request(
-            {"X-Forwarded-For":
-             f"{self.CLAIMED}, {self.CLIENT}, {self.INTERNAL}"})) == self.CLIENT
+    def test_two_callers_behind_one_ingress_do_not_share_a_key(self):
+        """The bug this ordering exists to prevent, stated as its symptom."""
+        first = self._Request({"X-Forwarded-For": self.INGRESS}, "10.244.5.194")
+        second = self._Request({"X-Forwarded-For": self.INGRESS}, "10.244.0.79")
+        assert client_ip(first) == client_ip(second) == ""
+        # Both empty, and an empty key is one the limiter always allows — so
+        # they are not one bucket, they are no bucket.
+        limiter = Limiter(most=1, per=60)
+        assert limiter.allow(client_ip(first)) is True
+        assert limiter.allow(client_ip(second)) is True
 
     def test_a_public_socket_address_is_the_last_resort(self):
+        """A plain deployment with nothing in front of it."""
         assert client_ip(self._Request({}, self.CLIENT)) == self.CLIENT
 
-    def test_an_unidentifiable_caller_is_no_key_at_all(self):
-        """Not the internal address, which differs per request on App Platform.
-
-        Empty is a key the limiter always allows. That is deliberate: "the
-        per-caller limit stops firing" is a better failure than "everybody
-        shares one bucket", which is an outage wearing a rate limit's clothes.
-        """
-        assert client_ip(self._Request({"X-Forwarded-For": self.INTERNAL},
-                                       self.INTERNAL)) == ""
+    def test_an_internal_socket_address_is_no_key_at_all(self):
+        """On App Platform it differs per request, so it is worse than nothing."""
+        assert client_ip(self._Request({}, self.INTERNAL)) == ""
         assert client_ip(self._Request({}, "127.0.0.1")) == ""
+
+    def test_nothing_at_all_is_no_key_either(self):
+        assert client_ip(self._Request()) == ""
 
     def test_and_an_empty_key_is_allowed_through(self):
         assert Limiter(most=1, per=60).allow("") is True
@@ -567,6 +563,17 @@ class TestTheLimitPerAddress:
                  for _ in range(5)]
         # If being limited looked different, it would say the address exists.
         assert len(set(pages)) == 1
+
+    def test_spending_one_does_not_free_a_slot(self, client, sent, pg_user, pg_pool):
+        """The limit is on emails sent in a window, and the email has gone.
+
+        Misread twice — once in `login_link.py`'s own error message, which
+        told people to click a link that would not help.
+        """
+        for _ in range(accounts.MOST_LIVE_LINKS):
+            client.post("/login", data={"email": ADDRESS})
+        assert accounts.consume_link(pg_pool, token_in(sent[0])) is not None
+        assert accounts.issue_link(pg_pool, pg_user) is None
 
     def test_the_links_already_sent_still_work(self, client, sent, pg_user):
         for _ in range(5):
