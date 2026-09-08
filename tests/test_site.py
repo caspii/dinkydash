@@ -165,6 +165,41 @@ class TestOnlyTheRealSiteIsIndexable:
         assert response.headers["X-Robots-Tag"] == "noindex"
 
 
+class TestExampleCalendarUrlsAreVisiblyFake:
+    """The per-provider setup guides exist to show what a calendar link looks
+    like, so the site now carries several example feed URLs on purpose.
+
+    A real one pasted in here would be a permanent, world-readable password to
+    somebody's calendar, in every clone and every fork. gitleaks catches the
+    Google and iCloud shapes over the whole history; this catches the rest
+    before it is committed, by requiring every feed URL on the site to carry
+    the same visible `xxxx` marker `config.example.yaml` uses.
+
+    It cannot check a screenshot. Read the address bar before publishing one.
+    """
+
+    # A feed address: an .ics file, or one of the provider paths that serves a
+    # calendar without the extension.
+    FEED_URL = re.compile(
+        r"(?:https?|webcal)://[^\s`\"')<>]*\.ics\b"
+        r"|(?:https?|webcal)://[^\s`\"')<>]*/(?:ical|published)/[^\s`\"')<>]*",
+        re.I)
+
+    def _sources(self):
+        return sorted(render.CONTENT.rglob("*.md")) + sorted(render.TEMPLATES.rglob("*.html"))
+
+    def test_the_site_carries_example_feed_urls_at_all(self):
+        """The fixture for the test below is the provider guides themselves."""
+        found = [url for path in self._sources()
+                 for url in self.FEED_URL.findall(path.read_text(encoding="utf-8"))]
+        assert len(found) >= 4, found
+
+    def test_every_one_of_them_is_marked_fake(self):
+        for path in self._sources():
+            for url in self.FEED_URL.findall(path.read_text(encoding="utf-8")):
+                assert "xxxx" in url.lower(), f"{path.name}: {url}"
+
+
 class TestCloudflareDoesNotEatShellCommands:
     """App Platform serves through Cloudflare, whose Email Address Obfuscation
     rewrote `ssh pi@raspberrypi.local` in the setup guide into a JavaScript

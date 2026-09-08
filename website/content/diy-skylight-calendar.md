@@ -49,7 +49,7 @@ If it sticks, buy the hardware. If it doesn't, you've lost an evening instead of
 The [full getting-started guide](/getting-started/) has copy-paste commands for every step. The short version:
 
 1. **Install DinkyDash** — clone the repo, install Python dependencies (about 10 minutes).
-2. **Describe your family** — one config file with names, birthdays, chores, special dates, and your Google Calendar's iCal link.
+2. **Describe your family** — one config file with names, birthdays, chores, special dates, and your [Google Calendar's iCal link](/google-calendar-ical-link/) (or [iCloud's](/icloud-calendar-link/), or [Outlook's](/outlook-calendar-ics-link/)).
 3. **Add an Anthropic API key** — this powers the daily AI brief. A day's dashboard costs a few cents.
 4. **Set the 6am schedule** — one cron line generates a fresh dashboard every morning before anyone wakes up.
 5. **Point your screen at it** — on a Pi, Chromium launches fullscreen at boot; on a tablet or TV, just open the dashboard URL in the browser.
