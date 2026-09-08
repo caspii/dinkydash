@@ -84,16 +84,34 @@ One family exists, seeded from `config.example.yaml` — invented people, no cal
 `DINKYDASH_FAMILY_ID` points at it. Nothing outside `tests/conftest.py` creates a family, so that
 was done by hand and will be until the signup flow exists.
 
-**Omitting the value of a `type: SECRET` env var preserves it**, which was tested rather than
-assumed: a throwaway variable was set to a value, the spec re-applied without one, and it survived
-as `EV[...]`. That is what lets `.do/app.yaml` be committed to a public repo with the keys but not
-the values, and still be safe to apply. **Never commit an `EV[...]` blob** — encrypted or not, it is
-a production credential in a world-readable repo.
+**Omitting the value of a `type: SECRET` env var does NOT work, and the way it fails is the
+problem.** The earlier note here said it did, on the strength of a canary test: a throwaway
+variable was set to a value, the spec re-applied without one, and `doctl apps spec get` still
+showed `EV[...]`. That test was wrong — it checked the *display*, not the *runtime*. Applying a
+spec with `type: SECRET` and no `value:` leaves the spec looking correct and hands the container an
+**empty** variable. Two deploys died on `DATABASE_URL_DIRECT is not set` before this was understood,
+and at no point did the spec look wrong.
+
+So `.do/app.yaml` is the shape of the app, not something to apply directly. The values are merged
+in from `.env` at apply time, through a temp file outside the working tree, and the file's own
+header carries the snippet. **Never commit an `EV[...]` blob** either — encrypted or not, it is a
+production credential in a world-readable repo.
+
+**`deploy_on_push` does not apply the committed spec.** It rebuilds the components that already
+exist from the new code. Adding a *component* — the `worker`, when it first landed — needs an
+explicit `doctl apps update`. Merging a PR that adds both the code and the spec entry gets you the
+code and not the component, which is a quiet way to think something shipped when it did not.
 
 **The `worker` component and the `worker/` package have to land together.** Applying the spec from
 a checkout without the package gives a component whose `run_command` cannot import, and a failed
 deploy. The worker was held out of the first apply for exactly that reason, because the app deploys
 from `main` and the code was still on a branch.
+
+**The worker has been running since 8 September 2026, 10:58 UTC.** Its first pass refreshed the
+seeded family's (empty) calendars, called Claude, and wrote a board — `Tuesday with no plans means
+extra time together`, visible on app.dinkydash.co within seconds. A pass every 300 seconds after
+that. There is no dead-man's switch yet (PLAN.md Phase 6), so a worker that stops looks exactly
+like a quiet day: `doctl apps logs <id> worker --type run --follow` is the only check there is.
 
 
 

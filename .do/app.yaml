@@ -1,7 +1,8 @@
 # DigitalOcean App Platform spec for dinkydash.co and app.dinkydash.co.
 #
-# Applied with:
-#   doctl apps update ed4158fc-fb49-4c10-bb1e-2c8491b06a86 --spec .do/app.yaml
+# App id: ed4158fc-fb49-4c10-bb1e-2c8491b06a86. **How to apply it is below, and
+# it is not `--spec .do/app.yaml`** — read the secrets note before running
+# anything.
 #
 # Infrastructure reviewed like code, which is why it is committed.
 #
@@ -11,14 +12,33 @@
 # 2026, and applying the file as documented above would have taken dinkydash.co
 # off its own domain.
 #
-# **Secrets are the one exception, and it was tested rather than assumed.** An
-# env var with `type: SECRET` and no `value:` keeps the value already set: this
-# was checked on 8 September with a throwaway variable, set to a value, then
-# re-applied without one, and it survived as `EV[...]`. So the values below can
-# stay out of a public repo without this file becoming a loaded gun. Set them
-# with `doctl apps update` from a spec assembled outside the working tree, or in
-# the dashboard. **Never commit an `EV[...]` blob here** — it is ciphertext of a
-# production credential, and this repo is world-readable.
+# **Do not apply this file as it stands. It will break the app.**
+#
+# The `type: SECRET` entries below carry no `value:`, because their values are
+# production credentials and this repo is world-readable. Applying a spec that
+# omits them looks like it works — `doctl apps spec get` still shows `EV[...]`
+# afterwards, so the secret appears to have been preserved — but **the container
+# receives an empty variable**, and the pre-deploy migration job dies with
+# `DATABASE_URL_DIRECT is not set`. That was learned by doing it: two deploys
+# failed that way on 8 September 2026, and the spec looked correct throughout.
+# A canary test that only checked `spec get` is what missed it; the display and
+# the runtime disagree.
+#
+# So this file is the **shape** of the app, reviewed like code, and the values
+# are merged in at apply time from outside the working tree:
+#
+#   python3 - <<'EOF'
+#   import os, yaml
+#   d = yaml.safe_load(open(".do/app.yaml"))
+#   for e in d["envs"]:
+#       if e.get("type") == "SECRET":
+#           e["value"] = os.environ[e["key"]]      # from .env, never committed
+#   yaml.safe_dump(d, open("/tmp/apply.yaml", "w"), sort_keys=False)
+#   EOF
+#   doctl apps update <APP_ID> --spec /tmp/apply.yaml && rm /tmp/apply.yaml
+#
+# **Never commit an `EV[...]` blob here either** — it is ciphertext of a
+# production credential, in a public repo.
 #
 # No Dockerfile: App Platform's Python buildpack reads .python-version and
 # installs what `build_command` says (DIN-30, reversed).
