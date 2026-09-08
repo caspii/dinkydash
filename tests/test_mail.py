@@ -11,6 +11,7 @@ guards the same promise on the calendar side.
 """
 
 import logging
+import traceback
 
 import pytest
 import requests
@@ -160,6 +161,43 @@ class TestNothingSecretIsLogged:
         assert "abc123secrettoken" not in logged
         assert "parent@example.test" not in logged
         assert "SG.test" not in logged
+
+    def test_the_key_is_not_in_the_traceback_of_a_rejected_header(self):
+        """The sanitised message is not enough on its own.
+
+        `requests` quotes the offending header value in `InvalidHeader`, and
+        `raise ... from exc` keeps that exception as `__cause__` — so the key
+        would print in any traceback, past a message that carefully omits it.
+        This asserts on the *rendered chain*, which is what reaches a log.
+        """
+        key = "SG.REALKEYVALUE123"
+        bad = requests.exceptions.InvalidHeader(
+            f"Invalid ... in header value: 'Bearer {key}\\n'")
+        with pytest.raises(MailError) as caught:
+            send_ok(raises=bad)
+        rendered = "".join(traceback.format_exception(caught.value))
+        assert key not in rendered
+
+    def test_a_malformed_key_is_refused_before_any_request(self):
+        """The layer that means the traceback case should never fire at all."""
+        post = Recorder()
+        with pytest.raises(MailRefused, match="whitespace or non-ASCII"):
+            send("parent@example.test", "Hi", "Body",
+                 transport=post, api_key="SG.has a space")
+        assert post.url is None
+
+    def test_a_refusal_message_never_quotes_the_key(self):
+        with pytest.raises(MailRefused) as caught:
+            send("parent@example.test", "Hi", "Body",
+                 transport=Recorder(), api_key="SG.SECRET VALUE")
+        assert "SG.SECRET" not in str(caught.value)
+
+    def test_a_stray_newline_on_the_key_is_repaired_not_refused(self, monkeypatch):
+        """An env var read from a file usually arrives with one."""
+        monkeypatch.setenv("SENDGRID_API_KEY", "SG.from-env\n")
+        post = Recorder()
+        send("parent@example.test", "Hi", "Body", transport=post)
+        assert post.headers["Authorization"] == "Bearer SG.from-env"
 
     def test_a_failure_message_carries_no_key_and_no_link(self):
         link = "https://app.dinkydash.co/login/abc123secrettoken"

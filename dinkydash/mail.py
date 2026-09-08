@@ -71,7 +71,7 @@ def send(to, subject, text, html=None, transport=None, api_key=None,
     is literally `requests.post` rather than a wrapper around it.
     """
     recipient = _clean_address(to)
-    key = api_key if api_key is not None else _api_key()
+    key = _clean_key(api_key if api_key is not None else os.environ.get("SENDGRID_API_KEY"))
     post = transport or requests.post
 
     body = {
@@ -89,6 +89,18 @@ def send(to, subject, text, html=None, transport=None, api_key=None,
                      "Content-Type": "application/json"},
             timeout=timeout,
         )
+    except requests.exceptions.InvalidHeader:
+        # `from None`, and it is the whole point of this branch. `requests`
+        # puts the offending header *value* in this exception's message —
+        # "...in header value: 'Bearer SG.REALKEY\n'" — and the only variable
+        # header here is the Authorization one. Chaining it would print the key
+        # in every traceback that reaches a log or Sentry, past the sanitised
+        # message. `_clean_key` should mean this never fires; this is the belt
+        # to its braces, and it stays even if a future header makes it possible
+        # again.
+        raise MailError(
+            "could not send the email: the request headers were rejected"
+        ) from None
     except requests.RequestException as exc:
         raise MailError(f"could not send the email: {_why(exc)}") from exc
 
@@ -140,17 +152,32 @@ def _clean_address(to):
     return address
 
 
-def _api_key():
-    """The send-only key, from the environment. Never a literal, never per-family.
+def _clean_key(key):
+    """The send-only key, checked before it can reach an HTTP header.
 
     The key in `.env` is scoped to `mail.send` alone — it cannot read the
-    account, mint further keys or touch the other five domains on it. The
-    full-access keys in the sibling projects must never be used here.
+    account, mint further keys or touch the other five domains on it. It comes
+    from the environment: never a literal, never per-family.
+
+    **This exists to keep the key out of tracebacks.** `requests` validates
+    header values and quotes the bad one in `InvalidHeader`, so a key carrying
+    a stray newline — the usual shape of a copy-paste or an env var set from a
+    file — would put itself in an exception message. Catching it here means the
+    request is never built, and none of these messages names the value.
+
+    A trailing newline is repaired rather than refused, because it is almost
+    always the transport's fault rather than the operator's. Anything else
+    unusual is refused: a key with a space in the middle is a wrong key, and
+    guessing at what was meant would send mail on a credential nobody chose.
     """
-    key = os.environ.get("SENDGRID_API_KEY")
-    if not key:
+    if key is None or not key.strip():
         raise MailRefused("SENDGRID_API_KEY is not set")
-    return key
+    cleaned = key.strip()
+    if not cleaned.isascii() or any(c.isspace() for c in cleaned):
+        raise MailRefused(
+            "SENDGRID_API_KEY contains whitespace or non-ASCII characters"
+        )
+    return cleaned
 
 
 def _sender():

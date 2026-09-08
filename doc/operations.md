@@ -52,6 +52,13 @@ pool's user — both landed in a terminal and an agent transcript. Both were res
 `ALTER SCHEMA public OWNER TO dinkydash_app` was run as `doadmin` against each database. A fresh
 cluster will need it again; the migration runner does not do it and should not.
 
+**CI's Postgres was pinned to 16 and is now 17**, to match. `.github/workflows/test.yml` said
+`postgres:16` with a comment claiming it tracked the managed cluster — written before the cluster
+existed. Until 8 September 2026 CI was therefore proving migrations against a major the app does
+not run. Postgres 15 changed who may write to `public`; a difference of that size is exactly what
+the service container is there to catch. **When the cluster is upgraded, move that pin with it** —
+`doctl databases get <id> --format VersionSlug` is the check.
+
 **The cluster has no trusted sources set**, so it is reachable from any address that has the
 password. That is DigitalOcean's default and it is not good enough for a database holding other
 families' calendars. Restricting it to the App Platform app belongs with the deploy (DIN-26) —
