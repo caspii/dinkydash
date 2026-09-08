@@ -396,6 +396,55 @@ once that expires.
 this one was hiding a live duplicate of the site. When a deployment target is retired, turn off the
 thing that deploys to it in the same change.
 
+## Branch protection on `main`, 8 September 2026
+
+**There was none until now** — no ruleset, no classic protection, and 83 merged pull requests' worth
+of habit doing the job instead. `gh api repos/caspii/dinkydash/rulesets` returned `[]`, and
+`.../branches/main/protection` returned "Branch not protected". Habit is not a control; a
+`git push` to the wrong branch at the wrong moment is all it takes, and in a public repo that push
+is world-readable before it can be undone.
+
+A **repository ruleset** named `main` (id `22572255`), not classic branch protection — rulesets are
+the maintained API, they can be read back in full, and this one is scoped to `~DEFAULT_BRANCH` so it
+follows the default branch rather than a name that could be renamed out from under it. Four rules:
+
+- **`deletion`** and **`non_fast_forward`** — `main` cannot be deleted and cannot be force-pushed.
+  These are the two that make history durable, and they are the reason the rest is worth having.
+- **`pull_request`** with **zero required approvals**. A one-person repo cannot require a reviewer:
+  requiring one approval would mean nothing on `main` could ever merge. What the rule still buys is
+  that every change arrives as a PR, so the status checks below have something to run against.
+- **`required_status_checks`** on **`pytest`** and **`gitleaks`**, both by `integration_id` 15368
+  (GitHub Actions). Naming the app matters: a context matched by name alone can be satisfied by
+  anything that reports that name. These are the two jobs in `.github/workflows/test.yml`, and they
+  are required by name, so **renaming a job in that workflow silently stops it being required** —
+  the ruleset waits for a check that never reports, and the PR never goes green. Rename one and the
+  ruleset changes in the same commit.
+
+`strict_required_status_checks_policy` is **off**: a PR does not have to be rebased onto the tip of
+`main` before merging. On a repo with one author, requiring that would be a rebase treadmill for a
+race that does not happen.
+
+**The repository admin can bypass**, deliberately (`bypass_actors`: `RepositoryRole` 5,
+`bypass_mode: always`). This is a guard rail, not a gate — the failure mode being avoided is a
+broken CI runner or an expired pinned download making it impossible to ship a fix. The trade is
+honest: a rule you can override protects against accident, not against yourself.
+
+**One default had to be turned back off.** GitHub set
+`require_extra_approval_for_unattributed_changes: true` on the `pull_request` rule without being
+asked. With zero required approvals and one human, that demands an approval nobody can give — every
+PR containing a commit GitHub cannot attribute to an account would have needed a bypass to merge,
+which would have trained the bypass into a habit and made the whole ruleset decorative. It is
+`false`. **Read a ruleset back after creating it**; the POST response is where that default was
+visible.
+
+```bash
+gh api repos/caspii/dinkydash/rulesets/22572255 --jq '{enforcement, current_user_can_bypass, rules}'
+```
+
+**What this does not cover:** it protects `main` only. Any other branch can still be force-pushed or
+deleted, which is what a worktree branch is for. And it is a *branch* ruleset — tags are unprotected,
+which matters the day a release is cut from one.
+
 ## GitHub's own secret scanning
 
 **Do not rely on it yet.** Minutes after it was enabled, a correctly shaped fake
