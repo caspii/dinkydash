@@ -18,6 +18,11 @@ Guidance for `website/`. The root `CLAUDE.md` holds the rules that apply to ever
   `website/site.py` is a Flask app rendering `content/*.md` through `templates/` on request,
   deployed on the same App Platform container as the board with `wsgi.py` routing on the
   `Host` header. **Adding a page is writing a Markdown file, and nothing else.**
+- **GitHub Pages is switched off**, and it took until 8 September to notice. The setting outlived
+  the directory: it kept failing on every push *and* kept serving the last good build, so a stale
+  copy of this whole site sat on `caspii.github.io` for a fortnight. See
+  [doc/operations.md](../doc/operations.md). Nothing here should ever be written to be served from
+  two places at once.
 - **Nunito lives here twice on purpose.** `website/static/fonts/` and `web/static/fonts/`
   are separate deployables, so editing one means editing both. The site's copy carries the
   italic pair as well; the board's does not, because the board never sets italic.

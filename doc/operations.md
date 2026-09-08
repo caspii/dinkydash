@@ -365,6 +365,37 @@ transaction.
 **No spec change and no `doctl apps update` for this one** — no new environment variable, no
 migration. `deploy_on_push` is enough.
 
+## GitHub Pages, switched off 8 September 2026
+
+**Pages was still enabled, still set to build `main:/docs`, and still serving.** DIN-27 deleted that
+directory and moved the marketing site onto App Platform, but nobody turned the setting off — so
+every push to `main` ran `pages-build-deployment`, failed, and left a red X beside a green CI run.
+That is what "the Jekyll build keeps failing" was: no workflow file in this repo, a repository
+setting.
+
+**The failing build was the smaller half.** Pages keeps serving the last *successful* deployment
+when a later one errors, so `caspii.github.io/dinkydash/` was quietly serving a **complete, stale
+copy of the marketing site** — the pre-rewrite homepage, on a second domain, for a product whose
+whole strategy is search. It was not a disaster only because the old build's `<link rel="canonical">`
+and its `robots.txt` sitemap both already pointed at `dinkydash.co`.
+
+Nothing depended on it, which was checked before switching it off: **no custom domain** on the Pages
+site (`cname: null` — `dinkydash.co` resolves to Cloudflare and DigitalOcean, not to GitHub), no link
+to `caspii.github.io` anywhere in the repo, and the repository's own homepage field already reads
+`https://dinkydash.co`.
+
+```bash
+gh api repos/caspii/dinkydash/pages          # was: status errored, source main:/docs, build_type legacy
+gh api -X DELETE repos/caspii/dinkydash/pages
+```
+
+`has_pages` is now false. GitHub's CDN keeps answering for a little while afterwards; the URL 404s
+once that expires.
+
+**The lesson worth keeping:** a build that fails on every push is noise somebody stops reading, and
+this one was hiding a live duplicate of the site. When a deployment target is retired, turn off the
+thing that deploys to it in the same change.
+
 ## GitHub's own secret scanning
 
 **Do not rely on it yet.** Minutes after it was enabled, a correctly shaped fake
