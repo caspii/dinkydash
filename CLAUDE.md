@@ -132,6 +132,10 @@ Relative links like `[PLAN.md](PLAN.md)` break once a document is in Linear. Rew
   commit.
 - **Log the label, not the URL.** `fetch_events` logs `entry["label"]` on purpose. The exception
   text does not follow that rule by itself — see the gotcha below.
+- **Service ticks log metadata, never generated family text.** `runner.write_brief` logs the
+  date and token usage. Headline/note output belongs to an explicit CLI run, outside `--tick`.
+  Access-log redaction covers malformed and encoded screen URLs as well as valid credentials;
+  the route's token alphabet must not limit the log filter (`tests/test_private_logs.py`).
 
 ### Hosted mode raises the stakes
 
@@ -288,7 +292,7 @@ dinkydash/
 ├── config.py          config.yaml load/save (ruamel round-trip), item ids
 ├── history.py         what the recent notes say, and how they trim (pure)
 ├── schedule.py        due(config, payload, now) -> what a tick owes (pure)
-├── store.py           the six storage operations; FileStore, the single-mode one
+├── store.py           the seven storage operations; FileStore, the single-mode one
 ├── pgstore.py         PostgresStore, the cloud one. Imports psycopg; single mode never does
 ├── db.py              the connection pool and the migration runner (cloud only)
 ├── mail.py            one transactional email, over SendGrid (cloud only)
@@ -312,7 +316,7 @@ web/
 
 ### The storage seam
 
-Six operations, on one object, and nothing above them knows what is behind it — `FileStore`
+Seven operations, on one object, and nothing above them knows what is behind it — `FileStore`
 for a Pi, `PostgresStore` for cloud mode, and `tests/test_store_contract.py` asserting the two
 behave identically. Two invariants hold anywhere in the repo:
 
@@ -324,7 +328,7 @@ behave identically. Two invariants hold anywhere in the repo:
   unscoped write in that file, and there must never be one. An id arriving in a URL is a claim, not
   a fact, and the place to check it is before it reaches a store.
 
-The six operations, how the halves are written, the migration runner and the connection pool are
+The seven operations, how the halves are written, the migration runner and the connection pool are
 in [`dinkydash/CLAUDE.md`](dinkydash/CLAUDE.md), along with what the payload may hold and how the
 two cadences of a tick are decided.
 

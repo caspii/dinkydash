@@ -130,23 +130,20 @@ def tick(config, store, budget=None):
         log.debug("Nothing due")
         return 0
 
-    if owed["refresh"]:
-        # Outside the budget on purpose: a fetch costs requests, not money, and
-        # a family who cannot afford a new headline today should still have an
-        # accurate agenda under yesterday's.
-        refresh_calendars(config, store, now=now)
-
-    if owed["brief"]:
-        today = now.astimezone(config_module.tzinfo_for(config)).date()
-        try:
-            report(write_brief(config, store, today=today, budget=budget))
-        except GenerationError as exc:
-            # Not fatal: the brief is simply due again on the next tick. That
-            # covers a refused call too — the next tick asks again, gets the
-            # same refusal until the day turns over, and writes nothing.
-            log.error("%s", exc)
-            log.error("Keeping the previous board; the next tick will try again.")
-            return 1
+    try:
+        if owed["refresh"]:
+            # A stale refresh also stops this tick's brief; the next pass loads
+            # the new config before fetching or making a model call.
+            refresh_calendars(config, store, now=now)
+        if owed["brief"]:
+            today = now.astimezone(config_module.tzinfo_for(config)).date()
+            # runner logs date and usage. Reporting family text is reserved for
+            # the explicit CLI run above, never the shared worker or cron tick.
+            write_brief(config, store, today=today, budget=budget)
+    except GenerationError as exc:
+        log.error("%s", exc)
+        log.error("Keeping the previous board; the next tick will try again.")
+        return 1
     return 0
 
 

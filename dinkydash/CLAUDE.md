@@ -5,23 +5,23 @@ to every change; this file holds the ones that only bite here.
 
 ## The storage seam
 
-Six operations, on one object, and nothing above them knows what is behind it:
+Seven operations, on one object, and nothing above them knows what is behind it:
 
 ```python
-load_config()                save_config(config)
+load_config()                save_config(config, invalidate_calendars=())
 load_payload(config)         save_agenda(config, agenda)
                              save_brief(config, brief)
 recent_notes(config, days)   record_note(config, entry, keep)
 ```
 
 Both implementations exist. `FileStore(config_path)` is `config.yaml` and two JSON files in one
-directory. `PostgresStore(pool, family_id)` is the same six operations against rows, with the
+directory. `PostgresStore(pool, family_id)` is the same seven operations against rows, with the
 payload composed from `generations` (the brief) and `agendas` (the fetched window) and handed back
 as the same dict. The runner takes a store; web routes get theirs from
 `web.family.current_store()`. `create_app(store=None, *, pool=None)` accepts a store in single
 mode or a pool in cloud mode. Cloud stores are scoped to the authenticated request.
 
-Four rules keep it a seam rather than a name:
+These rules keep the storage contract consistent:
 
 - **`store.py` and `config.py` are the only files under `dinkydash/` that open a file**, and
   `pgstore.py` and `db.py` are the only ones that import psycopg. `grep -rn "open(" dinkydash web`
@@ -39,11 +39,18 @@ Four rules keep it a seam rather than a name:
   its hand is stale by then (DIN-28). Each half is **replaced, not merged into**: a key the caller
   stops sending disappears, because that is what whole-row writes do in Postgres, and a stale value
   surviving on a Pi but not in the cloud is exactly the divergence the seam exists to prevent.
-  `FileStore` takes a short `flock` **on the containing directory** for its read-modify-write — a
+  `FileStore` takes a short `flock` **on the config directory** for settings and payload writes — a
   lock file beside the data would have to be kept out of `deploy_to_pi.sh`'s `rsync --delete`, and a
   deploy landing mid-write would otherwise unlink the inode a running tick still held, leaving the
-  next writer to lock a fresh file and serialise against nobody. Cloud mode needs no lock at all:
-  there the halves are separate rows and each write is one statement.
+  next writer to lock a fresh file and serialise against nobody. This also covers a `data_file`
+  in another directory. Cloud mode stores the two halves in separate rows.
+- **Settings saves invalidate affected calendars before another refresh can publish.** Both
+  stores compare the fetch's calendar settings with the saved config inside the write lock;
+  `save_agenda` returns `False` if they differ. `save_config` clears changed labels and the fetch
+  stamp under that same lock, with an optional `invalidate_calendars` for an explicit Save of
+  unchanged values. Postgres uses a family-row lock and one transaction; FileStore clears the
+  agenda before replacing the config. No network call holds either lock. Item ID backfills and
+  unrelated settings preserve the agenda; changing the timezone or fetched window clears it.
 - **`tests/test_store_contract.py` runs every one of its assertions against both**, parametrised over
   the two backends with no branching. That parity is most of the value of having named the seam: a
   suite that only ran against files would not notice the day the two drifted. The Postgres half
@@ -290,8 +297,7 @@ instead: whatever is owed is still owed five minutes later. It is deliberately o
 
 A calendar entry's `shared_with` is a list of email addresses, and `parse_feed` keeps only the
 events with one of them on the guest list or as the organiser. A personal calendar full of work
-and private appointments then contributes the family things and nothing else. Four things about
-it are deliberate:
+and private appointments then contributes the family things and nothing else:
 
 - **It is per feed, not global.** The school calendar has no guests, and the global
   `calendar_filter_emails` this replaced emptied it — which is why that key was dropped.
@@ -305,14 +311,11 @@ it are deliberate:
 - **`describe_feed` counts before and after**, so **Check this link** can say a working link has
   24 events and none of them match. A list that matches nobody looks exactly like an empty
   calendar from the board, and that silent zero was the old filter's failure mode.
-- **Saving or removing a calendar forgets what it last said** (`runner.forget_calendar`, called
-  from the settings routes). The stored events under that label go, and the fetch stamp with
-  them, so the next tick owes a refresh and a calendar that is still on is back within one.
-  Without this, a guest list added after a fetch left the unfiltered events on the board and in
-  the next brief until a refresh happened to succeed — and because `_with_last_known` keeps a
-  failing feed's previous events, a feed that then went down kept them for as long as it was
-  down. Forgetting first means there is nothing old left to keep. The stored events cannot be
-  re-filtered instead: they carry no addresses, by design.
+- **Saving or removing a calendar forgets what it last said**, through the store's config save.
+  Its events, statuses and the fetch stamp go, so the next tick owes a refresh. Publication checks
+  also reject a fetch still using the previous settings, including failed-fetch fallback data.
+  A rejected refresh stops the tick before the model call; the next tick loads the new config.
+  The stored events cannot be re-filtered instead: they carry no addresses, by design.
 
 `addresses()` is the one normaliser — list or comma-separated string in, lowercase list out, with
 `mailto:` stripped — and both the form and the engine go through it, so a hand-written

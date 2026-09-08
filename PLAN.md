@@ -1,6 +1,6 @@
 # DinkyDash Hosted MVP — Plan
 
-*Updated 8 September 2026 against main through PR #86.*
+*Updated 8 September 2026: main through PR #89, plus the DIN-46/DIN-47 implementation.*
 
 This is the engineering plan for the hosted app and its shared self-hosted codebase.
 Positioning, pricing reasoning and launch strategy live in Linear on the DIN team.
@@ -13,11 +13,14 @@ The multi-tenant core is built: email signup/login, family-scoped settings, cale
 management, a tokenised screen, and a worker that owes the first brief on its next tick.
 PR #85 delivered [DIN-45](https://linear.app/keepthescore/issue/DIN-45); PR #86 consolidated token issuance and URL construction,
 serialized the per-address token limit, and fixed hosted HTTPS screen links.
+PRs #87 and #89 added the calendar-provider and device guides ([DIN-14](https://linear.app/keepthescore/issue/DIN-14), [DIN-13](https://linear.app/keepthescore/issue/DIN-13)).
+The current batch implements privacy-safe calendar publication ([DIN-46](https://linear.app/keepthescore/issue/DIN-46))
+and removes generated text and malformed screen credentials from service logs ([DIN-47](https://linear.app/keepthescore/issue/DIN-47)).
 
 Hosted readiness is still open. The next sequence is:
 
-1. Fix privacy publication and logging ([DIN-46](https://linear.app/keepthescore/issue/DIN-46), [DIN-47](https://linear.app/keepthescore/issue/DIN-47)), the preview database override
-   ([DIN-48](https://linear.app/keepthescore/issue/DIN-48)), and the remaining calendar-fetch DNS-rebinding gap ([DIN-61](https://linear.app/keepthescore/issue/DIN-61)).
+1. Fix the preview database override ([DIN-48](https://linear.app/keepthescore/issue/DIN-48)) and the remaining
+   calendar-fetch DNS-rebinding gap ([DIN-61](https://linear.app/keepthescore/issue/DIN-61)).
 2. Complete spending boundaries ([DIN-49](https://linear.app/keepthescore/issue/DIN-49), [DIN-51](https://linear.app/keepthescore/issue/DIN-51)), export coverage ([DIN-50](https://linear.app/keepthescore/issue/DIN-50)), and trial
    expiry/lapse ([DIN-52](https://linear.app/keepthescore/issue/DIN-52)). Complete Stripe conversion before accepting payment ([DIN-53](https://linear.app/keepthescore/issue/DIN-53)).
 3. Add error capture, liveness alerts and recovery checks ([DIN-35](https://linear.app/keepthescore/issue/DIN-35), [DIN-54](https://linear.app/keepthescore/issue/DIN-54), [DIN-55](https://linear.app/keepthescore/issue/DIN-55),
@@ -92,9 +95,9 @@ recent_notes / record_note
 
 The runner, settings and renderer use that interface. A cloud payload combines the
 latest brief in `generations` with the current calendar window in `agendas`. Agenda
-and brief writes own separate fields. This prevents one operation from overwriting
-the other's output; rejecting a refresh that used obsolete privacy settings is a
-separate, outstanding requirement ([DIN-46](https://linear.app/keepthescore/issue/DIN-46)).
+and brief writes own separate fields. Config saves clear affected calendars and
+coordinate with refresh publication using a short storage lock. A refresh made with
+obsolete calendar settings is rejected before that tick can call the model ([DIN-46](https://linear.app/keepthescore/issue/DIN-46)).
 
 ### Sign-up
 
@@ -136,8 +139,8 @@ locally with lazily imported `segno`. `web/urls.py` builds hosted links from an 
 app origin; single mode retains its local HTTP URLs.
 
 The app rate-limits invalid-token attempts. Cloudflare edge hardening remains [DIN-40](https://linear.app/keepthescore/issue/DIN-40);
-this document does not claim an edge rule is deployed. Access-log redaction exists,
-but invalid/mistyped token variants still need [DIN-47](https://linear.app/keepthescore/issue/DIN-47). Offline behaviour is deferred
+this document does not claim an edge rule is deployed. Access-log redaction covers
+invalid, mistyped and encoded screen-token variants ([DIN-47](https://linear.app/keepthescore/issue/DIN-47)). Offline behaviour is deferred
 under [DIN-60](https://linear.app/keepthescore/issue/DIN-60); weakening shared-cache headers is not the implementation plan.
 
 ### The spend breaker
@@ -325,7 +328,7 @@ another family's item ID returns 404. Provider-page and onboarding improvements 
 - [x] Separate agenda/brief persistence, one daily generation row, and reported token usage.
 - [x] Per-family and approximate global call caps, including manual rewrites ([DIN-43](https://linear.app/keepthescore/issue/DIN-43)).
 - [x] Keep-last-good rendering and retry on subsequent ticks.
-- [ ] Reject refresh publication after a calendar privacy/config change ([DIN-46](https://linear.app/keepthescore/issue/DIN-46)).
+- [x] Reject refresh publication after a calendar privacy/config change ([DIN-46](https://linear.app/keepthescore/issue/DIN-46)).
 - [ ] Preserve global spending across account deletion ([DIN-49](https://linear.app/keepthescore/issue/DIN-49)).
 - [ ] Failure tracking, backoff and parent notification ([DIN-55](https://linear.app/keepthescore/issue/DIN-55)).
 - [ ] Remove the remaining implicit date fallback in feed description ([DIN-62](https://linear.app/keepthescore/issue/DIN-62); maintenance).
@@ -344,7 +347,8 @@ failed providers preserve useful last-good output; retries and paid calls obey t
 - [ ] Define offline behaviour while preserving credential/cache controls ([DIN-60](https://linear.app/keepthescore/issue/DIN-60); deferred).
 
 **Done when:** the shared board works on the actual target devices, including the
-agreed failure behaviour. Device-specific marketing pages remain [DIN-13](https://linear.app/keepthescore/issue/DIN-13).
+agreed failure behaviour. Device-specific guides are published ([DIN-13](https://linear.app/keepthescore/issue/DIN-13));
+the real-device checks remain [DIN-58](https://linear.app/keepthescore/issue/DIN-58).
 
 ### Phase 4 — Money
 
@@ -361,7 +365,7 @@ trial date and excluding already-lapsed rows do not meet this requirement on the
 - [x] Published privacy policy, terms, processor list and relevant disclosures beside calendar setup ([DIN-44](https://linear.app/keepthescore/issue/DIN-44)).
 - [x] Account export/download and hard-delete actions, scoped to the signed-in family ([DIN-44](https://linear.app/keepthescore/issue/DIN-44)).
 - [ ] Include every retained historical generation in the export ([DIN-50](https://linear.app/keepthescore/issue/DIN-50)).
-- [ ] Keep generated family text and bearer credentials out of service logs ([DIN-47](https://linear.app/keepthescore/issue/DIN-47)).
+- [x] Keep generated family text and bearer credentials out of service logs ([DIN-47](https://linear.app/keepthescore/issue/DIN-47)).
 - [ ] Verify DigitalOcean/Cloudflare agreement status and record private evidence ([DIN-59](https://linear.app/keepthescore/issue/DIN-59)).
 - [ ] Implement and then disclose old-brief and lapsed-family retention sweeps ([DIN-57](https://linear.app/keepthescore/issue/DIN-57)).
 
@@ -387,7 +391,8 @@ recover the application. A healthy `/healthz` response alone is insufficient.
 - [x] Search Console and Ahrefs connection is marked Done in [DIN-3](https://linear.app/keepthescore/issue/DIN-3); ongoing account status is tracked there.
 - [ ] Real-device checks, current self-hosted smoke test and the small private beta ([DIN-58](https://linear.app/keepthescore/issue/DIN-58)).
 - [ ] Refresh launch dependencies, rewrite obsolete drafts, tag a release and execute the approved launch ([DIN-25](https://linear.app/keepthescore/issue/DIN-25)).
-- [ ] Feedback collection ([DIN-34](https://linear.app/keepthescore/issue/DIN-34)); provider and device content remain [DIN-14](https://linear.app/keepthescore/issue/DIN-14) and [DIN-13](https://linear.app/keepthescore/issue/DIN-13).
+- [x] Calendar-provider and device guides ([DIN-14](https://linear.app/keepthescore/issue/DIN-14), [DIN-13](https://linear.app/keepthescore/issue/DIN-13)).
+- [ ] Feedback collection ([DIN-34](https://linear.app/keepthescore/issue/DIN-34)).
 
 Beta invitations and public launch follow the readiness gates above. Launch copy,
 waitlist communications and rollout decisions belong in Linear. [DIN-21](https://linear.app/keepthescore/issue/DIN-21) is Canceled;

@@ -22,7 +22,7 @@ from dinkydash import schedule, screens
 from dinkydash.calendars import FeedError, addresses, describe_feed, feed_label
 from dinkydash.claude_client import GenerationError
 from dinkydash.context import compute_birthday_info, upcoming_for
-from dinkydash.runner import forget_calendar, refresh_calendars
+from dinkydash.runner import refresh_calendars
 from dinkydash.runner import run as run_generation
 from web import CLOUD
 from web import manifest as manifest_module
@@ -157,8 +157,8 @@ def current_config():
     return config
 
 
-def save(config):
-    current_store().save_config(config)
+def save(config, *, invalidate_calendars=()):
+    current_store().save_config(config, invalidate_calendars=invalidate_calendars)
 
 
 def section_or_404(name):
@@ -392,14 +392,12 @@ def section_edit(section_name, item_id):
                 else:
                     submitted["id"] = item_id
                     items[index] = submitted
-                save(config)
+                # Pressing Save explicitly refreshes this calendar even when
+                # the values are unchanged. The store also detects changed or
+                # removed sources and clears them in the same operation.
+                save(config, invalidate_calendars=(feed_label(submitted),)
+                     if section_name == "calendars" else ())
                 if section_name == "calendars":
-                    # What this calendar last said was fetched under the old
-                    # entry — before a guest list, say — so it goes, and the
-                    # next tick fetches afresh. Under the old name as well as
-                    # the new, in case this was a rename.
-                    stale = {feed_label(submitted)} | ({feed_label(item)} if not is_new else set())
-                    forget_calendar(config, current_store(), stale)
                     flash(f"Saved {feed_label(submitted)}. The board picks up the change at "
                           f"the next refresh — press Refresh calendars if you don't want to wait.",
                           "ok")
@@ -472,8 +470,6 @@ def section_delete(section_name, item_id):
         abort(404)
     items.pop(index)
     save(config)
-    if section_name == "calendars":
-        forget_calendar(config, current_store(), {feed_label(removed)})
     flash(f"Removed {removed.get('name') or removed.get('title') or removed.get('label') or 'it'}.", "ok")
     return redirect(url_for("settings.section_list", section_name=section_name))
 
