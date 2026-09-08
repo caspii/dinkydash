@@ -95,6 +95,12 @@ showing three separate lists.
 The reason to publish is usually to get the calendar somewhere everyone can see it without
 opening a laptop.
 
+Which screen? An [old iPad](/ipad-calendar-display/) or an [Android
+tablet](/android-tablet-calendar-display/) is the cheapest good panel, a [Raspberry
+Pi](/raspberry-pi-family-calendar/) the tidiest, and a [smart TV](/smart-tv-calendar-display/)
+or [Fire TV](/fire-tv-calendar-display/) will show it on the big screen. There is one device it
+does not work on, and [the Echo Show page](/echo-show-calendar-display/) says why.
+
 [DinkyDash](/) is free, open-source software for that: paste the ICS link and today's events
 appear on a wall screen, beside a chore chart that rotates by itself, countdowns to birthdays
 and holidays, and a short line written fresh each morning. There is no Microsoft sign-in in

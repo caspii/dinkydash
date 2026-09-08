@@ -165,6 +165,36 @@ class TestOnlyTheRealSiteIsIndexable:
         assert response.headers["X-Robots-Tag"] == "noindex"
 
 
+class TestInternalLinksResolve:
+    """Every `/path/` written in content or a template is a page that exists.
+
+    The provider guides and the device pages cross-link each other and the
+    footer lists all of them, so one renamed slug now silently 404s from a
+    dozen places. Nothing else notices: the sitemap is built from the files
+    that exist, not from the links pointing at them.
+    """
+
+    # `[text](/url/)` in Markdown, and `href="/url/"` in a template.
+    LINK = re.compile(r'\]\((/[^)#\s]*)(?:#[^)]*)?\)|href="(/[^"#]*)"')
+    # Served by their own routes rather than by a content file.
+    NOT_A_PAGE = ("/images/", "/fonts/")
+    NOT_A_PAGE_SUFFIX = (".xml", ".txt", ".ico", ".svg", ".png", ".css", ".webmanifest")
+
+    def test_no_internal_link_points_at_a_missing_page(self):
+        pages = {page["url"] for page in render.pages()}
+        broken = set()
+        sources = sorted(render.CONTENT.rglob("*.md")) + sorted(render.TEMPLATES.rglob("*.html"))
+        for path in sources:
+            for markdown_url, href in self.LINK.findall(path.read_text(encoding="utf-8")):
+                url = markdown_url or href
+                if not url or url.startswith(self.NOT_A_PAGE) \
+                        or url.endswith(self.NOT_A_PAGE_SUFFIX):
+                    continue
+                if url not in pages:
+                    broken.add(f"{path.name} -> {url}")
+        assert not broken, sorted(broken)
+
+
 class TestExampleCalendarUrlsAreVisiblyFake:
     """The per-provider setup guides exist to show what a calendar link looks
     like, so the site now carries several example feed URLs on purpose.

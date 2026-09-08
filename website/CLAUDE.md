@@ -50,6 +50,40 @@ Only claim a step, a button name or a URL shape that a current provider support 
 A guide that is confidently wrong about somebody else's settings screen is worse than no
 guide, and these are the pages a stranger meets first.
 
+## The per-device pages
+
+`ipad-`, `android-tablet-`, `smart-tv-`, `fire-tv-` and `echo-show-calendar-display`, plus
+`raspberry-pi-family-calendar`, which predates them. One page per screen somebody might
+already own (DIN-13). Each links to the other five and to the provider guides, so the two
+sets close a loop: *where do I get my calendar link* and *what do I put it on*.
+
+Three rules, and the third is the one that will be tempting to break:
+
+- **Every one of them states the architecture.** DinkyDash is a web page and something has to
+  serve it — a Pi or an old computer on the network, or the hosted version. The device is the
+  *screen*. Left implicit, every page reads as "install DinkyDash on your Fire TV", which is
+  not a thing and never will be.
+- **Nothing claims a native app**, because there is none. The wording is that it opens in the
+  browser the device already has.
+- **The verdicts are honest, including the negative one.** The Echo Show page says *do not*,
+  because Silk closes itself after ten to fifteen minutes and Amazon exposes no way to stop
+  it; the TV pages say a television is built to stop showing a still image. That page is the
+  highest-volume term of the five, and answering it truthfully is the point rather than a cost.
+  **Do not quietly upgrade a verdict to sell better.** If a device's behaviour changes, change
+  the page and say what changed.
+
+**None of this has been checked on real hardware.** The device claims come from current
+manufacturer documentation and widely reported behaviour; the DinkyDash claims come from the
+code — the meta-refresh reload, the aspect-ratio switch, flexbox `gap` as the oldest thing the
+layout needs. Hands-on verification is [DIN-58](https://linear.app/keepthescore/issue/DIN-58),
+and it is what should correct these pages. Nothing on them says "we tested this", and nothing
+should until that is done.
+
+The two board screenshots — `family-calendar-tv-board.webp` (16:9) and
+`family-calendar-tablet-board.webp` (portrait, which is what shows the single-column layout) —
+are the real board against `config.example.yaml` with a hand-written payload, the way
+`README.md` describes. Regenerate them the same way rather than editing the images.
+
 ## The legal pages
 
 `content/privacy.md` and `content/terms.md` are the hosted service's, and they are **claims

@@ -95,6 +95,12 @@ Repeat the steps for each calendar in the sidebar.
 The reason to fetch the link is to get the calendar somewhere the whole family sees it,
 without anybody having to unlock a phone.
 
+Which screen? An [old iPad](/ipad-calendar-display/) or an [Android
+tablet](/android-tablet-calendar-display/) is the cheapest good panel, a [Raspberry
+Pi](/raspberry-pi-family-calendar/) the tidiest, and a [smart TV](/smart-tv-calendar-display/)
+or [Fire TV](/fire-tv-calendar-display/) will show it on the big screen. There is one device it
+does not work on, and [the Echo Show page](/echo-show-calendar-display/) says why.
+
 [DinkyDash](/) is free, open-source software for exactly that: paste the link and today's
 events appear on a wall screen, next to a chore chart that rotates by itself, countdowns to
 birthdays and holidays, and a short daily line written each morning. There is no Apple sign-in
