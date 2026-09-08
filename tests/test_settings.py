@@ -368,6 +368,176 @@ class TestTheCadenceOnTheHomePage:
         assert "Calendars once a day · brief at 07:30" in page
 
 
+CALENDAR_CONFIG = """\
+family_name: "The Wilsons"
+timezone: "Europe/Berlin"
+
+calendars:
+  - id: school123
+    label: "School"
+    url: "https://school.example/term.ics"
+    enabled: true
+  - id: sams12345
+    label: "Sam's"
+    url: "https://calendar.google.com/calendar/ical/sam%40gmail.com/private-xxxx/basic.ics"
+    enabled: true
+    shared_with: ["jess@example.com"]
+"""
+
+
+class TestTheGuestList:
+    """A personal calendar can show only the events the other parent is on."""
+
+    @pytest.fixture
+    def config_path(self, tmp_path):
+        path = tmp_path / "config.yaml"
+        path.write_text(CALENDAR_CONFIG)
+        return path
+
+    def calendars(self, config_path):
+        return config_module.load_config(config_path)["calendars"]
+
+    def test_the_form_has_the_field(self, client):
+        page = client.get("/settings/calendars/school123").get_data(as_text=True)
+        assert "Only show events shared with" in page
+        assert 'name="shared_with"' in page
+
+    def test_the_form_shows_the_list_as_one_line(self, client):
+        page = client.get("/settings/calendars/sams12345").get_data(as_text=True)
+        assert 'value="jess@example.com"' in page
+
+    def test_saving_tidies_the_addresses_into_a_list(self, client, config_path):
+        client.post("/settings/calendars/school123", data={
+            "label": "School", "url": "https://school.example/term.ics", "enabled": "on",
+            "shared_with": " Jess@Example.com, nanny@example.com ",
+        })
+        assert self.calendars(config_path)[0]["shared_with"] == [
+            "jess@example.com", "nanny@example.com",
+        ]
+
+    def test_an_empty_field_means_everything(self, client, config_path):
+        client.post("/settings/calendars/sams12345", data={
+            "label": "Sam's", "enabled": "on", "shared_with": "",
+            "url": "https://calendar.google.com/calendar/ical/sam%40gmail.com/private-xxxx/basic.ics",
+        })
+        assert self.calendars(config_path)[1]["shared_with"] == []
+
+    def test_something_that_is_not_an_address_is_refused(self, client, config_path):
+        page = client.post("/settings/calendars/school123", data={
+            "label": "School", "url": "https://school.example/term.ics", "shared_with": "jess",
+        }).get_data(as_text=True)
+        assert "is not an email address" in page
+        assert "shared_with" not in self.calendars(config_path)[0]
+
+    def test_the_list_says_which_calendars_are_filtered(self, client):
+        page = client.get("/settings/calendars").get_data(as_text=True)
+        assert "Only events shared with jess@example.com" in page
+        assert page.count("Only events shared with") == 1
+
+    @pytest.fixture
+    def described(self, monkeypatch):
+        """Stub the fetch: the check is about the wording, not the network."""
+        def _serve(count, total, nxt=None):
+            def fake(url, tzinfo, today=None, days_ahead=14, shared_with=None, **kwargs):
+                return {"count": count, "total": total, "days_ahead": days_ahead,
+                        "shared_with": shared_with or [], "next": nxt}
+            monkeypatch.setattr("web.routes.settings.describe_feed", fake)
+        return _serve
+
+    def check(self, client, shared_with):
+        return client.post("/settings/calendars/new", data={
+            "action": "check", "label": "Sam's", "url": "https://x.example/a.ics",
+            "shared_with": shared_with,
+        }).get_data(as_text=True)
+
+    def test_checking_says_how_many_got_through(self, client, described):
+        described(3, 24, {"title": "Swimming", "date": "2026-09-04",
+                          "all_day": False, "time": "16:00"})
+        page = self.check(client, "jess@example.com")
+        assert ("3 of the 24 events over the next 14 days are shared with "
+                "jess@example.com.") in page
+        assert "Next up: Swimming, 2026-09-04 at 16:00." in page
+
+    def test_checking_warns_when_nothing_gets_through(self, client, described):
+        # The failure the old global filter hid: a working link, a full
+        # calendar, and a board with nothing on it.
+        described(0, 24)
+        page = self.check(client, "jess@example.com")
+        assert ("has 24 events in the next 14 days, but none of them is shared with "
+                "jess@example.com") in page
+        assert 'class="flash error"' in page
+
+    def test_checking_without_a_list_reads_as_before(self, client, described):
+        described(24, 24, {"title": "Swimming", "date": "2026-09-04",
+                           "all_day": True, "time": None})
+        page = self.check(client, "")
+        assert "24 events over the next 14 days. Next up: Swimming, 2026-09-04 at all day." in page
+
+
+class TestSavingACalendarForgetsWhatItFetched:
+    """A guest list added after a fetch was never applied to what is stored.
+
+    So the stored events of that calendar go when it is saved, and the fetch
+    stamp with them, which makes the next tick fetch afresh. Otherwise the
+    unfiltered events would stay on the board — and in the next brief — until
+    a refresh happened to succeed, and a failing feed would keep them for good.
+    """
+
+    @pytest.fixture
+    def config_path(self, tmp_path):
+        path = tmp_path / "config.yaml"
+        path.write_text(CALENDAR_CONFIG)
+        return path
+
+    @pytest.fixture
+    def board(self, tmp_path):
+        path = tmp_path / "dashboard_data.json"
+        path.write_text(json.dumps({
+            "generated_for_date": "2026-09-03", "headline": "Hi", "note": "There",
+            "calendars_fetched_at": "2026-09-03T08:00:00+00:00",
+            "calendar_statuses": [{"label": "School", "ok": True}, {"label": "Sam's", "ok": True}],
+            "events": [
+                {"title": "Sports day", "date": "2026-09-04", "calendar": "School"},
+                {"title": "Therapy", "date": "2026-09-03", "calendar": "Sam's"},
+            ],
+        }))
+        return lambda: json.loads(path.read_text())
+
+    SAMS = {"label": "Sam's", "enabled": "on",
+            "url": "https://calendar.google.com/calendar/ical/sam%40gmail.com/private-xxxx/basic.ics"}
+
+    def test_saving_drops_that_calendars_stored_events(self, client, board):
+        client.post("/settings/calendars/sams12345",
+                    data={**self.SAMS, "shared_with": "jess@example.com"})
+        payload = board()
+        assert [e["title"] for e in payload["events"]] == ["Sports day"]
+        assert [s["label"] for s in payload["calendar_statuses"]] == ["School"]
+        assert "calendars_fetched_at" not in payload  # so the next tick fetches again
+        assert payload["headline"] == "Hi"
+
+    def test_a_rename_forgets_under_the_old_name_too(self, client, board):
+        client.post("/settings/calendars/sams12345", data={**self.SAMS, "label": "Dad's"})
+        assert [e["title"] for e in board()["events"]] == ["Sports day"]
+
+    def test_removing_a_calendar_removes_its_events(self, client, board):
+        client.post("/settings/calendars/sams12345/delete")
+        assert [e["title"] for e in board()["events"]] == ["Sports day"]
+
+    def test_reordering_forgets_nothing(self, client, board):
+        client.post("/settings/calendars/sams12345/move", data={"direction": "up"})
+        assert len(board()["events"]) == 2
+        assert "calendars_fetched_at" in board()
+
+    def test_a_rejected_form_forgets_nothing(self, client, board):
+        client.post("/settings/calendars/sams12345", data={**self.SAMS, "shared_with": "jess"})
+        assert len(board()["events"]) == 2
+
+    def test_the_message_says_when_it_shows(self, client, board):
+        page = client.post("/settings/calendars/sams12345", data=self.SAMS,
+                           follow_redirects=True).get_data(as_text=True)
+        assert "picks up the change at the next refresh" in page
+
+
 class TestRefreshingTheCalendarsByHand:
     """The cheap half of "Rewrite now": fetch the feeds, ask Claude nothing."""
 

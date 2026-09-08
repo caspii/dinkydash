@@ -14,7 +14,7 @@ from pathlib import Path
 from ruamel.yaml import YAML
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString
 
-from .calendars import zone
+from .calendars import addresses, zone
 
 log = logging.getLogger(__name__)
 
@@ -114,19 +114,23 @@ def with_defaults(raw):
         if config.get(key) is None:
             config[key] = [] if isinstance(value, list) else value
 
-    # A single calendar_url becomes the first entry in `calendars`.
+    # A single calendar_url becomes the first entry in `calendars`, and the
+    # global calendar_filter_emails that went with it becomes that entry's
+    # `shared_with`. The old key meant what the new one means — show me the
+    # events my partner is on — but it was one filter for the one URL, so it
+    # only has a home when that URL is what is being migrated.
     legacy_url = config.pop("calendar_url", None)
+    legacy_filter = addresses(config.pop("calendar_filter_emails", None))
     if legacy_url and not config["calendars"]:
-        config["calendars"] = [{"label": "Calendar", "url": legacy_url, "enabled": True}]
+        feed = {"label": "Calendar", "url": legacy_url, "enabled": True}
+        if legacy_filter:
+            feed["shared_with"] = legacy_filter
+        config["calendars"] = [feed]
         log.info("Migrated calendar_url into calendars[]")
-
-    # calendar_filter_emails required every listed address to appear as an
-    # ATTENDEE. Most personal Google Calendar events carry no ATTENDEE at all,
-    # so it silently matched nothing. Separate feeds replace it.
-    if config.pop("calendar_filter_emails", None):
+    elif legacy_filter:
         log.warning(
-            "Ignoring calendar_filter_emails — it silently hid every event on "
-            "calendars without ATTENDEE properties. Add one feed per person instead."
+            "Ignoring calendar_filter_emails: it was one filter for one calendar_url. "
+            "Put the addresses under `shared_with` on the calendar they were meant for."
         )
 
     if config.get("theme") not in THEMES:

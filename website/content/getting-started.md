@@ -54,6 +54,17 @@ Put the link in `config.yaml` under `calendars:` (step 2 below), or add it later
 
 Whichever provider it came from, treat the link like a password. Anyone who has it can read that calendar, for as long as it exists, and there is no way to see who has.
 
+<h3 id="personal-calendar">A personal calendar with work in it</h3>
+
+You do not need a separate family calendar. If your own calendar also holds work meetings and private appointments, paste it anyway, then fill in **Only show events shared with** on that calendar with the other parent's email address. Only the events they are invited to, or that they organised, reach the board. Everything else stays off it, and is never sent to Claude.
+
+Two things to get right:
+
+- **Use the address on the invitation.** Google, Apple and Outlook all record guests by email address, so it has to be the one you actually invite them with. If they have two, list both with a comma between them.
+- **Press Check this link before you save.** With a guest list filled in, it says how many events get through out of how many, and warns you if none do. That usually means the address is not the one on the invitations, or that nothing in the next fortnight has been shared yet.
+
+Each calendar has its own list, so the school calendar, which has no guests, is left alone. Saving a calendar clears whatever was fetched from it before, so nothing from before the guest list lingers; the board picks it up again at the next refresh, or straight away if you press **Refresh calendars**. In `config.yaml` the same setting is `shared_with`, a list of addresses under that calendar.
+
 ---
 
 ## Part 1 — Run it on your computer
@@ -172,7 +183,7 @@ Now these three pages are live:
 | `timezone` | An IANA name like `Europe/Berlin`. Decides when "today" rolls over and how event times read. Set it even on a Pi whose clock is already local — the engine works from this, not the machine clock. |
 | `location` | Your city and country. Optional; gives the daily line local flavour. |
 | `theme` | `light` or `dark`. |
-| `calendars` | One entry per iCal feed: a `label`, a `url` (the secret iCal address) and `enabled`. Merged into one agenda. |
+| `calendars` | One entry per iCal feed: a `label`, a `url` (the secret iCal address) and `enabled`. Merged into one agenda. An optional `shared_with` list of email addresses shows only the events with one of those people as a guest or organiser. |
 | `people` | `name`, `date_of_birth` (YYYY-MM-DD), an `avatar_emoji`, an `avatar_color`, and `interests` that feed the daily line. |
 | `pets` | `name`, `type` and an `avatar_emoji`. |
 | `recurring` | Chores that rotate one person per day, in the order you list under `choices`. |
@@ -182,7 +193,7 @@ Now these three pages are live:
 
 The settings page adds a short `id` to each person, pet, chore, date and calendar the first time you open it. Leave those alone — they are how the page tells one entry from another.
 
-**Upgrading an old config?** A single `calendar_url` becomes the first entry in `calendars` automatically. `calendar_filter_emails` is dropped, because it needed every listed address to appear as an event guest and most personal events have none — use one feed per person instead. Photos are gone; the board uses an emoji and a colour.
+**Upgrading an old config?** A single `calendar_url` becomes the first entry in `calendars` automatically, and a `calendar_filter_emails` list moves onto that entry as its `shared_with`. Photos are gone; the board uses an emoji and a colour.
 
 #### Editing from your phone
 
@@ -190,6 +201,7 @@ Everything on the board is editable at `/settings`. Two things worth knowing:
 
 - **A saved board is from this morning.** Editing a chore or a person shows up on the next page load, but the headline and daily line are only rewritten each morning. Press **Rewrite now** on the settings home page to get fresh copy immediately. Each press is one API call.
 - **Adding a calendar checks the link.** Paste an iCal address and press **Check this link**. It tells you how many events it found and what the next one is, so you are not left guessing whether the URL works.
+- **A personal calendar can keep its private side.** Fill in **Only show events shared with** on that calendar, and only the events the other parent is on reach the board. See [a personal calendar with work in it](#personal-calendar) above.
 
 The board can be in one of three states: the normal board, a first-run "waiting" screen before anything is generated, or a stale state after a failed or missing run. When stale, the times, turns and countdowns are still today's — only the written line is old, and the board says so.
 
@@ -433,7 +445,7 @@ The old `lcd_rotate` and `display_rotate` lines in `config.txt` no longer apply 
 
 **Times are off by an hour.** The timezone under Settings → Family & system is what the engine uses, not the machine clock. Set it even if the clock is already local.
 
-**A calendar shows nothing.** Check it under Settings → Calendars — a failed feed says so. Apple regenerates iCloud links when a calendar stops being shared, so a link that worked last month may need replacing.
+**A calendar shows nothing.** Check it under Settings → Calendars — a failed feed says so. Apple regenerates iCloud links when a calendar stops being shared, so a link that worked last month may need replacing. If the calendar has **Only show events shared with** filled in, open it and press **Check this link**: a working link with no events getting through means the address is not the one on the invitations.
 
 **A GNOME keyring password box appears.** The `--password-store=basic` flag in `run.sh` prevents this. Make sure it is present.
 

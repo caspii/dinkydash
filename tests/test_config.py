@@ -61,17 +61,31 @@ class TestMigration:
         ]
         assert "calendar_url" not in config
 
-    def test_the_broken_attendee_filter_is_dropped(self, tmp_path):
-        # It required every listed address to appear as an ATTENDEE, which most
-        # personal calendar events do not have — so it silently matched nothing.
+    def test_the_old_attendee_filter_moves_onto_the_migrated_feed(self, tmp_path):
+        # calendar_filter_emails was one filter for the one calendar_url, and it
+        # meant what `shared_with` means now. So it goes where that URL goes.
         path = tmp_path / "config.yaml"
         path.write_text(
             'calendar_url: "https://example.com/old.ics"\n'
-            'calendar_filter_emails:\n  - "spouse@example.com"\n'
+            'calendar_filter_emails:\n  - "Spouse@Example.com"\n'
         )
         config = config_module.load_config(path)
         assert "calendar_filter_emails" not in config
-        assert len(config["calendars"]) == 1
+        assert config["calendars"] == [{
+            "label": "Calendar", "url": "https://example.com/old.ics", "enabled": True,
+            "shared_with": ["spouse@example.com"],
+        }]
+
+    def test_the_old_attendee_filter_is_dropped_with_nowhere_to_go(self, tmp_path):
+        # An explicit calendars list gives no way to tell which feed it meant.
+        path = tmp_path / "config.yaml"
+        path.write_text(
+            'calendar_filter_emails:\n  - "spouse@example.com"\n'
+            'calendars:\n  - label: "New"\n    url: "https://example.com/new.ics"\n'
+        )
+        config = config_module.load_config(path)
+        assert "calendar_filter_emails" not in config
+        assert "shared_with" not in config["calendars"][0]
 
     def test_an_explicit_calendars_list_wins_over_the_legacy_key(self, tmp_path):
         path = tmp_path / "config.yaml"

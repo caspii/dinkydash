@@ -16,10 +16,10 @@ from flask import (Blueprint, abort, current_app, flash, redirect,
 
 from dinkydash import config as config_module
 from dinkydash import schedule
-from dinkydash.calendars import FeedError, describe_feed
+from dinkydash.calendars import FeedError, addresses, describe_feed, feed_label
 from dinkydash.claude_client import GenerationError
 from dinkydash.context import compute_birthday_info, upcoming_for
-from dinkydash.runner import refresh_calendars
+from dinkydash.runner import forget_calendar, refresh_calendars
 from dinkydash.runner import run as run_generation
 from web import manifest as manifest_module
 
@@ -88,7 +88,8 @@ SECTIONS = {
         "title": "Calendars",
         "singular": "calendar",
         "add_label": "Add a calendar",
-        "blurb": "Every calendar you switch on is merged into one agenda. Titles and times are sent to Claude each morning.",
+        "blurb": "Every calendar you switch on is merged into one agenda. Titles and times are "
+                 "sent to Claude each morning; an event kept off the board by a guest list is not.",
         "fields": [
             ("label", "Call it", "text", True, ""),
             ("url", "iCal link", "url", True,
@@ -96,6 +97,11 @@ SECTIONS = {
              "iCloud → share the calendar → Public Calendar → Copy Link (a webcal:// link is "
              "fine, it is converted for you). Outlook → Settings → Calendar → Shared calendars → "
              "Publish a calendar, then the ICS link. Links must be https."),
+            ("shared_with", "Only show events shared with", "emails", False,
+             "Email addresses, with commas between them. Only events with one of these people "
+             "on the guest list, or organised by them, go on the board — the rest of this "
+             "calendar stays private. Use the address on the invitation. Leave it empty to "
+             "show everything."),
             ("enabled", "Show on the board", "checkbox", False, ""),
         ],
     },
@@ -150,6 +156,9 @@ def parse_field(field, form, existing):
     if kind == "people":
         values = [v for v in form.getlist(name) if v]
         return values
+    if kind == "emails":
+        # One text box, stored as a list: what the engine compares against.
+        return addresses(form.get(name, ""))
     if kind == "monthday":
         month = form.get(f"{name}_month", "").strip()
         day = form.get(f"{name}_day", "").strip()
@@ -175,6 +184,11 @@ def validate(section, item):
                 datetime.strptime(str(value), "%Y-%m-%d")
             except ValueError:
                 problems.append(f"{label} should look like 2017-03-15.")
+        if kind == "emails":
+            for address in value or []:
+                if "@" not in address:
+                    problems.append(f"“{address}” is not an email address. Use the address "
+                                    f"on the invitation, like sam@example.com.")
     return problems
 
 
@@ -327,7 +341,18 @@ def section_edit(section_name, item_id):
                     submitted["id"] = item_id
                     items[index] = submitted
                 save(config)
-                flash(f"Saved {submitted.get('name') or submitted.get('title') or submitted.get('label') or 'it'}.", "ok")
+                if section_name == "calendars":
+                    # What this calendar last said was fetched under the old
+                    # entry — before a guest list, say — so it goes, and the
+                    # next tick fetches afresh. Under the old name as well as
+                    # the new, in case this was a rename.
+                    stale = {feed_label(submitted)} | ({feed_label(item)} if not is_new else set())
+                    forget_calendar(config, current_store(), stale)
+                    flash(f"Saved {feed_label(submitted)}. The board picks up the change at "
+                          f"the next refresh — press Refresh calendars if you don't want to wait.",
+                          "ok")
+                else:
+                    flash(f"Saved {submitted.get('name') or submitted.get('title') or 'it'}.", "ok")
                 return redirect(url_for("settings.section_list", section_name=section_name))
             item = submitted
 
@@ -341,27 +366,48 @@ def section_edit(section_name, item_id):
 
 
 def check_feed(item, config):
-    """Fetch a pasted iCal URL and describe what came back."""
+    """Fetch a pasted iCal URL and describe what came back.
+
+    With a guest list on the form, the answer is "3 of the 24" — and a red
+    "none of them" when the list matches nobody. That case is the failure the
+    old global filter hid: a working link, a full calendar, and a board with
+    nothing on it. Red, because that is exactly what saving would give.
+    """
     url = (item.get("url") or "").strip()
     if not url:
         return {"ok": False, "message": "Paste a link first."}
+    wanted = addresses(item.get("shared_with"))
     try:
         found = describe_feed(
             url, config_module.tzinfo_for(config),
             today=config_module.today_for(config),
             days_ahead=int(config.get("calendar_days_ahead") or 14),
+            shared_with=wanted,
         )
     except FeedError as exc:
         return {"ok": False, "message": str(exc)}
-    if not found["count"]:
+    days = found["days_ahead"]
+    if not found["total"]:
         return {"ok": True, "message":
-                f"That link works, but there is nothing on it in the next "
-                f"{found['days_ahead']} days."}
+                f"That link works, but there is nothing on it in the next {days} days."}
+    who = ", ".join(wanted)
+    if wanted and not found["count"]:
+        return {"ok": False, "message":
+                f"That link works and has {found['total']} events in the next {days} days, "
+                f"but none of them is shared with {who}. Check the address — it has to be "
+                f"the one on the invitation."}
+    if wanted:
+        count = found["count"]
+        lead = (f"{count} of the {found['total']} events over the next {days} days "
+                f"{'is' if count == 1 else 'are'} shared with {who}.")
+    else:
+        lead = f"{found['count']} events over the next {days} days."
     nxt = found["next"]
-    when = "all day" if nxt["all_day"] else nxt["time"]
-    return {"ok": True, "message":
-            f"{found['count']} events over the next {found['days_ahead']} days. "
-            f"Next up: {nxt['title']}, {nxt['date']} at {when}."}
+    tail = ""
+    if nxt:
+        when = "all day" if nxt["all_day"] else nxt["time"]
+        tail = f" Next up: {nxt['title']}, {nxt['date']} at {when}."
+    return {"ok": True, "message": lead + tail}
 
 
 @bp.route("/<section_name>/<item_id>/delete", methods=["POST"])
@@ -374,6 +420,8 @@ def section_delete(section_name, item_id):
         abort(404)
     items.pop(index)
     save(config)
+    if section_name == "calendars":
+        forget_calendar(config, current_store(), {feed_label(removed)})
     flash(f"Removed {removed.get('name') or removed.get('title') or removed.get('label') or 'it'}.", "ok")
     return redirect(url_for("settings.section_list", section_name=section_name))
 

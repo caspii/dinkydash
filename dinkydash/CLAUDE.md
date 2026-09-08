@@ -186,6 +186,38 @@ write a second history entry, and race the first over the payload. The overlappi
 instead: whatever is owed is still owed five minutes later. It is deliberately only around the tick.
 **Rewrite now** is a person asking for something, and should do it.
 
+## The guest list on a calendar
+
+A calendar entry's `shared_with` is a list of email addresses, and `parse_feed` keeps only the
+events with one of them on the guest list or as the organiser. A personal calendar full of work
+and private appointments then contributes the family things and nothing else. Four things about
+it are deliberate:
+
+- **It is per feed, not global.** The school calendar has no guests, and the global
+  `calendar_filter_emails` this replaced emptied it — which is why that key was dropped.
+- **It matches `ORGANIZER` as well as `ATTENDEE`, and any one address is enough.** An event the
+  partner arranged lists them as organiser, and a Google feed does not always list the organiser
+  as a guest of their own event. The old filter looked at `ATTENDEE` alone and required every
+  address, so it missed everything they had arranged.
+- **It runs before the event dict is built** (`calendars._events`), so a hidden event is never in
+  the payload, on the board or in the prompt — and the guest list itself is never stored. The
+  dict carries no addresses, and the log says how many addresses a feed has, never which.
+- **`describe_feed` counts before and after**, so **Check this link** can say a working link has
+  24 events and none of them match. A list that matches nobody looks exactly like an empty
+  calendar from the board, and that silent zero was the old filter's failure mode.
+- **Saving or removing a calendar forgets what it last said** (`runner.forget_calendar`, called
+  from the settings routes). The stored events under that label go, and the fetch stamp with
+  them, so the next tick owes a refresh and a calendar that is still on is back within one.
+  Without this, a guest list added after a fetch left the unfiltered events on the board and in
+  the next brief until a refresh happened to succeed — and because `_with_last_known` keeps a
+  failing feed's previous events, a feed that then went down kept them for as long as it was
+  down. Forgetting first means there is nothing old left to keep. The stored events cannot be
+  re-filtered instead: they carry no addresses, by design.
+
+`addresses()` is the one normaliser — list or comma-separated string in, lowercase list out, with
+`mailto:` stripped — and both the form and the engine go through it, so a hand-written
+`shared_with: jess@example.com` works the same as the list the settings UI writes.
+
 ## Config
 
 `config.yaml` is the single source of truth, and the settings UI writes it back. Loads and saves go
@@ -194,7 +226,8 @@ order and indentation all survive an edit made from a phone. There is a test ass
 changes exactly the lines it means to.
 
 `config.example.yaml` documents every key. Two are migrated on load: a single `calendar_url` becomes
-the first entry in `calendars`, and `calendar_filter_emails` is dropped with a warning.
+the first entry in `calendars`, and `calendar_filter_emails` becomes that entry's `shared_with` — or
+is dropped with a warning when there is no single URL to attach it to.
 
 Every item in the five edited lists — people, pets, recurring, special_dates, calendars — carries a
 short `id`. The settings UI addresses items by it, because a position is not an identity: delete the

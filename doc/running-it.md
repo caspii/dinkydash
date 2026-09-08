@@ -92,6 +92,14 @@ full steps and the gotchas.
 Add one feed per person. A feed that stops answering is reported on the settings home page and is
 skipped rather than emptying the board.
 
+A personal calendar with work and private appointments in it can still go on the board. Fill in
+**Only show events shared with** on that calendar with the other parent's email address — the one
+on the invitations — and only the events they are a guest at, or organised, get through. The rest
+is dropped as the feed is read, so it is never stored and never sent to Claude. **Check this link**
+says how many events get through out of how many, and warns you if none do. Saving a calendar
+clears what was fetched from it before, and the next tick fetches it afresh — or press **Refresh
+calendars**. In `config.yaml` the setting is `shared_with`, a list of addresses under that calendar.
+
 ## Costs
 
 One board a day on `claude-haiku-4-5` is roughly **$0.13 a month** — about 2,500 tokens in and 350

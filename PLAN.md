@@ -565,7 +565,7 @@ These are latent on a single Pi and actively harmful hosted.
 
 1. ~~**`generate.py:119` sorts events by formatted string.**~~ `events.sort(key=lambda e: e["date"])` sorted `"Friday, August 15 at 03:30 PM"` alphabetically by weekday name, so today's 8:30am school run could land after next Tuesday. Now sorted on `(date, all_day, start)` in `calendars.py`.
 2. ~~**`date.today()` / `datetime.now()` use server local time.**~~ On a UTC host a family in Auckland got the wrong day. The engine now takes an injected date, from `config_module.today_for(config)`.
-3. ~~**`calendar_filter_emails` requires all listed emails as `ATTENDEE`s.**~~ Most personal Google Calendar events have no `ATTENDEE` property at all, so it silently returned zero events. Dropped on load, with a warning; multiple calendars replaces it.
+3. ~~**`calendar_filter_emails` requires all listed emails as `ATTENDEE`s.**~~ Most personal Google Calendar events have no `ATTENDEE` property at all, so it silently returned zero events. Dropped on load, with a warning; multiple calendars replaces it. Since brought back the right way round as a per-calendar `shared_with` list: any one address is enough, `ORGANIZER` counts as well as `ATTENDEE`, **Check this link** says when it matches nobody, and a legacy `calendar_filter_emails` now migrates onto the migrated feed instead of being dropped.
 4. ~~**No tests.**~~ 157 of them, in under a second.
 
 **Also fixed, found while settling decision 10:**
