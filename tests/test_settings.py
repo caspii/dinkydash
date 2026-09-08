@@ -231,12 +231,33 @@ class TestTheClockOnTheStatusLine:
         assert "Calendars refreshed 18:00" in client.get("/settings/").get_data(as_text=True)
 
     def test_an_agenda_with_no_brief_yet_is_still_waiting(self, client, board, today):
-        # The state after a first `--tick` before brief_time: events, no words.
+        # Events, no words. Since DIN-45 a first tick writes both, so this is
+        # the state between the two halves of one — or after a brief that
+        # failed. Either way the page must not claim a board it hasn't got.
         board({"calendars_fetched_at": f"{today}T05:00:00+00:00", "events": []})
         page = client.get("/settings/").get_data(as_text=True)
         assert "No board has been generated yet." in page
         assert "Calendars refreshed 10:30" in page
         assert "from None" not in page
+
+    def test_the_button_offers_a_first_board_rather_than_a_rewrite(self, client, board, today):
+        """The waiting screen points at this button by name, so they must agree.
+
+        "Rewrite now" is the wrong word for a board nobody has written, and
+        `board.html` — which is byte-identical in both modes — tells a family
+        to press "Write it now" (DIN-45).
+        """
+        board({"calendars_fetched_at": f"{today}T05:00:00+00:00", "events": []})
+        page = client.get("/settings/").get_data(as_text=True)
+        assert "Write it now" in page
+        assert "Rewrite now" not in page
+
+    def test_and_goes_back_to_a_rewrite_once_there_is_one(self, client, board, today):
+        board({"generated_for_date": today, "generated_at": f"{today}T04:00:00+00:00",
+               "headline": "Hi", "note": "There", "events": []})
+        page = client.get("/settings/").get_data(as_text=True)
+        assert "Rewrite now" in page
+        assert "Write it now" not in page
 
     def test_an_unreadable_stamp_does_not_break_the_page(self, client, board, today):
         board({"generated_for_date": today, "generated_at": "who knows",

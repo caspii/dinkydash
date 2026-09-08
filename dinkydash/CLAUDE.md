@@ -253,6 +253,17 @@ Three rules hold this together:
   due when `generated_for_date` is not today *in the family's timezone* and the local clock has
   passed `brief_time`; a refresh is due when `calendars_fetched_at` is missing or older than
   `refresh_minutes`.
+- **The first brief is the one exception, and it is owed at once** (DIN-45). `brief_time` decides
+  when to *replace* yesterday's line, and before the first one there is nothing to replace — a
+  family with no `generated_for_date` at all has the waiting screen on the wall, which is not a
+  board at any hour. So a sign-up at 03:00 gets a board on the worker's next tick rather than at
+  06:00, and a freshly cloned Pi gets one from its first `--tick` rather than the next morning.
+  The condition is exact and needs no mode check and no new column: `save_agenda` writes only
+  `AGENDA_KEYS` and `PostgresStore.load_payload` adds `generated_for_date` only for a successful
+  generation, so the key is absent for a family that has never had a brief and present for one
+  whose calendars have merely been fetched. What it costs is that a *failing* first brief now
+  retries around the clock instead of from `brief_time`; the bound is the same one as before, which
+  is `budget.FAMILY_CALLS_A_DAY`.
 - **A refresh must not touch `headline`, `note` or `generated_for_date`**, and it now cannot: it
   writes through `store.save_agenda`, which only accepts `store.AGENDA_KEYS`. A fresh agenda under
   yesterday's brief is exactly the amber-banner state `board.build_view` already handles, and the

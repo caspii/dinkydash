@@ -7,7 +7,9 @@ Pi's cron tick and (later) a worker loop walking every family.
 The two cadences differ because their costs do. Re-fetching the calendars is a
 few HTTP requests and happens every `refresh_minutes`, which is what puts an
 appointment added at 09:00 onto the wall the same day. The brief is an API
-call and happens once a day, after `brief_time` on the family's own clock.
+call and happens once a day, after `brief_time` on the family's own clock —
+**except the first one, which is owed the moment there is a family to write it
+for** (DIN-45).
 
 A brief that fails is simply due again on the next tick. That is the retry.
 """
@@ -52,9 +54,32 @@ def refresh_due(config, payload, now):
 
 
 def brief_due(config, payload, now):
-    """True when today has no brief yet and the family's clock has passed `brief_time`."""
+    """True when today has no brief yet and the family's clock has passed `brief_time`.
+
+    **The first brief does not wait for the morning** (DIN-45). `brief_time`
+    decides when to replace yesterday's line, and there is nothing to replace
+    before the first one: a family with no brief at all has the waiting screen
+    on the wall, which is not a board at any hour. Somebody who signs up at
+    03:00 would otherwise look at it until 06:00, and that is the whole of
+    their first impression of the product.
+
+    **The signal is exact, and it is the same one in both stores.**
+    `save_agenda` writes only the agenda keys and `PostgresStore.load_payload`
+    adds `generated_for_date` only when a successful generation exists, so a
+    payload without that key is a family that has never had a brief rather
+    than one whose calendars have merely been fetched. It needs no mode check
+    and no new column: a freshly cloned Pi is in the same state, and gets the
+    same answer from its first `generate.py --tick`.
+
+    A first brief that keeps *failing* is therefore retried on every tick,
+    around the clock rather than from `brief_time` onwards. The bound is
+    unchanged and is the per-family spend cap, which a five-minute loop trips
+    within an hour (`budget.FAMILY_CALLS_A_DAY`).
+    """
+    if not payload.get("generated_for_date"):
+        return True
     local = now.astimezone(tzinfo_for(config))
-    if payload.get("generated_for_date") == local.date().isoformat():
+    if payload["generated_for_date"] == local.date().isoformat():
         return False
     return local.time() >= brief_time(config)
 
