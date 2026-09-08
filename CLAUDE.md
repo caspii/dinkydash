@@ -155,7 +155,11 @@ mode is a different product on the same code.
   `tests/test_auth.py`; none of them is a preference.
 - **A login request answers identically whether or not the address has an account**, including when
   it is rate-limited and when the send fails. Anything else enumerates accounts, and the accounts
-  are families.
+  are families. **`/login` is the sign-up form too** (DIN-41), which is why there is no "create an
+  account" route: a second page, or a second button, would say which addresses already have one.
+- **Nothing a stranger can POST creates a row that costs money.** A sign-up creates the family when
+  the emailed link is *clicked*, so an unverified one costs a token row and an email rather than a
+  trial and a daily Anthropic call. That is the rate limit; the cap is the spend breaker below.
 - **Every form that writes carries a CSRF token**, in *both* modes — `web/session.py`, with no
   switch to turn it off. A test walks the templates and fails on a form without one.
 - **Screen tokens are bearer credentials.** Rate-limited, `noindex`, no referrer leakage, rotatable,
@@ -262,7 +266,7 @@ dinkydash/
 ├── pgstore.py         PostgresStore, the cloud one. Imports psycopg; single mode never does
 ├── db.py              the connection pool and the migration runner (cloud only)
 ├── mail.py            one transactional email, over SendGrid (cloud only)
-├── accounts.py        users, and the magic links that sign them in (cloud only)
+├── accounts.py        users, the links that sign them in, and sign-up (cloud only)
 └── runner.py          the two halves of the day, reading and writing through a store
 
 web/

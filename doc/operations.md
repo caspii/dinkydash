@@ -117,13 +117,17 @@ like a quiet day: `doctl apps logs <id> worker --type run --follow` is the only 
 
 ## Magic links, 8 September 2026 (DIN-38)
 
-`/login`, `/login/link` and `/logout` exist in cloud mode. **Nothing creates a user yet** — sign-up
-is a later issue — so the one family seeded from `config.example.yaml` needs a row inserted by hand
-before anybody can sign in:
+`/login`, `/login/link` and `/logout` exist in cloud mode. **Nothing created a user when this was
+written**, so the one family seeded from `config.example.yaml` needed a row inserted by hand:
 
 ```sql
 INSERT INTO users (family_id, email) VALUES ('<the family uuid>', 'you@example.com');
 ```
+
+**That statement is obsolete as of DIN-41, below.** It is left here because it is what was actually
+run on 8 September 2026, and because it is still the way in if the app is down and somebody needs an
+account made. It is no longer the only way in, and it should not be the first thing anybody reaches
+for.
 
 One outstanding action, and it is a security one. **`.do/app.yaml` now sets a gunicorn
 `--access-logformat`** built from `%(U)s`, so the sign-in link's `?t=` is not written to the
@@ -159,7 +163,8 @@ it applied-late is harmless here: the variable is simply ignored by code that no
 **Signing in for development or support:** `venv/bin/python login_link.py you@example.com` prints a
 working link without waiting on email. Same token, same fifteen minutes, same single use, same
 per-address limit — the only thing it skips is SendGrid. **What it prints is a credential**, so it
-does not go in an issue or a screenshot. It does not create accounts; the `INSERT` above still does.
+does not go in an issue or a screenshot. It does not create accounts; sign-up does, and that now
+exists — see below.
 
 **What the sign-in limits write to the log**, which is the reason for keeping them in the app
 rather than moving them to a Cloudflare rule. Grep `web.routes.auth`:
@@ -200,6 +205,40 @@ through Cloudflare**: the CNAME target `clownfish-app-7xt89.ondigitalocean.app` 
 hostname carries a `cf-ray` too. So a Cloudflare header on a response says nothing about our proxy
 setting, and `CF-Connecting-IP` may well be present without us having put it there.
 
+
+## Sign-up, 8 September 2026 (DIN-41)
+
+**A family can be created by the product.** Posting an address to `/login` sends a link; clicking it
+creates the `families` row, the `users` row and a starting config in one transaction. The hand-written
+`INSERT` above is no longer the way in.
+
+**Nothing is created by the POST**, and that is the abuse control rather than a detail. A `families`
+row starts the 14-day trial and the worker calls Anthropic daily for it, so an unverified sign-up
+costs one `login_tokens` row and one email instead. `login_tokens.user_id` is nullable as of
+`migrations/002_signup_tokens.sql`, with an `email` column beside it.
+
+**What to watch, now that a stranger can make rows.** There is still no global spend breaker (PLAN.md
+phase 2), so the ceiling on a scripted sign-up run is the two rate limits and nothing else: twenty
+requests per caller address per hour **per web process** (`--workers 2`, so forty, and a redeploy
+resets it), and three live links per address in Postgres. Neither bounds a distributed run. Until the
+breaker lands, the check is the family count against the Anthropic bill:
+
+```sql
+SELECT status, count(*), min(created_at), max(created_at) FROM families GROUP BY status;
+```
+
+`doctl apps logs <id> site --type run | grep "sign-up link"` shows the shape of the traffic — the
+domain asked about and the caller, never the address.
+
+**Applying the migration.** `deploy_on_push` runs the `PRE_DEPLOY` job, so the schema change goes out
+with the code and needs no separate step. A failed migration fails the deploy rather than half-updating
+a live app, which is the point of it being a pre-deploy job.
+
+**Two outstanding spec applies, and they want one run.** Neither is urgent and both need the
+merge-values-from-`.env` dance in the header of `.do/app.yaml`: the dead environment variable DIN-39
+removed, and `GIT_SHA` bound to `${_self.COMMIT_HASH}` so `/healthz` stops answering
+`"commit": "unknown"`. That variable is *bindable*, not automatic — App Platform sets nothing on its
+own, which is why the two guessed fallbacks that used to be in `healthz` never fired.
 
 ## GitHub's own secret scanning
 

@@ -45,8 +45,28 @@ def pg_pool():
 
     pool = db.pool(url, min_size=1, max_size=2)
     pool.wait(timeout=10)
+    forget_ownerless_tokens(pool)
     yield pool
     pool.close()
+
+
+def forget_ownerless_tokens(pool):
+    """Delete every sign-up token, which nothing else will.
+
+    A sign-up token has no `user_id` — that is the whole point of it (DIN-41),
+    and it is why `login_tokens.user_id` became nullable. The consequence is
+    that `ON DELETE CASCADE` from `families` does not reach one, so a test that
+    posts an address and never clicks the link leaves a row behind that outlives
+    its own database.
+
+    In production the sweep takes it fifteen minutes later. Here the scratch
+    database is reused between runs, so three abandoned sign-ups for one address
+    silently exhaust `MOST_LIVE_LINKS` and the next run fails somewhere else
+    entirely. Once when the pool is built, and again after every family.
+    """
+    with pool.connection() as conn, conn.transaction():
+        with conn.cursor() as cur:
+            cur.execute("DELETE FROM login_tokens WHERE user_id IS NULL")
 
 
 @pytest.fixture
@@ -69,6 +89,8 @@ def pg_family(pg_pool):
     with pg_pool.connection() as conn, conn.transaction():
         with conn.cursor() as cur:
             cur.execute("DELETE FROM families WHERE id = %s", (family_id,))
+    # Not part of that cascade, and not reachable from it — see above.
+    forget_ownerless_tokens(pg_pool)
 
 
 # -- a test client that behaves like a browser ------------------------------

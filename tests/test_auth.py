@@ -351,9 +351,18 @@ class TestAskingForALink:
         assert len(sent) == 1
         assert sent[0]["to"] == ADDRESS
 
-    def test_an_unknown_address_gets_none(self, client, sent, pg_user):
+    def test_an_unknown_address_gets_one_too_now_that_it_can_sign_up(
+            self, client, sent, pg_user):
+        """This asserted `sent == []` until DIN-41, and the change is the point.
+
+        The same form is now the sign-up form, so an address with no account
+        gets a link that starts a board rather than silence. What must not
+        change is the page: `test_but_the_two_pages_are_identical` below is the
+        assertion that actually guards against enumeration, and it still holds.
+        """
         client.post("/login", data={"email": "stranger@example.com"})
-        assert sent == []
+        assert len(sent) == 1
+        assert "Start your DinkyDash board" in sent[0]["subject"]
 
     def test_but_the_two_pages_are_identical(self, client, sent, pg_user):
         known = client.post("/login", data={"email": ADDRESS})
@@ -667,12 +676,17 @@ class TestWhatTheLogSays:
         assert "Sent a sign-in link to a @example.com address." in caplog.text
         assert ADDRESS not in caplog.text
 
-    def test_nothing_is_logged_about_an_address_with_no_account(
+    def test_an_address_with_no_account_is_logged_by_domain_and_never_in_full(
             self, cloud, sent, pg_user, caplog):
+        """Before DIN-41 nothing happened for an unknown address, so nothing was
+        logged. Now a sign-up link goes out, and the same rule applies to it as
+        to every other line here: the domain, because a flood from one is the
+        thing worth seeing at a glance, and never the address itself."""
         with caplog.at_level("INFO"):
             client_for(cloud).post("/login", data={"email": "stranger@nowhere.test"},
                                    headers=self.CALLER)
-        assert "nowhere.test" not in caplog.text
+        assert "Sent a sign-up link to a @nowhere.test address." in caplog.text
+        assert "stranger@nowhere.test" not in caplog.text
 
     def test_a_caller_we_cannot_identify_says_so_once(self, cloud, sent, pg_user, caplog):
         """A control that has stopped working silently is worse than none."""

@@ -1,7 +1,10 @@
-{# The only page cloud mode serves to somebody with no session. One field, one
-   button, and the same answer whatever is typed into it. #}
+{# The only page cloud mode serves to somebody with no session, and it is the
+   sign-up form as well as the sign-in one. One field, one button, and the same
+   answer whatever is typed into it — a separate "create an account" page would
+   publish which addresses already have one. So the wording has to invite both
+   without saying which the reader is. #}
 {% extends "settings/base.html" %}
-{% block title %}Sign in{% endblock %}
+{% block title %}Sign in or start a board{% endblock %}
 {% block manifest %}{% endblock %}
 
 {% block appbar %}
@@ -15,10 +18,11 @@
 
 <div class="card pad" style="display:flex;flex-direction:column;gap:0.875rem;">
     <div>
-        <div style="font-size:1.125rem;font-weight:800;">Sign in</div>
+        <div style="font-size:1.125rem;font-weight:800;">Sign in or start a board</div>
         <div class="hint" style="margin-top:0.1875rem;">
-            Type the address your board is under. We send a link that signs you in — there
-            is no password to remember and none to lose.
+            Type your email address and we send you a link. It signs you in, or starts a
+            new board if you have not got one — there is no password to remember and none
+            to lose.
         </div>
     </div>
     <form method="post" action="{{ url_for('auth.login') }}"
@@ -34,6 +38,9 @@
                    spellcheck="false" inputmode="email" required>
         </div>
         <button class="btn" type="submit">Email me a link</button>
+        <div class="hint">
+            New here? The first fourteen days are free and we do not ask for a card.
+        </div>
     </form>
 </div>
 {% endblock %}
