@@ -6,6 +6,8 @@ countdowns on the wall are still *today's* — only the written line is old.
 
 from datetime import date
 
+import pytest
+
 from dinkydash.board import build_view, computed_headline
 
 CONFIG = {
@@ -246,3 +248,36 @@ class TestReloadInterval:
     def test_an_unreadable_interval_falls_back_to_five_minutes(self):
         config = dict(CONFIG, refresh_minutes="hourly")
         assert build_view(config, payload("2026-09-03"), TODAY)["reload_seconds"] == 300
+
+
+class TestTheWaitingScreen:
+    """What a family reads before their first board arrives.
+
+    `board.html` is rendered from the same file in both modes and
+    `tests/test_cloud_mode.py` asserts the two are byte-identical, so anything
+    written here has to be true of a Raspberry Pi *and* of a wall panel in a
+    kitchen. It used to say "Run `python generate.py`", which was a Pi's
+    instruction on a hosted family's screen and, since DIN-45, the wrong advice
+    on the Pi too — the next tick writes it either way.
+    """
+
+    @pytest.fixture
+    def page(self, tmp_path):
+        from dinkydash.store import FileStore
+        from tests.conftest import client_for
+        from web import create_app
+
+        path = tmp_path / "config.yaml"
+        path.write_text('family_name: "The Wilsons"\ntimezone: "Europe/Berlin"\n')
+        client = client_for(create_app(FileStore(path)))
+        return client.get("/").get_data(as_text=True)
+
+    def test_it_is_the_waiting_screen(self, page):
+        assert "first board" in page
+
+    def test_it_names_no_command(self, page):
+        # A parent reading this has no shell, and after DIN-45 nobody needs one.
+        assert "generate.py" not in page
+
+    def test_it_names_the_button_the_settings_page_actually_has(self, page):
+        assert "Write it now" in page

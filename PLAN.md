@@ -2,6 +2,8 @@
 
 *Last updated: September 8, 2026. Supersedes `HOSTING_ANALYSIS.md` (deleted — it predated both the AI generation feature and the July 2026 calendar-display repositioning, and its recommended stack and data model no longer matched the product).*
 
+*September 8, newest: **a new family gets a board within five minutes, at any hour** (DIN-45). The one thing DIN-41 left behind: the brief waited for `brief_time`, so signing up at 03:00 meant a waiting screen until 06:00 — which is most of the day, and was every family's first impression. `schedule.brief_due` now treats the **first** brief as owed at once, because `brief_time` is when to replace yesterday's line and there is nothing to replace before the first one. No queue, no column, no call to Anthropic from a web request: a payload with no `generated_for_date` already meant "never had a brief" in both stores, so the worker's existing tick answers it. Pure, so a Pi set up after dinner gets a board that evening too. See [The first board](#the-first-board).*
+
 *September 8, last: **the multi-tenancy is real** (DIN-39). `web/family.py` builds one `PostgresStore` per request from the family on the session, over a pool built once per process; `create_app` holds no store at all in cloud mode, and the environment variable that used to name "the" family is deleted from the code, the app spec and the docs. Nothing a caller can send — path segment, query parameter, form field or header — reaches a query as a family selector, which is a stronger property than checking an id against the session. The ids that do appear in URLs are item ids inside one family's config document, and another family's is not in the list: `tests/test_tenancy.py` walks every section and every write route and asserts a 404, never a 403. **Phase 1's "done when" is met.** `login_link.py` prints a sign-in link without waiting on email, because the preview and the support inbox both need one.*
 
 *September 8, later still: **magic-link auth is built** (DIN-38). `dinkydash/accounts.py` is the token lifecycle — 32 bytes from `secrets`, only the SHA-256 stored, fifteen minutes, spent by one `UPDATE ... WHERE used_at IS NULL RETURNING`; `web/routes/auth.py` is `/login`, `/login/link` and `/logout`; `web/session.py` is the cookie and a CSRF token on every form that writes, in both modes. `/settings` in cloud mode is behind a session. What was deliberately still missing at that point was the **scoping**, which DIN-39 above then did. The token rides in the query string rather than the path because the app runs `gunicorn --access-logfile -` and a login link in a log is a login in a log — see the access log format in `.do/app.yaml`, which is now a security control.*
@@ -195,11 +197,52 @@ else's appointments on a stranger's wall. The settings home says so while the bo
 untouched, which is `settings.looks_untouched` — no calendar and the default family name, a signal
 that is equally true of a freshly cloned Pi, so it needs no mode check.
 
-**Still open, and not this issue's:** the gap between the click and the first board. The worker's
-next tick refreshes the calendars within five minutes, but the brief waits for `brief_time` on the
-family's clock, so a 03:00 sign-up looks at a waiting screen until 06:00. PLAN.md's "**Generate now**
-on signup" line under [Scheduling](#scheduling-cloud-mode) is what closes it, and it is a Phase 2
-worker item — a web request must not call Anthropic.
+**The gap between the click and the first board is closed** (DIN-45). It was the one thing DIN-41
+left: the worker's next tick refreshed the calendars within five minutes, but the brief waited for
+`brief_time` on the family's clock, so a 03:00 sign-up looked at a waiting screen until 06:00.
+`schedule.brief_due` now treats the *first* brief as owed at once — `brief_time` decides when to
+replace yesterday's line, and before the first one there is nothing to replace. Nothing was added
+to make that decision: a payload with no `generated_for_date` is a family that has never had a
+brief, in both stores, and it needed neither a column nor a queue nor a mode check. A web request
+still does not call Anthropic; the worker does, on the next tick, against the same budget. See
+[The first board](#the-first-board).
+
+### The first board
+
+*Built in DIN-45.* The first brief is owed the moment there is a family to write it for, rather than
+at `brief_time`. Every family that has ever signed up has met the old behaviour, because the odds of
+signing up in the hour before six are small — so this was not an edge case, it was the ordinary path.
+
+**The exception belongs in `schedule.brief_due` and nowhere else.** The alternatives were a queue, a
+column, or a call from the sign-up route, and each one would have been a second place that decides
+what a tick owes. The worker's docstring says *nothing about what is owed is decided here*, and that
+is only worth writing if it stays true. So the rule moved instead: `brief_time` is when to **replace**
+yesterday's line, and before the first one there is nothing to replace.
+
+**The signal is exact and it was already stored.** `save_agenda` writes only `store.AGENDA_KEYS`, and
+`PostgresStore.load_payload` adds `generated_for_date` only for a generation with `status = 'ok'`. A
+payload without that key is therefore a family that has never had a brief — never a family whose
+calendars have merely been fetched, which is the state the first tick passes through between its two
+halves. Nothing had to be added to make the question answerable.
+
+**It is a pure change, so a Pi gets it too**, and wanted it: `generate.py --tick` used to write
+nothing at all on a machine set up after dinner. No mode check, and none of the four things mode is
+allowed to gate is involved.
+
+**What it costs is a failing first brief retried around the clock** rather than from `brief_time`
+onwards. The bound is unchanged — the per-family cap of `budget.FAMILY_CALLS_A_DAY`, tripped within
+an hour by a five-minute loop (DIN-43). Charging on the attempt is what makes that true of a revoked
+key as well as a refused one.
+
+**The copy on the waiting screen changed with it**, and had to. `board.html` is byte-identical in
+both modes, and it said "Run `python generate.py` to fill this in" — a Pi's instruction on a hosted
+family's wall panel, and after this the wrong advice on the Pi as well, because the next tick writes
+it. It names no command now, and points at the settings button by name; that button says **Write it
+now** rather than "Rewrite now" when there is nothing written yet, so the two agree. It is the short
+label rather than the clearer one because `.btn` is a fixed `3rem` high and has no second line to
+wrap onto: the half-row it sits in measures **131px on a 375px phone and 103px on a 320px one**,
+against 92px for "Write it now", 95px for "Rewrite now", 118px for "Write the board" and **152px for
+"Write the first board"**. Only the first two survive the small phone.
 
 ### The screen
 
@@ -444,7 +487,9 @@ The board template is shared; only the route that reaches it differs.
 - Synchronous Claude calls; a small thread pool for the fetches. At 1,000 families on the hourly
   default that is 17 fetches a minute and 1,000 API calls a day, spread across the timezones.
 - ~~Fan out via the Batch API~~ — deferred; see the cost model and open questions.
-- **"Generate now"** on signup — a new family sees their dashboard in seconds, not tomorrow
+- ~~**"Generate now"** on signup~~ — done in DIN-45, and by changing what is *owed* rather than by
+  adding a path that generates: the first brief is due at once, so the next tick writes it. A new
+  family sees their board within five minutes, not tomorrow. See [The first board](#the-first-board).
 - Idempotency: unique on `(family_id, generated_for_date)`
 - On failure: keep last-good payload, mark stale, retry on later ticks with backoff, email the
   parent after N consecutive failures
@@ -844,7 +889,7 @@ missing is the multi-tenant half — a schema, auth, and scoping every read and 
 
 - [x] Worker process: the 5-minute tick over every family that is due, per the scheduling section. Running since 8 September; `worker/` and `tests/test_worker.py`.
 - [x] Calendar refresh and daily brief as separate operations, each recorded (`agendas`, `generations`) *(DIN-17, DIN-28)*
-- [x] "Generate now" and "Refresh calendars" for onboarding and manual use — both on the settings home, and both work in cloud mode. **What is still missing is "Generate now" *on signup*:** a family who signs up at 03:00 sees the waiting screen until their `brief_time`, because the brief is not due before then.
+- [x] "Generate now" and "Refresh calendars" for onboarding and manual use — both on the settings home, and both work in cloud mode. **"Generate now" *on signup* is done too** *(DIN-45)*: a family who signs up at 03:00 no longer waits for `brief_time`, because the first brief is owed at once rather than in the morning. See [The first board](#the-first-board).
 - [x] Per-family daily idempotency on the brief — `schedule.due` asks for one brief per local day and `generations` is unique on `(family_id, generated_for_date)`, so a second write for a day replaces rather than adds
 - [x] Per-family and **global** spend caps with a hard breaker *(DIN-43)*. See [The spend breaker](#the-spend-breaker). "Rewrite now" is charged against the same budget as the worker, because it is the same money.
 - [ ] Keep-last-good on failure; retry with backoff on later ticks; consecutive-failure tracking; parent notification after N

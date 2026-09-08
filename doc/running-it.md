@@ -20,6 +20,10 @@ buys nothing: Google's secret `.ics` link is cached at their end and can lag by 
 the only part that costs money. The same page changes the hour. A brief that fails is simply
 owed again five minutes later, so a network blip at dawn no longer means a day-old line.
 
+**The very first one does not wait for the morning.** That hour says when to replace yesterday's
+line, and on a board nobody has generated yet there is nothing to replace — so a Pi set up after
+dinner writes its board on the next tick rather than showing "Writing … first board" all evening.
+
 Both write atomically to `dashboard_data.json`, and a refresh never touches the written line.
 
 The browser does the rest of the work on every render: ages, countdowns, whose turn it is, and
@@ -35,7 +39,7 @@ so today's times are still there and still right.
 |---|---|---|
 | The board, no banner | Today's run succeeded | Nothing |
 | An amber banner across the top | Today's brief failed or hasn't happened yet. Times, turns and countdowns are still today's; only the written line is older, and it is labelled | Nothing — the next tick retries. Check `generate.log` if it stays. Press **Rewrite now** in settings to force it |
-| "Writing … first board" | Nothing has ever been generated | Press **Rewrite now**, or run `python generate.py` |
+| "Writing … first board" | Nothing has ever been generated | Nothing — the next tick writes it, whatever the hour. Press **Write it now** in settings if you'd rather not wait |
 
 The board never blanks itself. A failed run leaves the previous one up rather than clearing the
 screen, on the grounds that a stale kitchen board beats an empty one.

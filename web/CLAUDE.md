@@ -116,6 +116,15 @@ single-column layout (an iPad in portrait) has no side column to hide behind and
 full price, around 13-18%. Everything fits at all three sizes in every case. Raising either
 constant spends more type size, so measure at `/preview` before you do.
 
+**The waiting screen may not name a command, and that is a mode rule rather than a style one.**
+`board.html` is one file rendered by both modes and `tests/test_cloud_mode.py` asserts the two are
+byte-identical, so `python generate.py` on it was a Pi's instruction sitting on a hosted family's
+wall panel — where nobody has a shell, and where the token in the address bar is the only thing
+that page is for. Since DIN-45 the first brief is owed at once, so what it says instead is true in
+both: the next tick writes it. It points at the settings button by name, and that button reads
+**Write it now** rather than "Rewrite now" while `status.state == "waiting"`, so the two
+agree; `tests/test_board.py` and `tests/test_settings.py` fail if they stop.
+
 In two-column mode the body is a grid, and **the note sits under the agenda, not across the
 bottom**. The agenda is short on a quiet day while chores plus countdowns are not, so a full-width
 note left the lower left quarter of an 800x480 panel empty. Under the agenda it balances the two

@@ -37,17 +37,56 @@ class TestFirstRun:
         # Nothing has ever been stored, so there is nothing to be stale.
         assert due(BERLIN, None, utc("2026-09-03 01:00"))["refresh"] is True
 
-    def test_no_payload_before_the_brief_time_owes_only_the_fetch(self):
-        # 03:00 Berlin. The agenda can be fetched now; the brief waits for 06:00
-        # rather than landing on the wall in the middle of the night.
+    def test_no_payload_before_the_brief_time_owes_both_anyway(self):
+        # 03:00 Berlin, and the first board does not wait for 06:00 (DIN-45).
+        # Somebody who signed up in the night has the waiting screen on the
+        # wall, and that is not a board at any hour.
         owed = due(BERLIN, None, utc("2026-09-03 01:00"))
-        assert owed == {"refresh": True, "brief": False}
+        assert owed == {"refresh": True, "brief": True}
 
     def test_no_payload_after_the_brief_time_owes_both(self):
         assert due(BERLIN, None, utc("2026-09-03 07:00")) == {"refresh": True, "brief": True}
 
     def test_an_empty_payload_is_the_same_as_none(self):
         assert due(BERLIN, {}, utc("2026-09-03 07:00")) == {"refresh": True, "brief": True}
+
+
+class TestTheFirstBrief:
+    """DIN-45: a family that has never had one is owed it now, not at `brief_time`.
+
+    The condition is "the payload holds no `generated_for_date`", which both
+    stores produce for exactly one situation — no successful generation. A
+    calendar refresh does not clear it, and that is the pair of cases below.
+    """
+
+    @pytest.mark.parametrize("moment", ["2026-09-03 01:00",   # 03:00 Berlin
+                                        "2026-09-03 22:30",   # 00:30, the next day
+                                        "2026-09-03 12:00"])  # 14:00, an ordinary afternoon
+    def test_it_is_owed_at_any_hour(self, moment):
+        assert brief_due(BERLIN, {}, utc(moment)) is True
+
+    def test_a_fetched_agenda_is_not_a_brief(self):
+        # The worker's first tick refreshes and writes, in that order. Between
+        # the two the payload holds an agenda and nothing else, and that must
+        # still read as "no brief" or the board it just fetched for stays blank.
+        stored = payload(fetched="2026-09-03T01:00:00+00:00")
+        assert brief_due(BERLIN, stored, utc("2026-09-03 01:00")) is True
+
+    def test_once_the_first_one_is_written_the_next_waits_for_the_morning(self):
+        # The guard against "always due": having written one, the ordinary
+        # rule is back and tomorrow's line waits for 06:00 Berlin.
+        stored = payload(generated_for="2026-09-03")
+        assert brief_due(BERLIN, stored, utc("2026-09-03 22:30")) is False  # 00:30 on the 4th
+        assert brief_due(BERLIN, stored, utc("2026-09-04 03:59")) is False  # 05:59
+        assert brief_due(BERLIN, stored, utc("2026-09-04 04:00")) is True   # 06:00
+
+    def test_the_timezone_still_decides_which_day_it_is(self):
+        # 18:00 UTC on the 14th is 06:00 on the 15th in Auckland. A family with
+        # no brief is owed one either way, and the one written for the 15th
+        # then holds — the first-run exception must not outlive the first run.
+        assert brief_due(AUCKLAND, {}, utc("2026-06-14 17:59")) is True
+        assert brief_due(AUCKLAND, payload(generated_for="2026-06-15"),
+                         utc("2026-06-14 18:00")) is False
 
 
 class TestRefresh:

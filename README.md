@@ -38,7 +38,8 @@ the same file, and the UI keeps your comments.
 
 ```
 [cron every 5m] → generate.py --tick → every hour: re-fetches every iCal feed, in time order
-                                     → once a day at 06:00: builds the prompt, calls Claude
+                                     → once a day at 06:00 (and at once on the first run):
+                                       builds the prompt, calls Claude
                                      → saves dashboard_data.json
 
 [browser]       → web/routes/board.py → recomputes chores, countdowns and today's agenda

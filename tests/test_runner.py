@@ -415,6 +415,45 @@ class TestTick:
         assert payload["events"] == EVENTS
         assert payload["headline"] == "Big morning"
 
+    def test_the_first_tick_does_not_wait_for_the_brief_time(self, home, monkeypatch, api_key):
+        """DIN-45, end to end and at the hour that used to fail.
+
+        01:00 UTC is 03:00 Berlin, three hours before `brief_time`. This is a
+        family who signed up in the night, or a Pi somebody set up after
+        dinner: what they have on the wall is the waiting screen, and one
+        tick has to replace it. Before this the tick refreshed the calendars
+        and went back to sleep until 06:00.
+        """
+        monkeypatch.setattr(runner, "fetch_events", fake_fetch(EVENTS, OK_STATUS))
+        client = FakeClient()
+        monkeypatch.setattr(cli, "write_brief",
+                            lambda config, store, **kw: runner.write_brief(
+                                config, store, client=client, **kw))
+        assert self.run_tick(home, monkeypatch, datetime(2026, 9, 3, 1, tzinfo=timezone.utc)) == 0
+        payload = stored(home)
+        assert payload["headline"] == "Big morning"
+        # Written for the family's day, not the server's — and the fetch
+        # happened first, so the first brief is about a real agenda.
+        assert payload["generated_for_date"] == "2026-09-03"
+        assert payload["events"] == EVENTS
+
+    def test_the_next_tick_after_it_is_quiet_again(self, home, monkeypatch):
+        """The exception is for the first board only, not a standing licence.
+
+        Five minutes after the tick above, with the brief written and the
+        calendars just fetched, nothing may be owed — or a family who signed
+        up at 03:00 would be paying for a brief every five minutes until dawn.
+        """
+        write_stored(home, {"generated_for_date": "2026-09-03",
+                            "calendars_fetched_at": "2026-09-03T01:00:00+00:00",
+                            "headline": "Written in the night", "note": "…",
+                            "events": EVENTS})
+        monkeypatch.setattr(cli, "refresh_calendars", refuse("the fetch"))
+        monkeypatch.setattr(cli, "write_brief", refuse("the model call"))
+        assert self.run_tick(home, monkeypatch,
+                             datetime(2026, 9, 3, 1, 5, tzinfo=timezone.utc)) == 0
+        assert stored(home)["headline"] == "Written in the night"
+
     def test_tick_and_date_are_refused(self, home):
         with pytest.raises(SystemExit):
             cli.main(["--tick", "--date", "2026-12-24", "--config", str(home / "config.yaml")])

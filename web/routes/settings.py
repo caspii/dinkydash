@@ -219,7 +219,12 @@ def home():
     payload = current_store().load_payload(config)
 
     tzinfo = config_module.tzinfo_for(config)
-    status = {"state": "waiting", "detail": "No board has been generated yet."}
+    # "The next run" rather than a number of minutes: it is a worker tick in
+    # cloud mode and a cron line on a Pi, and only one of those is ours to
+    # promise. Either way the first brief is owed at once rather than at
+    # `brief_time` (DIN-45), so there is no morning to wait for.
+    status = {"state": "waiting",
+              "detail": "No board has been generated yet. The next run writes it."}
     if payload:
         generated_for = payload.get("generated_for_date")
         written = _clock(payload.get("generated_at"), tzinfo)
