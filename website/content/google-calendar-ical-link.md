@@ -85,6 +85,12 @@ A calendar link on its own does nothing. The point of getting it is to show the 
 somewhere the family will actually look — a tablet in the hall, an old TV, a small screen on
 the kitchen wall.
 
+Which screen? An [old iPad](/ipad-calendar-display/) or an [Android
+tablet](/android-tablet-calendar-display/) is the cheapest good panel, a [Raspberry
+Pi](/raspberry-pi-family-calendar/) the tidiest, and a [smart TV](/smart-tv-calendar-display/)
+or [Fire TV](/fire-tv-calendar-display/) will show it on the big screen. There is one device it
+does not work on, and [the Echo Show page](/echo-show-calendar-display/) says why.
+
 [DinkyDash](/) is free, open-source software that does exactly that: paste the link and it
 shows today's events on a wall screen, alongside a rotating chore chart, birthday countdowns
 and a daily line written each morning. There is no Google sign-in — the link is the whole

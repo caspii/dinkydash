@@ -58,6 +58,12 @@ dashboard: today's events, a chore chart that rotates between people by itself, 
 birthdays and holidays, and a short line written fresh every morning by AI. It runs in a
 browser, so an old tablet, a spare monitor, a TV or a Raspberry Pi will all do.
 
+Which screen? An [old iPad](/ipad-calendar-display/) or an [Android
+tablet](/android-tablet-calendar-display/) is the cheapest good panel, a [Raspberry
+Pi](/raspberry-pi-family-calendar/) the tidiest, and a [smart TV](/smart-tv-calendar-display/)
+or [Fire TV](/fire-tv-calendar-display/) will show it on the big screen. There is one device it
+does not work on, and [the Echo Show page](/echo-show-calendar-display/) says why.
+
 ![The DinkyDash board on a kitchen wall, showing today's events, chores and countdowns](/images/family-calendar-kitchen-wall.webp)
 
 Point it at Cozi:
