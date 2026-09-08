@@ -27,6 +27,29 @@ Guidance for `website/`. The root `CLAUDE.md` holds the rules that apply to ever
   are separate deployables, so editing one means editing both. The site's copy carries the
   italic pair as well; the board's does not, because the board never sets italic.
 
+## The per-provider calendar guides
+
+`google-calendar-ical-link`, `icloud-calendar-link`, `outlook-calendar-ics-link` and
+`cozi-calendar-display` are one page per provider: the onboarding documentation we owe
+users either way. `getting-started` keeps the short steps and links out to each. The case
+for them having their own URLs rather than being three bullets is in DIN-14.
+
+Two things they need that no other page does:
+
+- **Every example address is visibly fake**, with an `xxxx` run in it, the way
+  `config.example.yaml` writes `private-xxxx`. `tests/test_site.py` walks `content/` and
+  `templates/` and fails on a feed URL without one. gitleaks catches a real Google or iCloud
+  address over the whole history; that test is what catches the shapes it has no rule for,
+  before the commit. **Neither can read a screenshot** — check the address bar by hand.
+- **An address goes in a ` ```url ` block, not a bare ` ``` ` one.** Code blocks scroll
+  sideways on purpose, because wrapping a shell command invites somebody to paste half of it.
+  A calendar address running off the right edge of the page that explains it is no use, so
+  `base.html` gives `code.language-url` alone `white-space: pre-wrap`.
+
+Only claim a step, a button name or a URL shape that a current provider support page confirms.
+A guide that is confidently wrong about somebody else's settings screen is worse than no
+guide, and these are the pages a stranger meets first.
+
 ## The legal pages
 
 `content/privacy.md` and `content/terms.md` are the hosted service's, and they are **claims

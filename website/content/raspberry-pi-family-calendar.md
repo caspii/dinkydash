@@ -15,7 +15,9 @@ This page covers the hardware side — which Pi, which screen, what it draws, wh
 
 [DinkyDash](https://github.com/caspii/dinkydash) is a free, open-source, MIT-licensed family dashboard built for exactly this. On the display you get:
 
-- **Today's events**, pulled from Google Calendar or any calendar with an iCal link
+- **Today's events**, pulled from Google Calendar or any calendar with an iCal link —
+  [Google](/google-calendar-ical-link/), [iCloud](/icloud-calendar-link/),
+  [Outlook](/outlook-calendar-ics-link/) and [Cozi](/cozi-calendar-display/) each have one
 - **A chore chart** that rotates between family members automatically each day
 - **Countdowns** to birthdays, holidays and vacations
 - **A daily brief written by Claude** — a fresh greeting and fun fact every morning, written around your actual family

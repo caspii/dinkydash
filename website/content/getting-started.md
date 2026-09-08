@@ -11,7 +11,7 @@ You do not need an Anthropic API key to try it — there is a no-key preview in 
 ## What you need
 
 - **Python 3.11 or newer.**
-- **One or more calendar links** in iCal format. Google Calendar, Apple iCloud Calendar and Outlook all give you one — see [find your calendar link](#find-your-calendar-link) below for the steps. Treat that link like a password: anyone who has it can read that calendar.
+- **One or more calendar links** in iCal format. Google Calendar, Apple iCloud Calendar, Outlook and Cozi all give you one — see [find your calendar link](#find-your-calendar-link) below for the steps. Treat that link like a password: anyone who has it can read that calendar.
 - **An Anthropic API key** ([get one here](https://console.anthropic.com/settings/keys)) — only for the daily headline and one line of copy. You can run the whole board without it first.
 - **A Raspberry Pi** with a small screen, for the permanent version. A Pi 4 with 2GB of RAM and the official 7-inch display (800×480) is the easy path. Hardware details are on the [Raspberry Pi build guide](/raspberry-pi-family-calendar/).
 
@@ -19,9 +19,11 @@ You do not need an Anthropic API key to try it — there is a no-key preview in 
 
 <h2 id="find-your-calendar-link">Find your calendar link</h2>
 
-DinkyDash reads calendars over iCal, the sharing format every calendar app speaks. **Google Calendar, Apple iCloud Calendar and Outlook all give you an iCal link**, and any of the three works. Add one per person and they merge into a single agenda.
+DinkyDash reads calendars over iCal, the sharing format every calendar app speaks. **Google Calendar, Apple iCloud Calendar, Outlook and Cozi all give you an iCal link**, and any of them works. Add one per person and they merge into a single agenda.
 
 This is a link, not a login. DinkyDash never signs in to your Google, Apple or Microsoft account — it fetches the link on a schedule, and can only read.
+
+Each provider has a page of its own here, with the steps in full, what the address looks like, and what to do when it stops working. The short version is below.
 
 ### Google Calendar
 
@@ -32,14 +34,18 @@ This is a link, not a login. DinkyDash never signs in to your Google, Apple or M
 
 If the address ever leaks, **Reset** on that same screen issues a new one and kills the old. On a work or school account an administrator can switch secret addresses off altogether — if the section is missing, that is why, and a personal calendar is the way round it.
 
+→ [Google Calendar's iCal link, in full](/google-calendar-ical-link/)
+
 ### Apple iCloud Calendar
 
 1. Open [iCloud Calendar](https://www.icloud.com/calendar/) in a browser and sign in. You can also do this from the Calendar app on a Mac, iPhone or iPad.
-2. Hover over the calendar in the sidebar and open its share options.
-3. Switch on **Public Calendar**, then **Copy Link**.
+2. Hover over the calendar in the sidebar and click the **information icon** (ⓘ) next to its name.
+3. Switch on **Public Calendar**, then press **Copy**.
 4. **Paste it as it is.** A `webcal://` link is converted to `https://` for you — the rest of the address stays exactly as it is. Links have to be https; a plain `http://` feed is refused, because it would send the secret address across the network in the clear.
 
 "Public" here means a long random address rather than a listed page, but anyone holding it can read that calendar — keep it to yourself. Turning sharing off and on again issues a *different* link, and the old one stops working, so the board will need the new one.
+
+→ [The iCloud calendar link, in full](/icloud-calendar-link/)
 
 ### Outlook and Microsoft 365
 
@@ -47,6 +53,19 @@ If the address ever leaks, **Reset** on that same screen issues a new one and ki
 2. Under **Publish a calendar**, choose the calendar you want.
 3. Set the permission to **Can view all details**. The lesser options hide event titles, and titles are what the board shows.
 4. Press **Publish**. Two links appear — copy the **ICS** one, not the HTML one.
+
+→ [Publishing an Outlook calendar, in full](/outlook-calendar-ics-link/)
+
+### Cozi
+
+1. Sign in to [Cozi](https://my.cozi.com/) in a browser and open **Settings**.
+2. In the calendar section, open **Shared Cozi Calendars**.
+3. Switch the family member you want from **Unshared** to **Shared**.
+4. Press **View or send Cozi URL**, then **Copy Cozi URL**.
+
+Each family member is a separate feed, so share each one you want and add them all. Cozi Gold is not needed for this.
+
+→ [Cozi on a wall display, in full](/cozi-calendar-display/)
 
 ### Then paste it in
 
