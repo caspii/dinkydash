@@ -20,11 +20,13 @@
         {# The cheap half first: fetching the calendars costs a few requests,
            while rewriting the line costs a call to Claude. #}
         <form class="inline-form" method="post" action="{{ url_for('settings.refresh_now') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button class="btn" type="submit">{{ icons.refresh() }} Refresh calendars</button>
         </form>
         <div style="display:flex;gap:0.625rem;">
             <a class="btn outline" style="flex:1;" href="{{ url_for('board.index') }}">{{ icons.screen() }} View board</a>
             <form class="inline-form" method="post" action="{{ url_for('settings.generate_now') }}" style="flex:1;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <button class="btn outline" type="submit">Rewrite now</button>
             </form>
         </div>
@@ -105,6 +107,14 @@
         </a>
     </div>
 </div>
+
+{# Only hosted. Self-hosted has no accounts, so there is nothing to sign out of. #}
+{% if cloud %}
+<form method="post" action="{{ url_for('auth.logout') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button class="btn outline" type="submit">Sign out</button>
+</form>
+{% endif %}
 
 {# Hidden until the script below decides it is worth showing: not already saved,
    and not waved away before. #}

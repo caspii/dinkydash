@@ -9,6 +9,7 @@
 
 {% block content %}
 <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div class="label">Board colours</div>
     <div style="display:flex;gap:0.625rem;">
         {% for theme in themes %}

@@ -25,7 +25,8 @@ Four rules keep it a seam rather than a name:
 - **`store.py` and `config.py` are the only files under `dinkydash/` that open a file**, and
   `pgstore.py` and `db.py` are the only ones that import psycopg. `grep -rn "open(" dinkydash web`
   is the check, and it should stay that short. A new file read anywhere else is a caller that cloud
-  mode will have to fork.
+  mode will have to fork. `accounts.py` queries Postgres and still imports no driver: it is handed
+  a pool and asks it for connections, which is the shape anything cloud-only should copy.
 - **`data_file` and `content_history_file` are storage-layer keys.** They stay in `DEFAULTS` and in
   `config.example.yaml` for compatibility, and only `FileStore` reads them. They mean nothing hosted.
 - **The store is passed, never constructed, below the entry points.** `generate.py`, `app.py` and
@@ -51,6 +52,34 @@ Four rules keep it a seam rather than a name:
 **Every `PostgresStore` query is scoped to `self.family_id`.** There is no unscoped read and no
 unscoped write in that file, and there must never be one. An id arriving in a URL is a claim, not a
 fact, and the place to check it is before it reaches a store.
+
+Two things are unscoped, both deliberately outside the store rather than weakening it:
+`worker.family_ids`, whose whole job is to walk every family, and `dinkydash/accounts.py`, which
+resolves an email address to a user before there is a family to scope to. A magic link has to find
+exactly one person without being told which family they belong to, which is why `users.email` is
+globally unique.
+
+## Signing somebody in
+
+`accounts.py` is the token lifecycle and nothing else: mint, hash, spend, sweep. Four things in it
+are load-bearing, and each is asserted in `tests/test_auth.py`:
+
+- **Only the hash is stored.** The plaintext exists for the length of one email. SHA-256 rather
+  than a slow KDF, because 32 bytes from `secrets` has nothing to guess and bcrypt would only make
+  every login slower.
+- **Single use is one statement.** `UPDATE ... WHERE token_hash = %s AND used_at IS NULL AND
+  expires_at > now() RETURNING user_id` decides and marks together, so two clicks — or a mail
+  scanner arriving a second before the person — cannot both come back with a user. A read-then-write
+  would pass every test that ran the two in order.
+- **Time comes from Postgres.** `now()` is the transaction clock, one clock for however many web
+  instances, and it cannot drift out of step with the row it is compared to.
+- **Expired, spent and never-issued are one answer.** `consume_link` returns `None` for all three,
+  so there is nothing for a caller to leak by accident.
+
+The per-address rate limit lives in the same `INSERT` — at most `MOST_LIVE_LINKS` unexpired tokens
+per user — so two requests arriving together cannot both read "two live links" and both make a
+third. The per-IP half is in `web/ratelimit.py` and is in-process, because a database write on
+every unauthenticated request is itself something to flood.
 
 ## Cloud mode: schema, migrations, connections
 

@@ -11,6 +11,7 @@ import pytest
 
 from dinkydash import config as config_module
 from dinkydash.store import FileStore
+from tests.conftest import client_for
 from web import create_app
 
 CONFIG = """\
@@ -43,9 +44,7 @@ def config_path(tmp_path):
 @pytest.fixture
 def client(config_path):
     """The app over that config, handed the store rather than finding one."""
-    app = create_app(FileStore(config_path))
-    app.config["TESTING"] = True
-    return app.test_client()
+    return client_for(create_app(FileStore(config_path)))
 
 
 def people(config_path):

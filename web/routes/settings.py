@@ -22,10 +22,23 @@ from dinkydash.context import compute_birthday_info, upcoming_for
 from dinkydash.runner import forget_calendar, refresh_calendars
 from dinkydash.runner import run as run_generation
 from web import manifest as manifest_module
+from web.session import guard
 
 log = logging.getLogger(__name__)
 
 bp = Blueprint("settings", __name__)
+
+
+@bp.before_request
+def _needs_a_session():
+    """Cloud mode: everything under /settings is behind a magic link.
+
+    `guard()` reads the mode off `current_app` rather than being registered
+    conditionally, because this blueprint object is shared by every app built
+    in a process — attaching a cloud-mode hook to it would follow the next
+    single-mode app that imported it.
+    """
+    return guard()
 
 
 # Each field is (name, label, kind, required, help). `kind` decides both the

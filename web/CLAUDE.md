@@ -16,6 +16,22 @@ branch in `parse_field` and a branch in `web/templates/settings/edit.html`; noth
 `web/templates/settings/home.html`. The list, edit, delete and reorder routes are generic and need
 no changes.
 
+**Every form that writes needs one hidden field.** `<input type="hidden" name="csrf_token"
+value="{{ csrf_token() }}">`, right inside the `<form>`. `csrf_token()` is a Jinja global set up by
+`web/session.py`, so no route has to remember to pass anything — but a form without the field is a
+400, in both modes, and `tests/test_auth.py` walks the templates and fails on one. There is
+deliberately no switch to turn the check off; the test client in `tests/conftest.py` fills the field
+in the way a browser does.
+
+**Two chromes, one base.** `settings/base.html` is the phone-shaped shell for everything a person
+signs into — the settings pages and, in cloud mode, `auth/login.html` and `auth/sent.html`. The
+manifest link in its `<head>` is a `{% block manifest %}` so the login page can drop it: the
+manifest route is behind the login, and asking for it from outside would only ever be a redirect.
+
+**`cloud` is the template global for the mode**, not Flask's `config`. The settings pages pass the
+*family's* config dict under that name and shadow the app's, which is why `create_app` sets a
+separate `cloud` boolean — the Sign out button on the settings home is the first thing to use it.
+
 ## The board's layout
 
 **Changing the board layout.** Everything is sized in `rem` off one root value, so check all three

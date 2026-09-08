@@ -2,6 +2,8 @@
 
 *Last updated: September 8, 2026. Supersedes `HOSTING_ANALYSIS.md` (deleted — it predated both the AI generation feature and the July 2026 calendar-display repositioning, and its recommended stack and data model no longer matched the product).*
 
+*September 8, later still: **magic-link auth is built** (DIN-38). `dinkydash/accounts.py` is the token lifecycle — 32 bytes from `secrets`, only the SHA-256 stored, fifteen minutes, spent by one `UPDATE ... WHERE used_at IS NULL RETURNING`; `web/routes/auth.py` is `/login`, `/login/link` and `/logout`; `web/session.py` is the cookie and a CSRF token on every form that writes, in both modes. `/settings` in cloud mode is behind a session. What is deliberately still missing is the **scoping**: cloud mode still serves `DINKYDASH_FAMILY_ID` rather than the family on the session, which is the actual "done when" of this phase and its own issue. The token rides in the query string rather than the path because the app runs `gunicorn --access-logfile -` and a login link in a log is a login in a log — see the access log format in `.do/app.yaml`, which is now a security control.*
+
 *September 8, later: **one service, not two.** The board joins the marketing site in the existing `dinkydash-site` app rather than getting its own, because that is how `qrpage.co` and `abc-league` already run in this account — one container, one gunicorn, everything in it. Staging is dropped until there is a paying family to protect. The `worker` is the one genuine addition, because the tick has no lock and two web instances would tick twice. See [Hosting and deployment](#hosting-and-deployment).*
 
 *September 8: the transactional email provider is settled — decision 13, **SendGrid**, on the account KeepTheScore already sends from. The open question is closed. `dinkydash.co` is an authenticated sending domain on that account (DKIM and a monitor-only DMARC record are live in Cloudflare), and this repo has its own send-only API key. What is not built is the sending itself — that arrives with magic links in Phase 1.*
@@ -273,7 +275,9 @@ The board template is shared; only the route that reaches it differs.
 ```
                         single                  cloud
 /                       the board               → /settings if signed in, else /login
-/login                  —                       magic-link request and landing
+/login                  —                       ask for a link; `?t=` is the landing
+/login/link?t=<token>   —                       spend the token, start the session
+/logout                 —                       throw the session away
 /settings/…             as today                as today, scoped to the session's family
 /s/<token>              —                       the board
 /preview                three sizes of /        under /settings, framing /s/<token>
@@ -674,8 +678,8 @@ timezone, family name and location under `/system`. The boxes below stay unticke
 missing is the multi-tenant half — a schema, auth, and scoping every read and write to a `family_id`.
 
 - [x] Schema + migrations per the sketch above; `PostgresStore` behind the seam *(DIN-31)*
-- [ ] Magic-link auth: token hashed at rest, single use, 15-minute expiry, request endpoint rate-limited. Signing in through the link *is* email verification — there is no second step.
-- [ ] Session hygiene: `Secure`, `HttpOnly`, `SameSite=Lax`; a CSRF token on every form; cloud mode refuses to start without `DINKYDASH_SECRET_KEY`
+- [x] Magic-link auth: token hashed at rest, single use, 15-minute expiry, request endpoint rate-limited per address and per caller. Signing in through the link *is* email verification — there is no second step. *(DIN-38)*
+- [x] Session hygiene: `Secure` (cloud only — a Pi serves plain HTTP), `HttpOnly`, `SameSite=Lax`; a CSRF token on every form, in **both** modes and with no switch to turn it off; cloud mode refuses to start without `DINKYDASH_SECRET_KEY` *(DIN-38)*
 - [x] `fetch_feed` hardening before any stranger's URL is fetched: `https` only, redirects that cannot land on a private range, a response size cap beside the timeout *(DIN-33)*. The settings page's "Check this link" goes through the same function, so it is covered too. DNS rebinding is documented as still open.
 - [ ] Family setup wizard: people + DOBs, emoji/color avatars, pets, chores, special dates
 - [ ] Multi-calendar management: add/label/enable/remove iCal feeds, with live validation on paste
@@ -738,7 +742,7 @@ missing is the multi-tenant half — a schema, auth, and scoping every read and 
 - [ ] Sentry (already connected) in both processes; uptime check on `/healthz`
 - [ ] Generation-success dashboard; alerts on failure rate, calendar-fetch failures, spend breaker, Stripe webhook failures, and the dead-man's switch
 - [ ] **The restore drill.** DigitalOcean takes daily backups and keeps 7 days of point-in-time recovery, so the *dump* is no longer a job. Restoring into a scratch database on a schedule still is, and an untested backup is a hope. Script it; run it monthly.
-- [ ] SendGrid wired up in the app *(decision 13)*. The account, the authenticated sending domain and a send-only API key already exist; what is missing is the code that calls them, and it lands with magic links in Phase 1 rather than here.
+- [x] SendGrid wired up in the app *(decision 13)*. `dinkydash/mail.py` is the send (DIN-36) and `web/routes/auth.py` is its first caller (DIN-38), so this landed in Phase 1 as planned rather than here.
 - [ ] Support inbox and a basic admin view (find family, inspect last generation, re-run)
 
 **Done when:** you'd be comfortable going away for a weekend.

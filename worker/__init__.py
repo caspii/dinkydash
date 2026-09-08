@@ -18,6 +18,11 @@ container is what makes "how many web instances" a free decision.
 `generate.tick` is imported from the command-line module on purpose rather than
 copied. It is the shared orchestration over config, store and clock, and
 `tests/test_runner.py` already imports that module the same way.
+
+One thing here is *not* per family: `sweep_logins` deletes expired magic-link
+tokens once a pass. It is here because this is the only process in cloud mode
+with a loop, and doing it on somebody's page load would make one visitor pay
+for everybody's tidying.
 """
 
 import logging
@@ -104,6 +109,27 @@ def tick_all(pool, store_factory=None, tick=None, stopping=None):
     return done
 
 
+def sweep_logins(pool):
+    """Delete login tokens that have expired. Returns how many went.
+
+    Here rather than in `tick_all` because it is not per-family: one statement
+    over one table, once a pass. The web service could do it on a request
+    instead, but a sweep on somebody's page load is a slow page for whoever
+    happens to arrive at the wrong moment.
+
+    Never raises. A table of dead hashes growing for five more minutes is not
+    worth a pass of unwritten boards, and the next pass tries again — which is
+    how the whole tick handles failure already.
+    """
+    from dinkydash import accounts
+
+    try:
+        return accounts.sweep(pool)
+    except Exception:
+        log.exception("The login-token sweep failed; leaving it for the next pass.")
+        return 0
+
+
 def interval():
     """Seconds between passes. A knob for testing, not a per-family setting.
 
@@ -138,8 +164,9 @@ def main():  # pragma: no cover - the loop itself; tick_all is what is tested
     while not stopping:
         started = time.monotonic()
         ticked = tick_all(pool, stopping=stopping)
-        log.info("Pass complete: %s families ticked in %.1fs.",
-                 ticked, time.monotonic() - started)
+        swept = sweep_logins(pool)
+        log.info("Pass complete: %s families ticked in %.1fs; %s dead login "
+                 "token(s) deleted.", ticked, time.monotonic() - started, swept)
 
         # Sleep in slices so SIGTERM is noticed in seconds rather than minutes.
         # App Platform kills a container that ignores it for too long, and

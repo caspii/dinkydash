@@ -128,7 +128,26 @@ services:
     # Markdown renderer.
     build_command: pip install -r requirements-cloud.txt
 
-    run_command: gunicorn --workers 2 --threads 4 --bind 0.0.0.0:8080 --access-logfile - "wsgi:application"
+    # **The access log format is a security control, not a preference.** A magic
+    # link is a bearer credential, and gunicorn's default `%(r)s` writes the whole
+    # request line — path *and* query string — to the platform's log, where it is
+    # kept and read. `%(U)s` is the path alone, so the sign-in link's `?t=` never
+    # lands there. That is why `web/routes/auth.py` puts the token in the query
+    # string rather than in the path, and why `tests/test_auth.py` fails if this
+    # line grows a `%(r)s` or a `%(q)s` back.
+    #
+    # `%(f)s` is the Referer, which cannot carry the token either: every response
+    # sets `Referrer-Policy: no-referrer` (DIN-32).
+    #
+    # `web.routes.auth.NoTokens` scrubs `?t=` from the `gunicorn.access` logger
+    # as well, which is what covers the window this file cannot: `deploy_on_push`
+    # rebuilds components from new code and does **not** apply a changed spec, so
+    # a merge without a `doctl apps update` leaves the default format running.
+    run_command: >-
+      gunicorn --workers 2 --threads 4 --bind 0.0.0.0:8080
+      --access-logfile -
+      --access-logformat '%(h)s %(l)s %(u)s %(t)s "%(m)s %(U)s %(H)s" %(s)s %(b)s "%(f)s" "%(a)s"'
+      "wsgi:application"
 
     instance_size_slug: apps-s-1vcpu-0.5gb
     instance_count: 1

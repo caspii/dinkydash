@@ -50,9 +50,11 @@
 
         <div class="move">
             <form class="inline-form" method="post" action="{{ url_for('settings.section_move', section_name=section_name, item_id=item.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <input type="hidden" name="direction" value="up"><button type="submit" title="Move up">&#9650;</button>
             </form>
             <form class="inline-form" method="post" action="{{ url_for('settings.section_move', section_name=section_name, item_id=item.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <input type="hidden" name="direction" value="down"><button type="submit" title="Move down">&#9660;</button>
             </form>
         </div>
