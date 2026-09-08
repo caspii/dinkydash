@@ -71,7 +71,8 @@ def refresh_calendars(config, store, now=None, today=None):
         "calendar_statuses": statuses,
         "calendars_fetched_at": now.astimezone(timezone.utc).isoformat(),
     }
-    store.save_agenda(config, agenda)
+    if not store.save_agenda(config, agenda):
+        raise GenerationError("Calendar settings changed during the refresh. Please refresh again.")
     log.info("Calendars refreshed: %d events stored", len(events))
     return agenda
 
@@ -104,34 +105,6 @@ def _with_last_known(fresh, previous, failed_labels, start, end):
     if kept:
         log.info("Kept %d event(s) from the feeds that did not answer", len(kept))
     return sorted(fresh + kept, key=sort_key)
-
-
-def forget_calendar(config, store, labels):
-    """Drop what a calendar last said, and make the next tick fetch again.
-
-    The settings UI calls this when a calendar is saved or removed. Events
-    fetched under the old entry cannot be trusted under the new one — a
-    changed URL is a different calendar, and a guest list added after the
-    fetch was never applied to it, nor can it be now, because the events
-    carry no addresses. So they go, rather than sit on the board and in the
-    next brief until a refresh happens to succeed. Only that calendar's go:
-    the rest of the agenda is still exactly what its feeds said.
-
-    The fetch stamp goes with them, which is what makes the next tick owe a
-    refresh (`schedule.refresh_due`), so a calendar that is still on is back
-    within a tick — and what stops `_with_last_known` bringing the old events
-    back if that first fetch fails: there is nothing left to keep. Written
-    through `save_agenda`, so the brief cannot be touched from here.
-    """
-    labels = set(labels)
-    payload = store.load_payload(config)
-    if not payload:
-        return
-    events = [e for e in payload.get("events") or [] if e.get("calendar") not in labels]
-    statuses = [s for s in payload.get("calendar_statuses") or []
-                if s.get("label") not in labels]
-    store.save_agenda(config, {"events": events, "calendar_statuses": statuses})
-    log.info("Forgot the stored events of %s; a refresh is due", ", ".join(sorted(labels)))
 
 
 def write_brief(config, store, today=None, client=None, budget=None):

@@ -1,14 +1,13 @@
 """The cloud half of the storage seam: one family's rows in Postgres.
 
-Same six operations as `FileStore`, same dicts in and out, so the runner, the
+Same seven operations as `FileStore`, same dicts in and out, so the runner, the
 board route and the settings routes cannot tell which one they were handed
 (PLAN.md decision 10, and the seam named in DIN-19).
 
 Kept in its own module rather than beside `FileStore` for one reason: single
 mode must never import psycopg. A Raspberry Pi has no database and should not
 install a driver for one, so `psycopg` lives in `requirements-cloud.txt` and
-`dinkydash/store.py` stays importable with nothing but the standard library and
-ruamel.
+`dinkydash/store.py` stays importable with the single-mode dependencies.
 
 **Every query is scoped to `self.family_id`.** There is no unscoped read and no
 unscoped write in this file, and there must never be one — an id arriving in a
@@ -25,8 +24,10 @@ Where the payload lives:
 `save_agenda` and `save_brief` each write one table and never the other. That
 is why the two are separate operations rather than one `save_payload`: a brief
 whose write is separated from its read by a slow model call would otherwise
-overwrite an agenda that landed in between (DIN-28). Here each write is a
-single statement, so no lock is involved at all.
+overwrite an agenda that landed in between (DIN-28). Config saves and agenda
+publication also lock the family's config row: invalidation and settings commit
+together, and a fetch made with obsolete calendar settings is rejected (DIN-46).
+Network requests run outside these transactions.
 """
 
 import logging
@@ -35,7 +36,7 @@ from datetime import date, datetime, timezone
 from psycopg.types.json import Jsonb
 
 from . import config as config_module
-from .store import AGENDA_KEYS
+from .store import AGENDA_KEYS, calendar_config, invalidated_agenda
 
 log = logging.getLogger(__name__)
 
@@ -76,24 +77,33 @@ class PostgresStore:
             raise NoSuchFamily(f"No family {self.family_id}")
         return config_module.with_defaults(dict(row[0] or {}))
 
-    def save_config(self, config):
+    def save_config(self, config, *, invalidate_calendars=()):
         with self.pool.connection() as conn, conn.transaction():
             with conn.cursor() as cur:
+                previous = self._locked_config(cur)
+                agenda = invalidated_agenda(previous, config, self._load_agenda(cur),
+                                            invalidate_calendars)
                 cur.execute(
                     "UPDATE families SET config = %s, updated_at = now() WHERE id = %s",
                     (Jsonb(_plain(config)), self.family_id),
                 )
+                if agenda is not None:
+                    self._save_agenda(cur, agenda)
+
+    def _locked_config(self, cur):
+        """Serialize settings edits and agenda publication, never the fetch itself."""
+        cur.execute("SELECT config FROM families WHERE id = %s FOR UPDATE", (self.family_id,))
+        row = cur.fetchone()
+        if row is None:
+            raise NoSuchFamily(f"No family {self.family_id}")
+        return config_module.with_defaults(dict(row[0] or {}))
 
     # -- the board ----------------------------------------------------------
 
     def load_payload(self, config=None):
         """The stored board, or None when this family has never had one."""
         with self.pool.connection() as conn, conn.cursor() as cur:
-            cur.execute(
-                "SELECT events, statuses, fetched_at FROM agendas WHERE family_id = %s",
-                (self.family_id,),
-            )
-            agenda = cur.fetchone()
+            agenda = self._load_agenda(cur)
             cur.execute(
                 """SELECT brief, generated_for_date, generated_at, model,
                           input_tokens, output_tokens
@@ -118,28 +128,40 @@ class PostgresStore:
             payload["input_tokens"] = tokens_in
             payload["output_tokens"] = tokens_out
         if agenda is not None:
-            events, statuses, fetched_at = agenda
-            payload["events"] = events or []
-            payload["calendar_statuses"] = statuses or []
-            payload["calendars_fetched_at"] = _iso(fetched_at)
+            payload.update(agenda)
         return payload
 
+    def _load_agenda(self, cur):
+        cur.execute("SELECT events, statuses, fetched_at FROM agendas WHERE family_id = %s",
+                    (self.family_id,))
+        row = cur.fetchone()
+        if row is None:
+            return None
+        events, statuses, fetched_at = row
+        return {"events": events or [], "calendar_statuses": statuses or [],
+                "calendars_fetched_at": _iso(fetched_at)}
+
     def save_agenda(self, config, agenda):
-        """Replace this family's `agendas` row. One statement, nothing else touched."""
+        """Publish only if the saved calendar settings still match the fetch."""
         with self.pool.connection() as conn, conn.transaction():
             with conn.cursor() as cur:
-                cur.execute(
-                    """INSERT INTO agendas (family_id, events, statuses, fetched_at)
-                       VALUES (%s, %s, %s, %s)
-                       ON CONFLICT (family_id) DO UPDATE
-                       SET events = EXCLUDED.events,
-                           statuses = EXCLUDED.statuses,
-                           fetched_at = EXCLUDED.fetched_at""",
-                    (self.family_id,
-                     Jsonb(agenda.get("events") or []),
-                     Jsonb(agenda.get("calendar_statuses") or []),
-                     _stamp(agenda.get("calendars_fetched_at"))),
-                )
+                if calendar_config(self._locked_config(cur)) != calendar_config(config):
+                    return False
+                self._save_agenda(cur, agenda)
+                return True
+
+    def _save_agenda(self, cur, agenda):
+        cur.execute(
+            """INSERT INTO agendas (family_id, events, statuses, fetched_at)
+               VALUES (%s, %s, %s, %s)
+               ON CONFLICT (family_id) DO UPDATE
+               SET events = EXCLUDED.events,
+                   statuses = EXCLUDED.statuses,
+                   fetched_at = EXCLUDED.fetched_at""",
+            (self.family_id, Jsonb(agenda.get("events") or []),
+             Jsonb(agenda.get("calendar_statuses") or []),
+             _stamp(agenda.get("calendars_fetched_at"))),
+        )
 
     def save_brief(self, config, brief):
         """Replace today's `generations` row. Never writes `agendas`.

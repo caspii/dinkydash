@@ -25,7 +25,11 @@ bp = Blueprint("auth", __name__)
 A_TOKEN = re.compile(r"([?&]t=)[^&\s\"']+")
 REDACTED = r"\1[redacted]"
 
-A_SCREEN = re.compile(r"(/s/)[23456789abcdefghjkmnpqrstuvwxyz]{10,32}")
+# Validation belongs to the route. A typo still reveals a recoverable credential;
+# encoded separators/letters can also reach these paths through a server's decoder.
+SCREEN_PREFIX = r"((?:/|%2f)(?:s|%73|%53)(?:/|%2f))"
+A_SCREEN = re.compile(SCREEN_PREFIX + r"\S*", re.IGNORECASE)
+A_SCREEN_TARGET = re.compile(SCREEN_PREFIX + r".*", re.IGNORECASE | re.DOTALL)
 SCREEN_REDACTED = r"\1[redacted]"
 
 SAME_ANSWER = ("A link is on its way. It works once, and for fifteen minutes. "
@@ -50,10 +54,25 @@ class NoTokens(logging.Filter):
     """Redact magic-link and screen tokens from both server request loggers."""
 
     def filter(self, record):
+        # Redact while the server still gives us the target separately: decoded
+        # spaces and quotes inside a credential are not log-field separators.
+        if record.name == "gunicorn.access" and isinstance(record.args, dict):
+            path = record.args.get("U")
+            if isinstance(path, str):
+                record.args["U"] = A_SCREEN_TARGET.sub(SCREEN_REDACTED, path)
+        elif (record.name == "werkzeug" and isinstance(record.args, tuple)
+              and record.args and isinstance(record.args[0], str)):
+            request_line = record.args[0]
+            target, separator, protocol = request_line.rpartition(" HTTP/")
+            if not separator:
+                target, protocol = request_line, ""
+            redacted = A_SCREEN_TARGET.sub(SCREEN_REDACTED, target)
+            record.args = (redacted + separator + protocol, *record.args[1:])
+
         message = record.getMessage()
-        if "t=" in message or "/s/" in message:
-            record.msg = A_SCREEN.sub(SCREEN_REDACTED,
-                                      A_TOKEN.sub(REDACTED, message))
+        redacted = A_SCREEN.sub(SCREEN_REDACTED, A_TOKEN.sub(REDACTED, message))
+        if redacted != message:
+            record.msg = redacted
             record.args = ()
         return True
 

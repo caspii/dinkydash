@@ -93,48 +93,6 @@ def fake_fetch(events, statuses, seen=None):
     return _fetch
 
 
-class TestForgetCalendar:
-    """Saving a calendar in the settings UI forgets what it last said."""
-
-    BOTH = EVENTS + SCHOOL
-    BOTH_STATUS = [{"label": "Family", "ok": True, "detail": "", "count": 1},
-                   {"label": "School", "ok": True, "detail": "", "count": 1}]
-
-    def test_drops_only_that_calendars_events_and_the_stamp(self, home, store, config):
-        write_stored(home, {
-            "generated_for_date": "2026-09-03", "headline": "Hi", "note": "There",
-            "events": self.BOTH, "calendar_statuses": self.BOTH_STATUS,
-            "calendars_fetched_at": "2026-09-03T08:00:00+00:00",
-        })
-        runner.forget_calendar(config, store, {"Family"})
-        payload = stored(home)
-        assert payload["events"] == SCHOOL
-        assert payload["calendar_statuses"] == self.BOTH_STATUS[1:]
-        assert "calendars_fetched_at" not in payload
-        assert payload["headline"] == "Hi"  # the brief is not this half's to touch
-
-    def test_a_forgotten_calendar_is_due_at_the_next_tick(self, home, store, config):
-        write_stored(home, {"events": self.BOTH, "calendars_fetched_at": NOW.isoformat()})
-        assert due(config, stored(home), NOW)["refresh"] is False
-        runner.forget_calendar(config, store, {"Family"})
-        assert due(config, stored(home), NOW)["refresh"] is True
-
-    def test_the_last_known_fallback_cannot_bring_them_back(self, home, store, config,
-                                                            monkeypatch):
-        # The privacy case: a guest list added after the fetch. If the first
-        # fetch under the new entry fails, the old unfiltered events must not
-        # come back as "last known" — there has to be nothing left to keep.
-        write_stored(home, {"events": self.BOTH, "calendars_fetched_at": NOW.isoformat()})
-        runner.forget_calendar(config, store, {"Family"})
-        monkeypatch.setattr(runner, "fetch_events", fake_fetch(SCHOOL, MIXED_STATUS))
-        runner.refresh_calendars(config, store, now=NOW)
-        assert stored(home)["events"] == SCHOOL
-
-    def test_nothing_stored_is_nothing_to_do(self, home, store, config):
-        runner.forget_calendar(config, store, {"Family"})
-        assert not (home / "dashboard_data.json").exists()
-
-
 class TestRefreshCalendars:
     def test_stores_the_events_and_stamps_the_fetch(self, home, store, config, monkeypatch):
         monkeypatch.setattr(runner, "fetch_events", fake_fetch(EVENTS, OK_STATUS))

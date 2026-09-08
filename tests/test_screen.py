@@ -162,8 +162,7 @@ class TestItIsTreatedAsACredential:
         assert "/s/[redacted]" in record.getMessage()
 
     def test_and_leaves_ordinary_paths_alone(self):
-        """`config.ID_ALPHABET` has no `i`, `l`, `o` or `0`, which is what lets
-        the pattern be this narrow — `/settings` and `/static` must survive."""
+        """The /s/ route prefix distinguishes credentials from ordinary paths."""
         for line in ('GET /settings/people HTTP/1.1', 'GET /static/fonts.css'):
             record = logging.LogRecord("gunicorn.access", logging.INFO, "", 0,
                                        line, None, None)
