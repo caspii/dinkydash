@@ -3,28 +3,64 @@
 [scripts]
 run_mode = "concurrent"
 
-# config.yaml and dashboard_data.json are gitignored, so they only land in a new
-# workspace if Files to copy brought them across from the main checkout — which
-# needs `.worktreeinclude` to exist there on disk, not just on the branch. Both
-# fall back to something workable, otherwise the board raises FileNotFoundError
-# on the first request, or opens on the first-run screen with nothing to look at.
+# requirements-cloud.txt is the superset — it pulls in requirements-site.txt,
+# which pulls in requirements.txt — so this one line installs psycopg, the
+# Markdown renderer and gunicorn. Cloud mode cannot import without psycopg, and
+# the preview is cloud mode. None of it reaches a Pi: `deploy_to_pi.sh`
+# installs requirements.txt alone.
+#
+# config.yaml and dashboard_data.json are only needed by single mode now, but
+# they stay: the suite exercises both modes and `sample_board.py` is still how
+# you look at the board without spending an API call.
 setup = """
 set -e
 python3 -m venv venv
 venv/bin/pip install -q -r requirements-dev.txt
+venv/bin/pip install -q -r requirements-cloud.txt
 [ -f config.yaml ] || cp config.example.yaml config.yaml
 venv/bin/python sample_board.py
 """
 
+# The preview URL, and the only web server Conductor starts. **Always cloud
+# mode**: development is on the hosted product, so the preview is the hosted
+# product. `DINKYDASH_MODE` is the whole difference — `create_app` reads it to
+# choose PostgresStore over FileStore — and it is set unconditionally here
+# rather than sniffed from the environment, because a preview that silently
+# falls back to config.yaml is how you end up debugging the wrong board.
+#
+# It refuses to start without a database, and says why. That is the right
+# failure: a fallback would be indistinguishable from success.
+#
+# **This talks to the production database.** `DATABASE_URL` in `.env` is the
+# live cluster, so anything saved in /settings edits the real family. Export a
+# different DATABASE_URL before starting to point it somewhere safer — the
+# connection string is the only thing that decides.
+#
+# Single mode still matters and still has to work; it is just not what the
+# preview shows. To look at it:
+#     DINKYDASH_MODE=single FLASK_APP=app.py venv/bin/flask run --port 5050
 [scripts.run.dashboard]
-command = "FLASK_APP=app.py venv/bin/flask run --port ${CONDUCTOR_PORT:-5000} --debug"
+available_in = [ "local" ]
+command = """
+set -a; [ -f .env ] && . ./.env; set +a
+if [ -z "$DATABASE_URL" ] || [ -z "$DINKYDASH_FAMILY_ID" ]; then
+  echo "Cloud mode needs DATABASE_URL and DINKYDASH_FAMILY_ID in .env."
+  echo "They are gitignored, so a new workspace only gets them through Files to copy."
+  exit 1
+fi
+export DINKYDASH_MODE=cloud
+FLASK_APP=app.py venv/bin/flask run --port ${CONDUCTOR_PORT:-5000} --debug
+"""
 default = true
-icon = "monitor"
+icon = "cloud"
+
+# The marketing site, on the second of the ten ports this workspace owns.
+# Hardcoding 5001 would collide the moment two workspaces ran at once.
+[scripts.run.website]
+available_in = [ "local" ]
+command = "FLASK_APP=website.site venv/bin/flask run --port $((${CONDUCTOR_PORT:-5000} + 1))"
+icon = "book-open"
 
 [scripts.run.generate]
 command = "venv/bin/python generate.py"
 icon = "sparkles"
-
-[scripts.run.website]
-command = "FLASK_APP=website.site venv/bin/flask run --port 5001"
-icon = "globe"
