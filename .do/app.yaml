@@ -1,21 +1,60 @@
-# DigitalOcean App Platform spec for the DinkyDash marketing site.
+# DigitalOcean App Platform spec for dinkydash.co.
 #
 # Applied with:
-#   doctl apps update <APP_ID> --spec .do/app.yaml
+#   doctl apps update ed4158fc-fb49-4c10-bb1e-2c8491b06a86 --spec .do/app.yaml
 #
 # Infrastructure reviewed like code, which is why it is committed. **No secrets
-# here.** This app needs none — it renders Markdown and serves files, with no
-# database, no API key and no user data. The board is a separate app and will
-# get its own spec; keeping them apart is what lets this one hold nothing worth
-# stealing.
+# here.** App Platform's encrypted environment variables are set with `doctl`
+# or in the dashboard, and this file references them by name.
+#
+# **This spec is the whole app, not a patch.** `doctl apps update` replaces what
+# is there. Anything missing from this file is deleted from the running app,
+# which is why `domains` is written out below even though nothing here changes
+# it — it was absent until 8 September 2026, and applying the file as documented
+# above would have taken dinkydash.co off its own domain.
 #
 # No Dockerfile: App Platform's Python buildpack reads .python-version and
 # requirements.txt and runs the command below (DIN-30, reversed).
+#
+# --------------------------------------------------------------------------
+# Where this is going (DIN-26)
+#
+# The board joins this app rather than getting its own, because that is how
+# qrpage.co and abc-league already run in this account: one service, one
+# container, marketing and application together. `wsgi.py` routes on the `Host`
+# header — dinkydash.co to the marketing site, app.dinkydash.co to the board.
+#
+# Three things have to land before that switch, and none of them has:
+#
+#   1. The Managed Postgres cluster in FRA1. Cloud mode's `create_app()` builds
+#      a PostgresStore at import, so `wsgi:application` cannot boot without it.
+#   2. The app.dinkydash.co CNAME in Cloudflare, DNS-only. Listing a domain here
+#      before it resolves means App Platform fails to issue its certificate.
+#   3. The worker. There is no `worker/` directory yet; the tick loop is
+#      unwritten. It must be its own component — there is no lock on the tick,
+#      so two web instances would tick twice and pay Anthropic twice.
+#
+# When they have, this file gains: `app.dinkydash.co` in `domains`, a
+# `run_command` of `gunicorn "wsgi:application"`, a `build_command` of
+# `pip install -r requirements-cloud.txt`, `DINKYDASH_MODE=cloud`,
+# `DINKYDASH_APP_HOST`, the secret references, a `workers:` block and a
+# `PRE_DEPLOY` migration job. Until then this app serves the marketing site and
+# holds nothing worth stealing — a property it loses on that day, deliberately,
+# and this comment should be rewritten rather than left to mislead.
+# --------------------------------------------------------------------------
 
 name: dinkydash-site
 region: fra
 
+domains:
+  - domain: dinkydash.co
+    type: PRIMARY
+  - domain: www.dinkydash.co
+    type: ALIAS
+
 services:
+  # Named `site` rather than `web` because renaming a component destroys and
+  # recreates it, and the name is not worth an outage on the pages that rank.
   - name: site
     github:
       repo: caspii/dinkydash
@@ -47,7 +86,7 @@ services:
 
     envs:
       # What the canonical tags, og:url and the sitemap claim to be. Set
-      # explicitly so a staging copy never tells a search engine it is
+      # explicitly so a preview copy never tells a search engine it is
       # production.
       - key: DINKYDASH_SITE_URL
         scope: RUN_TIME

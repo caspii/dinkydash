@@ -1,6 +1,10 @@
 # DinkyDash Hosted MVP — Plan
 
-*Last updated: September 7, 2026. Supersedes `HOSTING_ANALYSIS.md` (deleted — it predated both the AI generation feature and the July 2026 calendar-display repositioning, and its recommended stack and data model no longer matched the product).*
+*Last updated: September 8, 2026. Supersedes `HOSTING_ANALYSIS.md` (deleted — it predated both the AI generation feature and the July 2026 calendar-display repositioning, and its recommended stack and data model no longer matched the product).*
+
+*September 8, later: **one service, not two.** The board joins the marketing site in the existing `dinkydash-site` app rather than getting its own, because that is how `qrpage.co` and `abc-league` already run in this account — one container, one gunicorn, everything in it. Staging is dropped until there is a paying family to protect. The `worker` is the one genuine addition, because the tick has no lock and two web instances would tick twice. See [Hosting and deployment](#hosting-and-deployment).*
+
+*September 8: the transactional email provider is settled — decision 13, **SendGrid**, on the account KeepTheScore already sends from. The open question is closed. `dinkydash.co` is an authenticated sending domain on that account (DKIM and a monitor-only DMARC record are live in Cloudflare), and this repo has its own send-only API key. What is not built is the sending itself — that arrives with magic links in Phase 1.*
 
 *September 7, later still: the Postgres layer is built (DIN-31) — `migrations/001_initial_schema.sql`, `migrate.py`, `dinkydash/db.py`, `dinkydash/pgstore.py`, and a contract suite that runs the same assertions over both stores in CI. Connection pooling is settled above. What is deliberately still missing is the multi-tenancy: cloud mode serves one family from `DINKYDASH_FAMILY_ID`, because auth and scoping are Phase 1.*
 
@@ -40,6 +44,7 @@ Turn DinkyDash from a single-family Raspberry Pi app into a hosted product a non
 | 10 | **The config dict is the storage contract.** `config.yaml` in single mode, a `jsonb` column in cloud mode. Not SQLite on the Pi. | The engine already takes a plain dict, so both modes can produce the same one. Self-hosters expect a file they can edit and copy, and a Pi should not have to run migrations to gain a field. One shape means one settings UI. |
 | 11 | **The refresh cadence is a setting in the UI.** How often the calendars are re-fetched, and when the daily brief is written, are chosen by the family — not hard-coded in a cron line. | A calendar product whose board only learns about a new appointment the next morning is a support ticket waiting to happen. See [Three clocks, one setting](#three-clocks-one-setting). |
 | 12 | **DigitalOcean App Platform (Frankfurt) + DigitalOcean Managed Postgres, with Cloudflare in front.** Not Hetzner and a box, which is what this plan recommended until 7 September. | Quickest route to a deployed app: no SSH, no firewall, no container machinery, and the worker is a second component off the same checkout. A managed database deletes the backup, upgrade and failover work a box would have added. About $25 a month against roughly €5 for the box — the difference buys the ops. See [Hosting and deployment](#hosting-and-deployment). |
+| 13 | **SendGrid for transactional email**, on the same account KeepTheScore sends from. Not Postmark, and not the Customer.io connector. | Shared sender reputation from day one, which is the whole game for magic links — a link that lands in spam is a login that fails. It is one account, one bill and one set of suppression lists across six domains. Customer.io stays what it is: a marketing tool, right for the waitlist sequence, heavy for a login link. |
 
 ### On self-hosting (decision 9)
 
@@ -374,16 +379,53 @@ being able to write in the privacy policy.
 Postgres, and Cloudflare in front.**
 
 ```
-App Platform app                            Managed Postgres cluster (FRA1)
-├── web       service   gunicorn, HTTP      ├── dinkydash
-├── worker    worker    the 5-minute tick   └── dinkydash_staging
-└── migrate   pre-deploy job                Cloudflare — DNS, edge TLS, rate limits
+dinkydash-site app (exists)                 Managed Postgres cluster (FRA1)
+├── site      service   gunicorn, HTTP      └── dinkydash
+│              dinkydash.co     -> website.site
+│              app.dinkydash.co -> web.create_app()
+├── worker    worker    the 5-minute tick   Cloudflare — DNS, edge TLS, rate limits
+└── migrate   pre-deploy job
      all three from the same checkout, no image
 ```
 
+**One service, not two, and it is the one already running.** `dinkydash-site`
+serves `dinkydash.co` today on a $5 instance. The board becomes a second
+hostname on that same container, dispatched on the `Host` header, rather than a
+second app. Two reasons, and neither is architectural taste:
+
+- **It is the house pattern.** `qrpage.co` is one App Platform app, one `web`
+  service, one container, marketing pages and application together, with a
+  `PRE_DEPLOY` migration job. `abc-league` is one service answering on two
+  domains. Both work. A shape that is running in this account beats a shape
+  argued from first principles.
+- **The saving is real and the cost is not.** A second service is $5/month; a
+  second *app* for staging is another $10. What separation would buy — a
+  marketing container holding no secrets, and a board crash that cannot take
+  the ranked pages down — is worth having, but not worth $180 a year before
+  there is a single paying family. Revisit when there is revenue to protect.
+
+**`site`, not `web`.** Renaming an App Platform component destroys and recreates
+it, and the name is not worth an outage on the pages that rank. The component
+serving both hostnames keeps the name it has.
+
+**`wsgi.py` is the seam**, and it exists: it reads the `Host` header and hands the
+request to one app or the other. Unknown hostnames get the *site*, never the board —
+App Platform's health check arrives on an `.ondigitalocean.app` name that is in no
+spec, so it has to answer, and the site is the half that holds no family's data.
+`app.py` is untouched; a Pi never loads any of this.
+
+**The subdomain stays, and it is what makes merging easy.** `app.dinkydash.co`
+costs nothing: App Platform attaches many domains to one app, which is what
+`abc-league` already does. Keeping it means both Flask apps go on owning `/` —
+`website/site.py` says plainly why they are separate apps — so nothing in
+either URL map has to move. It also keeps the Cloudflare cache rule simple:
+cache the marketing host, never cache the board host. Sharing one hostname
+would make that a per-path allowlist, and a mistake there serves one family's
+board to another.
+
 **No Dockerfile, and no Compose file.** App Platform's Python buildpack reads
 `.python-version` and `requirements.txt` and runs whatever `run_command` each
-component declares, so `web`, `worker` and the migration job are one checkout
+component declares, so `site`, `worker` and the migration job are one checkout
 with three commands. That is decision 2's "one artefact" argument holding in
 the only form that ever mattered — one codebase — without a container runtime
 in the middle of it.
@@ -434,8 +476,10 @@ in the app:
   labour** — see [Connection pooling](#connection-pooling) below.
 - Daily backups and 7-day point-in-time recovery are on by default and are
   theirs. **The restore drill is still ours** — see Phase 6.
-- One cluster, two databases: `dinkydash` and `dinkydash_staging`. A second
-  cluster for staging is $15 a month to learn nothing.
+- **One database, `dinkydash`, and no staging** until there is a paying family to protect.
+  Staging was two more components and a second branch to keep green, for a product with no
+  customers. `dinkydash_staging` is a line to add to this file the day losing production
+  costs money, not before.
 
 #### Connection pooling
 
@@ -454,10 +498,10 @@ pool = ConnectionPool(
 )
 ```
 
-**Why not the app-side pool alone.** Production web, production worker, staging
-web and staging worker is four processes sharing one cluster from the first day
-DIN-26 stands staging up, before the migration job or a `psql` window. The
-arithmetic is tight enough that a third gunicorn worker tips it over. PgBouncer
+**Why not the app-side pool alone.** Web and worker is two processes, not the four
+the staging plan would have made — but 22 connections is still the whole cluster, and
+the migration job and a `psql` window both want one. The arithmetic is tight enough
+that a third gunicorn worker tips it over. PgBouncer
 turns "connection refused" into "wait a moment", and that change of failure mode
 is the whole reason it is there.
 
@@ -479,7 +523,7 @@ arithmetic above comes straight back.
 psycopg 3 prepares a statement server-side once it repeats, and under
 transaction-mode pooling the next execution can land on a different backend
 connection: `prepared statement "..." does not exist`, intermittently, under
-load, after staging looked fine. This is the one line that differs from
+load, after everything looked fine in testing. This is the one line that differs from
 KeepTheScore, which is on psycopg2 and never auto-prepares — their clean record
 does not transfer. Setting it unconditionally means one behaviour rather than
 two. The cost is nil at this query volume.
@@ -501,9 +545,12 @@ and rolls the components out with a health check on `/healthz`. Migrations run a
 **pre-deploy job** in the app spec, so the schema is always ahead of the code
 that needs it and a failed migration fails the deploy instead of half-updating
 a live app. GitHub Actions keeps running the test suite — App Platform deploys,
-it does not gate. Staging is a second App Platform app off the `staging` branch
-against `dinkydash_staging`. The Pi keeps `deploy_to_pi.sh`; a self-hoster is
-not a tenant.
+it does not gate. There is no staging app; see the database section. The Pi keeps
+`deploy_to_pi.sh`; a self-hoster is not a tenant.
+
+**Nothing here needs the dashboard.** The one thing `doctl` cannot do is create an app
+with a GitHub source, because an API token carries no GitHub OAuth session. `dinkydash-site` already has one, so adding the board's hostname, the `worker` and
+the migration job is `doctl apps update` against a spec in this repo.
 
 **The app spec lives in the repo** as `.do/app.yaml`, so the components,
 instance sizes, health checks and the pre-deploy job are reviewed like code.
@@ -614,10 +661,10 @@ Critical path is 0 → 1 → 2 → 3. Phases 4–6 can run alongside 3. Nothing 
 - [x] **Decision 11, single-mode half:** `refresh_minutes` and `brief_time` in `DEFAULTS`; `runner.run` split into `refresh_calendars` and `write_brief`; a pure `due()`; `generate.py --tick`; the settings page under *This screen*; the board's reload derived from the interval; README cron line updated. Ships to the Pi at once and needs no database. *(DIN-17 for the engine and cron, DIN-18 for the page)*
 - [x] Name the storage seam: `FileStore` gathering the six operations that exist today, and the settings routes, runner and board taking a store *(DIN-19)*
 - [x] Postgres + plain-SQL migrations; CI running the suite against a Postgres service container *(DIN-31)*
-- [x] Move DNS to Cloudflare and add the app records *(DIN-29)*. The apex now points at App Platform, not GitHub Pages — DIN-27 moved the marketing pages onto the app.
-- [ ] Stand up the App Platform app and the Managed Postgres cluster in Frankfurt; staging live on `staging.app.dinkydash.co` *(DIN-26)*
+- [x] Move DNS to Cloudflare and add the app records *(DIN-29)*. The apex now points at App Platform, not GitHub Pages — DIN-27 moved the marketing pages onto the app. The SendGrid records are in the same zone and validated: `em4199`, `s1._domainkey`, `s2._domainkey` and a `_dmarc` TXT at `p=none`. All four are **DNS-only** — a proxied CNAME answers as Cloudflare and domain authentication never passes.
+- [ ] Add the board to the existing `dinkydash-site` app and stand up Managed Postgres in Frankfurt; `app.dinkydash.co` live over TLS *(DIN-26)*. One service serving both hostnames, plus a `worker` and a `PRE_DEPLOY` migration job. No staging app — see the database section.
 
-**Done when:** the engine runs from a dict with an injected date, tests pass in CI on Postgres, a same-day calendar change reaches a Pi within its chosen interval, and staging serves a hardcoded family over TLS.
+**Done when:** the engine runs from a dict with an injected date, tests pass in CI on Postgres, a same-day calendar change reaches a Pi within its chosen interval, and `app.dinkydash.co` serves a hardcoded family over TLS.
 
 ### Phase 1 — Multi-tenant core
 
@@ -676,9 +723,10 @@ missing is the multi-tenant half — a schema, auth, and scoping every read and 
 ### Phase 5 — Legal & trust
 
 - [ ] Privacy policy and ToS, forked from KeepTheScore
-- [ ] Sub-processor list — Anthropic, DigitalOcean, Stripe, the email provider, Cloudflare. **Not Google Fonts**: self-hosted since DIN-32, and nothing on the board, the settings UI or the marketing site requests anything from them.
+- [ ] Sub-processor list — Anthropic, DigitalOcean, Stripe, **SendGrid** (decision 13), Cloudflare. **Not Google Fonts**: self-hosted since DIN-32, and nothing on the board, the settings UI or the marketing site requests anything from them.
 - [ ] **DigitalOcean's DPA signed, with standard contractual clauses.** They are a US company; the app and database sit in Frankfurt. Say both — where the data lives, and who the company is. Cloudflare needs the same treatment.
 - [ ] Plain statement that calendar contents are sent to Anthropic for generation
+- [ ] Say what SendGrid receives, which is **the email address and the login link, never the calendar**. The two disclosures are different in kind and should not be merged into one sentence: Anthropic sees a family's appointments, SendGrid sees only who is logging in.
 - [ ] Data export and hard delete — the delete cascades through users, tokens, agendas, generations, history and calendar health; the Stripe customer record stays, as accounting requires
 - [ ] Retention, with numbers: `agendas` is one overwritten row; `content_history` keeps 30 entries of the model's words; `generations` keeps token counts indefinitely and drops the `brief` column after 90 days; a lapsed family is deleted 90 days after lapse
 - [ ] Cookie/analytics review
@@ -690,7 +738,7 @@ missing is the multi-tenant half — a schema, auth, and scoping every read and 
 - [ ] Sentry (already connected) in both processes; uptime check on `/healthz`
 - [ ] Generation-success dashboard; alerts on failure rate, calendar-fetch failures, spend breaker, Stripe webhook failures, and the dead-man's switch
 - [ ] **The restore drill.** DigitalOcean takes daily backups and keeps 7 days of point-in-time recovery, so the *dump* is no longer a job. Restoring into a scratch database on a schedule still is, and an untested backup is a hope. Script it; run it monthly.
-- [ ] Transactional email provider wired up *(see open questions)*
+- [ ] SendGrid wired up in the app *(decision 13)*. The account, the authenticated sending domain and a send-only API key already exist; what is missing is the code that calls them, and it lands with magic links in Phase 1 rather than here.
 - [ ] Support inbox and a basic admin view (find family, inspect last generation, re-run)
 
 **Done when:** you'd be comfortable going away for a weekend.
@@ -719,7 +767,6 @@ Platform in Frankfurt, DigitalOcean Managed Postgres, Cloudflare in front.*
 
 | Question | Blocks | Recommendation |
 |---|---|---|
-| Transactional email provider? | Phase 1 (magic links) | Whatever KeepTheScore sends its transactional mail with, for the shared sender reputation. Failing that, Postmark. The Customer.io connector that is configured is a marketing tool wearing a transactional hat — right for the waitlist sequence, heavy for magic links. |
 | EU VAT handling with Stripe direct? | Phase 4 | Stripe Tax from the first charge, using KeepTheScore's registration. Consumer prices in the EU are displayed VAT-inclusive, so Checkout is configured with tax-inclusive prices; what that does to the margin is the strategy document's line to update. |
 | Lapse behaviour — blank, freeze on last-good, or degrade to a no-AI calendar? | Phase 4 | Freeze. The screen keeps its last board with a quiet "subscription ended" line; fetches and briefs stop. After 30 days the board is that line alone; after 90 the family is deleted, as the privacy policy will say. A blank kitchen screen is a bad churn experience, and a no-AI tier is a product decision for the strategy document, not a lapse state. |
 | Batch API? | Phase 2 | Not in the MVP. Revisit when the model moves to Sonnet, or when the strategy document's cost line says the discount is worth a second pipeline. |
