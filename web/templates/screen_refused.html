@@ -1,0 +1,47 @@
+{# What a wrong screen URL shows. Deliberately standalone rather than extending
+   settings/base.html: this is what somebody sees on a television across a
+   kitchen, so it has no app bar, no navigation and nothing to tap. It also has
+   to render for a caller with no session and no family, so it can read nothing.
+
+   No link back into the app, and no mention of what was asked for. The token is
+   a credential even when it is wrong — a typo of a real one is nearly a real one
+   — so it is not echoed here any more than it is in the log. #}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>{{ heading }} · DinkyDash</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    {# The same self-hosted font the board uses, so this does not flash a system
+       face on the wall — and, like the board, it asks nothing of any third
+       party. A page about a bad credential must not tell anybody it was shown. #}
+    <link rel="stylesheet" href="{{ url_for('static', filename='fonts.css') }}">
+    <style>
+        :root { color-scheme: light dark; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Nunito', system-ui, sans-serif;
+            background: #fdfaf6; color: #2d2319;
+            min-height: 100vh; display: flex; align-items: center;
+            justify-content: center; padding: 2rem; text-align: center;
+        }
+        main { max-width: 26rem; display: flex; flex-direction: column; gap: 0.75rem; }
+        h1 { font-size: 1.375rem; font-weight: 800; }
+        p { font-size: 1rem; line-height: 1.55; color: #6f6053; }
+        .mark { font-size: 1rem; font-weight: 800; color: #e85d24; letter-spacing: 0.01em; }
+        @media (prefers-color-scheme: dark) {
+            body { background: #17120f; color: #f6efe7; }
+            p { color: #a1907f; }
+            .mark { color: #ff7a45; }
+        }
+    </style>
+</head>
+<body>
+<main>
+    <div class="mark">DinkyDash</div>
+    <h1>{{ heading }}</h1>
+    <p>{{ detail }}</p>
+</main>
+</body>
+</html>

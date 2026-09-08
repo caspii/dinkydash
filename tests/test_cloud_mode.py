@@ -11,7 +11,7 @@ change went in the wrong layer.
 import pytest
 
 from dinkydash import config as config_module
-from tests.conftest import client_for
+from tests.conftest import board_path, client_for
 from web import create_app
 
 CONFIG = {
@@ -120,17 +120,25 @@ class TestABoardOutOfPostgres:
             stored["family_id"] = str(pg_family)
         return client
 
-    def test_the_board_renders_the_stored_brief(self, client):
-        page = client.get("/").get_data(as_text=True)
+    def test_the_board_renders_the_stored_brief(self, client, pg_pool, pg_family):
+        page = client.get(board_path(pg_pool, pg_family)).get_data(as_text=True)
         assert "Swimming, then football" in page
         assert "An octopus fact." in page
 
-    def test_it_recomputes_the_chore_rather_than_reading_it(self, client):
+    def test_it_recomputes_the_chore_rather_than_reading_it(
+            self, client, pg_pool, pg_family):
         # Chores are a pure function of config + date and are not in the
         # payload, so seeing one proves build_view ran over the database config.
-        page = client.get("/").get_data(as_text=True)
+        page = client.get(board_path(pg_pool, pg_family)).get_data(as_text=True)
         assert "Set the table" in page
         assert "Mia" in page
+
+    def test_and_the_root_is_the_way_in_to_the_settings(self, client):
+        """In cloud mode `/` is not the board — a wall panel cannot sign in, so
+        the board is at the screen URL and `/` belongs to the signed-in area."""
+        landed = client.get("/")
+        assert landed.status_code == 302
+        assert landed.headers["Location"].endswith("/settings/")
 
     def test_the_settings_home_reads_the_same_rows(self, client):
         page = client.get("/settings/").get_data(as_text=True)
@@ -146,13 +154,23 @@ class TestABoardOutOfPostgres:
             assert cur.fetchone()[0] == "The Bakers"
 
     def test_the_board_is_identical_to_the_one_a_file_would_render(
-            self, client, tmp_path, monkeypatch):
+            self, client, pg_pool, pg_family, tmp_path, monkeypatch):
         """The template, the CSS and build_view are shared verbatim.
 
         If cloud mode ever rendered a different board, the mode check would have
         leaked below the storage layer — which is the thing CLAUDE.md's "every
         change must work in both" exists to prevent.
+
+        **One line is allowed to differ, and exactly one**: the `<link
+        rel=manifest>`. A wall panel reaches its manifest at
+        `/s/<token>/manifest.webmanifest`, because the signed-in one is behind
+        the session and would hand a tablet a redirect to `/login` instead of a
+        name and an icon (DIN-42). Normalising that href rather than dropping
+        the assertion is the point — every other byte still has to match, so a
+        second divergence fails here rather than being absorbed.
         """
+        import re
+
         import yaml
 
         from dinkydash.store import FileStore
@@ -166,5 +184,8 @@ class TestABoardOutOfPostgres:
         file_store.save_agenda(file_store.load_config(), today)
         file_store.save_brief(file_store.load_config(), today)
         from_file = create_app(file_store).test_client().get("/").get_data(as_text=True)
+        from_rows = client.get(board_path(pg_pool, pg_family)).get_data(as_text=True)
 
-        assert client.get("/").get_data(as_text=True) == from_file
+        manifest = re.compile(r'<link rel="manifest" href="[^"]+">')
+        assert manifest.search(from_file) and manifest.search(from_rows)
+        assert manifest.sub("[manifest]", from_rows) == manifest.sub("[manifest]", from_file)

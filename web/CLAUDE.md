@@ -44,6 +44,14 @@ is where that is decided. `board.healthz` is the one exemption and it is load-be
 Platform's health check arrives with no cookie, and a 302 there fails it three times and rolls the
 release back. It is also the only route that reads nothing, so it needs no family.
 
+**`web/routes/screen.py` is the other exemption, and it is a separate blueprint for that reason.**
+`/s/<token>` has no session by design — a wall panel cannot sign in — so it is not behind `guard()`
+and never should be. What replaces the session is the token, resolved by `family.store_for_token`;
+what replaces the guard is that the two routes there are GETs that reach a board and nothing else.
+Registered only in cloud mode, like `auth`. **In cloud mode `/` is a redirect**, so anything that
+used to link to `url_for('board.index')` for a board — the "View board" button, `/preview`'s
+iframes — has to ask where the board actually is instead. `board.board_url` is that question.
+
 **Every form that writes needs one hidden field.** `<input type="hidden" name="csrf_token"
 value="{{ csrf_token() }}">`, right inside the `<form>`. `csrf_token()` is a Jinja global set up by
 `web/session.py`, so no route has to remember to pass anything — but a form without the field is a

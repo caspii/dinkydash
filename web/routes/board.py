@@ -1,13 +1,26 @@
-"""The board itself, plus a preview harness for the target screen sizes."""
+"""The board itself, plus a preview harness for the target screen sizes.
+
+**Where the board lives is the one thing mode changes here**, and it changes
+because of authentication rather than layout. Single mode serves it at `/`:
+one family, no session, and the URL somebody types into a Pi's kiosk browser.
+Cloud mode cannot, because a wall panel has no way to sign in — so there the
+board is at `/s/<token>` (`web/routes/screen.py`) and `/` is the front door of
+the signed-in area, redirecting to the settings.
+
+`render_board` and `manifest_for` below are what the two routes share, so the
+board is one piece of code reached two ways rather than two that drift.
+"""
 
 import os
 
-from flask import Blueprint, render_template, request, url_for
+from flask import (Blueprint, current_app, redirect, render_template, request,
+                   url_for)
 
 from dinkydash import board as board_view
 from dinkydash import config as config_module
+from web import CLOUD
 from web import manifest as manifest_module
-from web.family import current_store
+from web.family import current_screen_token, current_store
 from web.session import guard
 
 bp = Blueprint("board", __name__)
@@ -44,40 +57,86 @@ def current_config():
 
 @bp.route("/")
 def index():
-    store = current_store()
+    """The board, or — in cloud mode — the way in to the settings.
+
+    The mode check is an authentication one, which is the only kind this file
+    is allowed. In cloud mode `/` is behind `guard()`, so a signed-out visitor
+    has already been sent to `/login` before this runs and the only person
+    reaching this line is signed in. Their board is not here: it is at the
+    screen URL, which is the one a panel can open without a cookie.
+    """
+    if current_app.config["MODE"] == CLOUD:
+        return redirect(url_for("settings.home"))
+    return render_board(current_store())
+
+
+def render_board(store, manifest_url=None):
+    """The board page for whichever family that store is for.
+
+    Shared with `web/routes/screen.py`, so the signed-in view and the wall
+    panel render the same page from the same code. `manifest_url` is the only
+    difference between them and it is one link in the head: the panel's
+    manifest has to be reachable without a session, or "save to home screen"
+    gets a redirect to `/login` instead of a name and an icon.
+    `tests/test_cloud_mode.py` asserts that it is the *only* difference.
+    """
     config = store.load_config()
     today = config_module.today_for(config)
     view = board_view.build_view(config, store.load_payload(config), today)
-    return render_template("board.html", view=view)
+    return render_template("board.html", view=view,
+                           manifest_url=manifest_url or url_for("board.manifest"))
 
 
-@bp.route("/manifest.webmanifest")
-def manifest():
+def manifest_for(config, url):
     """A wall panel saved to a tablet's home screen: full screen, no browser.
 
     Separate from the settings manifest, and deliberately so — one is a screen
-    you leave on, the other is a page you visit.
+    you leave on, the other is a page you visit. They must keep different
+    `id`s: share one and the phone treats them as a single app.
     """
-    config = current_config()
     # The saved app keeps its own background until the board paints, so it has
     # to match the theme or a dark board flashes white on every open.
     colour = "#17120f" if config.get("theme") == "dark" else "#ffffff"
     return manifest_module.response(
-        id=url_for("board.index"),
+        id=url,
         name=config.get("family_name") or "DinkyDash",
         short_name=config.get("family_name") or "DinkyDash",
         description="Today's agenda, whose turn it is, and what is coming up.",
-        start_url=url_for("board.index"),
+        start_url=url,
         display="fullscreen",
         background_color=colour,
         theme_color=colour,
     )
 
 
+@bp.route("/manifest.webmanifest")
+def manifest():
+    return manifest_for(current_config(), url_for("board.index"))
+
+
 @bp.route("/preview")
 def preview():
-    """Every target screen at once, so a layout change can be checked in one go."""
-    return render_template("preview.html", sizes=PREVIEW_SIZES)
+    """Every target screen at once, so a layout change can be checked in one go.
+
+    **What it frames is wherever the board actually is.** In cloud mode `/` is
+    a redirect, so framing it would show three iframes of the settings page —
+    the harness has to follow the board to `/s/<token>` or it stops being a
+    harness.
+    """
+    return render_template("preview.html", sizes=PREVIEW_SIZES,
+                           board_url=board_url())
+
+
+def board_url():
+    """Where this family's board is served, for this mode.
+
+    The token is a column on `families`, not a key in the config dict — it is
+    the platform's business rather than a family setting, so it is asked for
+    rather than read out of what the store returned.
+    """
+    if current_app.config["MODE"] != CLOUD:
+        return url_for("board.index")
+    return url_for("screen.board", token=current_screen_token())
 
 
 @bp.route("/healthz")

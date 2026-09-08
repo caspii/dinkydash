@@ -11,6 +11,9 @@
          A block, because the login page is behind no session and the manifest
          is: fetching it there would only ever be a redirect. -->
     {% block manifest %}<link rel="manifest" href="{{ url_for('settings.manifest') }}">{% endblock %}
+    {# For the rare page with a rule of its own. Everything shared belongs in
+       the stylesheet below, not here. #}
+    {% block head %}{% endblock %}
     <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
     <meta name="apple-mobile-web-app-title" content="DinkyDash">
     <meta name="apple-mobile-web-app-capable" content="yes">

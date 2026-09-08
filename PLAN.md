@@ -8,6 +8,11 @@
 
 *September 8, later: **one service, not two.** The board joins the marketing site in the existing `dinkydash-site` app rather than getting its own, because that is how `qrpage.co` and `abc-league` already run in this account — one container, one gunicorn, everything in it. Staging is dropped until there is a paying family to protect. The `worker` is the one genuine addition, because the tick has no lock and two web instances would tick twice. See [Hosting and deployment](#hosting-and-deployment).*
 
+*September 8, later still: **the board is on a wall** (DIN-42). `/s/<token>` serves it with no
+session, `/settings/screen` shows the link and a QR of it and rotates the token, and `/` in cloud
+mode is now the way in to the settings rather than the board — the URL map below, finally. See
+[The screen](#the-screen).*
+
 *September 8, later: **sign-up exists** (DIN-41). An address posted to `/login` gets a link, and
 clicking it creates the family, the parent and a starting config in one transaction. The design
 question that had to be settled first was *when* the family is created, and the answer is **on the
@@ -181,6 +186,46 @@ next tick refreshes the calendars within five minutes, but the brief waits for `
 family's clock, so a 03:00 sign-up looks at a waiting screen until 06:00. PLAN.md's "**Generate now**
 on signup" line under [Scheduling](#scheduling-cloud-mode) is what closes it, and it is a Phase 2
 worker item — a web request must not call Anthropic.
+
+### The screen
+
+*Built in DIN-42.* The board is at `/s/<token>` in cloud mode, and `/` is the front door of the
+signed-in area. That is not a URL preference: **a wall panel cannot sign in.** A kitchen tablet, a
+television and a Pi in kiosk mode have no keyboard and nobody at them, so the credential has to be
+something a browser can hold for months without a person — which is what an unguessable URL is.
+
+**The token is a bearer credential with none of a magic link's defences**: no expiry, no single use,
+and it sits in a browser on a shelf. Four things carry the weight instead.
+
+- **It reaches nothing but a board.** Two GET routes, both reading through a `PostgresStore` scoped
+  to the family the token named. No settings, no address, nothing that writes.
+- **Rotation is the revocation**, and it is the whole of it. The settings page says so in those
+  words, including the cost: every screen goes blank until somebody opens the new link on it.
+- **It does not get written down.** `Referrer-Policy: no-referrer` is already global (DIN-32), the
+  page makes no third-party request, and every response carries `X-Robots-Tag` and
+  `Cache-Control: no-store`.
+- **The path is in the access log, and that had to be dealt with.** Gunicorn's format is built from
+  `%(U)s` — the path *without* the query string — which is exactly what keeps a magic link's `?t=`
+  out of it, and exactly what would put a screen token in, thousands of times, from one panel.
+  `auth.NoTokens` now scrubs `/s/<token>` as well as `?t=`. DigitalOcean's own edge log is still
+  outside all of this, as it always was.
+
+**The rate limit counts misses, not requests.** A valid token belongs to a screen that will ask for
+this page every few minutes for years; refusing it is an outage on a kitchen wall. So the limiter
+only ever sees wrong tokens — 30 an hour per caller — and enumeration was never the risk anyway,
+since 59 bits does not fall to any rate. What it buys is that nobody can make us do the looking.
+
+**The QR code is drawn on the page, not fetched.** A QR *service* would mean handing a bearer
+credential to a third party, and a script from a CDN would mean the settings page making an outbound
+request. `segno` is a pure-Python encoder with no dependencies of its own, in `requirements-cloud.txt`
+and imported lazily — a Pi has no screen token and should not install a library it can never use. It
+is drawn black on a white plate in **both** themes: scanners expect dark on light, and a
+`currentColor` code that inverted in dark mode was read by some phones and not others.
+
+**Two things this deliberately does not do**, both PLAN.md phase 3 and neither blocked: offline
+tolerance for a panel on flaky wifi, which needs a service worker rather than a weaker cache header;
+and the edge rate-limit rule at Cloudflare, which is a sturdier version of the in-process limiter
+rather than a replacement for it.
 
 ### Three clocks, one setting
 
@@ -739,7 +784,7 @@ missing is the multi-tenant half — a schema, auth, and scoping every read and 
 - [ ] Per-provider help content — Google, iCloud, Outlook each expose iCal URLs differently
 - [ ] Settings: timezone, family name, refresh cadence, screen URL display + rotation, account deletion. `claude_model` hidden in cloud mode.
 - [x] Every read and write scoped to the family on the session; the hardcoded family id deleted *(DIN-39)*
-- [ ] The URL map above: `/` redirects, `/login`, `/s/<token>`. **`/login` is done** (DIN-38, DIN-41). The other two are one change and not two: in cloud mode `/` is the board today, so it cannot start redirecting to `/settings/` until `/s/<token>` is where the board lives — and that route is Phase 3's first box. Doing half of it would leave the board unreachable.
+- [x] The URL map above: `/` redirects, `/login`, `/s/<token>` *(DIN-38, DIN-41, DIN-42)*. The last two were one change and not two, as expected: `/` could not start redirecting to `/settings/` until `/s/<token>` was where the board lived.
 
 **Done when:** two different families can be configured independently through the UI, and a request carrying the wrong family's id in a URL gets a 404, never a row. **Met by DIN-39**, and asserted in `tests/test_tenancy.py`.
 
@@ -758,11 +803,11 @@ missing is the multi-tenant half — a schema, auth, and scoping every read and 
 
 ### Phase 3 — The screen
 
-- [ ] Public tokenized dashboard route, rate-limited at the edge, `noindex`, no referrer, no third-party requests
-- [ ] Token rotation; QR code display
+- [x] Public tokenized dashboard route, `noindex`, no referrer, no third-party requests *(DIN-42)*. Rate-limited **in the app rather than at the edge**, and on the misses rather than the requests — see [The screen](#the-screen). A Cloudflare rule is still worth adding on top and is not a blocker.
+- [x] Token rotation; QR code display *(DIN-42)*
 - [ ] Renderer to landing-page parity: person cards with ages, time-ordered agenda for today
-- [ ] Staleness indicator when the brief isn't from today *(built for single mode in #28; confirm it reads the same from `PostgresStore`)*
-- [ ] Offline tolerance and sensible cache headers
+- [x] Staleness indicator when the brief isn't from today *(built for single mode in #28; DIN-42 renders the same `build_view` from `PostgresStore`, and `tests/test_cloud_mode.py` asserts the two boards are byte-identical apart from the manifest link)*
+- [ ] Offline tolerance and sensible cache headers. `no-store` is deliberate for now: the URL is a credential and a shared cache holding it is a leak, so offline needs a service worker rather than a weaker header.
 - [ ] Verify on the target surfaces: TV browser, old iPad, Pi kiosk
 
 **Done when:** the live dashboard matches what the homepage mockup promises, on a real TV.

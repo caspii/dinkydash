@@ -18,3 +18,15 @@
 # Pinned with == like the rest, so a clean build gets what CI passed on.
 psycopg[binary]==3.3.5
 psycopg-pool==3.3.1
+
+# The QR code of a family's screen URL, drawn inline on the settings page
+# (DIN-42). A new dependency in an app holding other families' calendars needs a
+# reason, and this one is: a QR encoder is Reed-Solomon and a placement matrix,
+# which is not something to write by hand, and the alternative — a QR *service*,
+# or a script from a CDN — would mean handing a bearer credential to a third
+# party or letting the page make an outbound request. `segno` is pure Python
+# with no dependencies of its own, so it adds one package and nothing else.
+#
+# Cloud only, and imported lazily in `settings.qr_svg`: a Pi has no screen token
+# and must not install a library it can never use.
+segno==1.6.6

@@ -60,11 +60,19 @@ thirty-day session can outlive the account it names, and that should sign the ho
 500. Catching the bare parent would swallow `KeyError` and `IndexError` too, which is to say every
 real bug, and send it to the login page.
 
-Two things are unscoped, both deliberately outside the store rather than weakening it:
-`worker.family_ids`, whose whole job is to walk every family, and `dinkydash/accounts.py`, which
-resolves an email address to a user before there is a family to scope to. A magic link has to find
-exactly one person without being told which family they belong to, which is why `users.email` is
-globally unique.
+Three things are unscoped, all deliberately outside the store rather than weakening it, and each
+because there is no family to scope *to* yet:
+
+- **`worker.family_ids`**, whose whole job is to walk every family;
+- **`dinkydash/accounts.py`**, which resolves an email address to a user before there is a family.
+  A magic link has to find exactly one person without being told which family they belong to, which
+  is why `users.email` is globally unique;
+- **`dinkydash/screens.py`**, which resolves a screen token to a family. A wall panel has no session
+  to scope to and never will — that is what the token is for.
+
+Each of the three hands its result to a `PostgresStore` built for exactly one family, so the rule
+that matters is untouched. `web/family.py` is where the last two arrive, and it has both doors in
+one file on purpose: if a third is ever added it should be as obvious as those two are.
 
 ## Signing somebody in, and signing somebody up
 
