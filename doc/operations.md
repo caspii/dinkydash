@@ -59,10 +59,43 @@ not run. Postgres 15 changed who may write to `public`; a difference of that siz
 the service container is there to catch. **When the cluster is upgraded, move that pin with it** —
 `doctl databases get <id> --format VersionSlug` is the check.
 
-**The cluster has no trusted sources set**, so it is reachable from any address that has the
-password. That is DigitalOcean's default and it is not good enough for a database holding other
-families' calendars. Restricting it to the App Platform app belongs with the deploy (DIN-26) —
-doing it before then locks this laptop out of the migrations it still has to run.
+**The cluster has no trusted sources, and that is a decision rather than an oversight.** It is
+reachable from any address holding the password. Restricting it to the App Platform app was
+proposed on 8 September 2026 and **declined by the owner: external tools need to reach the
+database.** The concern was raised, repeated, and overruled, which is the owner's call to make.
+Two things follow. Trusted sources accept a list, so a future middle ground is an allowlist rather
+than all-or-nothing. And the password is now the only thing between the internet and other
+families' calendars, which raises what a leak of `DATABASE_URL` costs — see the note above about
+`doctl` printing them.
+
+**App Platform's database binding (`${db.DATABASE_URL}`) is deliberately not used** for the same
+reason. Attaching a cluster to an app adds that app to the cluster's trusted sources, which would
+turn the open firewall into a restricted one as a side effect of a config change nobody read that
+way. The connection strings are plain `SECRET` env vars instead.
+
+## The deploy, 8 September 2026
+
+`dinkydash-site` now serves both hostnames from one container, `wsgi.py` routing on the `Host`
+header. `dinkydash.co` is the marketing site; `app.dinkydash.co` is the board, reading from
+Postgres in cloud mode. Both verified live over TLS, and the `PRE_DEPLOY` migration job reported
+`Schema is up to date`.
+
+One family exists, seeded from `config.example.yaml` — invented people, no calendar URL — and
+`DINKYDASH_FAMILY_ID` points at it. Nothing outside `tests/conftest.py` creates a family, so that
+was done by hand and will be until the signup flow exists.
+
+**Omitting the value of a `type: SECRET` env var preserves it**, which was tested rather than
+assumed: a throwaway variable was set to a value, the spec re-applied without one, and it survived
+as `EV[...]`. That is what lets `.do/app.yaml` be committed to a public repo with the keys but not
+the values, and still be safe to apply. **Never commit an `EV[...]` blob** — encrypted or not, it is
+a production credential in a world-readable repo.
+
+**The `worker` component and the `worker/` package have to land together.** Applying the spec from
+a checkout without the package gives a component whose `run_command` cannot import, and a failed
+deploy. The worker was held out of the first apply for exactly that reason, because the app deploys
+from `main` and the code was still on a branch.
+
+
 
 ## GitHub's own secret scanning
 
