@@ -262,6 +262,18 @@ class TestTheRateLimit:
 # -- rotation ---------------------------------------------------------------
 
 class TestRotation:
+    def test_link_and_qr_use_the_configured_https_origin(
+            self, parent, cloud, path, monkeypatch):
+        from web.routes import settings
+
+        cloud.config["APP_HOST"] = "app.dinkydash.co"
+        drawn = []
+        monkeypatch.setattr(settings, "qr_svg", lambda link: drawn.append(link))
+        page = parent.get("/settings/screen")
+        link = f"https://app.dinkydash.co{path}"
+        assert link in page.get_data(as_text=True)
+        assert drawn == [link]
+
     def test_the_settings_page_shows_the_link_and_a_qr(self, parent, path):
         page = parent.get("/settings/screen").get_data(as_text=True)
         assert path in page
@@ -321,8 +333,13 @@ class TestTheRootAndThePreview:
         assert landed.headers["Location"].endswith("/login")
 
     def test_view_board_on_the_settings_home_points_at_the_screen(
-            self, parent, path):
-        """It used to link to `/`, which is now a redirect back to that page."""
+            self, parent, path, monkeypatch):
+        from web.routes import settings
+
+        def unused_qr(link):
+            pytest.fail("The settings home should not generate a QR code")
+
+        monkeypatch.setattr(settings, "qr_svg", unused_qr)
         assert f'href="{path}"' in parent.get("/settings/").get_data(as_text=True)
 
     def test_the_preview_frames_the_board_rather_than_the_redirect(

@@ -268,12 +268,7 @@
     <div class="family">DinkyDash</div>
     <div class="waiting-head">Writing {{ view.family_name or "your" }}{{ "'s" if view.family_name else "" }} first board&hellip;</div>
     <div class="bar"><span></span></div>
-    {# Named no command since DIN-45. This template is byte-identical in both
-       modes, so an instruction to run `python generate.py` was a Pi's
-       instruction on a hosted family's wall panel — and it is no longer the
-       thing to do in either: the first brief is owed at once, so the next
-       tick writes it. The button below is the same in both modes and is
-       there for somebody who would rather not wait for one. #}
+    {# Keep the button name in sync with settings/home.html. #}
     <div class="waiting-sub">
         The next run writes it, usually within a few minutes, and this page fills
         itself in. To have it now, open the settings page and press

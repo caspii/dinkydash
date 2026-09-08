@@ -562,6 +562,28 @@ class TestALinkThatDoesNotWork:
 # -- the two rate limits ----------------------------------------------------
 
 class TestTheLimitPerAddress:
+    @pytest.mark.parametrize("signup", [False, True], ids=["login", "signup"])
+    def test_concurrent_requests_cannot_take_the_last_slot_twice(
+            self, pg_pool, pg_user, signup):
+        from concurrent.futures import ThreadPoolExecutor, TimeoutError
+        from contextlib import nullcontext
+        from types import SimpleNamespace
+
+        issue = accounts.issue_signup_link if signup else accounts.issue_link
+        subject = "concurrent@example.com" if signup else pg_user
+        for _ in range(accounts.MOST_LIVE_LINKS - 1):
+            assert issue(pg_pool, subject) is not None
+
+        with ThreadPoolExecutor(max_workers=1) as executor:
+            with pg_pool.connection() as conn, conn.transaction():
+                pinned_pool = SimpleNamespace(connection=lambda: nullcontext(conn))
+                assert issue(pinned_pool, subject) is not None
+                pending = executor.submit(issue, pg_pool, subject)
+                # Keep the last slot uncommitted while another request asks for it.
+                with pytest.raises(TimeoutError):
+                    pending.result(timeout=0.2)
+            assert pending.result(timeout=5) is None
+
     def test_three_live_links_is_the_most(self, client, sent, pg_user):
         for _ in range(5):
             client.post("/login", data={"email": ADDRESS})

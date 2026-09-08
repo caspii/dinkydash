@@ -54,27 +54,10 @@ def refresh_due(config, payload, now):
 
 
 def brief_due(config, payload, now):
-    """True when today has no brief yet and the family's clock has passed `brief_time`.
+    """Owe the first brief immediately; replace older briefs after brief_time.
 
-    **The first brief does not wait for the morning** (DIN-45). `brief_time`
-    decides when to replace yesterday's line, and there is nothing to replace
-    before the first one: a family with no brief at all has the waiting screen
-    on the wall, which is not a board at any hour. Somebody who signs up at
-    03:00 would otherwise look at it until 06:00, and that is the whole of
-    their first impression of the product.
-
-    **The signal is exact, and it is the same one in both stores.**
-    `save_agenda` writes only the agenda keys and `PostgresStore.load_payload`
-    adds `generated_for_date` only when a successful generation exists, so a
-    payload without that key is a family that has never had a brief rather
-    than one whose calendars have merely been fetched. It needs no mode check
-    and no new column: a freshly cloned Pi is in the same state, and gets the
-    same answer from its first `generate.py --tick`.
-
-    A first brief that keeps *failing* is therefore retried on every tick,
-    around the clock rather than from `brief_time` onwards. The bound is
-    unchanged and is the per-family spend cap, which a five-minute loop trips
-    within an hour (`budget.FAMILY_CALLS_A_DAY`).
+    A calendar-only payload has no generated_for_date. Failed first briefs stay
+    due on each tick; cloud callers remain subject to the spend breaker.
     """
     if not payload.get("generated_for_date"):
         return True

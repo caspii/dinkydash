@@ -50,7 +50,10 @@ and never should be. What replaces the session is the token, resolved by `family
 what replaces the guard is that the two routes there are GETs that reach a board and nothing else.
 Registered only in cloud mode, like `auth`. **In cloud mode `/` is a redirect**, so anything that
 used to link to `url_for('board.index')` for a board — the "View board" button, `/preview`'s
-iframes — has to ask where the board actually is instead. `board.board_url` is that question.
+iframes — uses `web.urls.board_path()`. Build absolute credential URLs with
+`web.urls.absolute_url(path)`: it uses HTTPS and the configured `DINKYDASH_APP_HOST`, with the
+request host as a development fallback. The login-link CLI shares the origin policy and accepts
+an explicit local `--base-url`. QR codes are generated only on `/settings/screen`.
 
 **Every form that writes needs one hidden field.** `<input type="hidden" name="csrf_token"
 value="{{ csrf_token() }}">`, right inside the `<form>`. `csrf_token()` is a Jinja global set up by
@@ -116,14 +119,9 @@ single-column layout (an iPad in portrait) has no side column to hide behind and
 full price, around 13-18%. Everything fits at all three sizes in every case. Raising either
 constant spends more type size, so measure at `/preview` before you do.
 
-**The waiting screen may not name a command, and that is a mode rule rather than a style one.**
-`board.html` is one file rendered by both modes and `tests/test_cloud_mode.py` asserts the two are
-byte-identical, so `python generate.py` on it was a Pi's instruction sitting on a hosted family's
-wall panel — where nobody has a shell, and where the token in the address bar is the only thing
-that page is for. Since DIN-45 the first brief is owed at once, so what it says instead is true in
-both: the next tick writes it. It points at the settings button by name, and that button reads
-**Write it now** rather than "Rewrite now" while `status.state == "waiting"`, so the two
-agree; `tests/test_board.py` and `tests/test_settings.py` fail if they stop.
+**The shared waiting screen must work in both modes.** Refer to the settings button, **Write it
+now**, rather than a shell command. Keep that label in sync with `settings/home.html` and see
+[The first board](../PLAN.md#the-first-board) for scheduling behaviour.
 
 In two-column mode the body is a grid, and **the note sits under the agenda, not across the
 bottom**. The agenda is short on a quiet day while chores plus countdowns are not, so a full-width
