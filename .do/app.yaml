@@ -110,6 +110,24 @@ envs:
     scope: RUN_TIME
     type: SECRET
 
+  # The spend breaker (DIN-43), in model calls a day. Written out at their
+  # defaults rather than left implicit, because a ceiling nobody can see is a
+  # ceiling nobody raises — and because **this spec is the whole app**: a value
+  # changed in the dashboard is undone by the next `doctl apps update`, so an
+  # emergency change made there belongs here as well, the same day.
+  #
+  # `0` everywhere is the brake. It refuses every model call and leaves every
+  # board exactly as it is, which is the right shape for "stop the bill now".
+  - key: DINKYDASH_FAMILY_CALLS_A_DAY
+    scope: RUN_TIME
+    value: "12"
+  - key: DINKYDASH_GLOBAL_CALL_FLOOR
+    scope: RUN_TIME
+    value: "50"
+  - key: DINKYDASH_GLOBAL_CALLS_PER_FAMILY
+    scope: RUN_TIME
+    value: "4"
+
 services:
   # Named `site` rather than `web` because renaming a component destroys and
   # recreates it, and the name is not worth an outage on the pages that rank.

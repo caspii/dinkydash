@@ -178,8 +178,14 @@ mode is a different product on the same code.
   goes in the line is chosen: the caller's address in full, the *domain* of the address asked about
   and never the address, and nothing at all for an address with no account. `tests/test_auth.py`
   asserts each of those, because a log policy nobody tests is a log policy that drifts.
-- **Spend caps are a security control.** The per-family and global breaker (PLAN.md phase 2) is what
-  stops a bug or an abusive account becoming an unbounded Anthropic bill.
+- **Spend caps are a security control, and they exist now** (DIN-43). `dinkydash/budget.py` counts
+  **calls, not money** — a price table goes stale silently and in the wrong direction — per family
+  and globally, in one statement that decides and records before the call. Three rules to keep:
+  **charge on the attempt**, because a revoked key that fails every time reports no usage and would
+  otherwise retry for ever; **a refusal is an `OverBudget`, which is a `GenerationError`**, so every
+  caller's existing keep-last-good path handles it and no second such path gets written; and
+  **anything new that calls Anthropic takes a budget**, the way it takes a store. "Rewrite now" was
+  the one path with no limit on it at all, and it is charged now too.
 
 ### The safety net, and what it does not cover
 
@@ -284,6 +290,7 @@ dinkydash/
 ├── mail.py            one transactional email, over SendGrid (cloud only)
 ├── accounts.py        users, the links that sign them in, and sign-up (cloud only)
 ├── screens.py         the token that puts a board on a wall (cloud only)
+├── budget.py          what a family may spend on the model, and what everybody may
 └── runner.py          the two halves of the day, reading and writing through a store
 
 web/

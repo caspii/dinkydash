@@ -24,7 +24,8 @@ from dinkydash.runner import forget_calendar, refresh_calendars
 from dinkydash.runner import run as run_generation
 from web import CLOUD
 from web import manifest as manifest_module
-from web.family import current_family_id, current_screen_token, current_store
+from web.family import (current_budget, current_family_id, current_screen_token,
+                        current_store)
 from web.session import guard
 
 log = logging.getLogger(__name__)
@@ -306,9 +307,19 @@ def manifest():
 
 @bp.route("/generate", methods=["POST"])
 def generate_now():
+    """"Rewrite now" — a person asking for a board, and paying for it.
+
+    **Charged against the same budget as the worker**, because it is the same
+    money out of the same account (DIN-43). Without that, a signed-in parent
+    holding this button down is an unbounded bill from one browser, and it was
+    the one path to Anthropic with no limit on it at all.
+
+    A refusal is an `OverBudget`, which is a `GenerationError`, so it arrives in
+    the branch below that already existed and the person is told plainly.
+    """
     config = current_config()
     try:
-        payload = run_generation(config, current_store())
+        payload = run_generation(config, current_store(), budget=current_budget())
     except GenerationError as exc:
         flash(str(exc), "error")
     except Exception as exc:  # a broken feed or an unreadable file shouldn't 500 the UI

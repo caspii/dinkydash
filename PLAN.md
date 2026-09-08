@@ -8,6 +8,11 @@
 
 *September 8, later: **one service, not two.** The board joins the marketing site in the existing `dinkydash-site` app rather than getting its own, because that is how `qrpage.co` and `abc-league` already run in this account — one container, one gunicorn, everything in it. Staging is dropped until there is a paying family to protect. The `worker` is the one genuine addition, because the tick has no lock and two web instances would tick twice. See [Hosting and deployment](#hosting-and-deployment).*
 
+*September 8, and this is the one that was overdue: **there is a spend breaker** (DIN-43). Per
+family and globally, checked and recorded in one statement before the call. Nothing bounded the
+Anthropic bill until now — not the worker, and not "Rewrite now", which was a browser button with
+an unlimited API call behind it. See [The spend breaker](#the-spend-breaker).*
+
 *September 8, later still: **the board is on a wall** (DIN-42). `/s/<token>` serves it with no
 session, `/settings/screen` shows the link and a QR of it and rotates the token, and `/` in cloud
 mode is now the way in to the settings rather than the board — the URL map below, finally. See
@@ -226,6 +231,44 @@ is drawn black on a white plate in **both** themes: scanners expect dark on ligh
 tolerance for a panel on flaky wifi, which needs a service worker rather than a weaker cache header;
 and the edge rate-limit rule at Cloudflare, which is a sturdier version of the in-process limiter
 rather than a replacement for it.
+
+### The spend breaker
+
+*Built in DIN-43.* `model_spend` holds calls and tokens per family per UTC day, and
+`budget.PostgresBudget.allow()` decides and records in one statement before every model call. Single
+mode passes `NoBudget` and is untouched: a self-hoster's key is their own bill.
+
+**Calls, not money.** A price table in the code goes stale silently and in the wrong direction — it
+under-counts after a price rise, which is exactly when a breaker matters. A call is exact and is
+knowable *before* it is made. The multiplication into money lives in
+[doc/operations.md](doc/operations.md) and in the cost model above, where a wrong number is a wrong
+note rather than a broken control.
+
+**Charged on the attempt.** A revoked API key fails every call, pays for input tokens each time, and
+reports no usage at all; a breaker counting successes would watch a five-minute retry loop do that
+for ever.
+
+**The per-family cap is exact and the global one is approximate**, and the difference is written
+down rather than glossed. Per family it is enforced in the `ON CONFLICT ... DO UPDATE ... WHERE`,
+which Postgres evaluates against the locked row. Globally it is a sum read before the write, so
+simultaneous callers can overshoot by their own number — bounded, and much cheaper than serialising
+every family's tick behind one row.
+
+**The global cap scales with the number of families** (`floor + per_family × families`). A fixed
+ceiling is a control that starts starving real boards on the day the product grows into it, and the
+failure looks exactly like a quiet morning.
+
+**A refusal is an `OverBudget`, which is a `GenerationError`**, so every caller's existing
+keep-last-good path handles it with no new branch: the board on the wall stays, labelled stale, and
+the next tick asks again. Inventing a second kind of failure would have meant a second such path,
+and the one written second is the one that eventually blanks somebody's screen. The **calendar
+refresh is deliberately outside the budget** — a fetch costs requests, not money, so a family who
+cannot afford a new headline today still gets an accurate agenda under yesterday's.
+
+`0` everywhere is the brake, and it works: it refuses every call and changes no board. It had to be
+made to work — the first version let every family through once a day even at zero, because the first
+call of a day takes the insert path where the per-family check never ran. A test found that, not a
+reading.
 
 ### Three clocks, one setting
 
@@ -790,13 +833,13 @@ missing is the multi-tenant half — a schema, auth, and scoping every read and 
 
 ### Phase 2 — Generation pipeline
 
-- [ ] Worker process: the 5-minute tick over every family that is due, per the scheduling section
-- [ ] Calendar refresh and daily brief as separate operations, each recorded (`agendas`, `generations`)
-- [ ] "Generate now" and "Refresh calendars" for onboarding and manual use
-- [ ] Per-family daily idempotency on the brief
-- [ ] Per-family and **global** spend caps with a hard breaker
+- [x] Worker process: the 5-minute tick over every family that is due, per the scheduling section. Running since 8 September; `worker/` and `tests/test_worker.py`.
+- [x] Calendar refresh and daily brief as separate operations, each recorded (`agendas`, `generations`) *(DIN-17, DIN-28)*
+- [x] "Generate now" and "Refresh calendars" for onboarding and manual use — both on the settings home, and both work in cloud mode. **What is still missing is "Generate now" *on signup*:** a family who signs up at 03:00 sees the waiting screen until their `brief_time`, because the brief is not due before then.
+- [x] Per-family daily idempotency on the brief — `schedule.due` asks for one brief per local day and `generations` is unique on `(family_id, generated_for_date)`, so a second write for a day replaces rather than adds
+- [x] Per-family and **global** spend caps with a hard breaker *(DIN-43)*. See [The spend breaker](#the-spend-breaker). "Rewrite now" is charged against the same budget as the worker, because it is the same money.
 - [ ] Keep-last-good on failure; retry with backoff on later ticks; consecutive-failure tracking; parent notification after N
-- [ ] Per-generation token/cost recording
+- [x] Per-generation token/cost recording — `generations.input_tokens`/`output_tokens` for the latest board, and `model_spend` for the running daily total per family *(DIN-43)*
 - [ ] Dead-man's switch pinged from the tick, alerting if it stops
 
 **Done when:** families in three timezones each get a correct dashboard at their own brief time, a calendar change reaches each screen within its interval, and killing the Anthropic key degrades gracefully instead of blanking screens.

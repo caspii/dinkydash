@@ -18,6 +18,12 @@ whole payload. That is what makes a refresh landing during the model call
 survive rather than being overwritten by the stale keys the brief read minutes
 earlier (DIN-28). A fresh agenda under yesterday's headline is exactly the
 amber-banner state `board.build_view` already handles.
+
+**`write_brief` takes a budget as well as a store**, and for the same reason it
+takes a store: what a call is allowed to cost is the caller's business, not the
+engine's (DIN-43). Single mode passes nothing and gets `NoBudget`; cloud mode
+passes one backed by Postgres. A refusal arrives as a `GenerationError`, so
+every caller's existing keep-last-good path handles it with no new branch.
 """
 
 import logging
@@ -25,6 +31,7 @@ import os
 from datetime import datetime, timedelta, timezone
 
 from . import config as config_module
+from .budget import NoBudget
 from .calendars import fetch_events, sort_key
 from .claude_client import GenerationError
 from .generate import generate
@@ -127,17 +134,21 @@ def forget_calendar(config, store, labels):
     log.info("Forgot the stored events of %s; a refresh is due", ", ".join(sorted(labels)))
 
 
-def write_brief(config, store, today=None, client=None):
+def write_brief(config, store, today=None, client=None, budget=None):
     """Ask Claude for today's headline and note, and store them. Costs one call.
 
     The events come from the stored payload rather than a second fetch, so the
     brief always describes the agenda the board is showing, and a tick that
     owes both does one fetch rather than two.
 
-    Raises GenerationError if the model call fails — the caller decides what to
-    do, and the previous payload is left untouched either way.
+    Raises GenerationError if the model call fails **or if the budget refuses
+    it** — the caller decides what to do, and the previous payload is left
+    untouched either way. That sameness is the point: a board that is too
+    expensive to rewrite and a board whose rewrite failed should both leave the
+    screen on the wall showing yesterday, labelled stale.
     """
     require_api_key()
+    budget = budget or NoBudget()
     today = today or config_module.today_for(config)
 
     stored = store.load_payload(config) or {}
@@ -145,9 +156,16 @@ def write_brief(config, store, today=None, client=None):
     keep = int(config.get("history_days") or 30)
     recent = store.recent_notes(config, keep)
 
+    # **Charged before the call, not after.** A key that has been revoked fails
+    # every time and reports no usage, so counting successes would let a
+    # five-minute retry loop run for ever. Raises `OverBudget` if it will not
+    # pay for this one, and nothing below has run.
+    budget.allow()
+
     payload = generate(
         config, today, stored.get("events") or [], recent_notes=recent, client=client
     )
+    budget.record(payload.get("input_tokens"), payload.get("output_tokens"))
     # Only the brief. `stored` was read before a model call that takes seconds,
     # so anything of the agenda's in it is already potentially out of date — a
     # refresh may well have landed in the meantime, and writing this copy back
@@ -170,11 +188,17 @@ def write_brief(config, store, today=None, client=None):
     return payload
 
 
-def run(config, store, today=None, client=None):
-    """Both halves: fetch the calendars, then write the brief. Returns the payload."""
+def run(config, store, today=None, client=None, budget=None):
+    """Both halves: fetch the calendars, then write the brief. Returns the payload.
+
+    The refresh is deliberately outside the budget: fetching calendars costs a
+    few HTTP requests to somebody else's server, not money, and a family whose
+    board cannot be rewritten today should still have an accurate agenda under
+    yesterday's headline.
+    """
     require_api_key()  # before the fetch, so a missing key fails in a second
     refresh_calendars(config, store, today=today)
-    return write_brief(config, store, today=today, client=client)
+    return write_brief(config, store, today=today, client=client, budget=budget)
 
 
 def require_api_key():

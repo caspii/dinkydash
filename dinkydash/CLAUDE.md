@@ -118,6 +118,36 @@ starter config in the transaction that spent it. Five things about that are deli
   backstop rather than the error path. A collision at 59 bits is not something anyone will see, but
   an unhandled one would spend somebody's sign-up link and hand them a 500.
 
+## What a call is allowed to cost
+
+`budget.py` is the breaker, and it is injected the way a store is: `write_brief(config, store,
+budget=...)`. Single mode passes nothing and gets `NoBudget`, because a self-hoster's key is their
+own bill; cloud mode passes `budget.for_family(pool, family_id)`, built in the one place that knows
+both the pool and the family — `worker.tick_all` and `web/family.current_budget()`.
+
+Five things in it are load-bearing, and `tests/test_budget.py` asserts each:
+
+- **Calls, not money.** A price table in code goes stale silently and in the wrong direction: it
+  under-counts after a price rise, which is exactly when a breaker matters. A call is exact and is
+  knowable before it is made.
+- **Charged on the attempt, not on success.** A revoked API key fails every call and reports no
+  usage. Counting successes would let a five-minute retry loop pay for input tokens for ever.
+- **The per-family cap appears in the statement twice, and that is not redundant.** An upsert has
+  two paths: `DO UPDATE ... WHERE` covers the update and is evaluated against the locked row, which
+  is what makes it exact — and the source `WHERE` covers the *first call of the day*, when there is
+  no row to conflict with. Written with only the first, a cap of `0` let every family through once
+  daily, so the brake that exists to stop all spending was the one setting that could not.
+- **The global cap is approximate and says so**, by at most the number of simultaneous callers.
+  Making it exact means serialising every family's tick behind one row, which is not worth it for a
+  ceiling set well above legitimate use.
+- **A refusal is an `OverBudget`, a subclass of `GenerationError`.** That is what lets every caller
+  keep the board on the wall with no new branch — "a failure is not handled, it is simply due again"
+  already covers it. A second kind of failure would mean a second keep-last-good path.
+
+The **calendar refresh is outside the budget**. A fetch costs HTTP requests to somebody else's
+server, not money, and a family who cannot afford a new headline today should still have an
+accurate agenda under yesterday's.
+
 ## Cloud mode: schema, migrations, connections
 
 `migrations/*.sql` is plain SQL applied in filename order by `migrate.py`, which records each one in
