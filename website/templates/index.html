@@ -1,22 +1,23 @@
 {% extends "base.html" %}
 
 {% block title %}DinkyDash — Digital Family Calendar for Screens You Own{% endblock %}
-{% block description %}A digital family calendar for the TV, tablet or Raspberry Pi you already own. $39 a year, or free if you run it yourself. Open source, no account, no adverts.{% endblock %}
+{% block description %}A family calendar for the wall, set up from one calendar link, on the TV, tablet or Raspberry Pi you already own. $39 a year, or free if you run it yourself. Open source.{% endblock %}
 {% block og_title %}DinkyDash — A Family Calendar on the Screen You Already Own{% endblock %}
 {# No og_image override: the home page shares the same card as everything else. #}
 
 {% block extra_head %}
 <style>
-    /* HERO */
+    /* HERO — the copy on top, the board underneath at the full width of the
+       column. Side by side with the copy, the board got half the column and
+       its agenda shrank to texture; at full width it reads at about the size
+       of body text, so the product itself is legible in the first screen.
+       On a phone it shrinks to texture again, which is why the headline and
+       the subhead state the mechanism rather than describe the picture. */
     .hero {
-        padding: 64px 0 56px;
+        padding: 56px 0;
+        text-align: center;
     }
-    .hero-grid {
-        display: grid;
-        grid-template-columns: 1.05fr 1.02fr;
-        gap: 44px;
-        align-items: center;
-    }
+    .hero-copy { max-width: 720px; margin: 0 auto; }
     .hero-pill {
         display: inline-flex;
         align-items: center;
@@ -45,23 +46,23 @@
     .hero .subtitle {
         font-size: 1.1rem;
         color: var(--text-mid);
-        margin-bottom: 26px;
+        margin: 0 auto 26px;
         line-height: 1.7;
-        max-width: 470px;
+        max-width: 600px;
     }
-    .hero-buttons { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
-    .hero-note {
-        font-size: 0.85rem;
-        color: var(--text-muted);
-        max-width: 420px;
-        line-height: 1.6;
+    .hero-buttons {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        justify-content: center;
+        margin-bottom: 16px;
     }
-    .hero-note strong { color: var(--text-mid); }
     /* Small credibility strip. The site is a DR 11 stranger asking for an
        email, so the few true things we can show are worth showing. */
     .hero-proof {
         display: flex;
         flex-wrap: wrap;
+        justify-content: center;
         gap: 6px 14px;
         margin-top: 20px;
         font-size: 0.78rem;
@@ -74,10 +75,19 @@
         color: var(--border);
     }
     .hero-proof span:last-child::after { content: ""; margin: 0; }
+    /* The board's own background is white on the site's off-white, so with
+       no edge the screenshot dissolves into the page. The bezel is the edge,
+       and it says "a screen" without a room around it. */
+    .hero-board {
+        margin: 40px auto 0;
+        border: 10px solid #23201c;
+        box-shadow: 0 22px 54px rgba(45, 35, 25, 0.2);
+    }
+    .hero .shot-caption { text-align: center; }
 
     @media (prefers-reduced-motion: no-preference) {
-        .hero-copy, .hero-shot { animation: rise 0.5s ease-out both; }
-        .hero-shot { animation-delay: 0.12s; }
+        .hero-copy, .hero-board { animation: rise 0.5s ease-out both; }
+        .hero-board { animation-delay: 0.12s; }
         @keyframes rise {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: none; }
@@ -99,97 +109,19 @@
         font-style: italic;
     }
 
-    /* THE BOARD, UP CLOSE */
-    .tour {
+    /* SECTION RHYTHM. A plain section carries its own top padding. A band
+       has a background, so it carries a top margin to clear the section
+       above it and its own padding inside. Plain and band alternate down
+       the page, and two bands never touch. */
+    .section { padding: 72px 0 0; }
+    .band {
+        margin-top: 72px;
         padding: 64px 0;
         background: var(--surface-warm);
         border-top: 1px solid var(--border);
         border-bottom: 1px solid var(--border);
     }
-    .tour h2 {
-        font-size: 2rem;
-        font-weight: 800;
-        text-align: center;
-        letter-spacing: -0.02em;
-        margin-bottom: 10px;
-    }
-    .tour > .container > p {
-        text-align: center;
-        color: var(--text-mid);
-        max-width: 560px;
-        margin: 0 auto 36px;
-        font-size: 1.05rem;
-    }
-    .tour .shot {
-        border: 10px solid #23201c;
-        box-shadow: 0 22px 54px rgba(45, 35, 25, 0.2);
-    }
-    .tour-list {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 14px 28px;
-        margin-top: 32px;
-        list-style: none;
-    }
-    .tour-list li {
-        font-size: 0.88rem;
-        color: var(--text-mid);
-        line-height: 1.55;
-        padding-left: 24px;
-        position: relative;
-    }
-    .tour-list li::before {
-        content: "";
-        position: absolute;
-        left: 0;
-        top: 0.55em;
-        width: 9px; height: 9px;
-        border-radius: 50%;
-        background: var(--accent);
-    }
-    .tour-list strong { color: var(--text); font-weight: 800; }
-
-    /* SPLIT: IMAGE BESIDE COPY */
-    .split { padding: 72px 0 0; }
-    .split-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 48px;
-        align-items: center;
-    }
-    .split-grid.reverse .split-copy { order: 2; }
-    .split-copy h2 {
-        font-size: 1.8rem;
-        font-weight: 800;
-        letter-spacing: -0.02em;
-        margin-bottom: 14px;
-    }
-    .split-copy p {
-        color: var(--text-mid);
-        font-size: 1rem;
-        margin-bottom: 14px;
-    }
-    .split-copy ul {
-        list-style: none;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        margin-bottom: 18px;
-    }
-    .split-copy li {
-        font-size: 0.92rem;
-        color: var(--text-mid);
-        padding-left: 24px;
-        position: relative;
-    }
-    .split-copy li::before {
-        content: "\2713";
-        position: absolute;
-        left: 0;
-        color: var(--accent);
-        font-weight: 800;
-    }
-    .split-phone { max-width: 320px; margin: 0 auto; }
+    .band.how { margin-top: 0; }   /* the hero's bottom padding is the gap */
 
     /* SHARED SECTION FURNITURE */
     .section-head h2 {
@@ -225,8 +157,43 @@
         max-width: 640px;
     }
 
+    /* HOW IT WORKS — three steps in a row. The three pictures come from
+       three sources at three shapes (a portrait phone, a square crop of the
+       board, a landscape room), so each is shown as a square. */
+    .steps {
+        list-style: none;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 28px;
+    }
+    .step .shot { box-shadow: 0 10px 28px rgba(45, 35, 25, 0.12); }
+    .step .shot img { aspect-ratio: 1 / 1; object-fit: cover; }
+    /* The wall screen in the room photograph sits left of centre. */
+    .step .shot .screen-photo { object-position: 43% 50%; }
+    .step h3 {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        font-size: 1.05rem;
+        font-weight: 800;
+        line-height: 1.35;
+        margin: 18px 0 6px;
+    }
+    .step-number {
+        flex: none;
+        margin-top: 0.1em;
+        width: 26px; height: 26px;
+        border-radius: 50%;
+        background: var(--accent);
+        color: #fff;
+        font-size: 0.8rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .step p { font-size: 0.9rem; color: var(--text-mid); line-height: 1.6; }
+
     /* CARD GRID, USED BY THE TWO ARGUMENT SECTIONS */
-    .cards { padding: 72px 0 0; }
     .cards-grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
@@ -248,22 +215,11 @@
         color: var(--text);
     }
 
-    /* NOTHING TO TICK OFF */
-    .upkeep {
-        padding: 64px 0;
-        margin-top: 72px;
-        background: var(--surface-warm);
-        border-top: 1px solid var(--border);
-        border-bottom: 1px solid var(--border);
-    }
-
     /* WHERE THE DATA SITS — text only, so it reads differently from the
        card grids either side of it. */
-    .privacy { padding: 72px 0 0; }
     .privacy .lede { max-width: 660px; text-align: left; }
 
     /* THE DAILY LINE */
-    .samples { padding: 72px 0 0; }
     .samples-grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
@@ -295,27 +251,6 @@
     }
 
     /* SCREENS YOU OWN */
-    .screens {
-        padding: 72px 0;
-        margin-top: 72px;
-        background: var(--surface-warm);
-        border-top: 1px solid var(--border);
-        border-bottom: 1px solid var(--border);
-    }
-    .screens h2 {
-        font-size: 2rem;
-        font-weight: 800;
-        text-align: center;
-        margin-bottom: 12px;
-        letter-spacing: -0.02em;
-    }
-    .screens > .container > p {
-        text-align: center;
-        color: var(--text-mid);
-        max-width: 540px;
-        margin: 0 auto 36px;
-        font-size: 1.05rem;
-    }
     .screens-photos {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -341,7 +276,6 @@
     .screen-tile p { font-size: 0.82rem; color: var(--text-mid); line-height: 1.55; }
 
     /* WHAT IT COSTS — the price comparison and the two modes, one section */
-    .costs { padding: 72px 0 0; }
     .math-grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
@@ -417,7 +351,6 @@
     .mode-card .btn { justify-content: center; }
 
     /* FAQ */
-    .faq { padding: 72px 0 0; }
     .faq h2 {
         font-size: 2rem;
         font-weight: 800;
@@ -452,19 +385,15 @@
     }
 
     /* CTA */
-    .cta { text-align: center; padding: 72px 0 0; }
+    .cta { text-align: center; }
     .cta h2 { font-size: 1.8rem; font-weight: 800; margin-bottom: 12px; letter-spacing: -0.02em; }
     .cta p { color: var(--text-mid); max-width: 480px; margin: 0 auto 28px; font-size: 1rem; }
     .cta-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-bottom: 16px; }
     .cta-note { font-size: 0.85rem; color: var(--text-muted); }
 
     @media (max-width: 860px) {
-        .hero-grid { grid-template-columns: 1fr; gap: 36px; }
-        .hero .subtitle, .hero-note { max-width: none; }
-        .split-grid { grid-template-columns: 1fr; gap: 32px; }
-        .split-grid.reverse .split-copy { order: 0; }
         .screens-grid { grid-template-columns: repeat(2, 1fr); }
-        .tour-list { grid-template-columns: repeat(2, 1fr); }
+        .steps { grid-template-columns: 1fr; max-width: 420px; margin: 0 auto; }
     }
     @media (max-width: 720px) {
         .cards-grid { grid-template-columns: 1fr; }
@@ -472,11 +401,11 @@
         .math-grid { grid-template-columns: 1fr; }
         .modes-grid { grid-template-columns: 1fr; }
         .screens-photos { grid-template-columns: 1fr; }
-        .hero { padding: 44px 0 40px; }
+        .hero { padding: 40px 0 44px; }
+        .hero-board { margin-top: 32px; border-width: 6px; }
     }
     @media (max-width: 480px) {
         .screens-grid { grid-template-columns: 1fr; }
-        .tour-list { grid-template-columns: 1fr; }
     }
 </style>
 {% endblock %}
@@ -486,55 +415,93 @@
 <!-- HERO -->
 <section class="hero">
     <div class="container">
-        <div class="hero-grid">
-            <div class="hero-copy">
-                <div class="hero-pill"><span class="dot"></span> Open source &middot; No app to install</div>
-                <h1>A simple screen that shows your family what matters today</h1>
-                <p class="subtitle">DinkyDash is a digital family calendar with none of the cruft. Your calendar feed, a few chores, the countdowns the kids ask about. Set it up from your phone, point a screen at it, and leave it alone.</p>
-                <div class="hero-buttons">
-                    <a href="/getting-started/" class="btn">Run it yourself, free</a>
-                    <a href="https://fffwryhvses.typeform.com/to/yxMMhmFs" target="_blank" rel="noopener" class="btn btn-outline">Join the waiting list</a>
-                </div>
-                <div class="hero-proof">
-                    <span>MIT licensed</span>
-                    <span>Open source since 2021</span>
-                    <span>90+ stars on GitHub</span>
-                </div>
+        <div class="hero-copy">
+            <div class="hero-pill"><span class="dot"></span> Open source &middot; No app to install</div>
+            <h1>A family calendar for the wall, set up from one link</h1>
+            <p class="subtitle">Paste a calendar link, add the people and the chores if you like, and point a screen at it. Each morning the board rebuilds itself. Nothing to tick.</p>
+            <div class="hero-buttons">
+                <a href="/getting-started/" class="btn">Run it yourself, free</a>
+                <a href="https://fffwryhvses.typeform.com/to/yxMMhmFs" target="_blank" rel="noopener" class="btn btn-outline">Have us run it &mdash; join the list</a>
             </div>
-
-            <div class="hero-shot">
-                <figure class="shot">
-                    <img src="/images/family-calendar-kitchen-wall.webp" width="1376" height="768" decoding="async"
-                         alt="The DinkyDash board on a wall-mounted screen in a family kitchen, showing the day's agenda, whose turn each chore is, and the countdowns">
-                </figure>
-                <p class="shot-caption">Every screen on this page shows the real board &mdash; the same page yours would serve.</p>
+            <div class="hero-proof">
+                <span>MIT licensed</span>
+                <span>Open source since 2021</span>
+                <span>90+ stars on GitHub</span>
             </div>
         </div>
+        <figure class="shot hero-board">
+            <img src="/images/family-dashboard-board.webp" width="1600" height="960" fetchpriority="high" decoding="async"
+                 alt="The DinkyDash board: today's agenda in time order, tomorrow underneath, whose turn each chore is, birthday countdowns, and one written line">
+        </figure>
+        <p class="shot-caption">Every screen on this page shows the real board &mdash; the same page yours would serve.</p>
     </div>
 </section>
 
-<!-- THE BOARD, UP CLOSE -->
-<section class="tour">
+<!-- HOW IT WORKS -->
+<section class="band how">
     <div class="container">
-        <h2>What's on the board</h2>
-        <p>One page, readable from the other side of the kitchen. The agenda, the rota, the countdowns, and one written line. The important things, and nothing else.</p>
-        <figure class="shot">
-            <img src="/images/family-dashboard-board.webp" width="1600" height="960" decoding="async" loading="lazy"
-                 alt="A close-up of the DinkyDash family dashboard: today's agenda in time order, tomorrow underneath, a chore rota, birthday countdowns, and an AI-written line">
-        </figure>
-        <ul class="tour-list">
-            <li><strong>Today's agenda</strong>, in time order, merged from as many calendars as you connect.</li>
-            <li><strong>A look at tomorrow</strong> underneath it, on the days today leaves room.</li>
-            <li><strong>Whose turn each chore is</strong> &mdash; rotated daily, so nobody has to arbitrate.</li>
-            <li><strong>Countdowns</strong> to birthdays and the dates children ask about on repeat.</li>
-            <li><strong>One line written each morning</strong> &mdash; some days a fact, some days about the dog.</li>
-            <li><strong>Light or dark</strong>, sized in one measurement so it fits every screen you own.</li>
-        </ul>
+        <div class="section-head">
+            <h2>How it works</h2>
+            <p>Three steps, and the second is optional. After that, the board looks after itself.</p>
+        </div>
+        <ol class="steps" role="list">
+            <li class="step">
+                <figure class="shot">
+                    <img src="/images/family-calendar-settings-phone.webp" width="784" height="1327" decoding="async" loading="lazy"
+                         alt="A hand holding a phone showing the DinkyDash settings page, with sections for people, pets, chores, special dates and calendars">
+                </figure>
+                <h3><span class="step-number">1</span>Paste a calendar link</h3>
+                <p>Google, Apple and Outlook each give you one, and you paste it in from your phone. It is a link, not a login: nothing to sign in to, and nothing to install on the screen.</p>
+            </li>
+            <li class="step">
+                <figure class="shot">
+                    <img src="/images/family-calendar-rota-countdowns.webp" width="580" height="580" decoding="async" loading="lazy"
+                         alt="A close-up of the board's right-hand column: whose turn each chore is today, and the days left until a birthday, Halloween and Christmas">
+                </figure>
+                <h3><span class="step-number">2</span>Name the people and the chores</h3>
+                <p>Optional. Names and birthdays become the countdowns. Each chore passes to the next person every day, so nobody has to arbitrate whose turn it is.</p>
+            </li>
+            <li class="step">
+                <figure class="shot">
+                    <img src="/images/family-calendar-kitchen-wall.webp" width="1376" height="768" decoding="async" loading="lazy" class="screen-photo"
+                         alt="The DinkyDash board on a wall-mounted screen in a family kitchen">
+                </figure>
+                <h3><span class="step-number">3</span>Point a screen at it</h3>
+                <p>Open the board in any browser: an old tablet, the TV, a Raspberry Pi on the wall. Leave the screen on, and the board refreshes itself.</p>
+            </li>
+        </ol>
+        <p class="lede">Every morning the board rebuilds itself. The agenda comes from your calendars. Whose turn it is, and the countdowns, are worked out from the date. The headline and the one written line are new each morning, and they are the only part an AI writes.</p>
+        <p class="lede">There is no layout to build and no account to link. <strong>The board has one layout, and it is already right.</strong></p>
+    </div>
+</section>
+
+<!-- NOTHING TO MAINTAIN -->
+<section class="section upkeep">
+    <div class="container">
+        <div class="section-head">
+            <h2>Nothing to maintain</h2>
+            <p>Every family organiser dies the same way. Somebody sets it up in January, and by March nobody is ticking the boxes. So the board has no boxes.</p>
+        </div>
+        <div class="cards-grid">
+            <div class="card">
+                <h3>Chores rotate on the date</h3>
+                <p>Nobody marks one done, and nobody arbitrates whose turn it is. The wall already said, and it will still be saying the right name in March.</p>
+            </div>
+            <div class="card">
+                <h3>Countdowns count themselves</h3>
+                <p>Ages and days-to-go are worked out fresh from today's date, so they cannot drift. <a href="/birthday-countdown/">Try the birthday countdown &rarr;</a></p>
+            </div>
+            <div class="card">
+                <h3>A bad morning stays honest</h3>
+                <p>If the overnight run fails, the times, turns and countdowns are still today's. Only the written line is old, and the board tells you so.</p>
+            </div>
+        </div>
+        <p class="lede">The rest of the category is running the other way &mdash; tap-to-complete, points, rewards, child locks. Those are <strong>apps on a wall</strong>, and apps on a wall need feeding. This is a poster that updates itself.</p>
     </div>
 </section>
 
 <!-- YOURS TO KEEP -->
-<section class="cards">
+<section class="band keep">
     <div class="container">
         <div class="section-head">
             <h2>Yours to keep</h2>
@@ -563,77 +530,13 @@
     </div>
 </section>
 
-<!-- NOTHING TO MAINTAIN -->
-<section class="upkeep">
-    <div class="container">
-        <div class="section-head">
-            <h2>Nothing to maintain</h2>
-            <p>Every family organiser dies the same way. Somebody sets it up in January, and by March nobody is ticking the boxes. So the board has no boxes.</p>
-        </div>
-        <div class="cards-grid">
-            <div class="card">
-                <h3>Chores rotate on the date</h3>
-                <p>Nobody marks one done, and nobody arbitrates whose turn it is. The wall already said, and it will still be saying the right name in March.</p>
-            </div>
-            <div class="card">
-                <h3>Countdowns count themselves</h3>
-                <p>Ages and days-to-go are worked out fresh from today's date, so they cannot drift. <a href="/birthday-countdown/">Try the birthday countdown &rarr;</a></p>
-            </div>
-            <div class="card">
-                <h3>A bad morning stays honest</h3>
-                <p>If the overnight run fails, the times, turns and countdowns are still today's. Only the written line is old, and the board tells you so.</p>
-            </div>
-        </div>
-        <p class="lede">The rest of the category is running the other way &mdash; tap-to-complete, points, rewards, child locks. Those are <strong>apps on a wall</strong>, and apps on a wall need feeding. This is a poster that updates itself.</p>
-    </div>
-</section>
-
-<!-- WHERE THE DATA SITS -->
-<section class="privacy">
-    <div class="container">
-        <div class="section-head">
-            <h2>No account, no camera, no adverts</h2>
-            <p>The board holds your children's names, their birthdays and your week. Here is exactly where that goes.</p>
-        </div>
-        <p class="lede">There is no account to create, no camera and no microphone. It is a web page. Run it yourself and your config, your calendar feeds and the board all stay on your machine. Once each morning the day's agenda goes to Anthropic, so Claude can write the line. Nothing else leaves, and the board still works if you skip that step.</p>
-        <p class="lede">Hosted, we keep your config so we can build the board each morning. It is never sold and there are no adverts. You can export it and run it yourself whenever you like. <strong>The code that touches all of it is public.</strong> <a href="https://github.com/caspii/dinkydash">Read it</a>.</p>
-    </div>
-</section>
-
-<!-- THE DAILY LINE -->
-<section class="samples">
-    <div class="container">
-        <div class="section-head">
-            <h2>One line, written each morning</h2>
-            <p>No other family calendar does this. Claude reads the day ahead and writes a headline and a single line &mdash; some days a fact worth repeating at school, some days about the dog.</p>
-        </div>
-        <div class="samples-grid">
-            <div class="sample-card">
-                <p class="sample-headline">Swimming, then football &mdash; a full day.</p>
-                <p class="sample-note">Octopuses have three hearts. Two of them stop beating when the octopus swims, which is why it would rather walk.</p>
-                <span class="sample-kind">A busy Tuesday</span>
-            </div>
-            <div class="sample-card">
-                <p class="sample-headline">Term starts tomorrow. Last quiet one.</p>
-                <p class="sample-note">Mabel has claimed the warm patch by the radiator and is defending it against all comers, including the hoover.</p>
-                <span class="sample-kind">The day before</span>
-            </div>
-            <div class="sample-card">
-                <p class="sample-headline">Nothing on today. Enjoy it.</p>
-                <p class="sample-note">A day on Venus lasts longer than a year on Venus. It turns so slowly that it laps itself.</p>
-                <span class="sample-kind">An empty Sunday</span>
-            </div>
-        </div>
-        <p class="lede">It keeps a month of what it has already written, so it never repeats itself &mdash; and on a genuinely empty day it says so, rather than inventing excitement. <strong>This is what stops a wall display becoming wallpaper by week three.</strong></p>
-        <p class="source-note">Illustrative examples, written to the same brief the real one gets. No real family's data appears anywhere on this site.</p>
-    </div>
-</section>
-
 <!-- SCREENS YOU ALREADY OWN -->
-<section class="screens">
+<section class="section screens">
     <div class="container">
-        <h2>Bring your own screen</h2>
-        <p>DinkyDash is a web page. Anything with a browser becomes the family board &mdash; and it measures the screen it lands on, so it fits whatever you point at it.</p>
+        <div class="section-head">
+            <h2>Bring your own screen</h2>
+            <p>DinkyDash is a web page. Anything with a browser becomes the family board &mdash; and it measures the screen it lands on, so it fits whatever you point at it.</p>
+        </div>
         <div class="screens-photos">
             <figure class="shot">
                 <img src="/images/family-calendar-tablet-kitchen.webp" width="1195" height="896" decoding="async" loading="lazy"
@@ -669,33 +572,49 @@
     </div>
 </section>
 
-<!-- SET IT UP FROM YOUR PHONE -->
-<section class="split">
+<!-- THE DAILY LINE -->
+<section class="band samples">
     <div class="container">
-        <div class="split-grid">
-            <div class="split-copy">
-                <h2>Set up once, from your phone</h2>
-                <p>Describe your family &mdash; names, birthdays, pets, chores, the dates you count down to &mdash; and paste in a calendar link or three. Then leave it alone.</p>
-                <ul>
-                    <li>Add people, pets, chores and countdowns</li>
-                    <li>Connect Google, iCloud or Outlook calendars</li>
-                    <li>See at a glance whether today's board is written</li>
-                    <li>Rewrite the day's line whenever you like</li>
-                </ul>
-                <p>Save the settings page to your home screen and it opens like an app. Every morning after that, the board rebuilds itself and the screen on the wall refreshes on its own.</p>
+        <div class="section-head">
+            <h2>One line, written each morning</h2>
+            <p>No other family calendar does this. Claude reads the day ahead and writes a headline and a single line &mdash; some days a fact worth repeating at school, some days about the dog.</p>
+        </div>
+        <div class="samples-grid">
+            <div class="sample-card">
+                <p class="sample-headline">Swimming, then football &mdash; a full day.</p>
+                <p class="sample-note">Octopuses have three hearts. Two of them stop beating when the octopus swims, which is why it would rather walk.</p>
+                <span class="sample-kind">A busy Tuesday</span>
             </div>
-            <div class="split-phone">
-                <figure class="shot">
-                    <img src="/images/family-calendar-settings-phone.webp" width="784" height="1327" decoding="async" loading="lazy"
-                         alt="A hand holding a phone showing the DinkyDash settings page, with sections for people, pets, chores, special dates and calendars">
-                </figure>
+            <div class="sample-card">
+                <p class="sample-headline">Term starts tomorrow. Last quiet one.</p>
+                <p class="sample-note">Mabel has claimed the warm patch by the radiator and is defending it against all comers, including the hoover.</p>
+                <span class="sample-kind">The day before</span>
+            </div>
+            <div class="sample-card">
+                <p class="sample-headline">Nothing on today. Enjoy it.</p>
+                <p class="sample-note">A day on Venus lasts longer than a year on Venus. It turns so slowly that it laps itself.</p>
+                <span class="sample-kind">An empty Sunday</span>
             </div>
         </div>
+        <p class="lede">It keeps a month of what it has already written, so it never repeats itself &mdash; and on a genuinely empty day it says so, rather than inventing excitement. <strong>This is what stops a wall display becoming wallpaper by week three.</strong></p>
+        <p class="source-note">Illustrative examples, written to the same brief the real one gets. No real family's data appears anywhere on this site.</p>
+    </div>
+</section>
+
+<!-- WHERE THE DATA SITS -->
+<section class="section privacy">
+    <div class="container">
+        <div class="section-head">
+            <h2>No account, no camera, no adverts</h2>
+            <p>The board holds your children's names, their birthdays and your week. Here is exactly where that goes.</p>
+        </div>
+        <p class="lede">There is no account to create, no camera and no microphone. It is a web page. Run it yourself and your config, your calendar feeds and the board all stay on your machine. Once each morning the day's agenda goes to Anthropic, so Claude can write the line. Nothing else leaves, and the board still works if you skip that step.</p>
+        <p class="lede">Hosted, we keep your config so we can build the board each morning. It is never sold and there are no adverts. You can export it and run it yourself whenever you like. <strong>The code that touches all of it is public.</strong> <a href="https://github.com/caspii/dinkydash">Read it</a>.</p>
     </div>
 </section>
 
 <!-- WHAT IT COSTS -->
-<section class="costs" id="two-ways">
+<section class="section costs" id="two-ways">
     <div class="container">
         <div class="section-head">
             <h2>What it costs</h2>
@@ -753,7 +672,7 @@
 </section>
 
 <!-- FAQ -->
-<section class="faq">
+<section class="section faq">
     <div class="container">
         <h2>Common questions</h2>
         <div class="faq-list">
@@ -798,7 +717,7 @@
 </section>
 
 <!-- CTA -->
-<section class="cta">
+<section class="section cta">
     <div class="container">
         <h2>Put it on the wall this week</h2>
         <p>Set it up yourself this afternoon, or join the waiting list and we will run it for you. Either way, the code is yours and it stays that way.</p>
