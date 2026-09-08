@@ -161,13 +161,23 @@ working link without waiting on email. Same token, same fifteen minutes, same si
 per-address limit — the only thing it skips is SendGrid. **What it prints is a credential**, so it
 does not go in an issue or a screenshot. It does not create accounts; the `INSERT` above still does.
 
-**Unverified, and worth an eye.** The access log shows `%(h)s` as an internal `10.244.x` address
-that differs between requests, so App Platform is putting a hop in front of the container.
-`web/ratelimit.client_ip` reads `X-Forwarded-For` from the right and steps over private addresses,
-which is correct *if* the platform sets that header. Nothing has confirmed it does. If it does not,
-the per-caller rate limit is keyed on a value that changes every request and therefore never fires —
-the per-address limit in Postgres would still hold, so this is a weakened control rather than an
-open door.
+**The caller's address is in `DO-Connecting-IP`, and `X-Forwarded-For` is a trap here.** The access
+log showed `%(h)s` as an internal `10.244.x` that differs between requests, which prompted a look.
+DigitalOcean's own documentation: *"App Platform adds a `do-connecting-ip` HTTP header that contains
+the client's IP address... While the `x-forwarded-for` header is often used for this purpose, App
+Platform uses this header for the IP address of the DigitalOcean ingress server that forwarded the
+request to your app."* So the obvious code is wrong in a quiet way — a per-caller limit keyed on
+`X-Forwarded-For` is keyed on DigitalOcean, and every family in the world shares one bucket.
+`web/ratelimit.client_ip` reads `DO-Connecting-IP` first, `CF-Connecting-IP` second, and returns
+**no key at all** rather than falling back to something shared: an unidentifiable caller should mean
+"this limit does not fire", not "everybody is limited together".
+
+**`app.dinkydash.co` answers with a `cf-ray`, and that is not our Cloudflare.** Our zone is
+DNS-only for every record — checked against the API, not assumed. **App Platform itself is served
+through Cloudflare**: the CNAME target `clownfish-app-7xt89.ondigitalocean.app` resolves to
+`162.159.140.98` and `172.66.0.96`, both in Cloudflare's published ranges, and the DigitalOcean
+hostname carries a `cf-ray` too. So a Cloudflare header on a response says nothing about our proxy
+setting, and `CF-Connecting-IP` may well be present without us having put it there.
 
 
 ## GitHub's own secret scanning

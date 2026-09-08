@@ -63,6 +63,11 @@ domains:
     type: ALIAS
   # The board. DNS-only in Cloudflare: a proxied CNAME answers as Cloudflare
   # and App Platform's certificate never issues.
+  #
+  # A response from here still carries a `cf-ray`, and that is **not** evidence
+  # the proxy got switched on: App Platform is itself served through
+  # Cloudflare, and its own `.ondigitalocean.app` hostname resolves into
+  # Cloudflare's ranges. Check the zone's `proxied` flag, not the headers.
   - domain: app.dinkydash.co
     type: ALIAS
 

@@ -249,49 +249,83 @@ class TestTheLimiter:
 
 
 class TestWhichAddressItCounts:
-    """`X-Forwarded-For` read from the right, stepping over private hops.
+    """`DO-Connecting-IP` first, because that is what App Platform sets.
+
+    DigitalOcean's documentation: "App Platform adds a do-connecting-ip HTTP
+    header that contains the client's IP address... While the x-forwarded-for
+    header is often used for this purpose, App Platform uses this header for
+    the IP address of the DigitalOcean ingress server." Keying a per-caller
+    limit on `X-Forwarded-For` there keys it on DigitalOcean.
 
     The addresses here are real public ones on purpose. Python's `ipaddress`
     counts the documentation ranges — `203.0.113.0/24` and friends — as
-    *private*, so a test written with those would pass through the fallback
-    branch and prove nothing.
+    *private*, so a test written with those proves nothing.
     """
 
-    CLIENT = "93.184.216.34"      # what our proxy saw
-    CLAIMED = "8.8.8.8"           # what the caller put in the header
+    CLIENT = "93.184.216.34"      # the caller
+    CLAIMED = "8.8.8.8"           # what the caller put in a header
+    INGRESS = "104.16.0.1"        # public, and not the caller: DO's ingress
     INTERNAL = "10.1.2.3"         # a hop inside the platform
 
     class _Request:
-        def __init__(self, headers, remote_addr):
-            self.headers = headers
+        def __init__(self, headers=None, remote_addr=None):
+            self.headers = headers or {}
             self.remote_addr = remote_addr
 
-    def _asking_from(self, forwarded, remote_addr="10.0.0.1"):
-        headers = {"X-Forwarded-For": forwarded} if forwarded else {}
-        return self._Request(headers, remote_addr)
+    def test_the_platforms_own_header_wins(self):
+        assert client_ip(self._Request(
+            {"DO-Connecting-IP": self.CLIENT,
+             "X-Forwarded-For": self.INGRESS},
+            self.INTERNAL)) == self.CLIENT
 
-    def test_with_no_proxy_it_is_the_socket(self):
-        assert client_ip(self._asking_from(None, self.CLIENT)) == self.CLIENT
+    def test_the_cloudflare_one_is_second(self):
+        assert client_ip(self._Request(
+            {"CF-Connecting-IP": self.CLIENT,
+             "X-Forwarded-For": self.INGRESS})) == self.CLIENT
 
-    def test_the_last_public_hop_wins(self):
-        assert client_ip(
-            self._asking_from(f"{self.CLAIMED}, {self.CLIENT}")) == self.CLIENT
+    def test_and_the_platforms_beats_cloudflares(self):
+        assert client_ip(self._Request(
+            {"DO-Connecting-IP": self.CLIENT,
+             "CF-Connecting-IP": self.CLAIMED})) == self.CLIENT
+
+    def test_the_ingress_address_is_never_mistaken_for_the_caller(self):
+        """The bug this ordering exists to prevent: one bucket for everybody."""
+        alice = self._Request({"DO-Connecting-IP": self.CLIENT,
+                               "X-Forwarded-For": self.INGRESS})
+        bob = self._Request({"DO-Connecting-IP": self.CLAIMED,
+                             "X-Forwarded-For": self.INGRESS})
+        assert client_ip(alice) != client_ip(bob)
+
+    def test_with_no_platform_header_a_proxy_chain_is_read_from_the_right(self):
+        assert client_ip(self._Request(
+            {"X-Forwarded-For": f"{self.CLAIMED}, {self.CLIENT}"})) == self.CLIENT
 
     def test_a_caller_cannot_pretend_to_be_someone_else(self):
-        """Everything before the last hop is whatever the caller sent."""
-        assert client_ip(
-            self._asking_from(f"invented, {self.CLIENT}")) == self.CLIENT
+        assert client_ip(self._Request(
+            {"X-Forwarded-For": f"invented, {self.CLIENT}"})) == self.CLIENT
 
     def test_an_internal_hop_is_stepped_over(self):
-        """Otherwise a second proxy would put every family in one bucket."""
-        assert client_ip(self._asking_from(
-            f"{self.CLAIMED}, {self.CLIENT}, {self.INTERNAL}")) == self.CLIENT
+        assert client_ip(self._Request(
+            {"X-Forwarded-For":
+             f"{self.CLAIMED}, {self.CLIENT}, {self.INTERNAL}"})) == self.CLIENT
 
-    def test_all_private_falls_back_to_the_last_hop(self):
-        assert client_ip(self._asking_from(self.INTERNAL)) == self.INTERNAL
+    def test_a_public_socket_address_is_the_last_resort(self):
+        assert client_ip(self._Request({}, self.CLIENT)) == self.CLIENT
 
-    def test_nonsense_is_not_an_address(self):
-        assert client_ip(self._asking_from("not-an-ip")) == "not-an-ip"
+    def test_an_unidentifiable_caller_is_no_key_at_all(self):
+        """Not the internal address, which differs per request on App Platform.
+
+        Empty is a key the limiter always allows. That is deliberate: "the
+        per-caller limit stops firing" is a better failure than "everybody
+        shares one bucket", which is an outage wearing a rate limit's clothes.
+        """
+        assert client_ip(self._Request({"X-Forwarded-For": self.INTERNAL},
+                                       self.INTERNAL)) == ""
+        assert client_ip(self._Request({}, "127.0.0.1")) == ""
+
+    def test_and_an_empty_key_is_allowed_through(self):
+        assert Limiter(most=1, per=60).allow("") is True
+        assert Limiter(most=1, per=60).allow("") is True
 
 
 # -- what single mode must not grow -----------------------------------------
@@ -542,19 +576,33 @@ class TestTheLimitPerAddress:
 
 
 class TestTheLimitPerAddressOfTheCaller:
+    """`DO-Connecting-IP` is what identifies a caller, so the tests send one —
+    a test client's socket address is loopback, which is deliberately no key."""
+
+    CALLER = {"DO-Connecting-IP": "93.184.216.34"}
+    SOMEBODY_ELSE = {"DO-Connecting-IP": "8.8.8.8"}
+
     def test_a_flooding_caller_sends_no_more_email(self, cloud, sent, pg_user):
         cloud.config["LOGIN_LIMITER"] = Limiter(most=1, per=3600)
         client = client_for(cloud)
-        client.post("/login", data={"email": ADDRESS})
-        client.post("/login", data={"email": ADDRESS})
+        client.post("/login", data={"email": ADDRESS}, headers=self.CALLER)
+        client.post("/login", data={"email": ADDRESS}, headers=self.CALLER)
         assert len(sent) == 1
 
     def test_and_that_page_is_the_same_page_too(self, cloud, sent, pg_user):
         cloud.config["LOGIN_LIMITER"] = Limiter(most=1, per=3600)
         client = client_for(cloud)
-        first = client.post("/login", data={"email": ADDRESS})
-        second = client.post("/login", data={"email": ADDRESS})
+        first = client.post("/login", data={"email": ADDRESS}, headers=self.CALLER)
+        second = client.post("/login", data={"email": ADDRESS}, headers=self.CALLER)
         assert first.get_data() == second.get_data()
+
+    def test_one_caller_does_not_limit_another(self, cloud, sent, pg_user):
+        """The whole point of the header ordering, end to end."""
+        cloud.config["LOGIN_LIMITER"] = Limiter(most=1, per=3600)
+        client = client_for(cloud)
+        client.post("/login", data={"email": ADDRESS}, headers=self.CALLER)
+        client.post("/login", data={"email": ADDRESS}, headers=self.SOMEBODY_ELSE)
+        assert len(sent) == 2
 
 
 # -- the gate ---------------------------------------------------------------
