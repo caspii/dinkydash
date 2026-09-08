@@ -8,6 +8,13 @@
 
 *September 8, later: **one service, not two.** The board joins the marketing site in the existing `dinkydash-site` app rather than getting its own, because that is how `qrpage.co` and `abc-league` already run in this account — one container, one gunicorn, everything in it. Staging is dropped until there is a paying family to protect. The `worker` is the one genuine addition, because the tick has no lock and two web instances would tick twice. See [Hosting and deployment](#hosting-and-deployment).*
 
+*September 8, later: **sign-up exists** (DIN-41). An address posted to `/login` gets a link, and
+clicking it creates the family, the parent and a starting config in one transaction. The design
+question that had to be settled first was *when* the family is created, and the answer is **on the
+click, not on the submit** — see [Sign-up](#sign-up) below. `login_tokens.user_id` is nullable and
+the row carries an `email` instead (`migrations/002_signup_tokens.sql`). Nothing is created by
+asking, so an unverified sign-up costs one token row and one email.*
+
 *September 8: the transactional email provider is settled — decision 13, **SendGrid**, on the account KeepTheScore already sends from. The open question is closed. `dinkydash.co` is an authenticated sending domain on that account (DKIM and a monitor-only DMARC record are live in Cloudflare), and this repo has its own send-only API key. What is not built is the sending itself — that arrives with magic links in Phase 1.*
 
 *September 7, later still: the Postgres layer is built (DIN-31) — `migrations/001_initial_schema.sql`, `migrate.py`, `dinkydash/db.py`, `dinkydash/pgstore.py`, and a contract suite that runs the same assertions over both stores in CI. Connection pooling is settled above. What is deliberately still missing is the multi-tenancy: cloud mode serves one family, named by an environment variable, because auth and scoping are Phase 1.*
@@ -131,6 +138,49 @@ them.
 `store.py` and `config.py` are now the only files under `dinkydash/` that open
 a file. That is the invariant to keep: a read anywhere else is a caller cloud
 mode would have to fork.
+
+### Sign-up
+
+*Built in DIN-41.* One form does both jobs. A new address and a returning one post the same field to
+`/login`, get the same page back, and are told apart behind that answer — two routes or two buttons
+would publish which addresses already have an account, which is the one thing that page exists to
+hide. What differs is only what lands in the mailbox, and whoever opens that mailbox already knows.
+
+**The family is created when the link is clicked.** This was the open question and it is worth
+writing down, because the simpler design is the other one. A `families` row starts the 14-day trial,
+and the worker calls Anthropic daily for every family that is not lapsed — so a POST that created
+one would let a script turn free sign-ups into a real and rising bill with no card behind it and
+nothing to charge back. Creating on the click instead means an unverified sign-up costs **one
+`login_tokens` row and one email**: no trial, no API call, and no second cleanup job, because the
+sweep that already deletes expired tokens is the cleanup. It also makes "signing in through the link
+*is* email verification" true of sign-up as well — otherwise a family exists for an address nobody
+has proved they can read.
+
+That is a rate limit's worth of protection and not a cap. The cap is the **global spend breaker**,
+which is Phase 2 and still to come. A CAPTCHA is deliberately last: it puts a third-party script on
+the page where a parent types their email, and friction on the one conversion step that matters, so
+it waits until abuse actually appears.
+
+**The cost was a schema change, and it bought one table rather than two.** `login_tokens.user_id` is
+now nullable, with an `email` column beside it and a CHECK that exactly one of the two is set. A
+separate `signup_tokens` table would have needed its own single-use `UPDATE`, its own expiry, its own
+sweep and its own rate limit — and single use is the property everything else rests on, so a second
+copy of that statement is a second thing to keep right. Both kinds of token prove the same thing;
+only what happens next differs, and that branch lives in one place in `accounts.consume_link`.
+
+**A new family is seeded rather than empty.** `config.starter_config()` is the same invented
+household `config.example.yaml` documents — two children, a dog, two chores, two countdowns, every
+one of them there to be replaced. An empty board looks broken rather than empty. **No calendar URL,
+not even an example**: an iCal address is a password in a URL, and one that worked would put somebody
+else's appointments on a stranger's wall. The settings home says so while the board is still
+untouched, which is `settings.looks_untouched` — no calendar and the default family name, a signal
+that is equally true of a freshly cloned Pi, so it needs no mode check.
+
+**Still open, and not this issue's:** the gap between the click and the first board. The worker's
+next tick refreshes the calendars within five minutes, but the brief waits for `brief_time` on the
+family's clock, so a 03:00 sign-up looks at a waiting screen until 06:00. PLAN.md's "**Generate now**
+on signup" line under [Scheduling](#scheduling-cloud-mode) is what closes it, and it is a Phase 2
+worker item — a web request must not call Anthropic.
 
 ### Three clocks, one setting
 
@@ -668,7 +718,7 @@ Critical path is 0 → 1 → 2 → 3. Phases 4–6 can run alongside 3. Nothing 
 - [x] Name the storage seam: `FileStore` gathering the six operations that exist today, and the settings routes, runner and board taking a store *(DIN-19)*
 - [x] Postgres + plain-SQL migrations; CI running the suite against a Postgres service container *(DIN-31)*
 - [x] Move DNS to Cloudflare and add the app records *(DIN-29)*. The apex now points at App Platform, not GitHub Pages — DIN-27 moved the marketing pages onto the app. The SendGrid records are in the same zone and validated: `em4199`, `s1._domainkey`, `s2._domainkey` and a `_dmarc` TXT at `p=none`. All four are **DNS-only** — a proxied CNAME answers as Cloudflare and domain authentication never passes.
-- [ ] Add the board to the existing `dinkydash-site` app and stand up Managed Postgres in Frankfurt; `app.dinkydash.co` live over TLS *(DIN-26)*. One service serving both hostnames, plus a `worker` and a `PRE_DEPLOY` migration job. No staging app — see the database section.
+- [x] Add the board to the existing `dinkydash-site` app and stand up Managed Postgres in Frankfurt; `app.dinkydash.co` live over TLS *(DIN-26)*. One service serving both hostnames, plus a `worker` and a `PRE_DEPLOY` migration job. No staging app — see the database section. Done on 8 September 2026: the board answers on `app.dinkydash.co`, the cluster is online in `fra1`, and the worker has been ticking every five minutes since 10:58 UTC. **Phase 0 is closed.**
 
 **Done when:** the engine runs from a dict with an injected date, tests pass in CI on Postgres, a same-day calendar change reaches a Pi within its chosen interval, and `app.dinkydash.co` serves a hardcoded family over TLS.
 
@@ -683,12 +733,13 @@ missing is the multi-tenant half — a schema, auth, and scoping every read and 
 - [x] Magic-link auth: token hashed at rest, single use, 15-minute expiry, request endpoint rate-limited per address and per caller. Signing in through the link *is* email verification — there is no second step. *(DIN-38)*
 - [x] Session hygiene: `Secure` (cloud only — a Pi serves plain HTTP), `HttpOnly`, `SameSite=Lax`; a CSRF token on every form, in **both** modes and with no switch to turn it off; cloud mode refuses to start without `DINKYDASH_SECRET_KEY` *(DIN-38)*
 - [x] `fetch_feed` hardening before any stranger's URL is fetched: `https` only, redirects that cannot land on a private range, a response size cap beside the timeout *(DIN-33)*. The settings page's "Check this link" goes through the same function, so it is covered too. DNS rebinding is documented as still open.
-- [ ] Family setup wizard: people + DOBs, emoji/color avatars, pets, chores, special dates
+- [x] **Sign-up: an address creates a family, a parent and a starting config — on the click, not on the submit** *(DIN-41)*. The same form as sign-in, and the same answer. `screen_token` and `trial_ends_at` are set at creation; see [Sign-up](#sign-up) for why the schema changed.
+- [ ] Family setup wizard: people + DOBs, emoji/color avatars, pets, chores, special dates. **Half of this exists**: the five lists are editable at `/settings/…` and a new family arrives seeded, with a first-run card on the settings home saying the household is invented and pointing at the calendar and the timezone (DIN-41). What is missing is a guided multi-step path rather than a settings page.
 - [ ] Multi-calendar management: add/label/enable/remove iCal feeds, with live validation on paste
 - [ ] Per-provider help content — Google, iCloud, Outlook each expose iCal URLs differently
 - [ ] Settings: timezone, family name, refresh cadence, screen URL display + rotation, account deletion. `claude_model` hidden in cloud mode.
 - [x] Every read and write scoped to the family on the session; the hardcoded family id deleted *(DIN-39)*
-- [ ] The URL map above: `/` redirects, `/login`, `/s/<token>`
+- [ ] The URL map above: `/` redirects, `/login`, `/s/<token>`. **`/login` is done** (DIN-38, DIN-41). The other two are one change and not two: in cloud mode `/` is the board today, so it cannot start redirecting to `/settings/` until `/s/<token>` is where the board lives — and that route is Phase 3's first box. Doing half of it would leave the board unreachable.
 
 **Done when:** two different families can be configured independently through the UI, and a request carrying the wrong family's id in a URL gets a 404, never a row. **Met by DIN-39**, and asserted in `tests/test_tenancy.py`.
 

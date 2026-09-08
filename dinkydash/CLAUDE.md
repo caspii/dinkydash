@@ -66,7 +66,7 @@ resolves an email address to a user before there is a family to scope to. A magi
 exactly one person without being told which family they belong to, which is why `users.email` is
 globally unique.
 
-## Signing somebody in
+## Signing somebody in, and signing somebody up
 
 `accounts.py` is the token lifecycle and nothing else: mint, hash, spend, sweep. Four things in it
 are load-bearing, and each is asserted in `tests/test_auth.py`:
@@ -87,6 +87,28 @@ The per-address rate limit lives in the same `INSERT` — at most `MOST_LIVE_LIN
 per user — so two requests arriving together cannot both read "two live links" and both make a
 third. The per-IP half is in `web/ratelimit.py` and is in-process, because a database write on
 every unauthenticated request is itself something to flood.
+
+**Sign-up is the same token and the same `consume_link`** (DIN-41). An address with no account gets
+a row carrying the address instead of a `user_id`; spending it creates the family, the parent and a
+starter config in the transaction that spent it. Five things about that are deliberate:
+
+- **The family is created on the click, never on the submit.** A `families` row starts a 14-day
+  trial and the worker calls Anthropic daily for it, so a POST that created one would be a way to
+  spend our money without a card. Verifying first makes an unverified sign-up cost one row and one
+  email. The reasoning in full is in [PLAN.md](../PLAN.md#sign-up).
+- **One table, not two.** `login_tokens.user_id` is nullable with an `email` beside it and a CHECK
+  that exactly one is set. A `signup_tokens` table would have meant a second single-use `UPDATE`,
+  and that statement is the thing the whole design rests on — written twice, one copy drifts.
+- **A sign-up token is outside every cascade.** It has no `user_id`, so deleting a family does not
+  reach it; the sweep does, fifteen minutes later. That is fine in production and it bit the test
+  suite, where the scratch database is reused between runs — `tests/conftest.forget_ownerless_tokens`
+  is what stops three abandoned sign-ups silently exhausting `MOST_LIVE_LINKS` on the next run.
+- **Two links for one new address must not make two families.** `_start_a_family` looks the address
+  up first and the INSERT that follows carries `ON CONFLICT DO NOTHING`; losing that race means
+  deleting the family just made, which nothing else can have seen.
+- **The screen token is generated and checked in the same statement**, so the UNIQUE index is the
+  backstop rather than the error path. A collision at 59 bits is not something anyone will see, but
+  an unhandled one would spend somebody's sign-up link and hand them a 500.
 
 ## Cloud mode: schema, migrations, connections
 

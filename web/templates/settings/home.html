@@ -8,6 +8,34 @@
 {% endblock %}
 
 {% block content %}
+{% if first_run %}
+{# Shown while the board is still the one it was handed: no calendar, and the
+   default family name. A new family is seeded with an invented household so
+   that the board has something on it, and this is what stops that reading as
+   a bug — somebody else's children on your settings page, unexplained. It
+   goes as soon as either half is answered, so there is nothing to dismiss. #}
+<div class="card pad" style="display:flex;flex-direction:column;gap:0.75rem;">
+    <div>
+        <div style="font-size:1.125rem;font-weight:800;">Make it yours</div>
+        <div class="hint" style="margin-top:0.1875rem;">
+            The people, pets and chores below are invented, so the board has something
+            to show while you set it up. Replace them with your own.
+        </div>
+    </div>
+    <div class="note-box">
+        Two things are worth doing first: add a calendar, which is what puts today's
+        plans on the board, and set your timezone — it decides when the day rolls over
+        and when the morning's line is written.
+    </div>
+    <div style="display:flex;gap:0.625rem;">
+        <a class="btn" style="flex:1;"
+           href="{{ url_for('settings.section_list', section_name='calendars') }}">Add a calendar</a>
+        <a class="btn outline" style="flex:1;"
+           href="{{ url_for('settings.system') }}">Set the timezone</a>
+    </div>
+</div>
+{% endif %}
+
 <div class="card pad" style="display:flex;flex-direction:column;gap:0.875rem;">
     <div>
         <div style="font-size:1.125rem;font-weight:800;">{{ config.family_name or "Your board" }}</div>

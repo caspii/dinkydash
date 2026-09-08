@@ -5,6 +5,13 @@
     GET  /login/link     spend the token, start the session, go to the settings
     POST /logout         throw the session away
 
+**This is the sign-up form too** (DIN-41). A new address and a returning one
+submit the same field to the same route and get the same page back; which one
+happened is decided behind that answer, in `_send_a_link`, and the family is
+not created until the link is clicked. Two routes or two buttons would publish
+whether an address is already registered, which is the one thing this page
+exists to hide.
+
 Registered only when `DINKYDASH_MODE=cloud`. Self-hosted has no accounts by
 design — one family on their own network, and the same trust model as the
 config file the settings UI writes — so in single mode these routes do not
@@ -59,9 +66,14 @@ bp = Blueprint("auth", __name__)
 A_TOKEN = re.compile(r"([?&]t=)[^&\s\"']+")
 REDACTED = r"\1[redacted]"
 
-# The one answer a login request ever gets.
-SAME_ANSWER = ("If that address has an account, a link is on its way. "
-               "It works once, and for fifteen minutes.")
+# The one answer a login request ever gets. It used to begin "If that address
+# has an account", because an unknown one got nothing at all. Now that the same
+# form starts a board, a link really does go to every address that asks — so
+# the hedge is gone and the sentence is simply true. The cases that still send
+# nothing are the two rate limits and a failed send, none of which is about
+# whether an account exists.
+SAME_ANSWER = ("A link is on its way. It works once, and for fifteen minutes. "
+               "If you have not got a board yet, the link starts one.")
 
 # What a token that is expired, spent or invented all get.
 DEAD_LINK = ("That link no longer works — it has either been used already or "
@@ -75,6 +87,7 @@ MOST_PER_IP = 20
 PER_SECONDS = 3600
 
 SUBJECT = "Your DinkyDash sign-in link"
+WELCOME_SUBJECT = "Start your DinkyDash board"
 
 # Set once, by `_warn_once_if_anonymous`. Module level rather than app config
 # because it is a fact about the platform this process is running on, not about
@@ -156,9 +169,16 @@ def login():
         return render_template("auth/login.html")
 
     address = request.form.get("email", "")
-    if "@" not in address:
+    if "@" not in address or len(address.strip()) > accounts.LONGEST_EMAIL:
         # The one thing worth saying back, and it says nothing about accounts:
         # this is about what was typed, not about who exists.
+        #
+        # The length is checked here rather than left to the column, and it has
+        # to be checked *here* rather than only inside `issue_signup_link`: that
+        # function answers None for a refusal too, and the caller below would
+        # then log "3 live links already" about an address that has none. A line
+        # reporting a limit it did not apply is the kind of thing that misleads
+        # somebody at two in the morning.
         return render_template("auth/login.html", email=address,
                                problem="That does not look like an email address.")
 
@@ -209,30 +229,43 @@ def _send_a_link(address):
     pool = _pool()
     user = accounts.user_for(pool, address)
     if user is None:
-        return
+        # No account, so this is a sign-up. **Nothing is created here.** The
+        # token carries the address, and the family is made when the link is
+        # clicked (DIN-41) — an unverified sign-up costs one row and one email
+        # rather than a trial and a daily Anthropic call.
+        kind, token = "sign-up", accounts.issue_signup_link(pool, address)
+    else:
+        kind, token = "sign-in", accounts.issue_link(pool, user[0])
 
-    token = accounts.issue_link(pool, user[0])
     if token is None:
         # The limit that actually caps the SendGrid bill, and it used to be
         # silent — the one refusal nobody could see.
-        log.warning("No sign-in link minted for a %s address from %s: "
-                    "%s live links already.", _domain(address),
+        log.warning("No %s link minted for a %s address from %s: "
+                    "%s live links already.", kind, _domain(address),
                     caller or "an unknown caller", accounts.MOST_LIVE_LINKS)
         return
 
     link = _link_for(token)
+    new_family = kind == "sign-up"
     try:
-        mail.send(accounts.normalise(address), SUBJECT,
-                  _text(link), html=_html(link))
+        mail.send(accounts.normalise(address),
+                  WELCOME_SUBJECT if new_family else SUBJECT,
+                  _text(link, new_family), html=_html(link, new_family))
     except mail.MailError as exc:
         # `mail` messages carry no address, no key and no body, and this one
         # must not add the link back. A failed send is a failed login, and the
         # person will ask again.
-        log.warning("A sign-in link did not go out: %s", exc)
+        log.warning("A %s link did not go out: %s", kind, exc)
     else:
         # So the ordinary shape of the traffic is visible too, not only the
         # refusals. `mail` logs that *an* email went; this says what kind.
-        log.info("Sent a sign-in link to a %s address.", _domain(address))
+        #
+        # **The kind is safe to write and the address is not.** Which of the
+        # two an address got is exactly what the page above refuses to say, so
+        # it goes in our own log — where the point of having one is that a
+        # refusal is a line somebody can read — with the domain and never the
+        # address, the same rule as everything else here.
+        log.info("Sent a %s link to a %s address.", kind, _domain(address))
 
 
 def _domain(address):
@@ -308,7 +341,31 @@ def logout():
     return redirect(url_for("auth.login"))
 
 
-def _text(link):
+def _text(link, new_family=False):
+    """The email. Two openings, because one of them is somebody's first.
+
+    **The difference is safe.** What the page says back is identical either
+    way; this only differs in a mailbox, and whoever opens that mailbox knows
+    whether they already had a board. Telling a new parent that the link starts
+    one is the difference between finishing the sign-up and abandoning it.
+    """
+    if new_family:
+        return f"""\
+Welcome to DinkyDash.
+
+Open this link and your board is ready — people, chores and countdowns are
+already filled in with an invented family for you to replace:
+
+{link}
+
+It works once, and for fifteen minutes.
+
+If you did not ask for this, you can ignore it. Nothing has been created, and
+the link stops working on its own.
+
+- DinkyDash
+https://dinkydash.co
+"""
     return f"""\
 Here is your link to sign in to DinkyDash:
 
@@ -324,12 +381,23 @@ https://dinkydash.co
 """
 
 
-def _html(link):
+def _html(link, new_family=False):
     """Deliberately plain. No images, no tracking pixel, no third-party CSS.
 
     A login email that loads anything from anywhere else hands the fact of the
     login, and often the URL, to whoever serves it.
     """
+    if new_family:
+        return f"""\
+<p>Welcome to DinkyDash.</p>
+<p>Open this link and your board is ready — people, chores and countdowns are
+already filled in with an invented family for you to replace:</p>
+<p><a href="{link}">Start my board</a></p>
+<p>It works once, and for fifteen minutes.</p>
+<p>If you did not ask for this, you can ignore it. Nothing has been created,
+and the link stops working on its own.</p>
+<p>— DinkyDash</p>
+"""
     return f"""\
 <p>Here is your link to sign in to DinkyDash:</p>
 <p><a href="{link}">Sign in to DinkyDash</a></p>

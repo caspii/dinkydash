@@ -19,9 +19,11 @@ that person until it is spent. It grants nothing you did not already have —
 running it needs the database password — but pasting it into an issue, a chat
 or a screenshot hands it to somebody who has neither.
 
-It does not create accounts. Sign-up is the product's job (DIN-41); until that
-exists, a new family needs a row inserted by hand, and doc/operations.md has
-the statement.
+**It does not create accounts, and no longer needs to.** Sign-up is the
+product's job and the product now does it (DIN-41): posting an address to
+`/login` sends a link, and clicking that link creates the family. This is for
+getting into an account that already exists without waiting on email — which
+is the developer's case and the support case, not a new family's.
 
 Reads `DATABASE_URL`, like the app.
 """
@@ -69,8 +71,9 @@ def main(argv=None):
             # Said plainly here, unlike the web route: this is a local tool run
             # by somebody holding the database password, so there is nobody to
             # enumerate accounts for.
-            print(f"No account for {args.email}. Nothing creates one yet — see "
-                  f"doc/operations.md.", file=sys.stderr)
+            print(f"No account for {args.email}. To make one, post the address "
+                  f"to /login and click the link it sends — that is what "
+                  f"creates a family.", file=sys.stderr)
             return 1
 
         token = accounts.issue_link(pool, user[0])

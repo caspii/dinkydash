@@ -56,6 +56,11 @@ LIST_KEYS = ("people", "pets", "recurring", "special_dates", "calendars")
 ID_ALPHABET = "23456789abcdefghjkmnpqrstuvwxyz"
 ID_LENGTH = 8
 
+# A screen URL is read off a television and typed on a remote, so it uses the
+# same unambiguous alphabet — 12 characters of it is about 59 bits, which is
+# what PLAN.md's "Screen URLs" section settled on. The column allows 10 to 32.
+SCREEN_TOKEN_LENGTH = 12
+
 
 def quoted(value):
     """A string that stays quoted when the file is written back.
@@ -146,6 +151,77 @@ def new_id(taken=()):
         value = "".join(secrets.choice(ID_ALPHABET) for _ in range(ID_LENGTH))
         if value not in taken:
             return value
+
+
+def new_screen_token():
+    """The unguessable part of a family's board URL.
+
+    A bearer credential: whoever holds it sees the board, which is the whole
+    point — a wall panel cannot sign in. Rotatable from the settings page, so
+    this is called again rather than once per family for ever.
+    """
+    return "".join(secrets.choice(ID_ALPHABET)
+                   for _ in range(SCREEN_TOKEN_LENGTH))
+
+
+def starter_config():
+    """What a brand-new family gets before they have typed anything.
+
+    A board with nothing on it looks broken rather than empty, and the first
+    thing a parent sees should be the shape of the thing they signed up for —
+    so this seeds the same invented family `config.example.yaml` documents:
+    two children, a dog, two chores that rotate between them, and two
+    countdowns. Every one of them is there to be replaced.
+
+    **No calendar.** Not even an example URL. An iCal address is a password in
+    a URL, and one that worked would put somebody else's appointments on a
+    stranger's wall; one that did not would be a broken feed on a board nobody
+    has finished setting up yet. Adding the first calendar is the parent's
+    first real act in the settings UI, and the per-provider help is written for
+    exactly that moment.
+
+    **The timezone is the default, which is UTC**, because guessing it from an
+    IP address is wrong often enough to be worse than asking. It is the one
+    setting that changes what the board *says* — when today rolls over, and
+    what time the brief is written — so the welcome on the settings home points
+    at it first.
+
+    Pure, and no clock: dates of birth are fixed like the example file's, and
+    the ages computed from them move on their own. `ensure_ids` runs here so
+    the settings UI can address a person the moment the family exists, rather
+    than rewriting the document on first open.
+    """
+    config = with_defaults({
+        "family_name": "Our family",
+        "people": [
+            {"name": "Mia", "date_of_birth": "2017-03-15",
+             "avatar_emoji": "\U0001f996", "avatar_color": "purple",
+             "interests": "dinosaurs, drawing, swimming"},
+            {"name": "Theo", "date_of_birth": "2019-06-20",
+             "avatar_emoji": "\u26bd", "avatar_color": "blue",
+             "interests": "football, lego"},
+        ],
+        "pets": [
+            {"name": "Biscuit", "type": "dog", "avatar_emoji": "\U0001f415"},
+        ],
+        "recurring": [
+            {"title": "Set the table", "emoji": "\U0001f37d",
+             "choices": ["Mia", "Theo"]},
+            {"title": "Feed Biscuit", "emoji": "\U0001f9b4",
+             "choices": ["Theo", "Mia"]},
+        ],
+        "special_dates": [
+            {"title": "Christmas", "emoji": "\U0001f384", "date": "12/25"},
+            {"title": "Summer holidays", "emoji": "\u2600\ufe0f", "date": "07/01"},
+        ],
+    })
+    ensure_ids(config)
+    # Storage-layer keys: they say where a self-hoster's generated files go and
+    # mean nothing as a jsonb column. `with_defaults` puts them in; a hosted
+    # family should not carry two filenames nothing will ever open.
+    for key in ("data_file", "content_history_file"):
+        config.pop(key, None)
+    return config
 
 
 def ensure_ids(config):

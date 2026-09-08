@@ -51,6 +51,13 @@ value="{{ csrf_token() }}">`, right inside the `<form>`. `csrf_token()` is a Jin
 deliberately no switch to turn the check off; the test client in `tests/conftest.py` fills the field
 in the way a browser does.
 
+**The settings home has a first-run card**, shown by `settings.looks_untouched`: no calendar and the
+default family name. A hosted family is created with an invented household in it so the board has
+something to show (DIN-41), and this is what stops that reading as a bug. **The signal is the config,
+not the mode** — a freshly cloned Pi is in the same state and wants the same two prompts — so there
+is no `cloud` branch in it, and it leaves on its own the moment either half is answered. Nothing to
+dismiss and nothing remembered.
+
 **Two chromes, one base.** `settings/base.html` is the phone-shaped shell for everything a person
 signs into — the settings pages and, in cloud mode, `auth/login.html` and `auth/sent.html`. The
 manifest link in its `<head>` is a `{% block manifest %}` so the login page can drop it: the

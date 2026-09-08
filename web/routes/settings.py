@@ -237,7 +237,26 @@ def home():
     return render_template(
         "settings/home.html", config=config, status=status, counts=counts,
         broken=broken, sections=SECTIONS, cadence=cadence_summary(config),
+        first_run=looks_untouched(config),
     )
+
+
+def looks_untouched(config):
+    """Is this still the board it was handed, rather than one somebody made?
+
+    A family created by sign-up starts with an invented household in it, so
+    that the board has something to show rather than looking broken (DIN-41).
+    That is only kind if the settings page says so — otherwise a new parent
+    opens it and finds two children who are not theirs, with no explanation.
+
+    **The signal is the config, not the mode.** No calendar and the default
+    family name means nothing has been set up, and that is as true of a Pi
+    somebody has just cloned as of a hosted family five seconds old. Both
+    should be told the same two things, so there is no mode check here. The
+    banner leaves on its own the moment either is answered.
+    """
+    return (not (config.get("calendars") or [])
+            and config.get("family_name") == config_module.DEFAULTS["family_name"])
 
 
 def _clock(stamp, tzinfo):
