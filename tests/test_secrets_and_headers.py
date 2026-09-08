@@ -16,6 +16,7 @@ import requests
 
 from dinkydash.calendars import FeedError, fetch_feed, zone
 from dinkydash.store import FileStore
+from tests.conftest import client_for
 from web import create_app
 
 from datetime import date
@@ -36,9 +37,7 @@ people:
 @pytest.fixture
 def client(tmp_path):
     (tmp_path / "config.yaml").write_text(CONFIG)
-    app = create_app(FileStore(tmp_path / "config.yaml"))
-    app.config["TESTING"] = True
-    return app.test_client()
+    return client_for(create_app(FileStore(tmp_path / "config.yaml")))
 
 
 def _raising(exc):

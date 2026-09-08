@@ -1,15 +1,17 @@
 """What `DINKYDASH_MODE=cloud` changes, and what it must not.
 
 Mode gates four things across the product — authentication, billing, where the
-config is stored, and what drives the scheduler. Two of them exist so far, and
-both are here: the storage backend, and the refusal to start on a fallback
-session key. Everything else is asserted to be identical, because a mode check
-anywhere else would mean the change went in the wrong layer.
+config is stored, and what drives the scheduler. Two of them are here: the
+storage backend, and the refusal to start on a fallback session key. The third,
+authentication, has its own file — `tests/test_auth.py`. Everything else is
+asserted to be identical, because a mode check anywhere else would mean the
+change went in the wrong layer.
 """
 
 import pytest
 
 from dinkydash import config as config_module
+from tests.conftest import client_for
 from web import create_app
 
 CONFIG = {
@@ -106,9 +108,14 @@ class TestABoardOutOfPostgres:
 
         monkeypatch.setenv("DINKYDASH_MODE", "cloud")
         monkeypatch.setenv("DINKYDASH_SECRET_KEY", "a-real-one")
-        app = create_app(store)
-        app.config["TESTING"] = True
-        return app.test_client()
+        client = client_for(create_app(store))
+        # These tests are about the rows, not the login. Signing in by hand is
+        # what keeps them that way; `tests/test_auth.py` is where the gate
+        # itself is tested.
+        with client.session_transaction() as stored:
+            stored["user_id"] = 1
+            stored["family_id"] = str(pg_family)
+        return client
 
     def test_the_board_renders_the_stored_brief(self, client):
         page = client.get("/").get_data(as_text=True)

@@ -69,3 +69,47 @@ def pg_family(pg_pool):
     with pg_pool.connection() as conn, conn.transaction():
         with conn.cursor() as cur:
             cur.execute("DELETE FROM families WHERE id = %s", (family_id,))
+
+
+# -- a test client that behaves like a browser ------------------------------
+#
+# Every form the settings UI renders carries a CSRF token, and `web.session`
+# refuses a write without one. There is deliberately no switch to turn that off
+# — see the note in `check_csrf` — so the client below fills the field in the
+# way a browser filling in a rendered form would.
+#
+# The effect is that all ~30 existing POSTs in the suite now go *through* the
+# CSRF check rather than around it, which is the whole reason for doing it this
+# way. A test that wants to see the check refuse something passes its own
+# `csrf_token` (a wrong one, or none at all, via a plain `app.test_client()`).
+
+from flask.testing import FlaskClient  # noqa: E402
+
+CSRF_KEY = "csrf"
+CSRF_FIELD = "csrf_token"
+
+
+class SigningClient(FlaskClient):
+    """A client that carries this session's CSRF token on every write."""
+
+    WRITES = {"POST", "PUT", "PATCH", "DELETE"}
+
+    def open(self, *args, **kwargs):
+        if kwargs.get("method", "GET").upper() in self.WRITES:
+            with self.session_transaction() as stored:
+                token = stored.get(CSRF_KEY)
+                if not token:
+                    token = stored[CSRF_KEY] = "a-test-csrf-token"
+            data = kwargs.get("data")
+            if data is None:
+                kwargs["data"] = {CSRF_FIELD: token}
+            elif isinstance(data, dict):
+                data.setdefault(CSRF_FIELD, token)
+        return super().open(*args, **kwargs)
+
+
+def client_for(app):
+    """`app.test_client()`, signing its writes. What every fixture here uses."""
+    app.test_client_class = SigningClient
+    app.config["TESTING"] = True
+    return app.test_client()

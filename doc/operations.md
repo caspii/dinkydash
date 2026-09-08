@@ -114,6 +114,34 @@ that. There is no dead-man's switch yet (PLAN.md Phase 6), so a worker that stop
 like a quiet day: `doctl apps logs <id> worker --type run --follow` is the only check there is.
 
 
+## Magic links, 8 September 2026 (DIN-38)
+
+`/login`, `/login/link` and `/logout` exist in cloud mode. **Nothing creates a user yet** — sign-up
+is a later issue — so the one family seeded from `config.example.yaml` needs a row inserted by hand
+before anybody can sign in:
+
+```sql
+INSERT INTO users (family_id, email) VALUES ('<DINKYDASH_FAMILY_ID>', 'you@example.com');
+```
+
+One outstanding action, and it is a security one. **`.do/app.yaml` now sets a gunicorn
+`--access-logformat`** built from `%(U)s`, so the sign-in link's `?t=` is not written to the
+platform's log. `deploy_on_push` rebuilds components from new code and does **not** apply a changed
+spec, so **until somebody runs `doctl apps update` the running service is still on gunicorn's
+default `%(r)s`**, which is the whole request line. Applying it is the same merge-values-from-`.env`
+dance as every other change to this file — see the header of the spec.
+
+Meanwhile the code covers the gap: `web.routes.auth.NoTokens` is attached to both the `werkzeug` and
+`gunicorn.access` loggers and replaces `?t=<token>` with `?t=[redacted]` in the message. That was
+written after watching real tokens scroll past a local terminal, not from theory. DigitalOcean's own
+edge logs are outside all of this and always will be; single use and fifteen minutes are what covers
+them.
+
+`SENDGRID_API_KEY` is already in the app's environment (DIN-36) and is the send-only key. The
+per-address rate limit is three live links; the per-caller-address one is twenty an hour **per
+process**, and the service runs `--workers 2`, so the real ceiling is forty and a redeploy resets
+it. That is a bound on abuse, not a quota.
+
 
 ## GitHub's own secret scanning
 

@@ -16,6 +16,7 @@
 {% endif %}
 
 <form id="refresh-form" method="post" class="card pad" style="display:flex;flex-direction:column;gap:1rem;">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div class="field">
         <label for="refresh_minutes">Fetch the calendars</label>
         <select id="refresh_minutes" name="refresh_minutes">

@@ -140,6 +140,18 @@ mode is a different product on the same code.
 - **`web/__init__.py` falls back to a hardcoded `app.secret_key`.** Harmless with no auth; in cloud
   mode the session *is* the authentication, so cloud mode must refuse to start without a real
   `DINKYDASH_SECRET_KEY`.
+- **A magic link is a bearer credential, and so is everything it touches.** `dinkydash/accounts.py`
+  holds the lifecycle — 32 bytes from `secrets`, only the SHA-256 stored, fifteen minutes, spent by
+  a single `UPDATE ... WHERE used_at IS NULL RETURNING`. **A login link in a log is a login in a
+  log**, which is why the token rides in the query string, `.do/app.yaml` sets a gunicorn access
+  log format built from `%(U)s` (path, no query) rather than the default `%(r)s`, and
+  `auth.NoTokens` scrubs `?t=` from both request loggers regardless. All three are asserted in
+  `tests/test_auth.py`; none of them is a preference.
+- **A login request answers identically whether or not the address has an account**, including when
+  it is rate-limited and when the send fails. Anything else enumerates accounts, and the accounts
+  are families.
+- **Every form that writes carries a CSRF token**, in *both* modes — `web/session.py`, with no
+  switch to turn it off. A test walks the templates and fails on a form without one.
 - **Screen tokens are bearer credentials.** Rate-limited, `noindex`, no referrer leakage, rotatable,
   and never written to a log or an error page.
 - **Spend caps are a security control.** The per-family and global breaker (PLAN.md phase 2) is what
@@ -238,13 +250,18 @@ dinkydash/
 ├── store.py           the six storage operations; FileStore, the single-mode one
 ├── pgstore.py         PostgresStore, the cloud one. Imports psycopg; single mode never does
 ├── db.py              the connection pool and the migration runner (cloud only)
+├── mail.py            one transactional email, over SendGrid (cloud only)
+├── accounts.py        users, and the magic links that sign them in (cloud only)
 └── runner.py          the two halves of the day, reading and writing through a store
 
 web/
 ├── __init__.py        create_app()
+├── session.py         what the cookie carries: who is signed in, and CSRF
+├── ratelimit.py       a per-key counter, in this process (the per-IP half)
 ├── routes/board.py    the board and the preview harness
 ├── routes/settings.py the settings UI (one table drives every list section)
-└── templates/         board.html, preview.html, settings/*.html
+├── routes/auth.py     /login, /login/link, /logout — cloud mode only
+└── templates/         board.html, preview.html, auth/*.html, settings/*.html
 ```
 
 ### The storage seam

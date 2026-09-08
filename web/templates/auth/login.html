@@ -1,0 +1,39 @@
+{# The only page cloud mode serves to somebody with no session. One field, one
+   button, and the same answer whatever is typed into it. #}
+{% extends "settings/base.html" %}
+{% block title %}Sign in{% endblock %}
+{% block manifest %}{% endblock %}
+
+{% block appbar %}
+<h1 style="padding-left:0.25rem;color:var(--accent);font-size:1.15rem;">DinkyDash</h1>
+{% endblock %}
+
+{% block content %}
+{% if problem %}
+<div class="flash error">{{ problem }}</div>
+{% endif %}
+
+<div class="card pad" style="display:flex;flex-direction:column;gap:0.875rem;">
+    <div>
+        <div style="font-size:1.125rem;font-weight:800;">Sign in</div>
+        <div class="hint" style="margin-top:0.1875rem;">
+            Type the address your board is under. We send a link that signs you in — there
+            is no password to remember and none to lose.
+        </div>
+    </div>
+    <form method="post" action="{{ url_for('auth.login') }}"
+          style="display:flex;flex-direction:column;gap:0.875rem;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="field">
+            <label for="email">Email address</label>
+            {# `type=email` so a phone offers the right keyboard, and so the
+               base stylesheet's `.field input` rules reach it. The check that
+               matters is on the server. #}
+            <input type="email" id="email" name="email" value="{{ email or '' }}"
+                   autocomplete="email" autocapitalize="off" autocorrect="off"
+                   spellcheck="false" inputmode="email" required>
+        </div>
+        <button class="btn" type="submit">Email me a link</button>
+    </form>
+</div>
+{% endblock %}

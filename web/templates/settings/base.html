@@ -7,8 +7,10 @@
     <meta name="robots" content="noindex, nofollow">
     <link rel="icon" href="{{ url_for('static', filename='favicon.svg') }}" type="image/svg+xml">
     <!-- Saved to a phone's home screen this opens like an app. The manifest is
-         what Android reads; iOS ignores it and goes by the four lines below. -->
-    <link rel="manifest" href="{{ url_for('settings.manifest') }}">
+         what Android reads; iOS ignores it and goes by the four lines below.
+         A block, because the login page is behind no session and the manifest
+         is: fetching it there would only ever be a redirect. -->
+    {% block manifest %}<link rel="manifest" href="{{ url_for('settings.manifest') }}">{% endblock %}
     <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
     <meta name="apple-mobile-web-app-title" content="DinkyDash">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -117,7 +119,8 @@
         .field { display: flex; flex-direction: column; gap: 0.375rem; }
         .field > label { font-size: 0.6875rem; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; color: var(--text-muted); }
         .field input[type=text], .field input[type=url], .field input[type=date],
-        .field input[type=time], .field select, .field textarea {
+        .field input[type=time], .field input[type=email],
+        .field select, .field textarea {
             width: 100%; min-height: 3rem; padding: 0.75rem 0.875rem;
             border: 1.5px solid var(--border); border-radius: 0.75rem;
             background: var(--surface); color: var(--text);
