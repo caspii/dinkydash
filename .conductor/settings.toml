@@ -42,10 +42,9 @@ venv/bin/python sample_board.py
 # cookie over `http://localhost`, so signing in fails and looks like a broken
 # form rather than a cookie policy. `web/CLAUDE.md` has the table.
 #
-# **This talks to the production database.** `DATABASE_URL` in `.env` is the
-# live cluster, so anything saved in /settings edits the real family. Export a
-# different DATABASE_URL before starting to point it somewhere safer — the
-# connection string is the only thing that decides.
+# Export DATABASE_URL to select a scratch database. Explicit environment values
+# take precedence over .env defaults; with no override, the file selects the
+# database, which may be production. The connection string is never printed.
 #
 # Single mode still matters and still has to work; it is just not what the
 # preview shows. To look at it:
@@ -53,18 +52,23 @@ venv/bin/python sample_board.py
 [scripts.run.dashboard]
 available_in = [ "local" ]
 command = """
-set -a; [ -f .env ] && . ./.env; set +a
-if [ -z "$DATABASE_URL" ]; then
-  echo "Cloud mode needs DATABASE_URL in .env."
-  echo "It is gitignored, so a new workspace only gets it through Files to copy."
-  exit 1
-fi
-export DINKYDASH_MODE=cloud
-echo "The board is behind a sign-in. For a link without waiting on email:"
-echo "  venv/bin/python login_link.py you@example.com --base-url http://127.0.0.1:${CONDUCTOR_PORT:-5000}"
-echo "Open it in Chrome or Firefox. Safari will not send a Secure cookie over"
-echo "http://localhost, so signing in there fails and looks like a broken form."
-FLASK_APP=app.py venv/bin/flask run --port ${CONDUCTOR_PORT:-5000} --debug
+venv/bin/python - <<'PY'
+import os
+import sys
+from dotenv import load_dotenv
+
+load_dotenv('.env', override=False)
+if not os.environ.get('DATABASE_URL'):
+    sys.exit('Cloud mode needs DATABASE_URL in the environment or .env. '
+             'Use Files to copy for this gitignored file.')
+os.environ['DINKYDASH_MODE'] = 'cloud'
+os.environ['FLASK_APP'] = 'app.py'
+port = os.environ.get('CONDUCTOR_PORT') or '5000'
+print('The board is behind a sign-in. For a link without waiting on email:')
+print(f'  venv/bin/python login_link.py you@example.com --base-url http://127.0.0.1:{port}')
+print('Use Chrome or Firefox; Safari will not send a Secure cookie over http://localhost.', flush=True)
+os.execv('venv/bin/flask', ['flask', 'run', '--port', port, '--debug'])
+PY
 """
 default = true
 icon = "cloud"

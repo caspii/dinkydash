@@ -76,17 +76,17 @@ def serves(monkeypatch, *responses):
     asked = []
     queue = list(responses)
 
-    def fake_get(url, **kwargs):
-        asked.append(url)
+    def fake_send(adapter, request, **kwargs):
+        asked.append(request.url)
         return queue.pop(0) if queue else FakeResponse(body=ICS.encode())
-    monkeypatch.setattr(calendars.requests, "get", fake_get)
+    monkeypatch.setattr(calendars.HTTPAdapter, "send", fake_send)
     return asked
 
 
 def never_called(monkeypatch):
-    def fake_get(url, **kwargs):
-        raise AssertionError(f"a request was made to {url}")
-    monkeypatch.setattr(calendars.requests, "get", fake_get)
+    def fake_send(adapter, request, **kwargs):
+        raise AssertionError("a refused feed reached the HTTP transport")
+    monkeypatch.setattr(calendars.HTTPAdapter, "send", fake_send)
 
 
 class TestTheSchemeRule:
@@ -130,6 +130,11 @@ class TestWhereItWillNotGo:
         ("172.16.5.4", "private"),
         ("0.0.0.0", "unspecified"),
         ("224.0.0.1", "multicast"),
+        ("100.64.0.1", "shared address space"),
+        ("192.0.2.1", "reserved documentation address"),
+        ("::1", "IPv6 loopback"),
+        ("fc00::1", "IPv6 private"),
+        ("fe80::1", "IPv6 link-local"),
     ])
     def test_it_refuses_and_does_not_even_ask(self, monkeypatch, address, what):
         resolves_to(monkeypatch, address)
@@ -162,6 +167,12 @@ class TestWhereItWillNotGo:
         def boom(*args, **kwargs):
             raise socket.gaierror("nope")
         monkeypatch.setattr(calendars.socket, "getaddrinfo", boom)
+        never_called(monkeypatch)
+        with pytest.raises(FeedRefused, match="does not resolve"):
+            fetch_feed(SECRET, START, END, zone("UTC"))
+
+    def test_an_empty_resolution_is_refused(self, monkeypatch):
+        resolves_to(monkeypatch)
         never_called(monkeypatch)
         with pytest.raises(FeedRefused, match="does not resolve"):
             fetch_feed(SECRET, START, END, zone("UTC"))

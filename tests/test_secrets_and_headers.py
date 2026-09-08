@@ -16,6 +16,7 @@ import requests
 
 from dinkydash.calendars import FeedError, fetch_feed, zone
 from dinkydash.store import FileStore
+from test_feed_safety import resolves_to
 from tests.conftest import client_for
 from web import create_app
 
@@ -41,8 +42,8 @@ def client(tmp_path):
 
 
 def _raising(exc):
-    """A `requests.get` stand-in that fails the way the real one does."""
-    def _get(url, timeout=None, **kwargs):
+    """An HTTP transport stand-in that fails the way Requests does."""
+    def _get(adapter, request, timeout=None, **kwargs):
         raise exc
     return _get
 
@@ -58,7 +59,8 @@ def _http_error(status, reason):
 
 
 def _fetch(monkeypatch, exc):
-    monkeypatch.setattr(requests, "get", _raising(exc))
+    resolves_to(monkeypatch, "1.1.1.1")
+    monkeypatch.setattr(requests.adapters.HTTPAdapter, "send", _raising(exc))
     with pytest.raises(FeedError) as caught:
         fetch_feed(SECRET, date(2026, 9, 3), date(2026, 9, 17), zone("UTC"),
                    label="Dad's", timeout=1)
@@ -108,7 +110,8 @@ class TestTheCalendarUrlNeverEscapes:
         # fetch_events puts the message into `calendar_statuses`, which the
         # settings page renders.
         from dinkydash import calendars
-        monkeypatch.setattr(requests, "get", _raising(_http_error(403, "Forbidden")))
+        resolves_to(monkeypatch, "1.1.1.1")
+        monkeypatch.setattr(requests.adapters.HTTPAdapter, "send", _raising(_http_error(403, "Forbidden")))
         _events, statuses = calendars.fetch_events(
             [{"label": "Dad's", "url": SECRET, "enabled": True}],
             date(2026, 9, 3), zone("UTC"), timeout=1)
