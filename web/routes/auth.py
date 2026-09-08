@@ -204,7 +204,7 @@ already filled in with an invented family for you to replace:
 
 {link}
 
-It works once, and for fifteen minutes.
+The link works once, and for fifteen minutes.
 
 If you did not ask for this, you can ignore it. Nothing has been created, and
 the link stops working on its own.
@@ -217,7 +217,7 @@ Here is your link to sign in to DinkyDash:
 
 {link}
 
-It works once, and for fifteen minutes.
+The link works once, and for fifteen minutes.
 
 If you did not ask for this, you can ignore it. Nobody can sign in without
 the link, and it stops working on its own.
@@ -235,7 +235,7 @@ def _html(link, new_family=False):
 <p>Open this link and your board is ready — people, chores and countdowns are
 already filled in with an invented family for you to replace:</p>
 <p><a href="{link}">Start my board</a></p>
-<p>It works once, and for fifteen minutes.</p>
+<p>The link works once, and for fifteen minutes.</p>
 <p>If you did not ask for this, you can ignore it. Nothing has been created,
 and the link stops working on its own.</p>
 <p>— DinkyDash</p>
@@ -243,7 +243,7 @@ and the link stops working on its own.</p>
     return f"""\
 <p>Here is your link to sign in to DinkyDash:</p>
 <p><a href="{link}">Sign in to DinkyDash</a></p>
-<p>It works once, and for fifteen minutes.</p>
+<p>The link works once, and for fifteen minutes.</p>
 <p>If you did not ask for this, you can ignore it. Nobody can sign in without
 the link, and it stops working on its own.</p>
 <p>— DinkyDash</p>
