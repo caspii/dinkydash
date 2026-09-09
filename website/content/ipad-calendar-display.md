@@ -28,7 +28,7 @@ Here is the whole setup, with free and open-source software.
 DinkyDash is a **web page**, not an app you install. So there are two parts:
 
 1. **Something to serve it.** A Raspberry Pi or an old computer on your Wi-Fi — free, MIT
-   licensed, and about an evening's work. Or the hosted version, which is in build.
+   licensed, and about an evening's work. Or [start a free 14-day hosted trial](https://app.dinkydash.co/login), no card required.
 2. **The iPad**, which is the screen. It opens that address in Safari.
 
 Nothing goes through the App Store, and there is no Apple ID to sign in to.
@@ -109,5 +109,4 @@ The [setup guide](/getting-started/) covers the other half: getting DinkyDash ru
 your calendars, and pointing the iPad at it. The code is on
 [GitHub](https://github.com/caspii/dinkydash) under an MIT licence.
 
-Rather skip the setup? A hosted version is in build at $39/year — [join the
-waitlist](https://fffwryhvses.typeform.com/to/yxMMhmFs).
+Rather skip the setup? [Start a free 14-day hosted trial](https://app.dinkydash.co/login), no card required.

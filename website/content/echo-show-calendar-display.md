@@ -105,5 +105,4 @@ The [setup guide](/getting-started/) covers the whole thing: getting DinkyDash r
 your calendars, and pointing a screen at it. The code is on
 [GitHub](https://github.com/caspii/dinkydash) under an MIT licence.
 
-Rather skip the setup? A hosted version is in build at $39/year — [join the
-waitlist](https://fffwryhvses.typeform.com/to/yxMMhmFs).
+Rather skip the setup? [Start a free 14-day hosted trial](https://app.dinkydash.co/login), no card required.

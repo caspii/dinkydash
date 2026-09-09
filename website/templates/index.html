@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}DinkyDash — Digital Family Calendar for Screens You Own{% endblock %}
-{% block description %}A family calendar for the wall, set up from one calendar link, on the TV, tablet or Raspberry Pi you already own. $39 a year, or free if you run it yourself. Open source.{% endblock %}
+{% block description %}A family calendar for the wall, set up from one calendar link, on the TV, tablet or Raspberry Pi you already own. Start a free 14-day hosted trial, or run it yourself for free. Open source.{% endblock %}
 {% block og_title %}DinkyDash — A Family Calendar on the Screen You Already Own{% endblock %}
 {# No og_image override: the home page shares the same card as everything else. #}
 
@@ -421,7 +421,7 @@
             <p class="subtitle">Paste a calendar link, add the people and the chores if you like, and point a screen at it. Each morning the board rebuilds itself. Nothing to tick.</p>
             <div class="hero-buttons">
                 <a href="/getting-started/" class="btn">Run it yourself, free</a>
-                <a href="https://fffwryhvses.typeform.com/to/yxMMhmFs" target="_blank" rel="noopener" class="btn btn-outline">Have us run it &mdash; join the list</a>
+                <a href="https://app.dinkydash.co/login" class="btn btn-outline">Start your free trial</a>
             </div>
             <div class="hero-proof">
                 <span>MIT licensed</span>
@@ -634,10 +634,10 @@
             <div class="math-card highlight">
                 <div class="math-name">DinkyDash, on your screen</div>
                 <div class="math-price">$39<span style="font-size: 1rem; font-weight: 700;">/yr</span></div>
-                <div class="math-sub">or $0 if you run it yourself</div>
+                <div class="math-sub">planned hosted price; free 14-day trial, or $0 self-hosted</div>
             </div>
         </div>
-        <p class="lede">The bring-your-own-screen rivals are closer: DAKboard is $60 a year and Mango Display $59.99. We are cheaper than both, but <strong>price is not really the difference</strong> &mdash; theirs is a subscription, and ours is also a repository you get to keep.</p>
+        <p class="lede">The bring-your-own-screen rivals are closer: DAKboard is $60 a year and Mango Display $59.99. Our planned hosted price is lower than both, but <strong>price is not really the difference</strong> &mdash; theirs is a subscription, and ours is also a repository you get to keep.</p>
 
         <div class="modes-grid">
             <div class="mode-card">
@@ -654,17 +654,17 @@
                 <a href="/getting-started/" class="btn btn-outline">Read the setup guide</a>
             </div>
             <div class="mode-card featured">
-                <div class="mode-label">In build &mdash; join the list</div>
+                <div class="mode-label">Try it today</div>
                 <h3>Hosted</h3>
-                <div class="mode-price">$39/year, or $6/month</div>
+                <div class="mode-price">Free for 14 days, no card required</div>
                 <ul>
                     <li>Nothing to install and nothing to keep alive</li>
                     <li>We run the 6am job and pay for the AI</li>
                     <li>Your own board URL, for any screen in the house</li>
                     <li>Settings from your phone, backed up for you</li>
-                    <li>14-day trial, no card up front</li>
+                    <li>Paid subscriptions are still in development; planned pricing is $39/year or $6/month</li>
                 </ul>
-                <a href="https://fffwryhvses.typeform.com/to/yxMMhmFs" target="_blank" rel="noopener" class="btn">Join the waiting list</a>
+                <a href="https://app.dinkydash.co/login" class="btn">Start your free trial</a>
             </div>
         </div>
         <p class="source-note">Same board, same code, same repository. The only difference is who keeps it running.</p>
@@ -686,11 +686,11 @@
             </details>
             <details>
                 <summary>When can I get the hosted version?</summary>
-                <p>It is being built now, in the open. Families are invited from the waiting list in small batches, so that what breaks for the first group is fixed before the next one arrives. Join the list and you will hear from us before it opens to everyone.</p>
+                <p>You can start a free 14-day trial now, with no card required. Enter your email on the signup page and follow the sign-in link we send you, then add your family and calendars. Returning users sign in on the same page.</p>
             </details>
             <details>
                 <summary>What will the hosted version cost?</summary>
-                <p>$39 a year, or $6 a month, with a 14-day trial and no card up front. The first 100 families on the waiting list pay $29 a year, locked in for as long as they stay subscribed.</p>
+                <p>The 14-day trial is free, with no card required. Paid subscriptions are still in development; planned pricing is $39 a year or $6 a month.</p>
             </details>
             <details>
                 <summary>What screens can I use?</summary>
@@ -720,12 +720,12 @@
 <section class="section cta">
     <div class="container">
         <h2>Put it on the wall this week</h2>
-        <p>Set it up yourself this afternoon, or join the waiting list and we will run it for you. Either way, the code is yours and it stays that way.</p>
+        <p>Set it up yourself this afternoon, or start a free 14-day trial and we will run it for you. Either way, the code is yours and it stays that way.</p>
         <div class="cta-buttons">
             <a href="/getting-started/" class="btn">Set it up yourself, free</a>
-            <a href="https://fffwryhvses.typeform.com/to/yxMMhmFs" target="_blank" rel="noopener" class="btn btn-outline">Join the waiting list</a>
+            <a href="https://app.dinkydash.co/login" class="btn btn-outline">Start your free trial</a>
         </div>
-        <p class="cta-note">We only email about DinkyDash, and one click gets you off the list. Or read the code on <a href="https://github.com/caspii/dinkydash">GitHub</a>.</p>
+        <p class="cta-note">No card required. Already have an account? <a href="https://app.dinkydash.co/login">Sign in</a>. Or read the code on <a href="https://github.com/caspii/dinkydash">GitHub</a>.</p>
     </div>
 </section>
 
@@ -753,12 +753,12 @@
     {
       "@type": "Question",
       "name": "When can I get the hosted version?",
-      "acceptedAnswer": { "@type": "Answer", "text": "It is being built now, in the open. Families are invited from the waiting list in small batches, so that what breaks for the first group is fixed before the next one arrives. Join the list and you will hear from us before it opens to everyone." }
+      "acceptedAnswer": { "@type": "Answer", "text": "You can start a free 14-day trial now, with no card required. Enter your email on the signup page and follow the sign-in link we send you, then add your family and calendars. Returning users sign in on the same page." }
     },
     {
       "@type": "Question",
       "name": "What will the hosted version cost?",
-      "acceptedAnswer": { "@type": "Answer", "text": "$39 a year, or $6 a month, with a 14-day trial and no card up front. The first 100 families on the waiting list pay $29 a year, locked in for as long as they stay subscribed." }
+      "acceptedAnswer": { "@type": "Answer", "text": "The 14-day trial is free, with no card required. Paid subscriptions are still in development; planned pricing is $39 a year or $6 a month." }
     },
     {
       "@type": "Question",

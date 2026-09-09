@@ -39,4 +39,4 @@ One more thing that earns its place on the chore screen: countdowns. "8 days unt
 
 You can see the effect without installing anything: our [birthday countdown](/birthday-countdown/) is the same panel on its own, free and with no sign-up. Add the kids' birthdays and leave it open on a spare screen.
 
-Set it up this weekend: **[Getting started with DinkyDash](/getting-started/)** — or [join the hosted-version waitlist](https://fffwryhvses.typeform.com/to/yxMMhmFs) if you'd rather skip the setup.
+Set it up this weekend: **[Getting started with DinkyDash](/getting-started/)** — or [start a free 14-day hosted trial](https://app.dinkydash.co/login) if you'd rather skip the setup.

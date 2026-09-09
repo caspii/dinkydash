@@ -31,7 +31,7 @@ Full disclosure: DinkyDash is our project, so we're biased — but it exists pre
 
 It works with the calendars you already keep: **Google Calendar, Apple iCloud Calendar and Outlook** each publish a sharing link, and DinkyDash reads all three into one agenda in time order. You paste the link — there's no account to sign in to. We have the steps for [Google](/google-calendar-ical-link/), [iCloud](/icloud-calendar-link/), [Outlook](/outlook-calendar-ics-link/) and [Cozi](/cozi-calendar-display/).
 
-It's MIT-licensed and free. The trade-off: today you set it up yourself, which means being comfortable with a terminal for an afternoon. Our [getting started guide](/getting-started/) walks you through it, and a zero-setup hosted version is in the works.
+It's MIT-licensed and free to self-host, which means being comfortable with a terminal for an afternoon. Our [getting started guide](/getting-started/) walks you through it. You can also [start a free 14-day hosted trial](https://app.dinkydash.co/login), with no card required.
 
 **Best for:** families with a tinkerer in the house who want $0 hardware and no subscription.
 

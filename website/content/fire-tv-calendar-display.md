@@ -28,7 +28,7 @@ is a browser. The honest limit is at the bottom of the page.
 DinkyDash is a **web page**, not an app. So there are two parts:
 
 1. **Something to serve it.** A Raspberry Pi or an old computer on your Wi-Fi — free, MIT
-   licensed, and about an evening's work. Or the hosted version, which is in build.
+   licensed, and about an evening's work. Or [start a free 14-day hosted trial](https://app.dinkydash.co/login), no card required.
 2. **The Fire TV**, which is the screen. Silk opens that address.
 
 ![The DinkyDash board on a wide screen: today's events on the left, whose turn each chore is and the countdowns on the right](/images/family-calendar-tv-board.webp)
@@ -109,5 +109,4 @@ The [setup guide](/getting-started/) covers the other half: getting DinkyDash ru
 your calendars, and pointing a screen at it. The code is on
 [GitHub](https://github.com/caspii/dinkydash) under an MIT licence.
 
-Rather skip the setup? A hosted version is in build at $39/year — [join the
-waitlist](https://fffwryhvses.typeform.com/to/yxMMhmFs).
+Rather skip the setup? [Start a free 14-day hosted trial](https://app.dinkydash.co/login), no card required.
