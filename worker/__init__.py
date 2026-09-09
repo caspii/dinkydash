@@ -19,8 +19,9 @@ container is what makes "how many web instances" a free decision.
 copied. It is the shared orchestration over config, store and clock, and
 `tests/test_runner.py` already imports that module the same way.
 
-Housekeeping runs once a pass: `sweep_logins` deletes expired magic-link tokens
-and `lifecycle.expire_trials` records ended trials. Account access is also
+Housekeeping runs once a pass: `sweep_logins` deletes expired magic-link tokens,
+`lifecycle.expire_trials` records ended access, and `billing.housekeeping`
+reconciles subscriptions and sends pending notices. Account access is also
 checked before each fetch and model call, independently of the sweep.
 
 **Every completed pass checks in with Sentry's cron monitor** (DIN-54,
@@ -86,6 +87,7 @@ def family_ids(pool):
             """SELECT id FROM families
                WHERE status <> 'lapsed'
                  AND (status <> 'trialing' OR trial_ends_at > now())
+                 AND (billing_access_until IS NULL OR billing_access_until > now())
                ORDER BY created_at""")
         return [row[0] for row in cur.fetchall()]
 
@@ -133,7 +135,7 @@ def tick_all(pool, store_factory=None, tick=None, stopping=None,
     return Pass(done, failed)
 
 
-def run_pass(pool, stopping=None, check_in=None):
+def run_pass(pool, stopping=None, check_in=None, *, payments=None):
     """One pass: housekeeping, every family, the sweep — then the check-in.
 
     Returns the `Pass`, or None when the pass did not finish.
@@ -157,13 +159,13 @@ def run_pass(pool, stopping=None, check_in=None):
     if check_in is None:
         from dinkydash import sentry
         check_in = sentry.check_in
-    from dinkydash import lifecycle
+    from dinkydash import billing, lifecycle
 
     started = time.monotonic()
     try:
         expired = lifecycle.expire_trials(pool)
         if expired:
-            log.info("Ended %s expired trial(s).", expired)
+            log.info("Expired %s account access deadline(s).", expired)
     except Exception:
         # Callers still check the deadline themselves if housekeeping fails.
         log.exception("Could not mark expired trials; retrying next pass.")
@@ -175,6 +177,12 @@ def run_pass(pool, stopping=None, check_in=None):
                       "next pass. No check-in.")
         return None
     swept = sweep_logins(pool)
+    if not stopping:
+        try:
+            billing.housekeeping(pool, payments if payments is not None else billing.Billing.from_env())
+        except Exception:
+            # Stripe/SendGrid exception strings can carry personal billing data.
+            log.warning("Billing housekeeping failed; retrying next pass.")
     took = time.monotonic() - started
     if stopping:
         log.info("Pass interrupted by a stop request after %.1fs; no check-in.", took)
@@ -231,7 +239,7 @@ def main():  # pragma: no cover - the loop itself; tick_all is what is tested
         format="%(asctime)s [%(levelname)s] %(message)s",
     )
 
-    from dinkydash import db, sentry
+    from dinkydash import billing, db, sentry
 
     # Before anything that can fail: a worker that cannot reach its database
     # is exactly the report worth having. A no-op without SENTRY_DSN.
@@ -242,11 +250,12 @@ def main():  # pragma: no cover - the loop itself; tick_all is what is tested
     signal.signal(signal.SIGINT, stopping.request)
 
     pool = db.pool()
+    payments = billing.Billing.from_env()
     every = interval()
     log.info("Worker started; a pass every %s seconds.", every)
 
     while not stopping:
-        run_pass(pool, stopping)
+        run_pass(pool, stopping, payments=payments)
 
         # Sleep in slices so SIGTERM is noticed in seconds rather than minutes.
         # App Platform kills a container that ignores it for too long, and

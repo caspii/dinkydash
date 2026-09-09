@@ -91,6 +91,11 @@ def create_app(store=None, *, pool=None):
         from .routes.admin import bp as admin_bp
         app.register_blueprint(admin_bp)
 
+        from dinkydash.billing import Billing
+        from .routes.billing import bp as billing_bp
+        app.config["BILLING"] = Billing.from_env()
+        app.register_blueprint(billing_bp)
+
         from dinkydash.pgstore import NoSuchFamily
 
         @app.errorhandler(NoSuchFamily)

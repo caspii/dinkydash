@@ -40,3 +40,7 @@ segno==1.6.6
 # `requests`. Cloud only and imported lazily: with no SENTRY_DSN nothing is
 # initialised, and a Pi never installs it at all.
 sentry-sdk==2.69.1
+
+# Hosted Checkout, Customer Portal and signature verification. The official SDK
+# supplies the versioned API and tested webhook verifier; never imported on a Pi.
+stripe==15.6.1

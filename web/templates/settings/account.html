@@ -53,8 +53,12 @@
             names and interests go to Claude so it can write the headline and daily note.
         </div>
         <div class="hint">
-            <strong>SendGrid</strong> delivers our email — your address and the sign-in link,
-            and anything you send us through the feedback form. Never a calendar.
+            <strong>SendGrid</strong> delivers sign-in links, subscription notices and feedback
+            using your email address. Dashboard data is only included if you write it in feedback.
+        </div>
+        <div class="hint">
+            <strong>Stripe</strong> handles billing when you choose a subscription. It receives
+            your billing details, never your calendars or family details.
         </div>
         <div class="hint">
             <strong>Google</strong> holds the mailbox your feedback arrives in, read by
@@ -82,6 +86,8 @@
             This removes your family, this account, your calendar links, the stored agenda and
             every written line. <strong>Every screen showing your dashboard stops working.</strong>
             It cannot be undone, and we cannot get it back for you.
+            Any subscription is cancelled immediately before your account is removed.
+            Stripe may retain payment records; see the privacy policy for details.
         </div>
         <form method="post" style="display:flex;flex-direction:column;gap:0.875rem;">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">

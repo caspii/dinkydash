@@ -166,6 +166,8 @@ class TestTheCheckIn:
                             lambda pool, stopping=None: calls.append("tick") or Pass(2, 1))
         monkeypatch.setattr(worker, "sweep_logins",
                             lambda pool: calls.append("sweep") or 0)
+        monkeypatch.setattr("dinkydash.billing.housekeeping",
+                            lambda pool, payments: calls.append("billing"))
 
         def check_in(every, took):
             calls.append("check_in")
@@ -176,7 +178,7 @@ class TestTheCheckIn:
     def test_a_completed_pass_checks_in_last_with_the_interval_and_its_duration(self, rig):
         calls, check_ins, check_in = rig
         assert run_pass(object(), Stopping(), check_in=check_in) == Pass(2, 1)
-        assert calls == ["expire", "tick", "sweep", "check_in"]
+        assert calls == ["expire", "tick", "sweep", "billing", "check_in"]
         ((every, took),) = check_ins
         assert every == 300
         assert took >= 0
@@ -201,6 +203,7 @@ class TestTheCheckIn:
 
         monkeypatch.setattr(worker, "tick_all", interrupted)
         assert run_pass(object(), stopping, check_in=check_in) is None
+        assert "billing" not in calls
         assert "check_in" not in calls
         assert check_ins == []
 
@@ -241,6 +244,23 @@ class TestTheCheckIn:
         calls, check_ins, check_in = rig
         assert run_pass(object(), check_in=check_in) == Pass(2, 1)
         assert len(check_ins) == 1
+
+    def test_billing_failure_is_private_and_does_not_stop_the_check_in(self, rig, monkeypatch, caplog):
+        calls, check_ins, check_in = rig
+        pool, payments = object(), object()
+        billing_calls = []
+
+        def broken(received_pool, received_payments):
+            billing_calls.append((received_pool, received_payments))
+            raise RuntimeError("private billing details")
+
+        monkeypatch.setattr("dinkydash.billing.housekeeping", broken)
+        with caplog.at_level(logging.WARNING):
+            assert run_pass(pool, check_in=check_in, payments=payments) == Pass(2, 1)
+        assert billing_calls == [(pool, payments)]
+        assert len(check_ins) == 1
+        assert "Billing housekeeping failed" in caplog.text
+        assert "private billing details" not in caplog.text
 
     def test_the_real_check_in_is_the_default(self, rig, monkeypatch):
         calls, check_ins, _ = rig
