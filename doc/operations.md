@@ -379,6 +379,28 @@ transaction.
 **No spec change and no `doctl apps update` for this one** — no new environment variable, no
 migration. `deploy_on_push` is enough.
 
+### Export and trial expiry, 9 September 2026 (DIN-50/DIN-52)
+
+The account export now includes a dated `generations` array with every retained brief and its
+metadata, alongside `written_lines` for recent rewrites. Both queries use the signed-in family;
+download headers remain `no-store`. The privacy page now distinguishes retained daily briefs
+from the trimmed recent history.
+
+Migration `005_family_lapse.sql` adds `lapsed_at`, backfills existing lapsed rows from their
+last update, and fills missing trial deadlines with creation time plus 14 days. Its trigger
+stamps transitions to lapsed and clears the stamp when an account becomes active again.
+The worker marks expired trials once per pass, preserving the original deadline as `lapsed_at`.
+Worker selection and every hosted fetch/model entry point also check the database clock, so a
+late or failed sweep does not extend access. Active paid accounts ignore old trial deadlines.
+
+The screen holds the saved brief's date for 30 days after access ends, then renders only an
+ended-access message. Settings edits and calendar privacy invalidation still apply during that
+period. No extra snapshot is stored or retained. Export and deletion stay available, and the
+normal reload timer picks up reactivation. The display cutoff does not delete database content;
+the retention sweeps are still DIN-57. Stripe integration remains DIN-53.
+
+The usual pre-deploy job applies the migration; no new environment variables or app-spec changes.
+
 ## GitHub Pages, switched off 8 September 2026
 
 **Pages was still enabled, still set to build `main:/docs`, and still serving.** DIN-27 deleted that

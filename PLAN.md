@@ -1,6 +1,6 @@
 # DinkyDash Hosted MVP — Plan
 
-*Updated 9 September 2026: main through PR #93, plus the DIN-49/DIN-51 spending controls.*
+*Updated 9 September 2026: main through PR #93, plus spending, export and trial-expiry fixes (DIN-49–52).*
 
 This is the engineering plan for the hosted app and its shared self-hosted codebase.
 Positioning, pricing reasoning and launch strategy live in Linear on the DIN team.
@@ -20,14 +20,15 @@ PR #93 preserves explicit preview database overrides ([DIN-48](https://linear.ap
 and connects calendar fetches only to validated public addresses ([DIN-61](https://linear.app/keepthescore/issue/DIN-61)).
 The current batch preserves charged global usage after account deletion ([DIN-49](https://linear.app/keepthescore/issue/DIN-49))
 and enforces the platform's model and token ceiling for hosted generation ([DIN-51](https://linear.app/keepthescore/issue/DIN-51)).
+It also exports retained daily generations ([DIN-50](https://linear.app/keepthescore/issue/DIN-50)) and enforces trial expiry,
+manual-action restrictions and the 30-day lapsed display period ([DIN-52](https://linear.app/keepthescore/issue/DIN-52)).
 
 Todo is reserved for the hosted MVP: signup and trial use, payment/cancellation,
 privacy and spending controls, basic monitoring/recovery, and real-device validation.
 Optional features, promotion and additional operational tooling are Backlog.
 Hosted readiness is still open. The remaining sequence is:
 
-1. Complete export coverage ([DIN-50](https://linear.app/keepthescore/issue/DIN-50)) and trial
-   expiry/lapse ([DIN-52](https://linear.app/keepthescore/issue/DIN-52)). Complete Stripe conversion before accepting payment ([DIN-53](https://linear.app/keepthescore/issue/DIN-53)).
+1. Complete Stripe conversion, subscription changes and cancellation before accepting payment ([DIN-53](https://linear.app/keepthescore/issue/DIN-53)).
 2. Add liveness alerts and recovery checks ([DIN-54](https://linear.app/keepthescore/issue/DIN-54),
    [DIN-56](https://linear.app/keepthescore/issue/DIN-56)), and finish the trust work in Phase 5.
 3. Replace hosted waitlist/form links with the signup/login page ([DIN-63](https://linear.app/keepthescore/issue/DIN-63)).
@@ -180,7 +181,7 @@ run still performs a refresh and brief for compatibility with older self-hosted 
 
 ### Scheduling (cloud mode)
 
-The worker reads non-lapsed family IDs, visits them sequentially, and passes each
+The worker reads family IDs with current access, visits them sequentially, and passes each
 config and payload through the scheduling calculation. It does not currently select
 due families through timezone expression indexes or fan calendar fetches into a thread pool.
 One family's failure does not stop the pass; shutdown finishes the family in hand.
@@ -191,8 +192,17 @@ Every hosted attempt must continue to pass through the budget.
 
 Keep-last-good and retries on subsequent ticks exist. Persistent failure tracking,
 backoff and parent notification are Backlog ([DIN-55](https://linear.app/keepthescore/issue/DIN-55)); the MVP worker heartbeat remains [DIN-54](https://linear.app/keepthescore/issue/DIN-54).
-Skipping rows already marked lapsed does not enforce `trial_ends_at`; [DIN-52](https://linear.app/keepthescore/issue/DIN-52) must add
-that transition and the corresponding manual-action and rendering behaviour.
+Trial access ends at `trial_ends_at`, using the database's timezone-aware clock ([DIN-52](https://linear.app/keepthescore/issue/DIN-52)).
+The worker persists expired trials as lapsed; selection, manual feed checks, calendar refreshes
+and model calls also enforce the deadline independently of that sweep. Legacy trials with no
+deadline get one 14 days after account creation. Active paid accounts ignore their old trial dates.
+
+For 30 days after access ends, the screen renders the last successful brief using its saved date,
+so dates, chore rotations and countdowns stop advancing. Explicit settings edits and calendar
+privacy invalidation still apply; no extra copy of family content is stored. At 30 days, or if no
+successful brief exists, only the ended-access message is rendered. Settings, export and deletion
+remain available. Reactivation clears the lapse timestamp and the screen resumes on reload.
+This display cutoff does not delete stored content; retention sweeps remain DIN-57.
 
 ### The engine boundary
 
@@ -243,20 +253,21 @@ The SQL files in [migrations/](migrations/) are authoritative. The current table
 
 | Table | Stored data / current use |
 |---|---|
-| `families` | Config, screen token, account status and trial/subscription fields |
+| `families` | Config, screen token, account status, trial deadline and lapse timestamp |
 | `users` | Family membership and login address |
 | `login_tokens` | Hashed single-use token, expiry, and either user or signup email |
 | `agendas` | One overwritten calendar window and fetch status per family |
 | `generations` | Per-day brief plus generation metadata and reported token usage |
-| `content_history` | Recent generated copy, trimmed to 30 entries |
+| `content_history` | Recent generated copy, trimmed to the configured history length (at least 30) |
 | `model_spend` | Daily per-family calls and reported tokens |
 | `global_model_spend` | Daily call totals without family identifiers; survives deletion |
 | `calendar_health` | Schema exists; recurring-failure tracking is not yet wired up |
 | `schema_migrations` | Applied migration versions |
 
 Model-written text can contain calendar details and currently remains in older
-`generations.brief` rows until account deletion. Export completeness ([DIN-50](https://linear.app/keepthescore/issue/DIN-50)) and
-retention sweeps ([DIN-57](https://linear.app/keepthescore/issue/DIN-57)) are separate requirements. A config change normally uses
+`generations.brief` rows until account deletion. Exports include all retained generations and the
+separate recent rewrite history ([DIN-50](https://linear.app/keepthescore/issue/DIN-50)); retention sweeps remain
+[DIN-57](https://linear.app/keepthescore/issue/DIN-57). A config change normally uses
 `with_defaults`; platform schema changes use migrations.
 
 ### Hosting and deployment
@@ -365,18 +376,18 @@ the real-device checks remain [DIN-58](https://linear.app/keepthescore/issue/DIN
 ### Phase 4 — Money
 
 - [x] Store the trial deadline when a verified signup creates a family ([DIN-41](https://linear.app/keepthescore/issue/DIN-41)).
-- [ ] Enforce expiry, restrict manual actions, and render the agreed lapsed state ([DIN-52](https://linear.app/keepthescore/issue/DIN-52)).
+- [x] Enforce expiry, restrict manual actions, and render the agreed lapsed state ([DIN-52](https://linear.app/keepthescore/issue/DIN-52)).
 - [ ] Checkout, Customer Portal, verified/idempotent webhooks, pricing and lifecycle notifications ([DIN-53](https://linear.app/keepthescore/issue/DIN-53)).
 - [ ] Apply the agreed price/tax configuration and update processor disclosures when enabling Stripe ([DIN-53](https://linear.app/keepthescore/issue/DIN-53)).
 
-**Done when:** signup → trial → paid → cancel passes in Stripe test mode. Storing a
-trial date and excluding already-lapsed rows do not meet this requirement on their own.
+**Done when:** signup → trial → paid → cancel passes in Stripe test mode. Trial
+expiry is implemented; checkout, payment and cancellation still need that verification.
 
 ### Phase 5 — Legal & trust
 
 - [x] Published privacy policy, terms, processor list and relevant disclosures beside calendar setup ([DIN-44](https://linear.app/keepthescore/issue/DIN-44)).
 - [x] Account export/download and hard-delete actions, scoped to the signed-in family ([DIN-44](https://linear.app/keepthescore/issue/DIN-44)).
-- [ ] Include every retained historical generation in the export ([DIN-50](https://linear.app/keepthescore/issue/DIN-50)).
+- [x] Include every retained historical generation in the export ([DIN-50](https://linear.app/keepthescore/issue/DIN-50)).
 - [x] Keep generated family text and bearer credentials out of service logs ([DIN-47](https://linear.app/keepthescore/issue/DIN-47)).
 - [ ] Verify DigitalOcean/Cloudflare agreement status and record private evidence ([DIN-59](https://linear.app/keepthescore/issue/DIN-59)).
 - [ ] Implement and then disclose old-brief and lapsed-family retention sweeps ([DIN-57](https://linear.app/keepthescore/issue/DIN-57)).
@@ -431,7 +442,6 @@ cover those needs for the MVP alongside the remaining liveness and recovery work
 
 | Decision / verification | Tracking |
 |---|---|
-| Exact lapse presentation and transition boundaries; proposal: stop refresh/briefs, preserve the last board, then message-only after 30 days | [DIN-52](https://linear.app/keepthescore/issue/DIN-52) |
 | Implement the proposed 90-day brief-content and lapsed-family deletion periods before promising them | [DIN-57](https://linear.app/keepthescore/issue/DIN-57) |
 | Account-specific Stripe price/tax setup before the first charge | [DIN-53](https://linear.app/keepthescore/issue/DIN-53) |
 | Whether observed setup failures justify a multi-step wizard | [DIN-58](https://linear.app/keepthescore/issue/DIN-58) |

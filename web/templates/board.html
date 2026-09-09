@@ -263,7 +263,14 @@
 </head>
 <body>
 
-{% if view.state == 'waiting' %}
+{% if view.state == 'ended' %}
+<div class="waiting">
+    <div class="family">DinkyDash</div>
+    <div class="waiting-head">Your trial or subscription has ended</div>
+    <div class="waiting-sub">Board updates are paused. Open your settings on a phone or computer to manage your account.</div>
+</div>
+
+{% elif view.state == 'waiting' %}
 <div class="waiting">
     <div class="family">DinkyDash</div>
     <div class="waiting-head">Writing {{ view.family_name or "your" }}{{ "'s" if view.family_name else "" }} first board&hellip;</div>
@@ -278,7 +285,11 @@
 
 {% else %}
 
-{% if view.stale %}
+{% if view.state == 'frozen' %}
+<div class="banner">
+    Your trial or subscription has ended. Showing the last saved board; its dates and turns are paused.
+</div>
+{% elif view.stale %}
 <div class="banner">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7.6v5"></path><path d="M12 16.2h.01"></path></svg>
     This morning&rsquo;s brief didn&rsquo;t arrive. Times, turns and countdowns are today&rsquo;s &mdash; only the written line is older.

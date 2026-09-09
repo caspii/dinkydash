@@ -154,15 +154,23 @@ Five things in it are load-bearing, and `tests/test_budget.py` asserts each:
   keep the board on the wall with no new branch — "a failure is not handled, it is simply due again"
   already covers it. A second kind of failure would mean a second keep-last-good path.
 
-The **calendar refresh is outside the budget**. A fetch costs HTTP requests to somebody else's
+The **calendar refresh is outside the call cap**. A fetch costs HTTP requests to somebody else's
 server, not money, and a family who cannot afford a new headline today should still have an
-accurate agenda under yesterday's.
+accurate agenda under yesterday's. It still takes the budget to check hosted account access;
+an expired or lapsed account cannot start a fetch, a feed check or a model call (DIN-52).
 
 The budget also supplies `generation_config(config)` at the shared `write_brief` boundary
 (DIN-51). `NoBudget` preserves the self-hoster's settings; `PostgresBudget` returns a copy with
 the platform's `DEFAULT_MODEL` and `DEFAULT_MAX_TOKENS`. Do not read the mode from the environment
 inside the engine or trust saved family model overrides. Both hosted entry points must continue
 to pass the same budget; API-stub tests cover worker ticks and manual rewrites.
+
+`lifecycle.py` evaluates hosted access against Postgres `now()`, including expired trials that
+the worker has not swept yet. The sweep writes `lapsed_at = trial_ends_at`, so a late sweep
+cannot extend the display period. Migration 005 fills missing trial deadlines from creation;
+its trigger requires a lapse timestamp on lapsed status and clears it on reactivation.
+The wall keeps the last brief's date for 30 days, then shows only an ended-access message.
+This is a rendering cutoff, not a retention sweep; settings and account data remain available.
 
 ## Cloud mode: schema, migrations, connections
 

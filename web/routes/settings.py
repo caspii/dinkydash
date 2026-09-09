@@ -18,7 +18,7 @@ from flask import (Blueprint, abort, current_app, flash, redirect,
 
 from dinkydash import accounts
 from dinkydash import config as config_module
-from dinkydash import schedule, screens
+from dinkydash import lifecycle, schedule, screens
 from dinkydash.calendars import FeedError, addresses, describe_feed, feed_label
 from dinkydash.claude_client import GenerationError
 from dinkydash.context import compute_birthday_info, upcoming_for
@@ -26,7 +26,7 @@ from dinkydash.runner import refresh_calendars
 from dinkydash.runner import run as run_generation
 from web import CLOUD
 from web import manifest as manifest_module
-from web.family import current_budget, current_family_id, current_store
+from web.family import current_access, current_budget, current_family_id, current_store
 from web import session as session_module
 from web.session import guard
 from web.urls import absolute_url, board_path
@@ -241,6 +241,10 @@ def home():
         if fetched:
             status["detail"] += f" Calendars refreshed {fetched}."
 
+    access = current_access()
+    if access and access.ended:
+        status = {"state": "lapsed", "detail": lifecycle.ENDED_MESSAGE}
+
     calendars = config.get("calendars") or []
     broken = [c for c in (payload or {}).get("calendar_statuses", []) if c.get("ok") is False]
 
@@ -433,13 +437,14 @@ def check_feed(item, config):
         return {"ok": False, "message": "Paste a link first."}
     wanted = addresses(item.get("shared_with"))
     try:
+        current_budget().check_access()
         found = describe_feed(
             url, config_module.tzinfo_for(config),
             today=config_module.today_for(config),
             days_ahead=int(config.get("calendar_days_ahead") or 14),
             shared_with=wanted,
         )
-    except FeedError as exc:
+    except (FeedError, GenerationError) as exc:
         return {"ok": False, "message": str(exc)}
     days = found["days_ahead"]
     if not found["total"]:
@@ -629,7 +634,10 @@ def refresh_now():
     """Fetch the calendars and nothing else — the free half of "Rewrite now"."""
     config = current_config()
     try:
-        payload = refresh_calendars(config, current_store())
+        payload = refresh_calendars(config, current_store(), budget=current_budget())
+    except GenerationError as exc:
+        flash(str(exc), "error")
+        return redirect(url_for("settings.home"))
     except Exception as exc:  # a broken feed or an unwritable file shouldn't 500 the UI
         log.exception("Calendar refresh failed")
         flash(f"Could not refresh the calendars: {exc}", "error")
@@ -668,7 +676,7 @@ def account():
 
 @bp.route("/account/export")
 def export_account():
-    """Everything we hold about this family, as one JSON file.
+    """The family's settings, board and retained generation history as JSON.
 
     **The family's own data comes from the store**, which is the only thing that
     knows what it is. Two things it deliberately cannot answer are read directly
@@ -676,7 +684,7 @@ def export_account():
 
     * the plan, the trial and when the account was made, which are the
       platform's bookkeeping rather than the family's data;
-    * the **full** written history. `recent_notes` returns note *text* and
+    * all retained daily generations and recent rewrites. `recent_notes` returns note *text* and
       nothing else, because it exists to stop the model repeating itself — an
       export needs the date and the headline with it, and widening the store's
       operation to suit one caller would make every other caller carry it.
@@ -695,10 +703,8 @@ def export_account():
         "family": _family_facts(),
         "settings": config,
         "board": payload,
-        # Everything the model has written, not the 30 the board keeps for
-        # itself: `history_days` is a prompt setting, not a retention rule, and
-        # an export that quietly truncated would be the wrong answer to "give me
-        # my data".
+        "generations": _generations(),
+        # Recent rewrites can differ from the final brief saved for that date.
         "written_lines": _written_lines(),
     }
     body = json.dumps(export, indent=2, ensure_ascii=False, default=str)
@@ -710,8 +716,22 @@ def export_account():
     }
 
 
+def _generations():
+    """All retained daily briefs and their metadata, including older rows."""
+    with current_app.config["POOL"].connection() as conn, conn.cursor() as cur:
+        cur.execute(
+            """SELECT generated_for_date, generated_at, status, brief, model,
+                      input_tokens, output_tokens, error
+               FROM generations WHERE family_id = %s ORDER BY generated_for_date""",
+            (current_family_id(),),
+        )
+        keys = ("generated_for_date", "generated_at", "status", "brief", "model",
+                "input_tokens", "output_tokens", "error")
+        return [dict(zip(keys, row)) for row in cur.fetchall()]
+
+
 def _written_lines():
-    """Every line the model has written for this family, with its date.
+    """Every retained history entry for this family, with its date.
 
     Read directly rather than through `store.recent_notes`, which returns note
     text alone — see `export_account`. Scoped to the session's family like
@@ -731,7 +751,7 @@ def _family_facts():
     """The platform's own bookkeeping about a family, for the export."""
     with current_app.config["POOL"].connection() as conn, conn.cursor() as cur:
         cur.execute(
-            """SELECT plan, status, trial_ends_at, created_at
+            """SELECT plan, status, trial_ends_at, created_at, lapsed_at
                FROM families WHERE id = %s""",
             (current_family_id(),),
         )
@@ -742,7 +762,7 @@ def _family_facts():
     # to somebody, saved to a downloads folder and forgotten; a live credential
     # should not ride along in one. It is on the screen page, where it can be
     # rotated in the same breath as being read.
-    return dict(zip(("plan", "status", "trial_ends_at", "created_at"), row))
+    return dict(zip(("plan", "status", "trial_ends_at", "created_at", "lapsed_at"), row))
 
 
 def delete_account():

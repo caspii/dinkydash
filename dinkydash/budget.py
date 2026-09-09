@@ -7,6 +7,7 @@
     budget.allow()                    charge one call, or raise OverBudget
     budget.record(input, output)      what that call actually used
     budget.generation_config(config)  apply the payer's model/token policy
+    budget.check_access()             refuse updates after hosted access ends
 
 Nothing bounded the Anthropic bill before this (DIN-43). The worker walks every
 non-lapsed family and calls Claude, "Rewrite now" calls it from a web request,
@@ -104,6 +105,9 @@ class NoBudget:
     def generation_config(self, config):
         return config
 
+    def check_access(self):
+        return None
+
 
 class PostgresBudget:
     """The breaker, for one family, over the shared pool."""
@@ -119,6 +123,10 @@ class PostgresBudget:
     def generation_config(self, config):
         """The platform pays, so stored family overrides cannot choose the cost."""
         return dict(config, claude_model=DEFAULT_MODEL, max_tokens=DEFAULT_MAX_TOKENS)
+
+    def check_access(self):
+        from .lifecycle import access_for
+        access_for(self.pool, self.family_id).require_live()
 
     def allow(self):
         """Charge one call, or raise `OverBudget`. Returns how many are now used.
@@ -138,6 +146,7 @@ class PostgresBudget:
         call a day: the brake that exists to stop all spending was the one
         setting that could not. Caught by a test, not by reading it.
         """
+        self.check_access()
         day = _today()
         with self.pool.connection() as conn, conn.transaction():
             with conn.cursor() as cur:

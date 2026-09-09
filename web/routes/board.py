@@ -71,7 +71,7 @@ def index():
     return render_board(current_store())
 
 
-def render_board(store, manifest_url=None):
+def render_board(store, manifest_url=None, access=None):
     """The board page for whichever family that store is for.
 
     Shared with `web/routes/screen.py`, so the signed-in view and the wall
@@ -79,11 +79,16 @@ def render_board(store, manifest_url=None):
     difference between them and it is one link in the head: the panel's
     manifest has to be reachable without a session, or "save to home screen"
     gets a redirect to `/login` instead of a name and an icon.
-    `tests/test_cloud_mode.py` asserts that it is the *only* difference.
+    Hosted callers also pass access state, so a lapsed panel cannot keep
+    recomputing the day. Active cloud boards retain parity with single mode.
     """
     config = store.load_config()
-    today = config_module.today_for(config)
-    view = board_view.build_view(config, store.load_payload(config), today)
+    payload = store.load_payload(config)
+    if access and access.ended:
+        view = board_view.build_lapsed_view(config, payload, access.show_last_board)
+    else:
+        today = config_module.today_for(config)
+        view = board_view.build_view(config, payload, today)
     return render_template("board.html", view=view,
                            manifest_url=manifest_url or url_for("board.manifest"))
 

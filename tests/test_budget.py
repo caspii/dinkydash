@@ -340,7 +340,7 @@ class TestTheGlobalCap:
 # -- what a refusal does to the board ---------------------------------------
 
 class TestARefusalKeepsTheBoard:
-    class Broke:
+    class Broke(NoBudget):
         """A budget that refuses everything, with no database behind it."""
 
         def allow(self):

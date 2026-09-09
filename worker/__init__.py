@@ -19,10 +19,9 @@ container is what makes "how many web instances" a free decision.
 copied. It is the shared orchestration over config, store and clock, and
 `tests/test_runner.py` already imports that module the same way.
 
-One thing here is *not* per family: `sweep_logins` deletes expired magic-link
-tokens once a pass. It is here because this is the only process in cloud mode
-with a loop, and doing it on somebody's page load would make one visitor pay
-for everybody's tidying.
+Housekeeping runs once a pass: `sweep_logins` deletes expired magic-link tokens
+and `lifecycle.expire_trials` records ended trials. Account access is also
+checked before each fetch and model call, independently of the sweep.
 """
 
 import logging
@@ -73,6 +72,7 @@ def family_ids(pool):
         cur.execute(
             """SELECT id FROM families
                WHERE status <> 'lapsed'
+                 AND (status <> 'trialing' OR trial_ends_at > now())
                ORDER BY created_at""")
         return [row[0] for row in cur.fetchall()]
 
@@ -161,7 +161,7 @@ def main():  # pragma: no cover - the loop itself; tick_all is what is tested
         format="%(asctime)s [%(levelname)s] %(message)s",
     )
 
-    from dinkydash import db
+    from dinkydash import db, lifecycle
 
     stopping = Stopping()
     signal.signal(signal.SIGTERM, stopping.request)
@@ -173,6 +173,13 @@ def main():  # pragma: no cover - the loop itself; tick_all is what is tested
 
     while not stopping:
         started = time.monotonic()
+        try:
+            expired = lifecycle.expire_trials(pool)
+            if expired:
+                log.info("Ended %s expired trial(s).", expired)
+        except Exception:
+            # Callers still check the deadline themselves if housekeeping fails.
+            log.exception("Could not mark expired trials; retrying next pass.")
         ticked = tick_all(pool, stopping=stopping)
         swept = sweep_logins(pool)
         log.info("Pass complete: %s families ticked in %.1fs; %s dead login "

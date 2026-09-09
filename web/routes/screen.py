@@ -46,6 +46,7 @@ import logging
 from flask import (Blueprint, current_app, make_response, render_template,
                    request, url_for)
 
+from dinkydash.lifecycle import access_for
 from web import ratelimit
 from web.family import store_for_token
 from web.routes.board import manifest_for, render_board
@@ -92,7 +93,8 @@ def board(token):
     if store is None:
         return _refused()
     return _screen(render_board(
-        store, manifest_url=url_for("screen.manifest", token=token)))
+        store, manifest_url=url_for("screen.manifest", token=token),
+        access=access_for(current_app.config["POOL"], store.family_id)))
 
 
 @bp.route("/s/<token>/manifest.webmanifest")

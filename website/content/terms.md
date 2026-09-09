@@ -5,7 +5,7 @@ template: page.html
 description: The terms for the hosted version of DinkyDash at app.dinkydash.co. Self-hosting is MIT-licensed and covered by the licence, not by these.
 ---
 
-*Last updated: 8 September 2026.*
+*Last updated: 9 September 2026.*
 
 These terms cover the **hosted** service at `app.dinkydash.co`. If you run
 DinkyDash yourself from the source code, the [MIT
@@ -66,6 +66,11 @@ the hosted service is $39 a year, or $6 a month if you would rather.
 Payment is not built yet. Until it is, nobody is charged anything and nothing
 is collected. When it arrives, this section will say who processes it and these
 terms will be updated before it takes effect.
+
+When your trial or subscription ends, calendar fetches and new written briefs
+stop. The screen keeps the last saved board with an ended-access message for
+30 days, then shows only the message. You can still sign in to manage, export
+or delete your data.
 
 ## Ending it
 

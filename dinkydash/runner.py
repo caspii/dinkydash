@@ -39,14 +39,16 @@ from .generate import generate
 log = logging.getLogger(__name__)
 
 
-def refresh_calendars(config, store, now=None, today=None):
+def refresh_calendars(config, store, now=None, today=None, budget=None):
     """Re-fetch every enabled feed and store the merged agenda. No model call.
 
     `now` is when this is happening and becomes the `calendars_fetched_at`
     stamp. `today` is the day the fourteen-day window starts on, and defaults
     to today on the family's clock — they are the same thing except under
     `generate.py --date`, where the window is moved but the stamp is not.
+    The budget checks account access here without charging a model call.
     """
+    (budget or NoBudget()).check_access()
     now = now or datetime.now(timezone.utc)
     tzinfo = config_module.tzinfo_for(config)
     today = today or now.astimezone(tzinfo).date()
@@ -171,7 +173,7 @@ def run(config, store, today=None, client=None, budget=None):
     yesterday's headline.
     """
     require_api_key()  # before the fetch, so a missing key fails in a second
-    refresh_calendars(config, store, today=today)
+    refresh_calendars(config, store, today=today, budget=budget)
     return write_brief(config, store, today=today, client=client, budget=budget)
 
 

@@ -49,13 +49,13 @@
            while rewriting the line costs a call to Claude. #}
         <form class="inline-form" method="post" action="{{ url_for('settings.refresh_now') }}">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button class="btn" type="submit">{{ icons.refresh() }} Refresh calendars</button>
+            <button class="btn" type="submit" {{ 'disabled' if status.state == 'lapsed' }}>{{ icons.refresh() }} Refresh calendars</button>
         </form>
         <div style="display:flex;gap:0.625rem;">
             <a class="btn outline" style="flex:1;" href="{{ board_link }}">{{ icons.screen() }} View board</a>
             <form class="inline-form" method="post" action="{{ url_for('settings.generate_now') }}" style="flex:1;">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <button class="btn outline" type="submit">
+                <button class="btn outline" type="submit" {{ 'disabled' if status.state == 'lapsed' }}>
                     {{ "Write it now" if status.state == "waiting" else "Rewrite now" }}
                 </button>
             </form>
