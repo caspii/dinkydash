@@ -39,6 +39,7 @@ def access_for(pool, family_id):
                           WHEN status = 'lapsed' THEN lapsed_at
                           WHEN status = 'trialing' AND trial_ends_at <= now()
                               THEN trial_ends_at
+                          WHEN billing_access_until <= now() THEN billing_access_until
                       END, now()
                FROM families WHERE id = %s""", (family_id,),
         )
@@ -50,12 +51,15 @@ def access_for(pool, family_id):
 
 
 def expire_trials(pool):
-    """Persist ended trials once; a delayed or repeated sweep keeps the deadline."""
+    """Persist trial, cancellation and payment-grace deadlines exactly once."""
     with pool.connection() as conn, conn.transaction(), conn.cursor() as cur:
         cur.execute(
             """UPDATE families
-               SET status = 'lapsed', lapsed_at = trial_ends_at, updated_at = now()
-               WHERE status = 'trialing' AND trial_ends_at <= now()
+               SET status = 'lapsed',
+                   lapsed_at = CASE WHEN status = 'trialing' THEN trial_ends_at ELSE billing_access_until END,
+                   updated_at = now()
+               WHERE (status = 'trialing' AND trial_ends_at <= now())
+                  OR (status <> 'lapsed' AND billing_access_until <= now())
                RETURNING id""",
         )
         return len(cur.fetchall())

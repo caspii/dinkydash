@@ -33,6 +33,7 @@ either something you typed or something the software produced.
 | **The written line** | Written by Claude each morning | The board's headline and note |
 | **Sign-in links** | Generated when you ask for one | Hashed, never stored as a working link |
 | **Counts of model calls** | Recorded when the board is written | So one account cannot run up an unbounded bill |
+| **Subscription records** | Stripe, after you choose to pay | Customer/subscription identifiers, payment status, renewal and cancellation dates; no card details |
 
 **We do not use cookies for tracking.** The hosted app sets one cookie, and it
 is the session that keeps you signed in. There is no analytics on
@@ -42,8 +43,7 @@ Analytics, which is cookieless and collects no personal data.
 
 ## Where it goes
 
-Two things leave our servers, they are different in kind, and it matters which
-is which.
+The services below receive only what they need for their part of the app.
 
 **Anthropic sees your family's day.** Once each morning the day's agenda — the
 event titles and times, your family's names and interests — is sent to
@@ -51,9 +51,16 @@ Anthropic so Claude can write the headline and the one written line. That is
 the feature. Nothing else about you is sent, and it is not used to train
 models.
 
-**SendGrid sees who is signing in, and nothing else.** When you ask for a sign-in
-link, your email address and the link go to SendGrid to be delivered. SendGrid
-never sees a calendar, a name or a date of birth.
+**SendGrid delivers sign-in links and subscription notices.** Your email address,
+sign-in link or trial/payment/cancellation notice goes to SendGrid for delivery.
+It never receives your calendars, family names or dates of birth.
+
+**Stripe handles payments when you choose a subscription.** Starting Checkout
+creates a Stripe customer with an internal account identifier. You enter your
+billing email, name, address and payment details directly on Stripe's pages.
+We receive subscription status and identifiers, not your card details. Your
+calendars and family details are never sent to Stripe. Signing up for the free
+trial does not create a Stripe customer.
 
 If you would rather Anthropic saw nothing, self-host: the board works with no
 API key at all, and simply goes without the written line.
@@ -64,7 +71,8 @@ API key at all, and simply goes without the written line.
 |---|---|---|
 | **Anthropic** | Writes the daily line from the day's agenda | United States |
 | **DigitalOcean** | Runs the app and the database | Frankfurt, Germany (US company) |
-| **SendGrid** (Twilio) | Delivers sign-in emails | United States |
+| **SendGrid** (Twilio) | Delivers sign-in emails and subscription notices | United States |
+| **Stripe** | Processes subscriptions and payments when you choose to pay | See [Stripe's privacy policy](https://stripe.com/privacy) for its entities and international processing |
 | **Cloudflare** | DNS, and TLS at the edge | Global (US company) |
 
 The app and the database are in **Frankfurt**. DigitalOcean and Cloudflare are
@@ -74,9 +82,6 @@ by standard contractual clauses.
 **Google Fonts is not on this list, and that is deliberate.** The typeface is
 served from our own servers, so no page of DinkyDash — not the board, not the
 settings, not this site — asks Google for anything or tells them you were here.
-
-Payment processing will be added to this list when payment exists. It does not
-yet.
 
 ## How long it is kept
 
@@ -97,6 +102,11 @@ We would rather hold less, so most of this expires on its own.
 - **Daily totals of model calls across the service**: kept without an account
   identifier, including after account deletion, so deleting an account does not
   reset the service's spending limit. These totals contain only a date and count.
+- **Our subscription records, processed payment-event identifiers and notification
+  delivery records**: kept while the account exists and deleted with it. We do
+  not store webhook bodies or copies of your billing address or card details.
+  Stripe keeps its own payment records under its [privacy policy](https://stripe.com/privacy),
+  including records it needs to meet legal obligations.
 
 After your trial or subscription ends, the screen shows the last saved board
 with an ended-access message for 30 days, then only the message. This changes
@@ -116,6 +126,9 @@ Both are buttons, not requests, and both are on your settings page.
 - **Delete** removes your family, your account, your calendar links, the stored
   agenda, every written line and every sign-in link. It cannot be undone and we
   cannot restore it for you.
+  If you have started billing, deletion first cancels your subscriptions and
+  deletes the Stripe customer. If Stripe cannot confirm this, we keep the account
+  and ask you to retry, so billing is not left running without an account.
 
 You also have the right to correct what we hold — which the settings page does
 directly — to object to processing, and to ask for your data in a portable form,

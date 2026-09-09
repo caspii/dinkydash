@@ -73,6 +73,7 @@ def family_ids(pool):
             """SELECT id FROM families
                WHERE status <> 'lapsed'
                  AND (status <> 'trialing' OR trial_ends_at > now())
+                 AND (billing_access_until IS NULL OR billing_access_until > now())
                ORDER BY created_at""")
         return [row[0] for row in cur.fetchall()]
 
@@ -161,13 +162,14 @@ def main():  # pragma: no cover - the loop itself; tick_all is what is tested
         format="%(asctime)s [%(levelname)s] %(message)s",
     )
 
-    from dinkydash import db, lifecycle
+    from dinkydash import billing, db, lifecycle
 
     stopping = Stopping()
     signal.signal(signal.SIGTERM, stopping.request)
     signal.signal(signal.SIGINT, stopping.request)
 
     pool = db.pool()
+    payments = billing.Billing.from_env()
     every = interval()
     log.info("Worker started; a pass every %s seconds.", every)
 
@@ -176,12 +178,17 @@ def main():  # pragma: no cover - the loop itself; tick_all is what is tested
         try:
             expired = lifecycle.expire_trials(pool)
             if expired:
-                log.info("Ended %s expired trial(s).", expired)
+                log.info("Expired %s account access deadline(s).", expired)
         except Exception:
             # Callers still check the deadline themselves if housekeeping fails.
             log.exception("Could not mark expired trials; retrying next pass.")
         ticked = tick_all(pool, stopping=stopping)
         swept = sweep_logins(pool)
+        try:
+            billing.housekeeping(pool, payments)
+        except Exception:
+            # Stripe/SendGrid exception strings can carry personal billing data.
+            log.warning("Billing housekeeping failed; retrying next pass.")
         log.info("Pass complete: %s families ticked in %.1fs; %s dead login "
                  "token(s) deleted.", ticked, time.monotonic() - started, swept)
 

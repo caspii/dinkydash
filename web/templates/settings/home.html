@@ -144,6 +144,12 @@
 <div>
     <div class="label">Your account</div>
     <div class="card">
+        <a class="row" href="{{ url_for('billing.home') }}">
+            <div class="row-main">
+                <div class="row-title">Subscription</div>
+                <div class="row-sub">Your trial, payments and cancellation</div>
+            </div>{{ icons.chevron() }}
+        </a>
         <a class="row" href="{{ url_for('settings.account') }}">
             <div class="row-main">
                 <div class="row-title">Your data</div>

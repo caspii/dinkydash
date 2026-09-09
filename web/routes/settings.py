@@ -751,7 +751,9 @@ def _family_facts():
     """The platform's own bookkeeping about a family, for the export."""
     with current_app.config["POOL"].connection() as conn, conn.cursor() as cur:
         cur.execute(
-            """SELECT plan, status, trial_ends_at, created_at, lapsed_at
+            """SELECT plan, status, trial_ends_at, created_at, lapsed_at,
+                      stripe_customer_id, stripe_subscription_id, subscription_status,
+                      subscription_period_end, subscription_cancel_at, billing_access_until
                FROM families WHERE id = %s""",
             (current_family_id(),),
         )
@@ -762,7 +764,9 @@ def _family_facts():
     # to somebody, saved to a downloads folder and forgotten; a live credential
     # should not ride along in one. It is on the screen page, where it can be
     # rotated in the same breath as being read.
-    return dict(zip(("plan", "status", "trial_ends_at", "created_at", "lapsed_at"), row))
+    return dict(zip(("plan", "status", "trial_ends_at", "created_at", "lapsed_at",
+                     "stripe_customer_id", "stripe_subscription_id", "subscription_status",
+                     "subscription_period_end", "subscription_cancel_at", "billing_access_until"), row))
 
 
 def delete_account():
@@ -783,7 +787,12 @@ def delete_account():
         flash("Type the email address on this account to confirm.", "error")
         return redirect(url_for("settings.account"))
 
-    accounts.delete_family(pool, current_family_id())
+    from dinkydash.billing import BillingError
+    try:
+        accounts.delete_family(pool, current_family_id(), billing=current_app.config["BILLING"])
+    except BillingError:
+        flash("We could not stop your billing, so your account has been kept. Please try again later.", "error")
+        return redirect(url_for("settings.account"))
     session_module.sign_out()
     return redirect(url_for("auth.login", deleted=1))
 
