@@ -63,9 +63,18 @@ run it, change it, run it for other people.
 **The first fourteen days are free and we do not ask for a card.** After that
 the hosted service is $39 a year, or $6 a month if you would rather.
 
-Payment is not built yet. Until it is, nobody is charged anything and nothing
-is collected. When it arrives, this section will say who processes it and these
-terms will be updated before it takes effect.
+When subscriptions are available in your settings, Stripe processes the payment.
+You choose a billing period and see the final total, including any applicable tax,
+in Checkout before paying. A subscription starts when you pay, including during
+the free trial, and renews automatically for the billing period you chose.
+Use **Settings → Subscription → Manage subscription** to change billing frequency,
+update payment details, view invoices or cancel the next renewal. Cancellation
+keeps your access until the end of the current billing period.
+
+If a renewal payment fails, we email you and Stripe retries according to the
+payment recovery settings. Board updates pause seven days after the unpaid
+invoice was created, or sooner if the subscription ends. Successful payment
+restores access.
 
 When your trial or subscription ends, calendar fetches and new written briefs
 stop. The screen keeps the last saved board with an ended-access message for
@@ -77,6 +86,8 @@ or delete your data.
 **You can stop at any time.** Deleting your account is a button on your settings
 page, it takes effect immediately, and it removes your data — see the [privacy
 policy](/privacy/) for exactly what goes.
+Deleting an account also cancels its subscriptions immediately. To keep your
+remaining paid access, cancel the renewal through Manage subscription instead.
 
 We may end an account without notice if it is being used for something on the
 list above. Otherwise, if we ever have to close a paid account, you get thirty
@@ -103,8 +114,8 @@ statutory rights as a consumer, which these terms do not affect.
 
 The [privacy policy](/privacy/) is part of these terms. The short version: your
 family's day goes to Anthropic each morning so Claude can write a line, your
-email address goes to SendGrid so a sign-in link can be delivered, and nothing
-is sold to anybody.
+email address goes to SendGrid for sign-in links and subscription notices, and
+Stripe receives billing details when you choose to pay. Nothing is sold to anybody.
 
 ## Changes
 

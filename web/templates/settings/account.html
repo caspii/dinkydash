@@ -57,8 +57,12 @@
             names and interests go to Claude so it can write the headline and the one line.
         </div>
         <div class="hint">
-            <strong>SendGrid</strong> sees who is signing in, and nothing else — your address
-            and the link, never a calendar.
+            <strong>SendGrid</strong> delivers sign-in links and subscription notices using your
+            email address. It never receives a calendar.
+        </div>
+        <div class="hint">
+            <strong>Stripe</strong> handles billing when you choose a subscription. It receives
+            your billing details, never your calendars or family details.
         </div>
         <div class="hint">
             The full list is in the <a href="https://dinkydash.co/privacy/">privacy policy</a>.
@@ -73,6 +77,8 @@
             This removes your family, this account, your calendar links, the stored agenda and
             every written line. <strong>Every screen showing your board stops working.</strong>
             It cannot be undone, and we cannot get it back for you.
+            Any subscription is cancelled immediately before your account is removed.
+            Stripe may retain payment records; see the privacy policy for details.
         </div>
         <form method="post" style="display:flex;flex-direction:column;gap:0.875rem;">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">

@@ -110,6 +110,27 @@ envs:
     scope: RUN_TIME
     type: SECRET
 
+  # Optional until the account-specific test-mode checks in doc/billing.md pass.
+  # Kept at app scope so webhooks and the worker use the same Stripe account.
+  - key: STRIPE_SECRET_KEY
+    scope: RUN_TIME
+    type: SECRET
+  - key: STRIPE_WEBHOOK_SECRET
+    scope: RUN_TIME
+    type: SECRET
+  - key: STRIPE_MONTHLY_PRICE_ID
+    scope: RUN_TIME
+    type: SECRET
+  - key: STRIPE_YEARLY_PRICE_ID
+    scope: RUN_TIME
+    type: SECRET
+  - key: STRIPE_PORTAL_CONFIGURATION_ID
+    scope: RUN_TIME
+    type: SECRET
+  - key: STRIPE_AUTOMATIC_TAX
+    scope: RUN_TIME
+    type: SECRET
+
   # The spend breaker (DIN-43), in model calls a day. Written out at their
   # defaults rather than left implicit, because a ceiling nobody can see is a
   # ceiling nobody raises — and because **this spec is the whole app**: a value

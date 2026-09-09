@@ -1,0 +1,61 @@
+{% extends "settings/base.html" %}
+{% import "settings/_icons.html" as icons %}
+{% block title %}Subscription{% endblock %}
+{% block appbar %}
+<a class="back" href="{{ url_for('settings.home') }}">{{ icons.back() }}</a>
+<h1>Subscription</h1>
+{% endblock %}
+{% block content %}
+{% if returned %}
+<div class="note-box">Thanks for visiting Checkout. Payment confirmation can take a moment; your current access is shown below.</div>
+{% endif %}
+<div class="card pad" style="display:flex;flex-direction:column;gap:0.875rem;">
+    {% if account.status == 'trialing' and account.trial_ends_at > account.now %}
+    <strong>Your free trial ends {{ account.trial_ends_at.strftime('%-d %B %Y') }}</strong>
+    <div class="hint">No card is needed for the trial. You will only be charged if you choose a subscription.</div>
+    {% elif account.status == 'lapsed' or (account.billing_access_until and account.billing_access_until <= account.now) or account.status == 'trialing' %}
+    <strong>Board updates are paused</strong>
+    <div class="hint">Your trial or subscription has ended. You can restart below, or manage an existing subscription.</div>
+    {% elif account.status == 'past_due' %}
+    <strong>Your payment needs attention</strong>
+    <div class="hint">Update your payment method in Manage subscription. Board updates pause on {{ account.billing_access_until.strftime('%-d %B %Y') }} if payment is still unpaid.</div>
+    {% elif account.subscription_cancel_at %}
+    <strong>Cancels {{ account.subscription_cancel_at.strftime('%-d %B %Y') }}</strong>
+    <div class="hint">Your board keeps updating until then. You can undo cancellation in Manage subscription.</div>
+    {% else %}
+    <strong>Your subscription is active</strong>
+    {% if account.subscription_period_end %}<div class="hint">Current billing period ends {{ account.subscription_period_end.strftime('%-d %B %Y') }}.</div>{% endif %}
+    {% endif %}
+    {% if account.stripe_customer_id %}
+    <form method="post" action="{{ url_for('billing.portal') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn" type="submit">Manage subscription</button>
+    </form>
+    <div class="hint">Change billing frequency, update your card, view invoices or cancel through Stripe.</div>
+    <form method="post" action="{{ url_for('billing.sync') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn outline" type="submit">Check payment status</button>
+    </form>
+    {% endif %}
+</div>
+
+{% if error %}<div class="note-box">{{ error }}</div>{% endif %}
+{% if not account.stripe_subscription_id or account.subscription_status in ['canceled', 'incomplete_expired'] %}
+<div>
+    <div class="label">One plan for your family</div>
+    <div class="card pad" style="display:flex;flex-direction:column;gap:0.875rem;">
+        <div class="hint">All your people, calendars, chores, countdowns and screens are included.</div>
+        {% for interval in ['year', 'month'] if interval in prices %}
+        <form method="post" action="{{ url_for('billing.checkout') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="interval" value="{{ interval }}">
+            <button class="btn {{ 'outline' if interval == 'month' }}" type="submit">{{ prices[interval].amount }} / {{ interval }}</button>
+            <div class="hint" style="margin-top:0.375rem;">USD. {{ 'Tax included where applicable.' if prices[interval].tax_included else 'Applicable tax is shown at Checkout.' }}</div>
+        </form>
+        {% endfor %}
+        <div class="hint">A subscription starts when you pay, including during your free trial, and renews automatically. Cancel in Manage subscription to stop the next renewal. An unfinished Checkout is reused for up to an hour.</div>
+    </div>
+</div>
+{% endif %}
+<div class="hint">Stripe receives your billing details when you choose to pay. Your calendars and family details stay out of Stripe. Read our <a href="https://dinkydash.co/privacy/">privacy policy</a> and <a href="https://dinkydash.co/terms/">terms</a>.</div>
+{% endblock %}

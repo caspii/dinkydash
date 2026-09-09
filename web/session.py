@@ -147,6 +147,9 @@ def check_csrf():
     """
     if request.method in SAFE_METHODS:
         return None
+    if request.endpoint == "billing.webhook":
+        # Cloud-only route; authenticates the raw body with Stripe's signature.
+        return None
     held = session.get(CSRF_KEY) or ""
     sent = request.form.get(CSRF_FIELD) or request.headers.get("X-CSRF-Token") or ""
     # Compared as bytes, and not for tidiness: `compare_digest` raises

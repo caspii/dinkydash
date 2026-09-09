@@ -1,6 +1,6 @@
 # DinkyDash Hosted MVP — Plan
 
-*Updated 9 September 2026: main through PR #93, plus spending, export and trial-expiry fixes (DIN-49–52).*
+*Updated 9 September 2026: main through PR #94; Stripe implementation added, account-specific test-mode verification pending (DIN-53).*
 
 This is the engineering plan for the hosted app and its shared self-hosted codebase.
 Positioning, pricing reasoning and launch strategy live in Linear on the DIN team.
@@ -18,17 +18,21 @@ PR #91 implemented privacy-safe calendar publication ([DIN-46](https://linear.ap
 and removed generated text and malformed screen credentials from service logs ([DIN-47](https://linear.app/keepthescore/issue/DIN-47)).
 PR #93 preserves explicit preview database overrides ([DIN-48](https://linear.app/keepthescore/issue/DIN-48))
 and connects calendar fetches only to validated public addresses ([DIN-61](https://linear.app/keepthescore/issue/DIN-61)).
-The current batch preserves charged global usage after account deletion ([DIN-49](https://linear.app/keepthescore/issue/DIN-49))
+PR #94 preserves charged global usage after account deletion ([DIN-49](https://linear.app/keepthescore/issue/DIN-49))
 and enforces the platform's model and token ceiling for hosted generation ([DIN-51](https://linear.app/keepthescore/issue/DIN-51)).
 It also exports retained daily generations ([DIN-50](https://linear.app/keepthescore/issue/DIN-50)) and enforces trial expiry,
 manual-action restrictions and the 30-day lapsed display period ([DIN-52](https://linear.app/keepthescore/issue/DIN-52)).
+The billing implementation adds Checkout, Customer Portal, signed and idempotent webhooks,
+payment recovery and lifecycle email ([DIN-53](https://linear.app/keepthescore/issue/DIN-53)).
+Checkout remains disabled until explicit Stripe configuration is supplied. Real Stripe
+test-mode verification and the account's price/tax setup still need completion; see [billing operations](doc/billing.md).
 
 Todo is reserved for the hosted MVP: signup and trial use, payment/cancellation,
 privacy and spending controls, basic monitoring/recovery, and real-device validation.
 Optional features, promotion and additional operational tooling are Backlog.
 Hosted readiness is still open. The remaining sequence is:
 
-1. Complete Stripe conversion, subscription changes and cancellation before accepting payment ([DIN-53](https://linear.app/keepthescore/issue/DIN-53)).
+1. Verify Stripe conversion, subscription changes, taxes and cancellation in the intended test account before accepting payment ([DIN-53](https://linear.app/keepthescore/issue/DIN-53)).
 2. Add liveness alerts and recovery checks ([DIN-54](https://linear.app/keepthescore/issue/DIN-54),
    [DIN-56](https://linear.app/keepthescore/issue/DIN-56)), and finish the trust work in Phase 5.
 3. Replace hosted waitlist/form links with the signup/login page ([DIN-63](https://linear.app/keepthescore/issue/DIN-63)).
@@ -53,14 +57,14 @@ work for a self-hoster without Postgres, email or billing services.
 | 3 | Multiple iCal feeds, no calendar OAuth | Paste provider URLs; each feed can have its own `shared_with` filter. |
 | 4 | Screen access through a bearer URL | Current tokens are 12 random characters from an unambiguous alphabet; parents can rotate them. |
 | 5 | Render the real board shown on the site | Agenda, chore turns, countdowns, headline and one written line. Person cards are not a parity requirement. Emoji avatars; no photo uploads. |
-| 6 | A 14-day hosted trial, no card on signup | Store trial state in the app. Expiry enforcement is still [DIN-52](https://linear.app/keepthescore/issue/DIN-52). |
-| 7 | Stripe for paid subscriptions | Create a Stripe customer at conversion. Checkout, portal and webhook handling remain [DIN-53](https://linear.app/keepthescore/issue/DIN-53). |
+| 6 | A 14-day hosted trial, no card on signup | App-managed trial with enforced expiry and a 30-day frozen-board display (DIN-52). |
+| 7 | Stripe for paid subscriptions | Create a customer when a parent starts Checkout. Portal, webhook reconciliation and notices are implemented; account setup and test-mode verification remain [DIN-53](https://linear.app/keepthescore/issue/DIN-53). |
 | 8 | Published privacy policy and terms based on the existing company documents | Disclosures must match implemented storage, deletion and outbound calls. Outstanding work is in Phase 5. |
 | 9 | Community-supported self-hosting; MIT licence | Keep the from-source/Pi workflow operational with the user's own API key. |
 | 10 | The config dict is the storage contract | Comment-preserving YAML in single mode; the same shape in Postgres `jsonb` in cloud mode. |
 | 11 | Calendar cadence and brief time are family settings | Both modes use the same pure scheduling calculation. |
 | 12 | DigitalOcean App Platform and Managed Postgres in Frankfurt, with Cloudflare | One web service, one worker and a pre-deploy migration job; no Dockerfile or separate staging app currently. |
-| 13 | SendGrid for transactional email | `dinkydash/mail.py` sends login/signup mail; single mode does not need email credentials. |
+| 13 | SendGrid for transactional email | `dinkydash/mail.py` sends login/signup mail and subscription notices; single mode does not need email credentials. |
 
 ## Architecture
 
@@ -231,8 +235,8 @@ The remaining `describe_feed` server-date fallback is tracked in [DIN-62](https:
 | `.do/app.yaml`, `.python-version`, `requirements-cloud.txt` | Hosted components, Python build and dependencies |
 | `tests/`, `.github/workflows/test.yml` | Both-mode validation and CI |
 
-Billing and admin functionality are future work; there is no planned ORM/model layer
-or duplicate self-hosted config loader.
+Billing lives in `dinkydash/billing.py` and its cloud-only route blueprint. Admin
+functionality remains future work; there is no planned ORM/model layer or duplicate config loader.
 
 ### URL map
 
@@ -244,8 +248,10 @@ or duplicate self-hosted config loader.
 | `/s/<token>` | Not used | Bearer-token board |
 | `/preview` | Three sizes of the local board | Authenticated preview of the tokenised board |
 | `/healthz` | Process health | Process health, not worker/database health |
+| `/settings/billing`, `/settings/billing/{checkout,portal,sync}` | Not registered | Subscription page and CSRF-protected POST actions |
+| `/stripe/webhook` | Not registered | Raw-body signature verification; independent of browser sessions |
 
-Stripe routes are not implemented; their contract belongs to [DIN-53](https://linear.app/keepthescore/issue/DIN-53).
+Stripe state is read afresh under a family lock; the Checkout return URL cannot grant access.
 
 ### Data model sketch
 
@@ -253,7 +259,7 @@ The SQL files in [migrations/](migrations/) are authoritative. The current table
 
 | Table | Stored data / current use |
 |---|---|
-| `families` | Config, screen token, account status, trial deadline and lapse timestamp |
+| `families` | Config, screen token, trial/lapse deadlines, Stripe identifiers, subscription status and access deadline |
 | `users` | Family membership and login address |
 | `login_tokens` | Hashed single-use token, expiry, and either user or signup email |
 | `agendas` | One overwritten calendar window and fetch status per family |
@@ -261,6 +267,9 @@ The SQL files in [migrations/](migrations/) are authoritative. The current table
 | `content_history` | Recent generated copy, trimmed to the configured history length (at least 30) |
 | `model_spend` | Daily per-family calls and reported tokens |
 | `global_model_spend` | Daily call totals without family identifiers; survives deletion |
+| `billing_checkouts` | Durable Checkout attempt and exact request parameters for safe retries |
+| `stripe_events` | Processed event IDs; no webhook bodies |
+| `billing_notifications` | Deduplicated lifecycle notices and delivery/retry timestamps; no message bodies |
 | `calendar_health` | Schema exists; recurring-failure tracking is not yet wired up |
 | `schema_migrations` | Applied migration versions |
 
@@ -310,7 +319,8 @@ Managed backups are documented in operations; the independent restore drill rema
 [DIN-56](https://linear.app/keepthescore/issue/DIN-56). Worker liveness alerts remain MVP work ([DIN-54](https://linear.app/keepthescore/issue/DIN-54));
 Sentry instrumentation is Backlog ([DIN-35](https://linear.app/keepthescore/issue/DIN-35)).
 Cloud startup validates the session key and database configuration; model/email failures
-have their own runtime handling. Stripe credentials are not required before billing exists.
+have their own runtime handling. Stripe credentials remain optional while Checkout is disabled.
+Once billing is used, both the web service and worker require its account configuration.
 
 ## Phases
 
@@ -377,11 +387,13 @@ the real-device checks remain [DIN-58](https://linear.app/keepthescore/issue/DIN
 
 - [x] Store the trial deadline when a verified signup creates a family ([DIN-41](https://linear.app/keepthescore/issue/DIN-41)).
 - [x] Enforce expiry, restrict manual actions, and render the agreed lapsed state ([DIN-52](https://linear.app/keepthescore/issue/DIN-52)).
-- [ ] Checkout, Customer Portal, verified/idempotent webhooks, pricing and lifecycle notifications ([DIN-53](https://linear.app/keepthescore/issue/DIN-53)).
-- [ ] Apply the agreed price/tax configuration and update processor disclosures when enabling Stripe ([DIN-53](https://linear.app/keepthescore/issue/DIN-53)).
+- [x] Checkout, Customer Portal, verified/idempotent webhooks, pricing and lifecycle notifications ([DIN-53](https://linear.app/keepthescore/issue/DIN-53)).
+- [x] Disclose Stripe's conditional billing data flow and SendGrid subscription notices.
+- [ ] Apply and verify the agreed price/tax configuration in the intended Stripe test account ([DIN-53](https://linear.app/keepthescore/issue/DIN-53)).
 
 **Done when:** signup → trial → paid → cancel passes in Stripe test mode. Trial
-expiry is implemented; checkout, payment and cancellation still need that verification.
+expiry and billing have automated database tests with simulated provider responses;
+real Checkout, payment, portal changes, dunning and cancellation still need that verification.
 
 ### Phase 5 — Legal & trust
 
