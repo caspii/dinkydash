@@ -1,6 +1,6 @@
 # DinkyDash Hosted MVP — Plan
 
-*Updated 8 September 2026: main through PR #89, plus the DIN-46/DIN-47 implementation.*
+*Updated 8 September 2026: main through PR #92, plus the DIN-48/DIN-61 implementation and MVP triage.*
 
 This is the engineering plan for the hosted app and its shared self-hosted codebase.
 Positioning, pricing reasoning and launch strategy live in Linear on the DIN team.
@@ -14,18 +14,22 @@ management, a tokenised screen, and a worker that owes the first brief on its ne
 PR #85 delivered [DIN-45](https://linear.app/keepthescore/issue/DIN-45); PR #86 consolidated token issuance and URL construction,
 serialized the per-address token limit, and fixed hosted HTTPS screen links.
 PRs #87 and #89 added the calendar-provider and device guides ([DIN-14](https://linear.app/keepthescore/issue/DIN-14), [DIN-13](https://linear.app/keepthescore/issue/DIN-13)).
-The current batch implements privacy-safe calendar publication ([DIN-46](https://linear.app/keepthescore/issue/DIN-46))
-and removes generated text and malformed screen credentials from service logs ([DIN-47](https://linear.app/keepthescore/issue/DIN-47)).
+PR #91 implemented privacy-safe calendar publication ([DIN-46](https://linear.app/keepthescore/issue/DIN-46))
+and removed generated text and malformed screen credentials from service logs ([DIN-47](https://linear.app/keepthescore/issue/DIN-47)).
+The current batch preserves explicit preview database overrides ([DIN-48](https://linear.app/keepthescore/issue/DIN-48))
+and connects calendar fetches only to validated public addresses ([DIN-61](https://linear.app/keepthescore/issue/DIN-61)).
 
-Hosted readiness is still open. The next sequence is:
+Todo is reserved for the hosted MVP: signup and trial use, payment/cancellation,
+privacy and spending controls, basic monitoring/recovery, and real-device validation.
+Optional features, promotion and additional operational tooling are Backlog.
+Hosted readiness is still open. The remaining sequence is:
 
-1. Fix the preview database override ([DIN-48](https://linear.app/keepthescore/issue/DIN-48)) and the remaining
-   calendar-fetch DNS-rebinding gap ([DIN-61](https://linear.app/keepthescore/issue/DIN-61)).
-2. Complete spending boundaries ([DIN-49](https://linear.app/keepthescore/issue/DIN-49), [DIN-51](https://linear.app/keepthescore/issue/DIN-51)), export coverage ([DIN-50](https://linear.app/keepthescore/issue/DIN-50)), and trial
+1. Complete spending boundaries ([DIN-49](https://linear.app/keepthescore/issue/DIN-49), [DIN-51](https://linear.app/keepthescore/issue/DIN-51)), export coverage ([DIN-50](https://linear.app/keepthescore/issue/DIN-50)), and trial
    expiry/lapse ([DIN-52](https://linear.app/keepthescore/issue/DIN-52)). Complete Stripe conversion before accepting payment ([DIN-53](https://linear.app/keepthescore/issue/DIN-53)).
-3. Add error capture, liveness alerts and recovery checks ([DIN-35](https://linear.app/keepthescore/issue/DIN-35), [DIN-54](https://linear.app/keepthescore/issue/DIN-54), [DIN-55](https://linear.app/keepthescore/issue/DIN-55),
+2. Add liveness alerts and recovery checks ([DIN-54](https://linear.app/keepthescore/issue/DIN-54),
    [DIN-56](https://linear.app/keepthescore/issue/DIN-56)), and finish the trust work in Phase 5.
-4. Verify real screens and run the small private beta ([DIN-58](https://linear.app/keepthescore/issue/DIN-58)). Use observed setup
+3. Replace hosted waitlist/form links with the signup/login page ([DIN-63](https://linear.app/keepthescore/issue/DIN-63)).
+4. Verify real screens and run the small private beta ([DIN-58](https://linear.app/keepthescore/issue/DIN-58)), collecting feedback through the existing support email. Use observed setup
    problems to decide whether the existing settings flow needs a wizard.
 
 A checked box below means that capability exists; linked follow-up defects remain
@@ -138,7 +142,7 @@ self-hosted, and the board makes no third-party asset requests. QR codes are enc
 locally with lazily imported `segno`. `web/urls.py` builds hosted links from an HTTPS
 app origin; single mode retains its local HTTP URLs.
 
-The app rate-limits invalid-token attempts. Cloudflare edge hardening remains [DIN-40](https://linear.app/keepthescore/issue/DIN-40);
+The app rate-limits invalid-token attempts. Additional Cloudflare edge hardening is Backlog ([DIN-40](https://linear.app/keepthescore/issue/DIN-40));
 this document does not claim an edge rule is deployed. Access-log redaction covers
 invalid, mistyped and encoded screen-token variants ([DIN-47](https://linear.app/keepthescore/issue/DIN-47)). Offline behaviour is deferred
 under [DIN-60](https://linear.app/keepthescore/issue/DIN-60); weakening shared-cache headers is not the implementation plan.
@@ -182,7 +186,7 @@ uniqueness, not a guarantee that concurrent callers cannot make two paid model c
 Every hosted attempt must continue to pass through the budget.
 
 Keep-last-good and retries on subsequent ticks exist. Persistent failure tracking,
-backoff and parent notification remain [DIN-55](https://linear.app/keepthescore/issue/DIN-55); the worker heartbeat remains [DIN-54](https://linear.app/keepthescore/issue/DIN-54).
+backoff and parent notification are Backlog ([DIN-55](https://linear.app/keepthescore/issue/DIN-55)); the MVP worker heartbeat remains [DIN-54](https://linear.app/keepthescore/issue/DIN-54).
 Skipping rows already marked lapsed does not enforce `trial_ends_at`; [DIN-52](https://linear.app/keepthescore/issue/DIN-52) must add
 that transition and the corresponding manual-action and rendering behaviour.
 
@@ -269,8 +273,9 @@ Postgres 17 and without a configured database. The current branch rules and depl
 history are recorded in [doc/operations.md](doc/operations.md).
 
 There is no separate staging app. Tests and restores must use an explicit isolated
-database. The preview's environment-precedence defect is [DIN-48](https://linear.app/keepthescore/issue/DIN-48); a documented scratch
-URL must not be silently overwritten by `.env`.
+database. The preview loads `.env` as defaults and preserves exported values, including
+an explicit scratch `DATABASE_URL`; missing/empty database configuration fails before
+Flask starts without printing the connection string ([DIN-48](https://linear.app/keepthescore/issue/DIN-48)).
 
 #### Connection pooling
 
@@ -286,7 +291,8 @@ PR #86 uses `pg_advisory_xact_lock` for token issuance: the lock belongs to the 
 transaction. It does not introduce a session-scoped lock or require session pooling.
 
 Managed backups are documented in operations; the independent restore drill remains
-[DIN-56](https://linear.app/keepthescore/issue/DIN-56). Sentry instrumentation and worker liveness alerts remain [DIN-35](https://linear.app/keepthescore/issue/DIN-35) and [DIN-54](https://linear.app/keepthescore/issue/DIN-54).
+[DIN-56](https://linear.app/keepthescore/issue/DIN-56). Worker liveness alerts remain MVP work ([DIN-54](https://linear.app/keepthescore/issue/DIN-54));
+Sentry instrumentation is Backlog ([DIN-35](https://linear.app/keepthescore/issue/DIN-35)).
 Cloud startup validates the session key and database configuration; model/email failures
 have their own runtime handling. Stripe credentials are not required before billing exists.
 
@@ -312,15 +318,16 @@ privacy and readiness defects are tracked explicitly below.
 - [x] Schema, signup/login, session hygiene and family scoping ([DIN-31](https://linear.app/keepthescore/issue/DIN-31), [DIN-38](https://linear.app/keepthescore/issue/DIN-38), [DIN-39](https://linear.app/keepthescore/issue/DIN-39), [DIN-41](https://linear.app/keepthescore/issue/DIN-41)).
 - [x] Multi-calendar add/label/enable/remove, per-feed sharing filters and live link checks.
 - [x] Feed scheme, address, redirect and response-size checks ([DIN-33](https://linear.app/keepthescore/issue/DIN-33)).
-- [ ] Close the remaining DNS-rebinding gap ([DIN-61](https://linear.app/keepthescore/issue/DIN-61)).
+- [x] Pin calendar connections to validated public IPs, preserving HTTPS hostname verification, redirect checks and size limits ([DIN-61](https://linear.app/keepthescore/issue/DIN-61)).
 - [x] Editable family lists, timezone, family name, refresh cadence and seeded setup guidance.
 - [x] Inline Google, iCloud and Outlook help in getting-started ([DIN-2](https://linear.app/keepthescore/issue/DIN-2)).
-- [ ] Standalone provider pages and screenshots ([DIN-14](https://linear.app/keepthescore/issue/DIN-14)).
-- [ ] Enforce and hide the cloud model setting ([DIN-51](https://linear.app/keepthescore/issue/DIN-51)).
+- [x] Standalone provider pages and screenshots ([DIN-14](https://linear.app/keepthescore/issue/DIN-14)).
+- [x] Hide/reject self-hosting controls in cloud settings (PR #92).
+- [ ] Enforce platform model and token limits at every hosted generation entry point ([DIN-51](https://linear.app/keepthescore/issue/DIN-51)).
 - [ ] Assess the need for a guided wizard from observed setup friction ([DIN-58](https://linear.app/keepthescore/issue/DIN-58)).
 
 **Core completion met by [DIN-39](https://linear.app/keepthescore/issue/DIN-39):** two families can be configured independently, and
-another family's item ID returns 404. Provider-page and onboarding improvements remain open.
+another family's item ID returns 404. Onboarding validation remains open.
 
 ### Phase 2 — Generation pipeline
 
@@ -330,7 +337,7 @@ another family's item ID returns 404. Provider-page and onboarding improvements 
 - [x] Keep-last-good rendering and retry on subsequent ticks.
 - [x] Reject refresh publication after a calendar privacy/config change ([DIN-46](https://linear.app/keepthescore/issue/DIN-46)).
 - [ ] Preserve global spending across account deletion ([DIN-49](https://linear.app/keepthescore/issue/DIN-49)).
-- [ ] Failure tracking, backoff and parent notification ([DIN-55](https://linear.app/keepthescore/issue/DIN-55)).
+- [ ] Failure tracking, backoff and parent notification ([DIN-55](https://linear.app/keepthescore/issue/DIN-55); Backlog).
 - [ ] Remove the remaining implicit date fallback in feed description ([DIN-62](https://linear.app/keepthescore/issue/DIN-62); maintenance).
 
 **Done when:** families in different timezones get correct boards and calendar updates;
@@ -341,7 +348,7 @@ failed providers preserve useful last-good output; retries and paid calls obey t
 - [x] Token route, rotation, QR display, privacy headers and app miss-rate limit ([DIN-42](https://linear.app/keepthescore/issue/DIN-42)).
 - [x] Hosted HTTPS links and shared URL policy (#86).
 - [x] Real-board parity with the homepage and staleness indicator. No new person-card feature is required.
-- [ ] Cloudflare edge hardening ([DIN-40](https://linear.app/keepthescore/issue/DIN-40)).
+- [ ] Additional Cloudflare edge hardening ([DIN-40](https://linear.app/keepthescore/issue/DIN-40); Backlog).
 - [ ] Render the already-configured person colours ([DIN-8](https://linear.app/keepthescore/issue/DIN-8); feature backlog).
 - [ ] Verify TV, older iPad/tablet and Pi kiosk behaviour ([DIN-58](https://linear.app/keepthescore/issue/DIN-58)).
 - [ ] Define offline behaviour while preserving credential/cache controls ([DIN-60](https://linear.app/keepthescore/issue/DIN-60); deferred).
@@ -376,11 +383,11 @@ alone does not close the phase.
 ### Phase 6 — Ops
 
 - [x] Transactional email wired into signup/login ([DIN-36](https://linear.app/keepthescore/issue/DIN-36), [DIN-38](https://linear.app/keepthescore/issue/DIN-38)).
-- [ ] Sentry for web, worker and applicable frontend errors, with sensitive-data filtering ([DIN-35](https://linear.app/keepthescore/issue/DIN-35)).
+- [ ] Sentry for web, worker and applicable frontend errors, with sensitive-data filtering ([DIN-35](https://linear.app/keepthescore/issue/DIN-35); Backlog).
 - [ ] Worker heartbeat and external health alerts, verified by a controlled failure ([DIN-54](https://linear.app/keepthescore/issue/DIN-54)).
 - [ ] Repeatable restore into an isolated database, with a successful drill recorded ([DIN-56](https://linear.app/keepthescore/issue/DIN-56)).
-- [ ] Preserve explicit preview database overrides ([DIN-48](https://linear.app/keepthescore/issue/DIN-48)).
-- [ ] Basic administrative visibility and support workflow ([DIN-37](https://linear.app/keepthescore/issue/DIN-37)).
+- [x] Preserve explicit preview database overrides ([DIN-48](https://linear.app/keepthescore/issue/DIN-48)).
+- [ ] Dedicated admin/registration analytics dashboard ([DIN-37](https://linear.app/keepthescore/issue/DIN-37); Backlog).
 
 **Done when:** an operator can detect stopped/failed work, inspect useful metadata and
 recover the application. A healthy `/healthz` response alone is insufficient.
@@ -390,9 +397,10 @@ recover the application. A healthy `/healthz` response alone is insufficient.
 - [x] Self-hosted getting-started/provider instructions and the Pi/from-source path exist.
 - [x] Search Console and Ahrefs connection is marked Done in [DIN-3](https://linear.app/keepthescore/issue/DIN-3); ongoing account status is tracked there.
 - [ ] Real-device checks, current self-hosted smoke test and the small private beta ([DIN-58](https://linear.app/keepthescore/issue/DIN-58)).
-- [ ] Refresh launch dependencies, rewrite obsolete drafts, tag a release and execute the approved launch ([DIN-25](https://linear.app/keepthescore/issue/DIN-25)).
+- [ ] Replace hosted waitlist/form links with the actual signup/login page ([DIN-63](https://linear.app/keepthescore/issue/DIN-63)).
+- [ ] Refresh launch dependencies, rewrite obsolete drafts, tag a release and execute the approved public launch ([DIN-25](https://linear.app/keepthescore/issue/DIN-25); Backlog).
 - [x] Calendar-provider and device guides ([DIN-14](https://linear.app/keepthescore/issue/DIN-14), [DIN-13](https://linear.app/keepthescore/issue/DIN-13)).
-- [ ] Feedback collection ([DIN-34](https://linear.app/keepthescore/issue/DIN-34)).
+- [ ] Embedded feedback widget/backend ([DIN-34](https://linear.app/keepthescore/issue/DIN-34); Backlog). MVP feedback uses the existing support email.
 
 Beta invitations and public launch follow the readiness gates above. Launch copy,
 waitlist communications and rollout decisions belong in Linear. [DIN-21](https://linear.app/keepthescore/issue/DIN-21) is Canceled;
@@ -408,6 +416,11 @@ already exist and are not exclusions. Manual rewrites also already exist.
 
 Weather ([DIN-24](https://linear.app/keepthescore/issue/DIN-24)) and photo/screensaver mode ([DIN-11](https://linear.app/keepthescore/issue/DIN-11)) remain deferred scope decisions.
 Their issues must agree with the plan before either is promoted into the MVP.
+
+Additional edge rules, Sentry instrumentation, an admin analytics dashboard,
+persisted retry backoff/parent notifications, a feedback widget and public launch
+promotion are also Backlog. Existing redacted logs, bounded retries and support email
+cover those needs for the MVP alongside the remaining liveness and recovery work.
 
 ## Open questions
 

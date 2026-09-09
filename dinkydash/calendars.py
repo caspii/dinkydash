@@ -15,11 +15,13 @@ import ipaddress
 import logging
 import re
 import socket
+from contextlib import closing, contextmanager
 from datetime import date, datetime, time, timedelta
 from urllib.parse import urljoin, urlsplit, urlunsplit
 from zoneinfo import ZoneInfo
 
 import requests
+from requests.adapters import HTTPAdapter
 from icalendar import Calendar
 from recurring_ical_events import of as recurring_events_of
 
@@ -212,36 +214,66 @@ def normalise_url(url):
     return urlunsplit(parts)
 
 
-def _check_address(hostname):
-    """Refuse a host that resolves anywhere it has no business being.
+def _check_address(hostname, port=443):
+    """Resolve once and return only checked public addresses, in resolver order.
 
-    The board fetches URLs a person typed. On a Pi that person owns the
-    network. Hosted it is our infrastructure dialling whatever a stranger
-    pasted, and the interesting targets are all *inside*: the cloud metadata
-    endpoint on 169.254.169.254, a database on 127.0.0.1, anything on the
-    platform's own private range.
-
-    Every resolved address has to pass, not just the first, because a host with
-    one public and one private address is otherwise a way through.
-
-    **This does not close DNS rebinding.** Between this check and the socket,
-    a hostile resolver can answer differently. Closing that means connecting to
-    the checked address with an explicit Host header, which is a bigger change
-    than this and is written down rather than implied.
+    Every answer must pass before any connection is attempted. The transport
+    connects to these numeric addresses, so later DNS answers cannot redirect it.
     """
     try:
-        infos = socket.getaddrinfo(hostname, 443, proto=socket.IPPROTO_TCP)
+        infos = socket.getaddrinfo(hostname, port, proto=socket.IPPROTO_TCP)
     except socket.gaierror as exc:
         raise FeedRefused("that server name does not resolve") from exc
 
+    checked = []
     for info in infos:
         address = ipaddress.ip_address(info[4][0])
-        if (address.is_private or address.is_loopback or address.is_link_local
-                or address.is_reserved or address.is_multicast
-                or address.is_unspecified):
+        if not address.is_global or address.is_reserved or address.is_multicast:
             # Deliberately does not say which address. The answer would
             # otherwise be a way to map the inside of the network from outside.
             raise FeedRefused("that link points inside a private network")
+        if str(address) not in checked:
+            checked.append(str(address))
+    if not checked:
+        raise FeedRefused("that server name does not resolve")
+    return checked
+
+
+class _PinnedHTTPSAdapter(HTTPAdapter):
+    """Connect to a checked IP; authenticate and address the original hostname."""
+
+    def __init__(self, address):
+        self.address = address
+        super().__init__()
+
+    def build_connection_pool_key_attributes(self, request, verify, cert=None):
+        host, tls = super().build_connection_pool_key_attributes(request, verify, cert)
+        tls.update(server_hostname=host['host'], assert_hostname=host['host'])
+        host['host'] = self.address
+        request.headers['Host'] = urlsplit(request.url).netloc.rsplit('@', 1)[-1]
+        return host, tls
+
+
+@contextmanager
+def _open_public(url, timeout):
+    # Prepare first so resolution, TLS and Host agree on IDNA/escaped hostnames.
+    request = requests.Request('GET', url, headers=requests.utils.default_headers()).prepare()
+    parts = urlsplit(request.url)
+    addresses = _check_address(parts.hostname, parts.port or 443)
+    for index, address in enumerate(addresses):
+        with closing(_PinnedHTTPSAdapter(address)) as adapter:
+            try:
+                # Send directly: environment proxies could resolve the hostname
+                # elsewhere, and Session would read a redirect body to build its
+                # automatic next request even with allow_redirects=False.
+                response = adapter.send(request, timeout=timeout, stream=True, verify=True)
+            except requests.ConnectionError:
+                if index == len(addresses) - 1:
+                    raise
+                continue  # Preserve IPv6/IPv4 fallback using only the checked answers.
+            with closing(response):
+                yield response
+            return
 
 
 def fetch_feed(url, start, end, tzinfo, label=None, timeout=DEFAULT_TIMEOUT,
@@ -265,32 +297,21 @@ def fetch_text(url, timeout=DEFAULT_TIMEOUT):
     """
     target = normalise_url(url)
 
-    for _hop in range(MAX_REDIRECTS + 1):
-        parts = urlsplit(target)
-        _check_address(parts.hostname)
-        try:
-            response = requests.get(target, timeout=timeout, stream=True,
-                                    allow_redirects=False)
-        except Exception as exc:
-            raise FeedError(f"could not fetch the calendar: {_why(exc)}") from exc
-
-        if response.is_redirect or response.is_permanent_redirect:
-            location = response.headers.get("Location", "")
-            response.close()
-            if not location:
-                raise FeedError("could not fetch the calendar: a redirect with nowhere to go")
-            # urljoin covers all three legal shapes of a Location: absolute,
-            # root-relative and relative. normalise_url then re-applies the
-            # scheme rule, so a 302 to http:// or file:// is refused here too.
-            target = normalise_url(urljoin(target, location))
-            continue
-
-        try:
-            response.raise_for_status()
-        except Exception as exc:
-            response.close()
-            raise FeedError(f"could not fetch the calendar: {_why(exc)}") from exc
-        return _read_capped(response)
+    try:
+        for _hop in range(MAX_REDIRECTS + 1):
+            with _open_public(target, timeout) as response:
+                if response.is_redirect or response.is_permanent_redirect:
+                    location = response.headers.get("Location", "")
+                    if not location:
+                        raise FeedError("could not fetch the calendar: a redirect with nowhere to go")
+                    target = normalise_url(urljoin(target, location))
+                    continue
+                response.raise_for_status()
+                return _read_capped(response)
+    except FeedError:
+        raise
+    except Exception as exc:
+        raise FeedError(f"could not fetch the calendar: {_why(exc)}") from exc
 
     raise FeedError("could not fetch the calendar: too many redirects")
 
@@ -304,18 +325,14 @@ def _read_capped(response):
     """
     declared = response.headers.get("Content-Length")
     if declared and declared.isdigit() and int(declared) > MAX_FEED_BYTES:
-        response.close()
         raise FeedError("could not fetch the calendar: it is too big to be a calendar")
 
     chunks, total = [], 0
-    try:
-        for chunk in response.iter_content(chunk_size=64 * 1024):
-            total += len(chunk)
-            if total > MAX_FEED_BYTES:
-                raise FeedError("could not fetch the calendar: it is too big to be a calendar")
-            chunks.append(chunk)
-    finally:
-        response.close()
+    for chunk in response.iter_content(chunk_size=64 * 1024):
+        total += len(chunk)
+        if total > MAX_FEED_BYTES:
+            raise FeedError("could not fetch the calendar: it is too big to be a calendar")
+        chunks.append(chunk)
     return b"".join(chunks).decode(response.encoding or "utf-8", errors="replace")
 
 

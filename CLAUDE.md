@@ -120,9 +120,12 @@ Relative links like `[PLAN.md](PLAN.md)` break once a document is in Linear. Rew
   302s to `169.254.169.254` is the whole attack; and a **10 MB body cap** enforced on
   `Content-Length` *and* on the read, since a server can omit or lie in that header.
   `FeedRefused` subclasses `FeedError` on purpose, so one bad URL in a config is a failed feed
-  rather than a failed tick. **DNS rebinding is not closed by this** — between the check and the
-  socket a hostile resolver can answer differently, and closing it means connecting to the checked
-  address with an explicit `Host` header.
+  rather than a failed tick. **Connect to the checked IP**, preserving the original hostname for
+  TLS SNI, certificate verification and the `Host` header. The per-request Requests adapter uses
+  only validated numeric addresses, including IPv6/IPv4 fallback; every redirect resolves and
+  validates again. Calendar fetches use direct connections because an environment proxy could
+  resolve the hostname elsewhere. `tests/test_feed_transport.py` exercises this with changing DNS
+  answers and real TLS on an isolated local server.
 - **Calendar contents leave the machine.** They go to Anthropic to write the daily line. A fair
   trade, and it *is* said now (DIN-44): in `website/content/privacy.md`, in the sub-processor list
   on it, on `/settings/account`, and — the one that matters — in the blurb beside the field where
