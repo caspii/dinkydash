@@ -20,6 +20,7 @@ refusal writes nothing — is tested without one.
 
 import os
 import sys
+from concurrent.futures import ThreadPoolExecutor
 from datetime import date, datetime, timezone
 
 import pytest
@@ -92,6 +93,13 @@ class TestNoBudget:
         payload = runner.write_brief(store.load_config(), store,
                                      today=date(2026, 9, 3), client=FakeClient())
         assert payload["headline"] == "Big morning"
+
+    def test_self_hosted_generation_keeps_the_configured_model_and_tokens(self, store, key):
+        config = dict(store.load_config(), claude_model="self-hosted-model", max_tokens=2048)
+        client = FakeClient()
+        runner.write_brief(config, store, client=client)
+        assert client.messages.calls[0]["model"] == "self-hosted-model"
+        assert client.messages.calls[0]["max_tokens"] == 2048
 
 
 # -- the caps read from the environment -------------------------------------
@@ -190,10 +198,27 @@ class TestThePerFamilyCap:
             with pytest.raises(OverBudget):
                 budget.allow()
         assert spend_rows(pg_pool, pg_family)[0] == 2
+        assert budget.used_today() == (2, 2)
 
     def test_a_cap_of_zero_refuses_everything(self, pg_pool, pg_family, clean):
         with pytest.raises(OverBudget):
             PostgresBudget(pg_pool, pg_family, family_a_day=0).allow()
+        assert PostgresBudget(pg_pool, pg_family).used_today() == (0, 0)
+
+    def test_concurrent_charges_cannot_lose_counts_or_exceed_the_family_cap(
+            self, pg_pool, pg_family, clean):
+        budget = PostgresBudget(pg_pool, pg_family, family_a_day=3)
+
+        def charge(_):
+            try:
+                budget.allow()
+                return True
+            except OverBudget:
+                return False
+
+        with ThreadPoolExecutor(max_workers=2) as callers:
+            assert sum(callers.map(charge, range(10))) == 3
+        assert budget.used_today() == (3, 3)
 
     def test_the_refusal_is_a_generation_error(self, pg_pool, pg_family, clean):
         """So every caller's existing keep-last-good path handles it. A second
@@ -223,6 +248,43 @@ class TestThePerFamilyCap:
 # -- the global cap ---------------------------------------------------------
 
 class TestTheGlobalCap:
+    def test_zero_refuses_the_first_call_too(self, pg_pool, pg_family, clean):
+        budget = PostgresBudget(pg_pool, pg_family, global_floor=0, global_per_family=0)
+        with pytest.raises(OverBudget):
+            budget.allow()
+        assert budget.used_today() == (0, 0)
+
+    def test_deleting_and_signing_up_again_does_not_refund_calls(
+            self, pg_pool, pg_family, clean):
+        from dinkydash import accounts
+
+        caps = {"global_floor": 1, "global_per_family": 0}
+        address = "spending-parent@example.com"
+        family_id = None
+        try:
+            first = accounts.consume_link(pg_pool, accounts.issue_signup_link(pg_pool, address))
+            family_id = first[1]
+            budget = PostgresBudget(pg_pool, family_id, **caps)
+            budget.allow()
+            budget.record(1200, 90)
+            assert accounts.delete_family(pg_pool, family_id)
+            assert spend_rows(pg_pool, family_id) is None
+            with pg_pool.connection() as conn, conn.cursor() as cur:
+                cur.execute("SELECT id FROM users WHERE email = %s", (address,))
+                assert cur.fetchone() is None
+            assert budget.used_today() == (0, 1)
+
+            second = accounts.consume_link(pg_pool, accounts.issue_signup_link(pg_pool, address))
+            family_id = second[1]
+            assert family_id != first[1]
+            replacement = PostgresBudget(pg_pool, family_id, **caps)
+            with pytest.raises(OverBudget):
+                replacement.allow()
+            assert replacement.used_today() == (0, 1)
+        finally:
+            if family_id is not None:
+                accounts.delete_family(pg_pool, family_id)
+
     def test_it_refuses_a_family_that_is_within_its_own_limit(
             self, pg_pool, pg_family, clean):
         """The point of having a global one at all: one family behaving normally
@@ -417,3 +479,48 @@ class TestRewriteNowIsChargedToo:
         parent.post("/settings/generate")
         store = PostgresStore(pg_pool, pg_family)
         assert store.load_payload(store.load_config()).get("calendars_fetched_at")
+
+
+@pytest.mark.parametrize("caller", ["worker", "rewrite"])
+@pytest.mark.parametrize("stored_tokens", [100000, "invalid", 0])
+def test_hosted_callers_enforce_model_policy_at_the_api(
+        pg_pool, pg_family, key, monkeypatch, caller, stored_tokens):
+    import anthropic
+    from dinkydash.claude_client import DEFAULT_MAX_TOKENS, DEFAULT_MODEL
+    from dinkydash.pgstore import PostgresStore
+    from tests.conftest import client_for
+    from web import create_app
+    from worker import tick_all
+
+    store = PostgresStore(pg_pool, pg_family)
+    store.save_config(dict(yaml.safe_load(CONFIG), brief_time="00:00",
+                           claude_model="legacy-expensive-model", max_tokens=stored_tokens))
+    model = FakeClient()
+    monkeypatch.setattr(anthropic, "Anthropic", lambda: model)
+    monkeypatch.setenv("DINKYDASH_MODE", "cloud")
+    monkeypatch.setenv("DINKYDASH_SECRET_KEY", "test-session-key")
+    parent = client_for(create_app(pool=pg_pool))
+    with parent.session_transaction() as session:
+        session["user_id"] = 1
+        session["family_id"] = str(pg_family)
+
+    assert parent.post("/settings/system", data={
+        "family_name": "The Wilsons", "claude_model": "posted-expensive-model",
+        "max_tokens": "200000",
+    }).status_code == 302
+    before = store.load_config()
+    assert before["claude_model"] == "legacy-expensive-model"
+    assert before["max_tokens"] == stored_tokens
+
+    if caller == "worker":
+        assert tick_all(pg_pool) == 1
+    else:
+        assert parent.post("/settings/generate").status_code == 302
+
+    assert len(model.messages.calls) == 1
+    sent = model.messages.calls[0]
+    assert sent["model"] == DEFAULT_MODEL
+    assert sent["max_tokens"] == DEFAULT_MAX_TOKENS
+    assert store.load_payload(before)["model"] == DEFAULT_MODEL
+    assert store.load_config() == before
+    assert PostgresBudget(pg_pool, pg_family).used_today() == (1, 1)

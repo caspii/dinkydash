@@ -5,7 +5,7 @@ template: page.html
 description: What DinkyDash stores, who it is sent to, how long it is kept, and how to get it back or delete it.
 ---
 
-*Last updated: 8 September 2026.*
+*Last updated: 9 September 2026.*
 
 DinkyDash puts a family's day on a screen. That means the things it holds are a
 household's names, dates of birth and movements — which is about as personal as
@@ -91,6 +91,9 @@ We would rather hold less, so most of this expires on its own.
   has been used is deleted on the same schedule.
 - **Your account, your family's details and the record of boards written**: kept
   while the account exists, and deleted when you delete it.
+- **Daily totals of model calls across the service**: kept without an account
+  identifier, including after account deletion, so deleting an account does not
+  reset the service's spending limit. These totals contain only a date and count.
 
 **Backups.** DigitalOcean takes daily backups of the database and keeps seven
 days of point-in-time recovery. Deleted data can therefore persist in a backup

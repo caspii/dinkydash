@@ -1,6 +1,6 @@
 # DinkyDash Hosted MVP — Plan
 
-*Updated 8 September 2026: main through PR #92, plus the DIN-48/DIN-61 implementation and MVP triage.*
+*Updated 9 September 2026: main through PR #93, plus the DIN-49/DIN-51 spending controls.*
 
 This is the engineering plan for the hosted app and its shared self-hosted codebase.
 Positioning, pricing reasoning and launch strategy live in Linear on the DIN team.
@@ -16,15 +16,17 @@ serialized the per-address token limit, and fixed hosted HTTPS screen links.
 PRs #87 and #89 added the calendar-provider and device guides ([DIN-14](https://linear.app/keepthescore/issue/DIN-14), [DIN-13](https://linear.app/keepthescore/issue/DIN-13)).
 PR #91 implemented privacy-safe calendar publication ([DIN-46](https://linear.app/keepthescore/issue/DIN-46))
 and removed generated text and malformed screen credentials from service logs ([DIN-47](https://linear.app/keepthescore/issue/DIN-47)).
-The current batch preserves explicit preview database overrides ([DIN-48](https://linear.app/keepthescore/issue/DIN-48))
+PR #93 preserves explicit preview database overrides ([DIN-48](https://linear.app/keepthescore/issue/DIN-48))
 and connects calendar fetches only to validated public addresses ([DIN-61](https://linear.app/keepthescore/issue/DIN-61)).
+The current batch preserves charged global usage after account deletion ([DIN-49](https://linear.app/keepthescore/issue/DIN-49))
+and enforces the platform's model and token ceiling for hosted generation ([DIN-51](https://linear.app/keepthescore/issue/DIN-51)).
 
 Todo is reserved for the hosted MVP: signup and trial use, payment/cancellation,
 privacy and spending controls, basic monitoring/recovery, and real-device validation.
 Optional features, promotion and additional operational tooling are Backlog.
 Hosted readiness is still open. The remaining sequence is:
 
-1. Complete spending boundaries ([DIN-49](https://linear.app/keepthescore/issue/DIN-49), [DIN-51](https://linear.app/keepthescore/issue/DIN-51)), export coverage ([DIN-50](https://linear.app/keepthescore/issue/DIN-50)), and trial
+1. Complete export coverage ([DIN-50](https://linear.app/keepthescore/issue/DIN-50)) and trial
    expiry/lapse ([DIN-52](https://linear.app/keepthescore/issue/DIN-52)). Complete Stripe conversion before accepting payment ([DIN-53](https://linear.app/keepthescore/issue/DIN-53)).
 2. Add liveness alerts and recovery checks ([DIN-54](https://linear.app/keepthescore/issue/DIN-54),
    [DIN-56](https://linear.app/keepthescore/issue/DIN-56)), and finish the trust work in Phase 5.
@@ -69,7 +71,7 @@ work for a self-hoster without Postgres, email or billing services.
 | Settings access | Local network, no authentication | Magic-link session |
 | Board | `/` | `/s/<token>` |
 | Scheduler | `generate.py --tick` from cron | `worker/`, one pass every five minutes |
-| Model configuration | User's model, token limit and API key | Platform key; enforcing platform model/token policy remains [DIN-51](https://linear.app/keepthescore/issue/DIN-51) |
+| Model configuration | User's model, token limit and API key | Platform key, model and output-token ceiling ([DIN-51](https://linear.app/keepthescore/issue/DIN-51)) |
 | Billing | None | Planned; [DIN-52](https://linear.app/keepthescore/issue/DIN-52) and [DIN-53](https://linear.app/keepthescore/issue/DIN-53) |
 
 `create_app(store=None, *, pool=None)` accepts a store only in single mode and a
@@ -151,15 +153,17 @@ under [DIN-60](https://linear.app/keepthescore/issue/DIN-60); weakening shared-c
 
 Built in [DIN-43](https://linear.app/keepthescore/issue/DIN-43). Hosted worker ticks and manual rewrites share a budget charged before
 the model call. `model_spend` records calls and reported tokens per family per UTC day.
-The per-family cap uses an atomic upsert; the global sum is approximate under concurrent
-calls and scales with the number of non-lapsed families. Zero caps refuse generation.
+The per-family cap uses an atomic upsert; the global cap is approximate under concurrent
+calls and scales with the number of non-lapsed families. `global_model_spend` holds a
+daily call total with no family identifiers; a database trigger adds every charged
+attempt, including writes from older instances during deployment. Account deletion
+removes the family's usage rows without refunding this total ([DIN-49](https://linear.app/keepthescore/issue/DIN-49)). Zero caps refuse generation.
 Single mode uses the self-hoster's own key without this hosted budget.
 
-Two boundaries are still missing: deleting a family erases its contribution to the
-current global total ([DIN-49](https://linear.app/keepthescore/issue/DIN-49)), and family config still controls the hosted model and
-output-token limit ([DIN-51](https://linear.app/keepthescore/issue/DIN-51)). Call counts alone therefore do not establish the intended
-hosted cost ceiling. Budget refusal preserves the previous brief; calendar refreshes
-are not charged to the model budget.
+The same budget applies the platform's `claude-haiku-4-5` model and 1,024-token output
+ceiling before generation, ignoring legacy or crafted family overrides ([DIN-51](https://linear.app/keepthescore/issue/DIN-51)).
+Budget refusal preserves the previous brief; calendar refreshes are not charged to
+the model budget. Call counts and an output ceiling are not a currency-denominated cap.
 
 ### Three clocks, one setting
 
@@ -246,6 +250,7 @@ The SQL files in [migrations/](migrations/) are authoritative. The current table
 | `generations` | Per-day brief plus generation metadata and reported token usage |
 | `content_history` | Recent generated copy, trimmed to 30 entries |
 | `model_spend` | Daily per-family calls and reported tokens |
+| `global_model_spend` | Daily call totals without family identifiers; survives deletion |
 | `calendar_health` | Schema exists; recurring-failure tracking is not yet wired up |
 | `schema_migrations` | Applied migration versions |
 
@@ -323,7 +328,7 @@ privacy and readiness defects are tracked explicitly below.
 - [x] Inline Google, iCloud and Outlook help in getting-started ([DIN-2](https://linear.app/keepthescore/issue/DIN-2)).
 - [x] Standalone provider pages and screenshots ([DIN-14](https://linear.app/keepthescore/issue/DIN-14)).
 - [x] Hide/reject self-hosting controls in cloud settings (PR #92).
-- [ ] Enforce platform model and token limits at every hosted generation entry point ([DIN-51](https://linear.app/keepthescore/issue/DIN-51)).
+- [x] Enforce platform model and token limits at every hosted generation entry point ([DIN-51](https://linear.app/keepthescore/issue/DIN-51)).
 - [ ] Assess the need for a guided wizard from observed setup friction ([DIN-58](https://linear.app/keepthescore/issue/DIN-58)).
 
 **Core completion met by [DIN-39](https://linear.app/keepthescore/issue/DIN-39):** two families can be configured independently, and
@@ -336,7 +341,7 @@ another family's item ID returns 404. Onboarding validation remains open.
 - [x] Per-family and approximate global call caps, including manual rewrites ([DIN-43](https://linear.app/keepthescore/issue/DIN-43)).
 - [x] Keep-last-good rendering and retry on subsequent ticks.
 - [x] Reject refresh publication after a calendar privacy/config change ([DIN-46](https://linear.app/keepthescore/issue/DIN-46)).
-- [ ] Preserve global spending across account deletion ([DIN-49](https://linear.app/keepthescore/issue/DIN-49)).
+- [x] Preserve global spending across account deletion ([DIN-49](https://linear.app/keepthescore/issue/DIN-49)).
 - [ ] Failure tracking, backoff and parent notification ([DIN-55](https://linear.app/keepthescore/issue/DIN-55); Backlog).
 - [ ] Remove the remaining implicit date fallback in feed description ([DIN-62](https://linear.app/keepthescore/issue/DIN-62); maintenance).
 

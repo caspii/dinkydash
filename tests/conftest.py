@@ -45,13 +45,13 @@ def pg_pool():
 
     pool = db.pool(url, min_size=1, max_size=2)
     pool.wait(timeout=10)
-    forget_ownerless_tokens(pool)
+    forget_unowned_rows(pool)
     yield pool
     pool.close()
 
 
-def forget_ownerless_tokens(pool):
-    """Delete every sign-up token, which nothing else will.
+def forget_unowned_rows(pool):
+    """Reset scratch rows that deliberately survive account deletion.
 
     A sign-up token has no `user_id` — that is the whole point of it (DIN-41),
     and it is why `login_tokens.user_id` became nullable. The consequence is
@@ -63,19 +63,22 @@ def forget_ownerless_tokens(pool):
     database is reused between runs, so three abandoned sign-ups for one address
     silently exhaust `MOST_LIVE_LINKS` and the next run fails somewhere else
     entirely. Once when the pool is built, and again after every family.
+
+    The global model-call aggregate also has no family foreign key. Clear it
+    explicitly here so one test's calls cannot exhaust another test's budget.
     """
     with pool.connection() as conn, conn.transaction():
         with conn.cursor() as cur:
             cur.execute("DELETE FROM login_tokens WHERE user_id IS NULL")
+            cur.execute("DELETE FROM global_model_spend")
 
 
 @pytest.fixture
 def pg_family(pg_pool):
     """One empty family, and everything belonging to it removed afterwards.
 
-    Returns its id. Truncating `families` cascades to every other table, which
-    is also a live check that the foreign keys really do cascade — Phase 5's
-    hard delete depends on exactly that.
+    Returns its id. Deleting the family cascades to its dependent rows, which
+    is also a live check of the foreign keys used by the hard delete.
     """
     from dinkydash import config as config_module
 
@@ -99,7 +102,7 @@ def pg_family(pg_pool):
         with conn.cursor() as cur:
             cur.execute("DELETE FROM families WHERE id = %s", (family_id,))
     # Not part of that cascade, and not reachable from it — see above.
-    forget_ownerless_tokens(pg_pool)
+    forget_unowned_rows(pg_pool)
 
 
 # -- a test client that behaves like a browser ------------------------------

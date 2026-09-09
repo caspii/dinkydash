@@ -6,6 +6,7 @@
 
     budget.allow()                    charge one call, or raise OverBudget
     budget.record(input, output)      what that call actually used
+    budget.generation_config(config)  apply the payer's model/token policy
 
 Nothing bounded the Anthropic bill before this (DIN-43). The worker walks every
 non-lapsed family and calls Claude, "Rewrite now" calls it from a web request,
@@ -32,10 +33,13 @@ difference is written down rather than glossed:
 * **the per-family cap is exact.** It is enforced in the `ON CONFLICT ... DO
   UPDATE ... WHERE`, which Postgres evaluates against the locked, current row;
 * **the global cap is approximate**, by at most the number of callers arriving
-  in the same instant. It is a sum read before the write, and making it exact
-  would mean serialising every family's tick behind one row. For a ceiling set
-  well above what anybody legitimately uses, an overshoot of a handful of calls
-  is not worth that.
+  in the same instant. Its daily total is read before the write; concurrent
+  callers can pass the check together. The trigger adds every successful charge
+  to `global_model_spend` atomically, without retaining family identifiers or
+  refunding calls when an account is deleted.
+
+Cloud generation uses the platform's model and output-token ceiling. Family
+config cannot change either; single mode keeps the self-hoster's settings.
 
 **The global cap scales with the number of families**, and that is deliberate: a
 fixed number is a control that silently starts starving real boards on the day
@@ -51,7 +55,7 @@ import logging
 import os
 from datetime import datetime, timezone
 
-from .claude_client import GenerationError
+from .claude_client import DEFAULT_MAX_TOKENS, DEFAULT_MODEL, GenerationError
 
 log = logging.getLogger(__name__)
 
@@ -97,6 +101,9 @@ class NoBudget:
     def record(self, input_tokens, output_tokens):
         return None
 
+    def generation_config(self, config):
+        return config
+
 
 class PostgresBudget:
     """The breaker, for one family, over the shared pool."""
@@ -108,6 +115,10 @@ class PostgresBudget:
         self.family_a_day = family_a_day
         self.global_floor = global_floor
         self.global_per_family = global_per_family
+
+    def generation_config(self, config):
+        """The platform pays, so stored family overrides cannot choose the cost."""
+        return dict(config, claude_model=DEFAULT_MODEL, max_tokens=DEFAULT_MAX_TOKENS)
 
     def allow(self):
         """Charge one call, or raise `OverBudget`. Returns how many are now used.
@@ -133,8 +144,8 @@ class PostgresBudget:
                 cur.execute(
                     """INSERT INTO model_spend (day, family_id, calls)
                        SELECT %(day)s, %(family)s, 1
-                       WHERE (SELECT coalesce(sum(calls), 0) FROM model_spend
-                              WHERE day = %(day)s)
+                       WHERE coalesce((SELECT calls FROM global_model_spend
+                                       WHERE day = %(day)s), 0)
                              < (SELECT %(floor)s + %(per)s * count(*)
                                 FROM families WHERE status <> 'lapsed')
                          -- The insert path: no row yet, so this family has made
@@ -196,10 +207,11 @@ class PostgresBudget:
         day = _today()
         with self.pool.connection() as conn, conn.cursor() as cur:
             cur.execute(
-                """SELECT coalesce(max(calls) FILTER (WHERE family_id = %s), 0),
-                          coalesce(sum(calls), 0)
-                   FROM model_spend WHERE day = %s""",
-                (self.family_id, day),
+                """SELECT coalesce((SELECT calls FROM model_spend
+                                    WHERE family_id = %s AND day = %s), 0),
+                          coalesce((SELECT calls FROM global_model_spend
+                                    WHERE day = %s), 0)""",
+                (self.family_id, day, day),
             )
             return cur.fetchone()
 

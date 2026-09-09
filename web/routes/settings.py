@@ -775,11 +775,9 @@ def system():
     **Which model runs is not a hosted family's setting**, because it is not
     their API key. Self-hosted, the key is theirs and so is the bill, so the
     model is a free text box with its price beside it. Hosted, the box would
-    let anybody move the whole account onto an expensive model on our key, and
-    `budget.py` would not notice: it counts *calls*, deliberately, because a
-    price table goes stale silently. So cloud mode drops the field from the
-    form and ignores it here — the template is the courtesy, this is the
-    control.
+    offer a choice the platform does not honour. Cloud mode hides and ignores
+    the field here; the shared generation budget also overrides saved model
+    and token settings before either hosted caller reaches the API.
     """
     config = current_config()
     if request.method == "POST":

@@ -13,6 +13,7 @@ import logging
 
 import pytest
 
+from dinkydash.budget import NoBudget
 from worker import DEFAULT_INTERVAL, Stopping, interval, tick_all
 
 
@@ -49,18 +50,11 @@ class FakeStore:
         return {"family_id": self.family_id}
 
 
-class FakeBudget:
-    """A budget that allows everything and remembers it was asked."""
+class FakeBudget(NoBudget):
+    """An unrestricted test budget labelled with its family."""
 
     def __init__(self, family_id):
         self.family_id = family_id
-
-    def allow(self):
-        return None
-
-    def record(self, input_tokens, output_tokens):
-        return None
-
 
 def run(ids, tick, stopping=None, budget_factory=FakeBudget):
     """`tick_all` with every seam filled by a fake.

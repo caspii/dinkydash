@@ -136,7 +136,8 @@ def write_brief(config, store, today=None, client=None, budget=None):
     budget.allow()
 
     payload = generate(
-        config, today, stored.get("events") or [], recent_notes=recent, client=client
+        budget.generation_config(config), today, stored.get("events") or [],
+        recent_notes=recent, client=client,
     )
     budget.record(payload.get("input_tokens"), payload.get("output_tokens"))
     # Only the brief. `stored` was read before a model call that takes seconds,
