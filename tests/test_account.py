@@ -19,6 +19,7 @@ Skips without `DINKYDASH_TEST_DATABASE_URL`.
 """
 
 import json
+from datetime import date, timedelta
 
 import pytest
 import yaml
@@ -98,6 +99,49 @@ def rows(pg_pool, sql, args=()):
 # -- export -----------------------------------------------------------------
 
 class TestExport:
+    def test_older_daily_briefs_and_recent_rewrites_are_exported_only_for_this_family(
+            self, parent, pg_pool, family):
+        from dinkydash import config as config_module
+        from dinkydash.pgstore import PostgresStore
+
+        store = PostgresStore(pg_pool, family[0])
+        config = store.load_config()
+        for offset in range(31):
+            day = (date(2026, 9, 8) + timedelta(days=offset)).isoformat()
+            brief = {"generated_for_date": day, "generated_at": f"{day}T04:00:00+00:00",
+                     "headline": f"Retained day {offset}", "note": f"Fact {offset}",
+                     "note_kind": "fact", "model": "test-model",
+                     "input_tokens": 1200, "output_tokens": 90}
+            store.save_brief(config, brief)
+            store.record_note(config, dict(brief, date=day))
+        store.record_note(config, {"date": day, "headline": "An additional rewrite",
+                                  "note": "A retained alternative.", "note_kind": "fact"})
+
+        with pg_pool.connection() as conn, conn.transaction(), conn.cursor() as cur:
+            cur.execute("INSERT INTO families (screen_token) VALUES (%s) RETURNING id",
+                        (config_module.new_screen_token(),))
+            other = cur.fetchone()[0]
+        try:
+            neighbour = PostgresStore(pg_pool, other)
+            neighbour.save_brief({}, dict(brief, headline="Other family's private headline"))
+            neighbour.record_note({}, {"date": day, "note": "Other family's private note"})
+            # A requested family id cannot override the authenticated session.
+            response = parent.get(f"/settings/account/export?family_id={other}")
+            exported = json.loads(response.get_data())
+            generations = exported["generations"]
+            assert len(generations) == 31
+            assert generations[0]["generated_for_date"] == "2026-09-08"
+            assert generations[0]["brief"]["headline"] == "Retained day 0"
+            assert generations[0]["model"] == "test-model"
+            assert generations[0]["input_tokens"] == 1200
+            assert len(exported["written_lines"]) == 30
+            assert exported["written_lines"][-1]["headline"] == "An additional rewrite"
+            assert "Retained day 0" not in json.dumps(exported["written_lines"])
+            assert "Other family's private" not in response.get_data(as_text=True)
+            assert response.headers["Cache-Control"] == "no-store"
+        finally:
+            accounts.delete_family(pg_pool, other)
+
     def test_it_comes_back_as_a_file(self, parent):
         got = parent.get("/settings/account/export")
         assert got.status_code == 200

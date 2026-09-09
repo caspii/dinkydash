@@ -7,7 +7,7 @@ generation fails, the times and turns on the wall are still today's — only the
 written line is yesterday's, and it says so.
 """
 
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 
 from .calendars import events_on
 from .context import build_countdowns, compute_chore_assignments
@@ -111,3 +111,24 @@ def build_view(config, payload, today):
             view["stale_days"] = None
 
     return view
+
+
+def build_lapsed_view(config, payload, show_last_board):
+    """Hold the last brief's date and computed turns, then show only a message.
+
+    Read existing data rather than retaining another copy of calendar details.
+    Explicit settings edits and calendar privacy invalidation still take effect.
+    """
+    if show_last_board:
+        try:
+            saved_day = date.fromisoformat((payload or {}).get("generated_for_date", ""))
+        except (TypeError, ValueError):
+            pass  # No successful brief: there is no board to preserve.
+        else:
+            view = build_view(config, payload, saved_day)
+            view["state"] = "frozen"
+            return view
+    return {
+        "state": "ended", "family_name": "", "reload_seconds": MAX_RELOAD_SECONDS,
+        "theme": "dark" if config.get("theme") == "dark" else "light",
+    }

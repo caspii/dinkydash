@@ -78,6 +78,13 @@ manifest route is behind the login, and asking for it from outside would only ev
 *family's* config dict under that name and shadow the app's, which is why `create_app` sets a
 separate `cloud` boolean — the Sign out button on the settings home is the first thing to use it.
 
+Hosted refreshes and feed checks take the same account-access check as generation. Hiding a
+button is not enforcement. `current_access()` supplies the settings status; the token route
+resolves access for its own family and passes it to `render_board`. Lapsed boards hold the last
+brief's date for 30 days, then show only the ended message, with the same no-store headers and
+reload timer. Export, deletion and settings remain accessible. Exports include both all retained
+`generations` and the separate recent `content_history`; the latter alone omits older briefs.
+
 ## The board's layout
 
 **Changing the board layout.** Everything is sized in `rem` off one root value, so check all three

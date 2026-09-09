@@ -36,6 +36,16 @@ def current_budget():
     return budget_module.for_family(_the_pool(), _family_on_the_session())
 
 
+def current_access():
+    """Hosted access for the signed-in parent; single mode has no account."""
+    from dinkydash.lifecycle import access_for
+    from . import CLOUD
+
+    if current_app.config["MODE"] != CLOUD:
+        return None
+    return access_for(_the_pool(), _family_on_the_session())
+
+
 def current_screen_token():
     """Return the screen token of the family on the session. Cloud mode only."""
     from dinkydash import screens

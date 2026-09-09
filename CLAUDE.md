@@ -197,6 +197,8 @@ mode is a different product on the same code.
   caller's existing keep-last-good path handles it and no second such path gets written; and
   **anything new that calls Anthropic takes a budget**, the way it takes a store. "Rewrite now" was
   the one path with no limit on it at all, and it is charged now too.
+  The budget also applies the platform's model and output-token ceiling before hosted generation.
+  Its global daily aggregate has no family identifiers and survives account deletion (DIN-49/51).
 
 ### The safety net, and what it does not cover
 

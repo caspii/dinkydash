@@ -309,21 +309,35 @@ dashboard-only change.
 doctl apps logs <id> worker --type run | grep "over the daily budget"
 ```
 
-and the running total is one query:
+and the running total, including calls made by deleted accounts, is one query:
 
 ```sql
-SELECT day, sum(calls) AS calls, sum(input_tokens) AS tok_in, sum(output_tokens) AS tok_out
-FROM model_spend GROUP BY day ORDER BY day DESC LIMIT 14;
+SELECT day, calls FROM global_model_spend ORDER BY day DESC LIMIT 14;
 ```
 
-**Two things it does not do.** It does not know about money, so a model change (Haiku to Sonnet is
-three times the cost) moves the real spend without moving the ceiling — the table above is what has
-to be corrected then. And the global half is approximate by the number of simultaneous callers,
-which with one worker and two web processes is a handful of calls, not a category of problem.
+Per-family usage and reported tokens remain in `model_spend` until account deletion.
+The breaker counts calls rather than currency; provider pricing or input size can change the bill
+without changing the count. The global cap remains approximate by the number of simultaneous
+callers, because its check reads the total before the charge.
 
 **Applied by the pre-deploy job**, like every migration, so this needs no separate step. The app
 spec *did* change — three new environment variables — so it joins the applies already outstanding
 below.
+
+### Spending controls, 9 September 2026 (DIN-49/DIN-51)
+
+Migration `004_global_model_spend.sql` backfills existing call counts and installs a trigger
+under a write lock in one transaction. Old web/worker instances continue contributing during
+deployment. The aggregate holds only a UTC date and call count, with no family foreign key;
+deleting an account still removes its personal data and per-family usage. Counts already erased
+by deletions before this migration cannot be reconstructed.
+
+The shared generation budget now fixes hosted calls to the platform's `DEFAULT_MODEL`
+(`claude-haiku-4-5`) and `DEFAULT_MAX_TOKENS` (1,024). Stored family overrides cannot select a
+different model or token ceiling. Self-hosted configuration still works as before.
+No new environment variable or app-spec change is needed; the normal pre-deploy job applies
+the migration. Deployment checks cover existing-row backfill, writes from old callers,
+transaction rollback, deletion/re-signup, and the real worker and manual paths against an API stub.
 
 ## Legal and trust, 8 September 2026 (DIN-44)
 
@@ -364,6 +378,28 @@ transaction.
 
 **No spec change and no `doctl apps update` for this one** — no new environment variable, no
 migration. `deploy_on_push` is enough.
+
+### Export and trial expiry, 9 September 2026 (DIN-50/DIN-52)
+
+The account export now includes a dated `generations` array with every retained brief and its
+metadata, alongside `written_lines` for recent rewrites. Both queries use the signed-in family;
+download headers remain `no-store`. The privacy page now distinguishes retained daily briefs
+from the trimmed recent history.
+
+Migration `005_family_lapse.sql` adds `lapsed_at`, backfills existing lapsed rows from their
+last update, and fills missing trial deadlines with creation time plus 14 days. Its trigger
+stamps transitions to lapsed and clears the stamp when an account becomes active again.
+The worker marks expired trials once per pass, preserving the original deadline as `lapsed_at`.
+Worker selection and every hosted fetch/model entry point also check the database clock, so a
+late or failed sweep does not extend access. Active paid accounts ignore old trial deadlines.
+
+The screen holds the saved brief's date for 30 days after access ends, then renders only an
+ended-access message. Settings edits and calendar privacy invalidation still apply during that
+period. No extra snapshot is stored or retained. Export and deletion stay available, and the
+normal reload timer picks up reactivation. The display cutoff does not delete database content;
+the retention sweeps are still DIN-57. Stripe integration remains DIN-53.
+
+The usual pre-deploy job applies the migration; no new environment variables or app-spec changes.
 
 ## GitHub Pages, switched off 8 September 2026
 

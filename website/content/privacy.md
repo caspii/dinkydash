@@ -5,7 +5,7 @@ template: page.html
 description: What DinkyDash stores, who it is sent to, how long it is kept, and how to get it back or delete it.
 ---
 
-*Last updated: 8 September 2026.*
+*Last updated: 9 September 2026.*
 
 DinkyDash puts a family's day on a screen. That means the things it holds are a
 household's names, dates of birth and movements — which is about as personal as
@@ -85,12 +85,23 @@ We would rather hold less, so most of this expires on its own.
 - **Your calendar events**: one rolling fourteen-day window per family,
   overwritten every time the calendars are refreshed. Nothing accumulates — the
   most we ever hold about your calendar is that one window.
-- **The written lines**: the last 30 are kept, so the model does not repeat
-  itself. Older ones are deleted as new ones arrive.
+- **The written lines**: daily briefs are kept while your account exists. A
+  separate recent history helps the model avoid repetition; it keeps at least
+  the last 30 entries and drops older ones as new ones arrive. Rewriting a day
+  replaces that day's saved brief, while an earlier version may remain in the
+  recent history until it is trimmed.
 - **Sign-in links**: deleted once expired, which is fifteen minutes. A link that
   has been used is deleted on the same schedule.
 - **Your account, your family's details and the record of boards written**: kept
   while the account exists, and deleted when you delete it.
+- **Daily totals of model calls across the service**: kept without an account
+  identifier, including after account deletion, so deleting an account does not
+  reset the service's spending limit. These totals contain only a date and count.
+
+After your trial or subscription ends, the screen shows the last saved board
+with an ended-access message for 30 days, then only the message. This changes
+what the screen shows; it does not delete your stored account data. You can
+still sign in to export or delete it.
 
 **Backups.** DigitalOcean takes daily backups of the database and keeps seven
 days of point-in-time recovery. Deleted data can therefore persist in a backup
@@ -100,8 +111,8 @@ for up to seven days before it ages out.
 
 Both are buttons, not requests, and both are on your settings page.
 
-- **Export** gives you everything we hold about your family as one JSON file:
-  your details, your calendar links, the stored agenda, and every written line.
+- **Export** gives you your family's details, calendar links, stored agenda,
+  all retained daily briefs and recent rewrite history as one JSON file.
 - **Delete** removes your family, your account, your calendar links, the stored
   agenda, every written line and every sign-in link. It cannot be undone and we
   cannot restore it for you.

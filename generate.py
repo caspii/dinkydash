@@ -134,7 +134,7 @@ def tick(config, store, budget=None):
         if owed["refresh"]:
             # A stale refresh also stops this tick's brief; the next pass loads
             # the new config before fetching or making a model call.
-            refresh_calendars(config, store, now=now)
+            refresh_calendars(config, store, now=now, budget=budget)
         if owed["brief"]:
             today = now.astimezone(config_module.tzinfo_for(config)).date()
             # runner logs date and usage. Reporting family text is reserved for
