@@ -311,6 +311,10 @@ class TestDescribeFeed:
     def describe(self, **kwargs):
         return describe_feed("https://x.example/a.ics", BERLIN, today=date(2026, 9, 3), **kwargs)
 
+    def test_the_caller_must_supply_the_date(self):
+        with pytest.raises(TypeError, match="today"):
+            describe_feed("https://x.example/a.ics", BERLIN)
+
     def test_counts_everything_without_a_list(self):
         found = self.describe()
         assert (found["count"], found["total"]) == (3, 3)

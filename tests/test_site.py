@@ -11,6 +11,8 @@ with it. Parity was verified once, page by page — all 17 byte-identical — an
 these assert the properties that mattered rather than the artefact.
 """
 
+import json
+from pathlib import Path
 import re
 
 import pytest
@@ -29,6 +31,44 @@ def client():
 def test_every_content_file_is_reachable(client):
     for page in render.pages():
         assert client.get(page["url"]).status_code == 200, page["url"]
+
+
+class TestHostedSignup:
+    URL = "https://app.dinkydash.co/login"
+    HOSTED_PAGES = {
+        "/", "/about/", "/android-tablet-calendar-display/",
+        "/best-digital-family-calendar/", "/dakboard-alternatives/",
+        "/dakboard-vs-skylight/", "/digital-calendar-and-chore-chart/",
+        "/diy-skylight-calendar/", "/echo-show-calendar-display/",
+        "/fire-tv-calendar-display/", "/ipad-calendar-display/",
+        "/raspberry-pi-family-calendar/", "/smart-tv-calendar-display/",
+        "/skylight-calendar-alternatives/",
+    }
+
+    def test_public_pages_send_visitors_to_signup(self, client):
+        for page in render.pages():
+            body = client.get(page["url"]).get_data(as_text=True)
+            assert not re.search(r"typeform\.com|waitlist|waiting[ -]list|join the list",
+                                 body, re.I), page["url"]
+            if page["url"] in self.HOSTED_PAGES:
+                assert f'href="{self.URL}"' in body, page["url"]
+                assert 'href="/getting-started/"' in body, page["url"]
+
+    def test_readme_sends_visitors_to_signup(self):
+        readme = (Path(__file__).resolve().parents[1] / "README.md").read_text()
+        assert f"]({self.URL})" in readme
+        assert not re.search(r"typeform\.com|waitlist|waiting list", readme, re.I)
+
+    def test_hosted_faq_schema_matches_the_visible_answers(self, client):
+        body = client.get("/").get_data(as_text=True)
+        schemas = [json.loads(raw) for raw in re.findall(
+            r'<script type="application/ld\+json">(.*?)</script>', body, re.S)]
+        faq = next(schema for schema in schemas if schema.get("@type") == "FAQPage")
+        for question in faq["mainEntity"]:
+            if "hosted version" in question["name"]:
+                answer = question["acceptedAnswer"]["text"]
+                assert f"<p>{answer}</p>" in body
+                assert "no card required" in answer
 
 
 class TestUrls:

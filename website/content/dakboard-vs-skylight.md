@@ -32,7 +32,7 @@ Comparing the two best-known ways to put your family's calendar on a wall? Here 
 |---|---|---|---|
 | **Screen** | Bring your own, or their ~$80 CPU stick | Included — 15″ or 27″ touchscreen | Bring your own |
 | **Hardware cost** | $0–80 | **$299.99** (15″ Calendar 2) / **$599.99** (27″ Calendar Max) | $0, or ~$100–130 for a Raspberry Pi build |
-| **Subscription** | Free tier; Essential **$6/mo** ($5 annually); Plus **$10/mo** ($8 annually) | Optional Plus, **$79/yr** | **None** self-hosted. Hosted tier $39/yr or $6/mo |
+| **Subscription** | Free tier; Essential **$6/mo** ($5 annually); Plus **$10/mo** ($8 annually) | Optional Plus, **$79/yr** | **None** self-hosted. Hosted trial free; planned $39/yr or $6/mo |
 | **Calendars it reads** | Google, iCloud, Microsoft 365, Facebook Events, ICS files | Google, Apple and Outlook | Google, iCloud and Outlook — you paste a sharing link, there is no sign-in |
 | **Open source** | No | No | **Yes, MIT** |
 | **Runs on your own hardware** | The display does; the service does not | No | **Yes, entirely** |
@@ -75,7 +75,7 @@ It is MIT-licensed and free forever if you run it yourself — no paid tier, no 
 
 The honest cost is time, not money. Setup is an afternoon and some copy-paste in a terminal — the [getting started guide](/getting-started/) has the commands. The only running cost is your own Anthropic key for the daily brief, about **$0.13 a month**.
 
-A hosted version is in build for people who want the same board without the terminal: **$39/year or $6/month**, 14-day trial, no card up front. The first 100 people on the waiting list pay $29/year for as long as they stay subscribed — [join the list](https://fffwryhvses.typeform.com/to/yxMMhmFs).
+For the same board without the terminal, [start a free 14-day hosted trial](https://app.dinkydash.co/login), with no card required. Paid subscriptions are still in development; planned pricing is **$39/year or $6/month**.
 
 ## What three years actually costs
 
@@ -84,7 +84,7 @@ Annual billing where it is offered. The DAKboard and DinkyDash rows assume you a
 | | Hardware | 3 years of software | **3-year total** |
 |---|---|---|---|
 | **DinkyDash, self-hosted** | $0 (own screen) or ~$100–130 (Pi build) | ~$5 | **~$5–135** |
-| DinkyDash, hosted | $0 | $117, or $87 at the waiting-list price | **~$117** |
+| DinkyDash, hosted | $0 | $117 at the planned $39/year price | **~$117** |
 | DAKboard Essential | $0, or ~$80 for their CPU | ~$180 | **~$180–260** |
 | DAKboard Plus | $0, or ~$80 | ~$288 | **~$288–368** |
 | Skylight 15″, no Plus | $299.99 | $0 | **~$300** |
@@ -138,7 +138,7 @@ A comparison that only flatters its own product is not worth reading, so:
 - **You already own a screen and enjoy configuring things:** DAKboard, and budget for Essential rather than the free tier if you want custom layouts.
 - **You want a touchscreen and no project:** Skylight — start with the 15″ and skip Plus until you know you want meal planning.
 - **You want $0, the source code, and a calendar that is family-shaped out of the box:** [DinkyDash, self-hosted](/getting-started/).
-- **You want the DinkyDash board without the terminal:** [the hosted waiting list](https://fffwryhvses.typeform.com/to/yxMMhmFs) — $39/year, or $29 for the first 100.
+- **You want the DinkyDash board without the terminal:** [start a free 14-day hosted trial](https://app.dinkydash.co/login) — no card required.
 - **You want something on the wall today with no configuration:** Mango Display Pro — budget for Pro, not the free tier, which has no calendar.
 - **Mornings are the actual problem, not the calendar:** neither of these. See [Hearth vs Skylight](/hearth-vs-skylight/).
 

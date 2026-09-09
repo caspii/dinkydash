@@ -44,4 +44,4 @@ The result is a screen that feels alive. It knows it's someone's birthday week. 
 - [How it compares to Skylight, Hearth & co.](/skylight-calendar-alternatives/)
 - [The code, on GitHub](https://github.com/caspii/dinkydash)
 
-Want DinkyDash without the setup? A hosted version is in the works — [join the waitlist](https://fffwryhvses.typeform.com/to/yxMMhmFs).
+Want DinkyDash without the setup? [Start a free 14-day hosted trial](https://app.dinkydash.co/login), no card required.

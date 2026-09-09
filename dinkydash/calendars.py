@@ -396,17 +396,17 @@ def events_on(events, day):
     return [e for e in events if e.get("date") == wanted]
 
 
-def describe_feed(url, tzinfo, today=None, days_ahead=DEFAULT_DAYS_AHEAD,
+def describe_feed(url, tzinfo, today, days_ahead=DEFAULT_DAYS_AHEAD,
                   timeout=DEFAULT_TIMEOUT, shared_with=None):
     """Check a pasted URL and describe what came back.
 
+    The caller supplies today's date in the family's timezone.
     Used by the settings UI so pasting a link answers with a real event count
     and the next thing in it, rather than a silent success. With `shared_with`
     set it also counts the events *before* the filter, because a guest list
     that matches nobody looks exactly like an empty calendar from the board,
     and telling the two apart is the whole point of pressing the button.
     """
-    today = today or date.today()
     end = today + timedelta(days=days_ahead)
     occurrences = _occurrences(fetch_text(url, timeout=timeout), today, end)
     wanted = addresses(shared_with)

@@ -16,7 +16,7 @@ Every morning, DinkyDash merges your calendars into one agenda, works out whose 
 
 > Self-hosting is **community-supported**. Issues and pull requests are welcome, but there is no support commitment — if you need it to just work, use the hosted version.
 
-**Hosted (in development).** Zero setup, $39/year or $6/month. [Join the waitlist.](https://fffwryhvses.typeform.com/to/yxMMhmFs) Built from this same repo — see [PLAN.md](PLAN.md).
+**Hosted.** [Start a free 14-day trial.](https://app.dinkydash.co/login) No card required. Paid subscriptions are still in development; planned pricing is $39/year or $6/month. Built from this same repo — see [PLAN.md](PLAN.md).
 
 ## What the board shows
 

@@ -1,6 +1,6 @@
 # DinkyDash Hosted MVP — Plan
 
-*Updated 9 September 2026: main through PR #93, plus spending, export and trial-expiry fixes (DIN-49–52).*
+*Updated 9 September 2026: main through PR #94, plus signup-link and calendar-date fixes (DIN-63/62).*
 
 This is the engineering plan for the hosted app and its shared self-hosted codebase.
 Positioning, pricing reasoning and launch strategy live in Linear on the DIN team.
@@ -18,10 +18,12 @@ PR #91 implemented privacy-safe calendar publication ([DIN-46](https://linear.ap
 and removed generated text and malformed screen credentials from service logs ([DIN-47](https://linear.app/keepthescore/issue/DIN-47)).
 PR #93 preserves explicit preview database overrides ([DIN-48](https://linear.app/keepthescore/issue/DIN-48))
 and connects calendar fetches only to validated public addresses ([DIN-61](https://linear.app/keepthescore/issue/DIN-61)).
-The current batch preserves charged global usage after account deletion ([DIN-49](https://linear.app/keepthescore/issue/DIN-49))
+PR #94 preserves charged global usage after account deletion ([DIN-49](https://linear.app/keepthescore/issue/DIN-49))
 and enforces the platform's model and token ceiling for hosted generation ([DIN-51](https://linear.app/keepthescore/issue/DIN-51)).
 It also exports retained daily generations ([DIN-50](https://linear.app/keepthescore/issue/DIN-50)) and enforces trial expiry,
 manual-action restrictions and the 30-day lapsed display period ([DIN-52](https://linear.app/keepthescore/issue/DIN-52)).
+Public hosted calls to action now lead to signup/login ([DIN-63](https://linear.app/keepthescore/issue/DIN-63)),
+and calendar-link descriptions require the family's date from their caller ([DIN-62](https://linear.app/keepthescore/issue/DIN-62)).
 
 Todo is reserved for the hosted MVP: signup and trial use, payment/cancellation,
 privacy and spending controls, basic monitoring/recovery, and real-device validation.
@@ -31,8 +33,7 @@ Hosted readiness is still open. The remaining sequence is:
 1. Complete Stripe conversion, subscription changes and cancellation before accepting payment ([DIN-53](https://linear.app/keepthescore/issue/DIN-53)).
 2. Add liveness alerts and recovery checks ([DIN-54](https://linear.app/keepthescore/issue/DIN-54),
    [DIN-56](https://linear.app/keepthescore/issue/DIN-56)), and finish the trust work in Phase 5.
-3. Replace hosted waitlist/form links with the signup/login page ([DIN-63](https://linear.app/keepthescore/issue/DIN-63)).
-4. Verify real screens and run the small private beta ([DIN-58](https://linear.app/keepthescore/issue/DIN-58)), collecting feedback through the existing support email. Use observed setup
+3. Verify real screens and run the small private beta ([DIN-58](https://linear.app/keepthescore/issue/DIN-58)), collecting feedback through the existing support email. Use observed setup
    problems to decide whether the existing settings flow needs a wizard.
 
 A checked box below means that capability exists; linked follow-up defects remain
@@ -213,7 +214,7 @@ generate(config, today, events, recent_notes) -> payload dict
 The caller supplies the date, fetched events and recent notes. Generation returns data;
 the caller owns storage. The model call is isolated in `claude_client.py`, feed access
 in `calendars.py`. Keep business calculations independent of clocks and files.
-The remaining `describe_feed` server-date fallback is tracked in [DIN-62](https://linear.app/keepthescore/issue/DIN-62).
+`describe_feed` requires the caller's date; settings supplies the family's date, with timezone-boundary checks in both modes ([DIN-62](https://linear.app/keepthescore/issue/DIN-62)).
 
 ### Repository layout
 
@@ -354,7 +355,7 @@ another family's item ID returns 404. Onboarding validation remains open.
 - [x] Reject refresh publication after a calendar privacy/config change ([DIN-46](https://linear.app/keepthescore/issue/DIN-46)).
 - [x] Preserve global spending across account deletion ([DIN-49](https://linear.app/keepthescore/issue/DIN-49)).
 - [ ] Failure tracking, backoff and parent notification ([DIN-55](https://linear.app/keepthescore/issue/DIN-55); Backlog).
-- [ ] Remove the remaining implicit date fallback in feed description ([DIN-62](https://linear.app/keepthescore/issue/DIN-62); maintenance).
+- [x] Remove the remaining implicit date fallback in feed description ([DIN-62](https://linear.app/keepthescore/issue/DIN-62)).
 
 **Done when:** families in different timezones get correct boards and calendar updates;
 failed providers preserve useful last-good output; retries and paid calls obey their bounds.
@@ -413,7 +414,7 @@ recover the application. A healthy `/healthz` response alone is insufficient.
 - [x] Self-hosted getting-started/provider instructions and the Pi/from-source path exist.
 - [x] Search Console and Ahrefs connection is marked Done in [DIN-3](https://linear.app/keepthescore/issue/DIN-3); ongoing account status is tracked there.
 - [ ] Real-device checks, current self-hosted smoke test and the small private beta ([DIN-58](https://linear.app/keepthescore/issue/DIN-58)).
-- [ ] Replace hosted waitlist/form links with the actual signup/login page ([DIN-63](https://linear.app/keepthescore/issue/DIN-63)).
+- [x] Replace hosted waitlist/form links with the actual signup/login page ([DIN-63](https://linear.app/keepthescore/issue/DIN-63)).
 - [ ] Refresh launch dependencies, rewrite obsolete drafts, tag a release and execute the approved public launch ([DIN-25](https://linear.app/keepthescore/issue/DIN-25); Backlog).
 - [x] Calendar-provider and device guides ([DIN-14](https://linear.app/keepthescore/issue/DIN-14), [DIN-13](https://linear.app/keepthescore/issue/DIN-13)).
 - [ ] Embedded feedback widget/backend ([DIN-34](https://linear.app/keepthescore/issue/DIN-34); Backlog). MVP feedback uses the existing support email.
