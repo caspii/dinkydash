@@ -155,35 +155,52 @@ def interval():
         return DEFAULT_INTERVAL
 
 
+def run_pass(pool, stopping, heartbeat_url=None):
+    """Run housekeeping and every family, then report liveness if not interrupted.
+
+    A handled per-family/provider error still counts as a live worker. A failed
+    family enumeration or a stop during the pass does not emit a heartbeat.
+    """
+    from dinkydash import lifecycle
+    from .heartbeat import ping
+
+    started = time.monotonic()
+    try:
+        expired = lifecycle.expire_trials(pool)
+        if expired:
+            log.info("Ended %s expired trial(s).", expired)
+    except Exception:
+        log.exception("Could not mark expired trials; retrying next pass.")
+    ticked = tick_all(pool, stopping=stopping)
+    swept = sweep_logins(pool)
+    if stopping:
+        log.info("Pass interrupted for shutdown; no heartbeat sent.")
+        return
+    log.info("Pass complete: %s families ticked in %.1fs; %s dead login "
+             "token(s) deleted.", ticked, time.monotonic() - started, swept)
+    ping(heartbeat_url)
+
+
 def main():  # pragma: no cover - the loop itself; tick_all is what is tested
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s [%(levelname)s] %(message)s",
     )
 
-    from dinkydash import db, lifecycle
+    from dinkydash import db
+    from .heartbeat import configured_url
 
     stopping = Stopping()
     signal.signal(signal.SIGTERM, stopping.request)
     signal.signal(signal.SIGINT, stopping.request)
 
+    heartbeat_url = configured_url()
     pool = db.pool()
     every = interval()
     log.info("Worker started; a pass every %s seconds.", every)
 
     while not stopping:
-        started = time.monotonic()
-        try:
-            expired = lifecycle.expire_trials(pool)
-            if expired:
-                log.info("Ended %s expired trial(s).", expired)
-        except Exception:
-            # Callers still check the deadline themselves if housekeeping fails.
-            log.exception("Could not mark expired trials; retrying next pass.")
-        ticked = tick_all(pool, stopping=stopping)
-        swept = sweep_logins(pool)
-        log.info("Pass complete: %s families ticked in %.1fs; %s dead login "
-                 "token(s) deleted.", ticked, time.monotonic() - started, swept)
+        run_pass(pool, stopping, heartbeat_url)
 
         # Sleep in slices so SIGTERM is noticed in seconds rather than minutes.
         # App Platform kills a container that ignores it for too long, and

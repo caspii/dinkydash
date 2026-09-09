@@ -307,7 +307,13 @@ PR #86 uses `pg_advisory_xact_lock` for token issuance: the lock belongs to the 
 transaction. It does not introduce a session-scoped lock or require session pooling.
 
 Managed backups are documented in operations; the independent restore drill remains
-[DIN-56](https://linear.app/keepthescore/issue/DIN-56). Worker liveness alerts remain MVP work ([DIN-54](https://linear.app/keepthescore/issue/DIN-54));
+[DIN-56](https://linear.app/keepthescore/issue/DIN-56)'s responsibility. `ops.restore_drill` now restores a read-only
+logical backup into a disposable socket-only PostgreSQL instance, verifies scoped reads and app startup
+with outbound calls blocked, and removes the scratch data. A managed-source drill passed on 9 September;
+[doc/recovery.md](doc/recovery.md) defines the monthly cadence and failure procedure. Scheduling on the
+operator host still needs configuration. The drill also found an existing invalid screen token ([DIN-64](https://linear.app/keepthescore/issue/DIN-64)).
+The worker can send an empty HTTPS heartbeat after a completed pass; external liveness alerts and a
+delivery/recovery drill remain MVP work ([DIN-54](https://linear.app/keepthescore/issue/DIN-54), [doc/monitoring.md](doc/monitoring.md));
 Sentry instrumentation is Backlog ([DIN-35](https://linear.app/keepthescore/issue/DIN-35)).
 Cloud startup validates the session key and database configuration; model/email failures
 have their own runtime handling. Stripe credentials are not required before billing exists.
@@ -401,7 +407,7 @@ alone does not close the phase.
 - [x] Transactional email wired into signup/login ([DIN-36](https://linear.app/keepthescore/issue/DIN-36), [DIN-38](https://linear.app/keepthescore/issue/DIN-38)).
 - [ ] Sentry for web, worker and applicable frontend errors, with sensitive-data filtering ([DIN-35](https://linear.app/keepthescore/issue/DIN-35); Backlog).
 - [ ] Worker heartbeat and external health alerts, verified by a controlled failure ([DIN-54](https://linear.app/keepthescore/issue/DIN-54)).
-- [ ] Repeatable restore into an isolated database, with a successful drill recorded ([DIN-56](https://linear.app/keepthescore/issue/DIN-56)).
+- [x] Repeatable restore into an isolated database, with a successful drill recorded ([DIN-56](https://linear.app/keepthescore/issue/DIN-56)); monthly cadence defined, operator scheduler configuration pending.
 - [x] Preserve explicit preview database overrides ([DIN-48](https://linear.app/keepthescore/issue/DIN-48)).
 - [ ] Dedicated admin/registration analytics dashboard ([DIN-37](https://linear.app/keepthescore/issue/DIN-37); Backlog).
 
