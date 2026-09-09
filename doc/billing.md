@@ -27,8 +27,12 @@ Before enabling payments, check the intended Stripe account in **test mode**:
    Explicitly choose `STRIPE_AUTOMATIC_TAX=true` or `false`; there is no default.
    Automatic tax requires active Stripe Tax settings. Code cannot decide whether
    the business needs a tax registration.
-3. Create a dedicated Customer Portal configuration. Enable invoice history,
-   card updates, cancellation **at period end**, and subscription price
+3. Create a dedicated Customer Portal configuration. For card updates, create a
+   [payment method configuration](https://docs.stripe.com/payments/payment-method-configurations)
+   with only cards and their wallets enabled, then set its ID in
+   `features.payment_method_update.payment_method_configuration`. Otherwise the
+   portal inherits the account's payment methods, including any bank debits.
+   Enable invoice history, card updates, cancellation **at period end**, and subscription price
    changes for both prices on this product. Configure and review prorations for
    billing-period changes in Stripe. Set `STRIPE_PORTAL_CONFIGURATION_ID`.
    Checkout checks these cancellation and management capabilities before charging.
