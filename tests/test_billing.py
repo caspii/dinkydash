@@ -414,6 +414,20 @@ def test_portal_must_support_cancellation_before_customer_created(service, pg_po
     assert not service.client.customers
 
 
+def test_portal_products_are_only_returned_when_expanded(service):
+    retrieve = service.client.v1.billing_portal.configurations.retrieve
+    configuration = retrieve.return_value.to_dict()
+
+    def response(configuration_id, params=None):
+        result = copy.deepcopy(configuration)
+        if "features.subscription_update.products" not in (params or {}).get("expand", []):
+            result["features"]["subscription_update"].pop("products")
+        return sdk(result)
+
+    retrieve.side_effect = response
+    service.check_portal(service.prices())
+
+
 def test_portal_with_no_update_products_is_unavailable(service):
     portal = service.client.v1.billing_portal.configurations.retrieve.return_value
     portal["features"]["subscription_update"]["products"] = None

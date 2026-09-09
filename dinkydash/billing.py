@@ -179,7 +179,8 @@ class Billing:
     def check_portal(self, prices):
         """Do not accept a first payment into a portal that cannot cancel it."""
         configuration = self.call(self.client.v1.billing_portal.configurations.retrieve,
-                                  self.portal_configuration)
+                                  self.portal_configuration,
+                                  {"expand": ["features.subscription_update.products"]})
         features = configuration["features"]
         cancel = features["subscription_cancel"]
         update = features["subscription_update"]
