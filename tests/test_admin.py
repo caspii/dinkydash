@@ -246,3 +246,46 @@ class TestWhatItShows:
         html = admin_client.get("/admin").get_data(as_text=True)
         assert not re.search(r'(src|href)="https?://', html.replace("https://dinkydash.co", ""))
         assert "<script" not in html
+
+
+# -- the worker's pulse (DIN-54) ----------------------------------------------
+
+class TestTheWorkerCard:
+    """The same row `/healthz/worker` serves to the monitor, in a sentence."""
+
+    def test_before_any_pass_it_says_so(self, admin_client):
+        html = admin_client.get("/admin").get_data(as_text=True)
+        assert "No pass has finished yet." in html
+        assert "Never run" in html
+
+    def test_a_recent_pass_is_alive_and_says_what_it_did(self, admin_client, pg_pool):
+        from dinkydash import heartbeat
+        heartbeat.beat(pg_pool, 3, 1, 1234)
+        html = admin_client.get("/admin").get_data(as_text=True)
+        assert "Last pass finished just now: 3 families, 1 failed, 1.2 s." in html
+        assert "Alive" in html
+
+    def test_a_worker_that_went_quiet_is_said_to_be_quiet(self, admin_client, pg_pool):
+        from datetime import datetime, timedelta, timezone
+
+        from dinkydash import heartbeat
+        heartbeat.beat(pg_pool, 1, 0, 400,
+                       now=datetime.now(timezone.utc) - timedelta(hours=2, minutes=1))
+        html = admin_client.get("/admin").get_data(as_text=True)
+        assert "Last pass finished 2 hours ago: 1 family, none failed, 0.4 s." in html
+        assert "Quiet" in html
+
+    @pytest.mark.parametrize("seconds,said", [
+        (0, "just now"), (59, "just now"), (60, "1 minute ago"), (119, "1 minute ago"),
+        (120, "2 minutes ago"), (3599, "59 minutes ago"), (3600, "1 hour ago"),
+        (7200, "2 hours ago"), (47 * 3600, "47 hours ago"), (48 * 3600, "2 days ago"),
+        (10 * 86400, "10 days ago"),
+    ])
+    def test_the_age_reads_as_a_person_would_say_it(self, seconds, said):
+        assert admin.ago(seconds) == said
+
+    def test_the_sentence_with_no_pass_and_with_one(self):
+        assert admin.pulse_text({"status": "never"}) == "No pass has finished yet."
+        assert admin.pulse_text({"status": "ok", "age_seconds": 30, "last_pass": {
+            "families": 0, "failed": 0, "took_ms": 5}}) == (
+            "Last pass finished just now: 0 families, none failed, 0.0 s.")

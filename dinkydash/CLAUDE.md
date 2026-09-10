@@ -68,7 +68,7 @@ thirty-day session can outlive the account it names, and that should sign the ho
 500. Catching the bare parent would swallow `KeyError` and `IndexError` too, which is to say every
 real bug, and send it to the login page.
 
-Four things are unscoped, all deliberately outside the store rather than weakening it, and each
+Five things are unscoped, all deliberately outside the store rather than weakening it, and each
 because there is no family to scope *to*:
 
 - **`worker.family_ids`**, whose whole job is to walk every family;
@@ -80,10 +80,15 @@ because there is no family to scope *to*:
 - **`dinkydash/growth.py`**, which reads the signup and activation counter for the operator's page
   (DIN-37). The narrowest of the four: `growth_by_day` is a date and two counts with no family
   identifier to scope by, kept by a trigger on `families` (migration 006) so that it survives
-  deletion the way `global_model_spend` does, and `families_now` is a bare `count(*)`.
+  deletion the way `global_model_spend` does, and `families_now` is a bare `count(*)`;
+- **`dinkydash/heartbeat.py`**, the worker's pulse (DIN-54): one row per worker loop, written by
+  `worker.run_pass` after a completed pass and nothing else — not after a stop request cut the walk
+  short, not after a pass that could not list the families — and read by `/healthz/worker` and the
+  operator's page. A time and three counts (families ticked, families that raised, milliseconds),
+  with no family identifier to scope by; the emptiest row in the schema (migration 007).
 
 Each of the first three hands its result to a `PostgresStore` built for exactly one family, and the
-fourth reads no row about any family at all, so the rule that matters is untouched. `web/family.py`
+fourth and fifth read no row about any family at all, so the rule that matters is untouched. `web/family.py`
 is where the second and third arrive, and it has both doors in one file on purpose — `is_admin`,
 the gate on the operator's page, sits beside them for the same reason: if another is ever added it
 should be as obvious as those are.
@@ -206,6 +211,15 @@ including local development and CI: psycopg 3 prepares a statement server-side o
 under transaction-mode pooling the next execution can land on a different backend connection. The
 full reasoning, and why KeepTheScore's clean record on psycopg2 does not transfer, is in PLAN.md
 under [Connection pooling](../PLAN.md#connection-pooling).
+
+**`db.ready(pool)` is what makes a wrong `DATABASE_URL` a failed deploy rather than a live one.**
+A pool opens in the background and a connection string that goes nowhere is only a warning in its
+log — the process came up, `/healthz` answered, and every request that needed the database then
+waited thirty seconds and failed. `create_app` calls `ready` right after building the pool, and it
+raises after `STARTUP_TIMEOUT` seconds naming the variable and nothing else; under gunicorn a
+worker that raises on boot halts the server, so the container never becomes healthy and the
+previous release keeps serving. The worker does not call it: it has no probe, and a worker looping
+on a dead database is a stale heartbeat, which is already the alert.
 
 **`psycopg` is in `requirements-cloud.txt`, not `requirements.txt`.** A Pi has no database and
 should not install a driver for one, so single mode never imports `pgstore` or `db` — the import in

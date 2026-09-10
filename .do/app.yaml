@@ -201,6 +201,14 @@ services:
     # The check arrives on the .ondigitalocean.app hostname, which is in no
     # `domains` block above — so wsgi.py sends unknown hosts to the marketing
     # site, which answers /healthz. A 404 here would roll every deploy back.
+    #
+    # **`/healthz/worker` is deliberately not this path.** It reads the
+    # database and answers 503 when the worker has missed three passes, which
+    # is what `.github/workflows/monitor.yml` wants and what a probe must never
+    # do: three quiet probes restart this container, and a dead worker would be
+    # answered with a rolled-back deploy. `tests/test_deploy_spec.py` holds the
+    # line. What this probe cannot see — a wrong DATABASE_URL — `db.ready`
+    # catches at start-up by refusing to start.
     health_check:
       http_path: /healthz
       initial_delay_seconds: 15
@@ -214,6 +222,12 @@ workers:
   # component rather than a thread in `site` because there is no lock on the
   # tick in cloud mode: two processes would both refresh and both pay Anthropic
   # for the same brief. One worker, however many web instances.
+  #
+  # Every completed pass writes one row to `worker_heartbeat` (DIN-54), which
+  # `/healthz/worker` on the site serves to the monitor workflow. The allowance
+  # before that answer turns 503 is `DINKYDASH_WORKER_STALE_AFTER`, defaulting
+  # in code to 900 s — three missed passes at the default interval. Change
+  # `DINKYDASH_WORKER_INTERVAL` here and set that alongside it.
   - name: worker
     github:
       repo: caspii/dinkydash

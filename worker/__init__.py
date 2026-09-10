@@ -22,16 +22,29 @@ copied. It is the shared orchestration over config, store and clock, and
 Housekeeping runs once a pass: `sweep_logins` deletes expired magic-link tokens
 and `lifecycle.expire_trials` records ended trials. Account access is also
 checked before each fetch and model call, independently of the sweep.
+
+**Every completed pass writes a heartbeat** (`dinkydash/heartbeat.py`, DIN-54),
+and `run_pass` is where "completed" is decided: a stop request that ended the
+walk early is not a finished pass, and neither is a pass that could not list
+the families. Both leave the last heartbeat where it was, so it goes stale,
+and `/healthz/worker` says so to the monitor. That is the whole of the
+worker's liveness story — there is no ping to an outside service and nothing
+here has a URL to reach.
 """
 
 import logging
 import os
 import signal
 import time
+from collections import namedtuple
 
 log = logging.getLogger("dinkydash.worker")
 
 DEFAULT_INTERVAL = 300  # five minutes, as PLAN.md's "three clocks" section says
+
+# What a pass did: how many families were ticked without raising, and how many
+# raised. Both are counts of families, never of anything inside one.
+Pass = namedtuple("Pass", "ticked failed")
 
 
 class Stopping:
@@ -79,7 +92,7 @@ def family_ids(pool):
 
 def tick_all(pool, store_factory=None, tick=None, stopping=None,
              budget_factory=None):
-    """Tick every family once. Returns how many were ticked without raising.
+    """Tick every family once. Returns a `Pass`: how many ticked, how many raised.
 
     One family's bad calendar feed, missing config or Anthropic outage must not
     stop the others: a shared worker that dies on the noisiest tenant is a
@@ -101,7 +114,7 @@ def tick_all(pool, store_factory=None, tick=None, stopping=None,
     if tick is None:
         from generate import tick
 
-    done = 0
+    done = failed = 0
     for family_id in family_ids(pool):
         if stopping:
             log.info("Stopping before family %s.", family_id)
@@ -116,7 +129,64 @@ def tick_all(pool, store_factory=None, tick=None, stopping=None,
             # the traceback, which is about our code rather than their data.
             log.exception("Tick failed for family %s; leaving it for the next pass.",
                           family_id)
-    return done
+            failed += 1
+    return Pass(done, failed)
+
+
+def run_pass(pool, stopping=None, beat=None):
+    """One pass: housekeeping, every family, the sweep — then the heartbeat.
+
+    Returns the `Pass`, or None when the pass did not finish.
+
+    **The heartbeat is written only after a completed pass**, and here rather
+    than in `tick_all`, because "finished" is decided here. A stop request
+    that ended the walk early is not a finished pass; nor is one that could
+    not list the families, which is the one thing `tick_all` cannot catch per
+    family because there is no family yet — a database that cannot be reached
+    is the usual cause. Both leave the last heartbeat where it was, so it goes
+    stale and `/healthz/worker` says so: that is the alert (DIN-54). A family
+    whose tick raised is *inside* the pass and is counted in `failed`; the
+    pass still finished, and the count is on the operator's page.
+
+    A failure to *write* the heartbeat is logged and otherwise ignored. The
+    boards were written; a pulse that stops the worker is a pulse that kills
+    the patient.
+
+    `beat` is injectable for the tests; the real one is `heartbeat.beat`.
+    """
+    if beat is None:
+        from dinkydash import heartbeat
+        beat = heartbeat.beat
+    from dinkydash import lifecycle
+
+    started = time.monotonic()
+    try:
+        expired = lifecycle.expire_trials(pool)
+        if expired:
+            log.info("Ended %s expired trial(s).", expired)
+    except Exception:
+        # Callers still check the deadline themselves if housekeeping fails.
+        log.exception("Could not mark expired trials; retrying next pass.")
+
+    try:
+        result = tick_all(pool, stopping=stopping)
+    except Exception:
+        log.exception("The pass could not list the families; leaving it for the "
+                      "next pass. No heartbeat.")
+        return None
+    swept = sweep_logins(pool)
+    took = time.monotonic() - started
+    if stopping:
+        log.info("Pass interrupted by a stop request after %.1fs; no heartbeat.", took)
+        return None
+
+    log.info("Pass complete: %s families ticked, %s failed, in %.1fs; %s dead "
+             "login token(s) deleted.", result.ticked, result.failed, took, swept)
+    try:
+        beat(pool, result.ticked, result.failed, int(took * 1000))
+    except Exception:
+        log.exception("Could not record the heartbeat; the pass itself finished.")
+    return result
 
 
 def sweep_logins(pool):
@@ -161,7 +231,7 @@ def main():  # pragma: no cover - the loop itself; tick_all is what is tested
         format="%(asctime)s [%(levelname)s] %(message)s",
     )
 
-    from dinkydash import db, lifecycle
+    from dinkydash import db
 
     stopping = Stopping()
     signal.signal(signal.SIGTERM, stopping.request)
@@ -172,18 +242,7 @@ def main():  # pragma: no cover - the loop itself; tick_all is what is tested
     log.info("Worker started; a pass every %s seconds.", every)
 
     while not stopping:
-        started = time.monotonic()
-        try:
-            expired = lifecycle.expire_trials(pool)
-            if expired:
-                log.info("Ended %s expired trial(s).", expired)
-        except Exception:
-            # Callers still check the deadline themselves if housekeeping fails.
-            log.exception("Could not mark expired trials; retrying next pass.")
-        ticked = tick_all(pool, stopping=stopping)
-        swept = sweep_logins(pool)
-        log.info("Pass complete: %s families ticked in %.1fs; %s dead login "
-                 "token(s) deleted.", ticked, time.monotonic() - started, swept)
+        run_pass(pool, stopping)
 
         # Sleep in slices so SIGTERM is noticed in seconds rather than minutes.
         # App Platform kills a container that ignores it for too long, and

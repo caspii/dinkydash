@@ -575,3 +575,76 @@ new container; the one that died is under `--type run_restarted`. The health pro
 10 s on a ~2 ms cadence, so a probe that lands late is the cheap sign that a request was CPU-bound
 just then. There is still no memory graph outside the dashboard's Insights tab, and no alert on
 restarts.
+
+## The worker's pulse and the monitor, 10 September 2026 (DIN-54)
+
+**What the health check was, and was not, doing.** App Platform probes `/healthz` on its own
+`.ondigitalocean.app` hostname, so it is the marketing app that answers it (`wsgi.py` sends unknown
+hosts there), and it reads nothing on purpose. That makes it a good probe and a poor gate: it stops a
+container that cannot start, and nothing else. Demonstrated before this change by booting the cloud
+entry point with `DATABASE_URL` pointing at a closed port — the app built in half a second, both
+hostnames answered `200` on `/healthz` and on `/login`, and the pool kept retrying in the background.
+Such a deploy would have gone live and 500'd every board after a thirty-second wait. The migrate job
+would not have caught it either: it connects with `DATABASE_URL_DIRECT`, not the pooled URL.
+
+**Three things changed, none of them the probe.**
+
+- **`create_app` waits for the database before it will start** (`db.ready`, ten seconds). Under
+  gunicorn a worker that raises on boot halts the server, the container never becomes healthy, and
+  the previous release keeps serving. `tests/test_cloud_mode.py` covers it, including one real pool
+  against a closed port. The trade: if the database is down at the moment a container restarts, the
+  container loops until it returns, and the marketing site shares that container.
+- **The worker writes a heartbeat after every completed pass** — one row in `worker_heartbeat`
+  (migration 007, applied by the pre-deploy job on merge): when, how many families ticked, how many
+  raised, how long. `/healthz/worker` serves it and answers `503` once it is older than
+  `DINKYDASH_WORKER_STALE_AFTER` (default 900 s, three missed passes). A stop request that cuts a
+  pass short writes nothing, and neither does a pass that cannot list the families, so both go stale.
+  `/admin` shows the same row in a sentence.
+- **`.github/workflows/monitor.yml` runs `monitor.py` every fifteen minutes and after every push to
+  `main`**, the latter waiting up to fifteen minutes for both hostnames to report the pushed commit.
+  It checks the site's `/` and `/healthz`, the app's `/healthz`, `/login` and `/healthz/worker`, and
+  a failed run is the alert: GitHub emails whoever last committed the schedule line. No secrets, no
+  account anywhere, nothing new for the worker to reach — which is why this replaced the push-a-ping
+  design drafted in PR #97. **That PR's heartbeat half is superseded by this; its restore-drill half
+  (DIN-56) is untouched and still wants merging on its own.**
+
+**The drill, against a test worker and a test database, never production.** A scratch Postgres on
+this Mac, migrated from empty; the real `wsgi:application` on port 5199 with the site on `localhost`
+and the app on `127.0.0.1`; the real `python -m worker` with a pass every 5 s and the allowance cut
+to 20 s; `monitor.py` pointed at both. The model key was a fake, the spend brake was on and the
+email key empty, so nothing could leave the machine. All times UTC:
+
+| When | What | `monitor.py` said | Exit |
+|---|---|---|---|
+| 20:46:32 | web up, no worker has ever run | `FAIL app /healthz/worker: no pass has ever finished`; the other four checks `PASS` | 1 |
+| 20:46:37 | worker started 20:46:32, first pass complete 20:46:33 | `PASS ... alive, last pass 4 s ago` | 0 |
+| 20:46:38 | worker sent SIGTERM; "Stop requested; finishing the family in hand" then "Worker stopped" | — | — |
+| 20:46:46 | 8 s after the stop, inside the allowance | `PASS ... alive, last pass 13 s ago` | 0 |
+| 20:47:02 | 24 s after the stop, past the allowance | `FAIL app /healthz/worker: stale, last pass 29 s ago` | 1 |
+| 20:47:07 | worker started again 20:47:02 | `PASS ... alive, last pass 4 s ago` | 0 |
+
+The web log shows the one `503` at 20:47:02 and `200`s around it. What this proves: a stopped worker
+becomes a failed check within one allowance, and a restarted one clears it on its first pass. **What
+it does not prove: that GitHub's email arrives.** That is GitHub's own notification of a failed
+workflow run, and it was not witnessed in this batch.
+
+**To witness it, without touching anything live:** Actions → Monitor → Run workflow, and give `app`
+an address that cannot answer, such as `https://app.dinkydash.co/nowhere`. The run fails within a
+minute and the email goes to whoever pressed the button. The first run on `main` after the merge is
+the other thing to watch: it should pass, and if it does not, the run's log says which line failed.
+
+**Running `monitor.py` from this Mac** needs `SSL_CERT_FILE=$(venv/bin/python -m certifi)` in front
+of it: the python.org 3.11 here ships no CA bundle, so every HTTPS fetch fails verification without
+one. The GitHub runner needs nothing. Run that way against production on 10 September, before the
+merge, it passed the four page checks and failed `/healthz/worker` with a 404 — which is the failure
+path of the script working against the live service, not a fault in it.
+
+**How to read it next time.** `curl -s https://app.dinkydash.co/healthz/worker` is the whole
+status: `ok`, `stale` or `never`, with the age in seconds. `doctl apps logs <id> worker --type run`
+holds the worker's own "Pass complete" lines. A worker that has stopped restarts with
+`doctl apps restart <id> --components worker`; a deploy that went live broken rolls back from the
+dashboard's Deployments tab, and the monitor's push-triggered run will have said so first.
+
+**No spec apply needed.** `.do/app.yaml` gained comments only. `DINKYDASH_WORKER_STALE_AFTER` is
+defaulted in code and is not in the spec; if `DINKYDASH_WORKER_INTERVAL` is ever set there, set the
+allowance alongside it, or the monitor alerts on a worker that is merely slow by design.

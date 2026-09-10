@@ -74,6 +74,9 @@ def forget_unowned_rows(pool):
             cur.execute("DELETE FROM login_tokens WHERE user_id IS NULL")
             cur.execute("DELETE FROM global_model_spend")
             cur.execute("DELETE FROM growth_by_day")
+            # The worker's pulse (007) has no family either, and a heartbeat
+            # left by one test is a live worker in the next.
+            cur.execute("DELETE FROM worker_heartbeat")
 
 
 @pytest.fixture

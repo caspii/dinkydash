@@ -46,9 +46,10 @@ process for anything scripted — it has no cookie policy and exercises the same
 into the `requests` half of that.
 
 **A route that touches a store needs `session.guard`**, and the board blueprint's `before_request`
-is where that is decided. `board.healthz` is the one exemption and it is load-bearing: App
-Platform's health check arrives with no cookie, and a 302 there fails it three times and rolls the
-release back. It is also the only route that reads nothing, so it needs no family.
+is where that is decided. `board.healthz` is the one exemption in that blueprint and it is
+load-bearing: App Platform's health check arrives with no cookie, and a 302 there fails it three
+times and rolls the release back. It is also the only route that reads nothing, so it needs no
+family.
 
 **`web/routes/screen.py` is the other exemption, and it is a separate blueprint for that reason.**
 `/s/<token>` has no session by design — a wall panel cannot sign in — so it is not behind `guard()`
@@ -72,7 +73,19 @@ route works out (`admin.chart`), because arithmetic in a template is arithmetic 
 two series colours are the shell's own `--accent` and `--purple`, checked as a pair on the card's
 white with the dataviz palette validator (CVD ΔE 24.7, both above 3:1); a third series means
 running it again, not picking a colour. `tests/test_admin.py` covers the gate, the bounds on
-`?weeks=` and the drawing.
+`?weeks=` and the drawing. The same page carries the worker's last pass in a sentence, from
+`dinkydash/heartbeat.py` — the row `/healthz/worker` serves to the monitor, for an operator who
+would rather not curl.
+
+**`web/routes/status.py` is the fourth cloud-only blueprint, and the one route that reads the
+database with no session** (DIN-54). `/healthz/worker` answers 200 while the worker's last
+completed pass is within `DINKYDASH_WORKER_STALE_AFTER` seconds (default 900, three missed passes)
+and 503 once it is not, and `.github/workflows/monitor.yml` turns that 503 into a failed run. It
+is public so the monitor needs no secret; the row it reads names no family; it is `no-store` and
+`noindex`. **It is not the platform's probe and must never become it** — `/healthz` reads nothing
+because three failed probes restart the container, and a probe that answered 503 for a quiet
+worker would answer a dead worker with a rolled-back deploy. `tests/test_deploy_spec.py` holds the
+spec to that, and `tests/test_status.py` covers the rest.
 
 **Every form that writes needs one hidden field.** `<input type="hidden" name="csrf_token"
 value="{{ csrf_token() }}">`, right inside the `<form>`. `csrf_token()` is a Jinja global set up by

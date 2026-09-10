@@ -229,6 +229,19 @@ committed `docs/`; with the site rendered on request there is one copy of it, in
 **Allowlisting is for values that are public by design.** A real secret that reached a commit is
 fixed by rotating it.
 
+**What decides whether a deploy goes live, and what watches it afterwards** (DIN-54). App
+Platform probes `/healthz` on the platform's own hostname, so it is the marketing app that answers
+it; the probe reads nothing on purpose, because three failed probes restart the container and a
+probe that depended on the database would turn a slow query into a rolled-back deploy. So it only
+proves that the process came up — which is why `create_app` now calls `db.ready` and refuses to
+start when the pooled database does not answer within ten seconds, turning a wrong `DATABASE_URL`
+into a deploy that never goes live rather than one that 500s every board. What the probe cannot
+see, `.github/workflows/monitor.yml` checks from outside with `monitor.py` — every fifteen minutes,
+and after each push to `main` once both hostnames report that commit: the pages that rank, the
+login page, and `/healthz/worker`, which serves the worker's last completed pass and answers 503
+once it is older than `DINKYDASH_WORKER_STALE_AFTER` (three missed passes). A failed run is the
+alert. **That path must never become the probe**, and `tests/test_deploy_spec.py` fails if it does.
+
 Two things the net does not catch, both worth knowing before trusting it:
 
 - **The defaults have no rule for a calendar URL**, which is why we wrote our own. Anything else
@@ -312,6 +325,7 @@ dinkydash/
 ├── budget.py          what a family may spend on the model, and what everybody may
 │                     (`accounts.delete_family` is the hard delete; see phase 5)
 ├── growth.py          signups and activations per day, with no family in the row (cloud only)
+├── heartbeat.py       the worker's pulse: one row, written after each completed pass (cloud only)
 └── runner.py          the two halves of the day, reading and writing through a store
 
 web/
@@ -326,6 +340,7 @@ web/
 ├── routes/auth.py     /login, /login/link, /logout — cloud mode only
 ├── routes/screen.py   /s/<token> — the board with no session, cloud mode only
 ├── routes/admin.py    /admin — signups and activations by week, for DINKYDASH_ADMIN_EMAILS only
+├── routes/status.py   /healthz/worker — the worker's last pass, 503 when stale; for the monitor, never the probe
 └── templates/         board.html, preview.html, auth/*.html, settings/*.html, admin/growth.html
 ```
 

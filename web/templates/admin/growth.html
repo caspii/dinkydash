@@ -86,6 +86,16 @@
     </div>
 </div>
 
+{# The worker's pulse (DIN-54): the row /healthz/worker serves to the monitor,
+   in a sentence. "Quiet" here is what the monitor is emailing about. #}
+<div class="card pad worker" style="display:flex;justify-content:space-between;align-items:baseline;gap:0.5rem;flex-wrap:wrap;">
+    <div style="display:flex;flex-direction:column;gap:0.125rem;min-width:0;">
+        <div style="font-size:0.9375rem;font-weight:800;">Worker</div>
+        <div class="hint">{{ pulse_text }}</div>
+    </div>
+    <span class="pill {{ 'warm' if pulse.status == 'ok' else 'muted' }}">{{ pulse_word }}</span>
+</div>
+
 {# One row of range choices, above everything it scopes. #}
 <div class="spans">
     <span class="label">Last</span>

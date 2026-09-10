@@ -1,0 +1,68 @@
+# Is the hosted service up, on the commit it should be, with a worker that is
+# still ticking? One script, `monitor.py`, and a failed run is the alert
+# (DIN-54): GitHub emails whoever last touched this file's schedule when a
+# scheduled run fails, and the Actions tab shows a red X either way.
+#
+# * every fifteen minutes: the marketing site, the app, and `/healthz/worker`,
+#   which answers 503 once the worker has missed three passes;
+# * after every push to `main`: the same, but first wait for App Platform to
+#   finish building and for both hostnames to report that commit. A push that
+#   never goes live, or goes live broken, fails here within fifteen minutes —
+#   which the platform's own health check cannot tell you, because it never
+#   reads the database and never opens a page;
+# * by hand, with the two addresses as inputs. Point `app` somewhere that
+#   cannot answer and the run fails within a minute, which is how to see the
+#   alert arrive without stopping anything real (doc/operations.md).
+#
+# No secrets: everything it reads is public, and nothing it reads is anybody's
+# data. Scheduled workflows are best effort — GitHub runs them late under load
+# and switches them off after sixty days without a push — so the cadence is a
+# floor on how quickly a dead worker is noticed, not a promise.
+name: Monitor
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      site:
+        description: "The marketing site"
+        default: "https://dinkydash.co"
+      app:
+        description: "The app"
+        default: "https://app.dinkydash.co"
+
+permissions:
+  contents: read
+
+jobs:
+  live:
+    name: live service
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+
+      # `monitor.py` is standard library only, so there is nothing to install.
+      - name: Wait for this commit to be live, then check the service
+        if: github.event_name == 'push'
+        run: python monitor.py --commit "$GITHUB_SHA" --wait 900
+
+      - name: Check the live service
+        if: github.event_name == 'schedule'
+        run: python monitor.py
+
+      # Inputs reach the shell through the environment, never by interpolation
+      # into the command line.
+      - name: Check the addresses given
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          SITE: ${{ inputs.site }}
+          APP: ${{ inputs.app }}
+        run: python monitor.py --site "$SITE" --app "$APP"

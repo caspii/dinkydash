@@ -3,18 +3,20 @@
 The loop itself is not tested — a `while True` with a sleep in it is not worth
 a fake clock. `tick_all` is, because it holds the decisions: which families are
 walked, what happens when one of them raises, and what reaches a log when it
-does.
+does. `run_pass` is, because it decides what a heartbeat means (DIN-54).
 
 Nothing here needs Postgres. `tick_all` takes its store factory and its tick
-function as arguments, so the fakes below are the whole test rig.
+function as arguments, and `run_pass` its heartbeat, so the fakes below are the
+whole test rig.
 """
 
 import logging
 
 import pytest
 
+import worker
 from dinkydash.budget import NoBudget
-from worker import DEFAULT_INTERVAL, Stopping, interval, tick_all
+from worker import DEFAULT_INTERVAL, Pass, Stopping, interval, run_pass, tick_all
 
 
 class FakePool:
@@ -73,10 +75,10 @@ class TestWalkingTheFamilies:
         seen = []
         done = run(["a", "b", "c"], lambda config, store, budget=None: seen.append(store.family_id))
         assert seen == ["a", "b", "c"]
-        assert done == 3
+        assert done == Pass(ticked=3, failed=0)
 
     def test_no_families_is_not_an_error(self):
-        assert run([], lambda config, store, budget=None: None) == 0
+        assert run([], lambda config, store, budget=None: None) == Pass(0, 0)
 
     def test_the_config_comes_from_that_family_s_store(self):
         configs = []
@@ -102,13 +104,13 @@ class TestOneBadFamily:
 
         done = run(["a", "b", "c"], tick)
         assert seen == ["a", "b", "c"]
-        assert done == 2
+        assert done == Pass(ticked=2, failed=1)
 
     def test_every_family_can_fail_without_raising(self):
         def tick(config, store, budget=None):
             raise RuntimeError("everything is down")
 
-        assert run(["a", "b"], tick) == 0
+        assert run(["a", "b"], tick) == Pass(ticked=0, failed=2)
 
     def test_the_failure_log_names_the_id_and_not_the_config(self, caplog):
         """A config holds children's names, and a calendar URL is a password."""
@@ -134,7 +136,7 @@ class TestStopping:
 
         done = run(["a", "b", "c"], tick, stopping=stopping)
         assert seen == ["a"]
-        assert done == 1
+        assert done == Pass(ticked=1, failed=0)
 
     def test_a_fresh_stopping_is_falsey(self):
         assert not Stopping()
@@ -143,6 +145,108 @@ class TestStopping:
         s = Stopping()
         s.request()
         assert s
+
+
+class TestThePulse:
+    """A heartbeat means a pass finished — not that every family succeeded (DIN-54).
+
+    `run_pass` is the only place that knows whether a pass finished, so it is
+    the only place that beats. Everything it calls is replaced by a fake that
+    records the order; the pool is any object, because none of the fakes look
+    at it.
+    """
+
+    @pytest.fixture
+    def rig(self, monkeypatch):
+        calls, beats = [], []
+        monkeypatch.setattr("dinkydash.lifecycle.expire_trials",
+                            lambda pool: calls.append("expire") or 0)
+        monkeypatch.setattr(worker, "tick_all",
+                            lambda pool, stopping=None: calls.append("tick") or Pass(2, 1))
+        monkeypatch.setattr(worker, "sweep_logins",
+                            lambda pool: calls.append("sweep") or 0)
+
+        def beat(pool, ticked, failed, took_ms):
+            calls.append("beat")
+            beats.append((ticked, failed, took_ms))
+
+        return calls, beats, beat
+
+    def test_a_completed_pass_beats_last_and_carries_its_counts(self, rig):
+        calls, beats, beat = rig
+        assert run_pass(object(), Stopping(), beat=beat) == Pass(2, 1)
+        assert calls == ["expire", "tick", "sweep", "beat"]
+        (ticked, failed, took_ms), = beats
+        assert (ticked, failed) == (2, 1)
+        assert took_ms >= 0
+
+    def test_a_pass_in_which_every_family_failed_is_still_a_live_worker(self, rig, monkeypatch):
+        """Failed work is counted and shown; a dead worker is a different thing."""
+        calls, beats, beat = rig
+        monkeypatch.setattr(worker, "tick_all",
+                            lambda pool, stopping=None: calls.append("tick") or Pass(0, 3))
+        assert run_pass(object(), Stopping(), beat=beat) == Pass(0, 3)
+        assert beats[0][:2] == (0, 3)
+
+    def test_an_interrupted_pass_does_not_beat(self, rig, monkeypatch):
+        """A stop request mid-walk is a redeploy, not a finished pass."""
+        calls, beats, beat = rig
+        stopping = Stopping()
+
+        def interrupted(pool, stopping=None):
+            calls.append("tick")
+            stopping.request()
+            return Pass(1, 0)
+
+        monkeypatch.setattr(worker, "tick_all", interrupted)
+        assert run_pass(object(), stopping, beat=beat) is None
+        assert "beat" not in calls
+        assert beats == []
+
+    def test_a_pass_that_cannot_list_the_families_neither_beats_nor_raises(
+            self, rig, monkeypatch, caplog):
+        """A dead database is the usual cause. The worker keeps looping, the
+        heartbeat goes stale, and stale is the alert."""
+        calls, beats, beat = rig
+
+        def dead(pool, stopping=None):
+            calls.append("tick")
+            raise RuntimeError("connection failed")
+
+        monkeypatch.setattr(worker, "tick_all", dead)
+        with caplog.at_level(logging.ERROR):
+            assert run_pass(object(), Stopping(), beat=beat) is None
+        assert calls == ["expire", "tick"]
+        assert "next pass" in caplog.text
+
+    def test_a_heartbeat_that_cannot_be_written_does_not_stop_the_worker(self, rig, caplog):
+        calls, beats, _ = rig
+
+        def broken(pool, ticked, failed, took_ms):
+            raise RuntimeError("relation worker_heartbeat does not exist")
+
+        with caplog.at_level(logging.ERROR):
+            assert run_pass(object(), Stopping(), beat=broken) == Pass(2, 1)
+        assert "heartbeat" in caplog.text.lower()
+
+    def test_housekeeping_failing_does_not_stop_the_pass_or_the_beat(self, rig, monkeypatch):
+        calls, beats, beat = rig
+        monkeypatch.setattr("dinkydash.lifecycle.expire_trials",
+                            lambda pool: (_ for _ in ()).throw(RuntimeError("no")))
+        assert run_pass(object(), Stopping(), beat=beat) == Pass(2, 1)
+        assert calls[-1] == "beat"
+
+    def test_no_stopping_at_all_is_a_pass_that_finishes(self, rig):
+        calls, beats, beat = rig
+        assert run_pass(object(), beat=beat) == Pass(2, 1)
+        assert len(beats) == 1
+
+    def test_the_real_heartbeat_is_the_default(self, rig, monkeypatch):
+        calls, beats, _ = rig
+        monkeypatch.setattr("dinkydash.heartbeat.beat",
+                            lambda pool, ticked, failed, took_ms: beats.append("real"))
+        run_pass(object(), Stopping())
+        assert beats == ["real"]
 
 
 class TestInterval:

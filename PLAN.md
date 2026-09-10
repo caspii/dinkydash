@@ -256,6 +256,7 @@ or duplicate self-hosted config loader.
 | `/preview` | Three sizes of the local board | Authenticated preview of the tokenised board |
 | `/admin` | Not used | Signups and activations by week, for addresses in `DINKYDASH_ADMIN_EMAILS` only |
 | `/healthz` | Process health | Process health, not worker/database health |
+| `/healthz/worker` | Not used | The worker's last completed pass; 503 when stale. Read by the monitor workflow, never by the platform probe |
 
 Stripe routes are not implemented; their contract belongs to [DIN-53](https://linear.app/keepthescore/issue/DIN-53).
 
@@ -274,6 +275,7 @@ The SQL files in [migrations/](migrations/) are authoritative. The current table
 | `model_spend` | Daily per-family calls and reported tokens |
 | `global_model_spend` | Daily call totals without family identifiers; survives deletion |
 | `growth_by_day` | Daily signups and activations without family identifiers, kept by a trigger; survives deletion |
+| `worker_heartbeat` | One row per worker loop: when the last pass finished, families ticked, families that raised, duration; no family identifiers |
 | `calendar_health` | Schema exists; recurring-failure tracking is not yet wired up |
 | `schema_migrations` | Applied migration versions |
 
@@ -297,7 +299,11 @@ The spec is [`.do/app.yaml`](.do/app.yaml); secrets stay in encrypted platform e
 variables. The Python buildpack installs `requirements-cloud.txt`. No Dockerfile is needed.
 
 Changes on main deploy through App Platform with a pre-deploy migration job and
-`/healthz` readiness checks. GitHub CI checks pytest and gitleaks; the tests run with
+`/healthz` readiness checks. The probe reads nothing, so `create_app` also refuses to start
+until the pooled database answers (`db.ready`), which is what stops a wrong `DATABASE_URL`
+going live. After each push to `main`, and every fifteen minutes, the `Monitor` workflow
+runs `monitor.py` against both hostnames: the pages, the commit both `/healthz` report, and
+`/healthz/worker`. GitHub CI checks pytest and gitleaks; the tests run with
 Postgres 17 and without a configured database. The current branch rules and deployment
 history are recorded in [doc/operations.md](doc/operations.md).
 
@@ -320,7 +326,9 @@ PR #86 uses `pg_advisory_xact_lock` for token issuance: the lock belongs to the 
 transaction. It does not introduce a session-scoped lock or require session pooling.
 
 Managed backups are documented in operations; the independent restore drill remains
-[DIN-56](https://linear.app/keepthescore/issue/DIN-56). Worker liveness alerts remain MVP work ([DIN-54](https://linear.app/keepthescore/issue/DIN-54));
+[DIN-56](https://linear.app/keepthescore/issue/DIN-56). Worker liveness is a row the worker writes after each completed
+pass (`worker_heartbeat`, `dinkydash/heartbeat.py`), served at `/healthz/worker` and polled by the
+`Monitor` workflow, whose failed run is the alert ([DIN-54](https://linear.app/keepthescore/issue/DIN-54));
 Sentry instrumentation is Backlog ([DIN-35](https://linear.app/keepthescore/issue/DIN-35)).
 Cloud startup validates the session key and database configuration; model/email failures
 have their own runtime handling. Stripe credentials are not required before billing exists.
@@ -413,7 +421,7 @@ alone does not close the phase.
 
 - [x] Transactional email wired into signup/login ([DIN-36](https://linear.app/keepthescore/issue/DIN-36), [DIN-38](https://linear.app/keepthescore/issue/DIN-38)).
 - [ ] Sentry for web, worker and applicable frontend errors, with sensitive-data filtering ([DIN-35](https://linear.app/keepthescore/issue/DIN-35); Backlog).
-- [ ] Worker heartbeat and external health alerts, verified by a controlled failure ([DIN-54](https://linear.app/keepthescore/issue/DIN-54)).
+- [x] Worker heartbeat and external health alerts, verified by a controlled failure ([DIN-54](https://linear.app/keepthescore/issue/DIN-54)): the worker writes `worker_heartbeat` after each completed pass, `/healthz/worker` serves it and answers 503 when stale, and the `Monitor` workflow polls it every fifteen minutes and after each deploy. The stop-and-recover drill was run against an isolated worker and database on 10 September 2026 ([doc/operations.md](doc/operations.md)); the emailed notification of a failed run is GitHub's own and was not witnessed in that batch.
 - [ ] Repeatable restore into an isolated database, with a successful drill recorded ([DIN-56](https://linear.app/keepthescore/issue/DIN-56)).
 - [x] Preserve explicit preview database overrides ([DIN-48](https://linear.app/keepthescore/issue/DIN-48)).
 - [ ] Admin dashboard ([DIN-37](https://linear.app/keepthescore/issue/DIN-37)): signups and activations by week exist at `/admin`, behind `DINKYDASH_ADMIN_EMAILS` (migration 006, `dinkydash/growth.py`). Spend, trial status and calendar health, per the issue's triage, remain Backlog.

@@ -17,9 +17,12 @@ authorisation miss in this app follows. An empty or missing list means nobody,
 which is the safe way for a new deployment to be wrong.
 
 **No family is read here.** The page is built from `dinkydash/growth.py`,
-which reads a table with no family identifiers in it plus one `count(*)`.
-Nothing in this file takes an id from the request, the session or the URL, so
-there is no id to check and nothing for a bug here to leak.
+which reads a table with no family identifiers in it plus one `count(*)`, and
+from `dinkydash/heartbeat.py`, which reads the worker's last pass — a time and
+three counts, the same row `/healthz/worker` serves to the monitor, said in a
+sentence here so the operator can see it without curl. Nothing in this file
+takes an id from the request, the session or the URL, so there is no id to
+check and nothing for a bug here to leak.
 
 The chart is inline SVG drawn from numbers worked out below, with no script
 and no third-party request — the settings shell's own rules. Its two colours
@@ -33,8 +36,9 @@ from datetime import datetime, timezone
 from flask import (Blueprint, abort, current_app, make_response, render_template,
                    request)
 
-from dinkydash import growth
+from dinkydash import growth, heartbeat
 from web.family import is_admin
+from web.routes.status import stale_after
 from web.session import guard
 
 bp = Blueprint("admin", __name__)
@@ -89,6 +93,8 @@ def growth_page():
     weekly = growth.by_week(rows, weeks, today)
     total = growth.totals(rows)
     families = growth.families_now(pool)
+    pulse = heartbeat.verdict(heartbeat.last(pool), datetime.now(timezone.utc),
+                              stale_after())
     response = make_response(render_template(
         "admin/growth.html",
         weekly=weekly, latest=weekly[-1], span=weeks, spans=SPANS,
@@ -98,6 +104,8 @@ def growth_page():
         # the counter in a way the backfill could not see.
         deleted=max(0, total.signups - families),
         chart=chart(weekly),
+        pulse=pulse, pulse_word=PULSE_WORDS[pulse["status"]],
+        pulse_text=pulse_text(pulse),
     ))
     # Counts, not anybody's data — but it is the business's own page, and a
     # shared cache has no business holding it.
@@ -112,6 +120,38 @@ def span(raw):
     except (TypeError, ValueError):
         return DEFAULT_WEEKS
     return min(MOST_WEEKS, max(1, weeks))
+
+
+# -- the worker's pulse -------------------------------------------------------
+
+# One word for the pill beside the sentence: the three answers `heartbeat.verdict`
+# can give, in the operator's language.
+PULSE_WORDS = {"ok": "Alive", "stale": "Quiet", "never": "Never run"}
+
+
+def pulse_text(pulse):
+    """The worker's last pass in one sentence, from what `heartbeat.verdict` said."""
+    if pulse["status"] == "never":
+        return "No pass has finished yet."
+    last = pulse["last_pass"]
+    families = last["families"]
+    return (f"Last pass finished {ago(pulse['age_seconds'])}: "
+            f"{families} {'family' if families == 1 else 'families'}, "
+            f"{'none failed' if not last['failed'] else str(last['failed']) + ' failed'}, "
+            f"{last['took_ms'] / 1000:.1f} s.")
+
+
+def ago(seconds):
+    """`seconds` as a person would say it. Coarse on purpose: the page is not a clock."""
+    if seconds < 60:
+        return "just now"
+    minutes = seconds // 60
+    if minutes < 60:
+        return f"{minutes} minute{'' if minutes == 1 else 's'} ago"
+    hours = minutes // 60
+    if hours < 48:
+        return f"{hours} hour{'' if hours == 1 else 's'} ago"
+    return f"{hours // 24} days ago"
 
 
 # -- the drawing ------------------------------------------------------------
