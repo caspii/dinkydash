@@ -12,6 +12,12 @@ form both render from it, and `parse_field` reads it back. `kind` is one of `tex
 `monthday`, `textarea`, `checkbox`, `emoji`, `color`, `people`, `emails`. A new `kind` needs a
 branch in `parse_field` and a branch in `web/templates/settings/edit.html`; nothing else.
 
+**`date` means a date of birth, and it is bounded.** The input carries `min` and `max` of
+1900-01-01 and today, and `validate` refuses anything outside them, naming the year it received.
+Both halves are needed: a phone's year wheel scrolls down to the year 1, and a mistyped year
+used to be saved silently and show up on the People page as somebody 2,009 years old. A `date`
+field that is not a birthday needs a kind of its own rather than a looser bound on this one.
+
 **Adding a whole settings section.** Add an entry to `SECTIONS` and a row to
 `web/templates/settings/home.html`. The list, edit, delete and reorder routes are generic and need
 no changes.

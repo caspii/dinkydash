@@ -38,7 +38,8 @@
                    placeholder="sam@example.com">
 
         {% elif kind == 'date' %}
-            <input type="date" id="f-{{ name }}" name="{{ name }}" value="{{ item.get(name, '') }}" {{ 'required' if required }}>
+            <input type="date" id="f-{{ name }}" name="{{ name }}" value="{{ item.get(name, '') }}"
+                   min="{{ date_min }}" max="{{ date_max }}" {{ 'required' if required }}>
 
         {% elif kind == 'textarea' %}
             <textarea id="f-{{ name }}" name="{{ name }}">{{ item.get(name, '') }}</textarea>
