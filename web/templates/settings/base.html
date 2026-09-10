@@ -63,6 +63,11 @@
             --amber: #d97706;
             --amber-dark: #b45309;
             --danger: #c0392b;
+            --danger-dark: #a93226;
+            /* The wash a pointer puts behind a bare control — "Cancel", "Board",
+               "Not now", a muted pill. Rows and outline buttons take --warm
+               instead: on a white card that reads as warmth, this as dirt. */
+            --tint: rgba(154, 134, 119, 0.12);
         }
         *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
         /* An inline `display` beats the browser's own [hidden] rule, so say it here. */
@@ -74,6 +79,7 @@
         ::view-transition-old(root), ::view-transition-new(root) { animation-duration: 0.15s; }
         @media (prefers-reduced-motion: reduce) {
             ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
+            *, *::before, *::after { transition: none !important; }
         }
         /* Everything below is sized in rem off this one value, like the board. A phone gets the
            mockup's 16px; a desktop browser gets up to 20px, so the same layout reads at arm's
@@ -104,7 +110,8 @@
             min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
         /* The way back is a button, not a bare chevron: it names the page it goes to, and
-           its edges show the whole tap target rather than leaving a thumb to guess at it. */
+           its edges show the whole tap target rather than leaving a thumb to guess at it.
+           Its hover sits with the others at the foot of the sheet. */
         .appbar .back {
             display: inline-flex; align-items: center; gap: 0.125rem; flex-shrink: 0;
             min-height: 2.5rem; padding: 0 0.875rem 0 0.5rem;
@@ -112,26 +119,43 @@
             background: var(--surface); color: var(--text);
             font-size: 0.875rem; font-weight: 800; white-space: nowrap;
         }
-        .appbar .back:hover, .appbar .back:focus-visible { border-color: var(--accent); color: var(--accent); }
+        .appbar .back:focus-visible { border-color: var(--accent); color: var(--accent); }
         .appbar .back:active { background: var(--warm); }
         .appbar .action {
             display: inline-flex; align-items: center; justify-content: center;
             min-width: 2.75rem; height: 2.75rem; padding: 0 0.375rem;
             font-size: 0.9375rem; font-weight: 800; color: var(--accent);
+            border-radius: 0.625rem;
         }
         .appbar .action.muted { color: var(--text-muted); font-weight: 700; }
 
         .content { padding: 1rem; display: flex; flex-direction: column; gap: 1rem; }
 
-        .card { background: var(--surface); border: 1px solid var(--border); border-radius: 1rem; }
+        .card { --radius: 1rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); }
         .card.pad { padding: 0.9375rem; }
         .row {
             display: flex; align-items: center; gap: 0.8125rem;
             padding: 0.75rem 0.875rem; min-height: 3.875rem;
-            color: inherit;
+            color: inherit; position: relative;
         }
         .row + .row { border-top: 1px solid var(--border); }
-        .row-main { flex-grow: 1; min-width: 0; }
+        /* The rows at either end follow the card's curve, so a wash on the first
+           or last row does not square its corners off. Inside a 1px border the
+           curve is 1px tighter. */
+        .card > .row:first-child, .card > .step:first-child > .row {
+            border-top-left-radius: calc(var(--radius) - 1px); border-top-right-radius: calc(var(--radius) - 1px);
+        }
+        .card > .row:last-child, .card > .step:last-child > .row {
+            border-bottom-left-radius: calc(var(--radius) - 1px); border-bottom-right-radius: calc(var(--radius) - 1px);
+        }
+        /* `color: inherit` because on a list page this is the link, and the global `a` colour
+           was turning every name orange — the People mockup sets them in ink. */
+        .row-main { flex-grow: 1; min-width: 0; color: inherit; }
+        /* On a list page the link is the text block, and the avatar, the pill and
+           the space beside them were dead — so the link stretches over the whole
+           row, the way the home page's rows already work. The move buttons sit
+           above it and stay their own targets. */
+        a.row-main::after { content: ""; position: absolute; inset: 0; }
         .row-title { font-size: 0.9375rem; font-weight: 700; }
         .row-sub { font-size: 0.8125rem; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; }
         .chev { flex-shrink: 0; color: var(--faint); }
@@ -166,7 +190,11 @@
         .btn.outline { background: transparent; color: var(--text); border: 2px solid var(--border); box-shadow: none; }
         .btn.dashed { background: transparent; color: var(--text-mid); border: 2px dashed var(--border-strong); box-shadow: none; height: 3.25rem; }
         .btn.danger { background: transparent; color: var(--danger); box-shadow: none; font-weight: 700; }
+        .btn.danger.fill { background: var(--danger); color: #fff; box-shadow: 0 2px 8px rgba(192, 57, 43, 0.25); }
+        .btn.quiet { background: transparent; color: var(--text-muted); box-shadow: none; }
         .btn.small { height: 2.5rem; font-size: 0.875rem; width: auto; padding: 0 1rem; }
+        /* On a lapsed board the two disabled buttons used to look exactly like live ones. */
+        .btn:disabled { opacity: 0.45; cursor: not-allowed; box-shadow: none; }
 
         .field { display: flex; flex-direction: column; gap: 0.375rem; }
         .field > label { font-size: 0.6875rem; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; color: var(--text-muted); }
@@ -179,7 +207,8 @@
             font-family: inherit; font-size: 0.9375rem; font-weight: 600;
         }
         .field textarea { min-height: 4.75rem; resize: vertical; }
-        .field input:focus, .field select:focus, .field textarea:focus {
+        .field select { cursor: pointer; }
+        .field input:not([type=checkbox]):focus, .field select:focus, .field textarea:focus {
             outline: none; border-color: var(--accent);
         }
         .hint { font-size: 0.75rem; color: var(--text-muted); line-height: 1.5; }
@@ -195,10 +224,13 @@
         .picker input:checked + label { border: 2px solid var(--accent); background: rgba(232, 93, 36, 0.06); }
         .swatch { width: 2.125rem; height: 2.125rem; border-radius: 50%; display: block; }
         .picker.colors label { min-width: 2.875rem; height: 2.875rem; border-radius: 50%; border: none; padding: 0; }
-        .picker.colors input:checked + label { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent); }
+        /* The ring is the whole cue. Without the two resets the generic checked rule above
+           wins on specificity and draws its 2px border inside the ring as well. */
+        .picker.colors input:checked + label { border: none; background: transparent; box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent); }
 
         .checkline { display: flex; align-items: center; gap: 0.6875rem; padding: 0.375rem 0.125rem; }
-        .checkline input { width: 1.375rem; height: 1.375rem; accent-color: var(--accent); }
+        .checkline input { width: 1.375rem; height: 1.375rem; accent-color: var(--accent); cursor: pointer; }
+        .checkline label { cursor: pointer; }
         .checkline span, .checkline label { font-size: 0.9375rem; font-weight: 700; }
 
         .calendar-intro { font-size: 0.875rem; color: var(--text-mid); }
@@ -257,11 +289,76 @@
         }
         .qr-code { background: #ffffff; border-radius: 0.875rem; padding: 0.75rem; }
         .qr-code svg { display: block; width: 100%; height: auto; }
-        .move { display: flex; flex-direction: column; gap: 0.125rem; }
+        .move { display: flex; flex-direction: column; gap: 0.125rem; position: relative; z-index: 1; }
         .move button {
             width: 1.875rem; height: 1.5rem; border: 1px solid var(--border); background: var(--surface);
             border-radius: 0.4375rem; cursor: pointer; color: var(--text-muted); font-size: 0.7rem; line-height: 1;
         }
+
+        /* ---- A pointer, a press, and a keyboard ----
+           Hover is for a mouse. On a phone a "hover" is a tap that never ends,
+           left glowing on the row you just came back from, so every hover rule
+           sits behind (hover: hover); press states and focus rings are for
+           everyone. One cue throughout, taken from the mockups' `a:hover`:
+           filled things darken, bare things get --warm or --tint behind them,
+           links underline. Nothing changes size, so a row under the pointer
+           never shifts the one below it. */
+        .btn, .row, .chev, .appbar .back, .appbar .action, .picker label, .move button,
+        .pill, .calendar-help summary, .checkline label, .hint a, .note-box a, .flash a,
+        .field input, .field select, .field textarea {
+            transition: background-color 0.12s ease, border-color 0.12s ease, color 0.12s ease,
+                        box-shadow 0.12s ease, transform 0.12s ease, opacity 0.12s ease;
+        }
+        @media (hover: hover) {
+            .btn:not(:disabled):hover { background: var(--accent-dark); box-shadow: 0 4px 12px rgba(232, 93, 36, 0.3); transform: translateY(-1px); }
+            .btn.outline:not(:disabled):hover { background: var(--warm); border-color: var(--border-strong); box-shadow: none; transform: none; }
+            .btn.dashed:not(:disabled):hover { background: rgba(232, 93, 36, 0.05); border-color: var(--accent); color: var(--accent-dark); box-shadow: none; transform: none; }
+            .btn.danger:not(:disabled):hover { background: rgba(192, 57, 43, 0.08); box-shadow: none; transform: none; }
+            .btn.danger.fill:not(:disabled):hover { background: var(--danger-dark); box-shadow: 0 4px 12px rgba(192, 57, 43, 0.3); transform: translateY(-1px); }
+            .btn.quiet:not(:disabled):hover { background: var(--tint); color: var(--text-mid); box-shadow: none; transform: none; }
+
+            .appbar .back:hover { border-color: var(--accent); color: var(--accent); }
+            .appbar .action:hover { background: rgba(232, 93, 36, 0.08); color: var(--accent-dark); }
+            .appbar .action.muted:hover { background: var(--tint); color: var(--text); }
+
+            /* Two rules rather than one list: a browser without :has() would
+               drop the whole list, home rows included. */
+            a.row:hover { background: var(--warm); }
+            a.row:hover .chev { color: var(--text-muted); transform: translateX(0.125rem); }
+            .row:has(> a.row-main:hover) { background: var(--warm); }
+            .row:has(> a.row-main:hover) .chev { color: var(--text-muted); transform: translateX(0.125rem); }
+
+            .move button:hover { background: var(--warm); border-color: var(--border-strong); color: var(--text); }
+            .picker input:not(:checked) + label:hover { background: var(--warm); border-color: var(--border-strong); }
+            .picker.colors input:not(:checked) + label:hover { background: transparent; box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--border-strong); }
+            .checkline label:hover, .calendar-help summary:hover { color: var(--accent-dark); }
+            .field input:not(:focus):hover, .field select:not(:focus):hover, .field textarea:not(:focus):hover { border-color: var(--border-strong); }
+            .hint a:hover, .note-box a:hover, .flash a:hover { color: var(--accent-dark); text-decoration: underline; }
+            a.pill.muted:hover { background: rgba(154, 134, 119, 0.2); color: var(--text); }
+            a.pill.warm:hover { background: rgba(232, 93, 36, 0.16); }
+        }
+        /* Pressed. After the hover block on purpose: at equal specificity the
+           later rule wins while both apply, and a press should beat a hover. */
+        .btn:not(:disabled):active { transform: none; box-shadow: 0 1px 3px rgba(232, 93, 36, 0.25); }
+        .btn.outline:not(:disabled):active, .btn.quiet:not(:disabled):active { background: var(--border); box-shadow: none; transform: none; }
+        .btn.dashed:not(:disabled):active { background: rgba(232, 93, 36, 0.1); box-shadow: none; transform: none; }
+        .btn.danger:not(:disabled):active { background: rgba(192, 57, 43, 0.14); box-shadow: none; transform: none; }
+        .btn.danger.fill:not(:disabled):active { background: var(--danger-dark); box-shadow: 0 1px 3px rgba(192, 57, 43, 0.25); transform: none; }
+        .appbar .action.muted:active { background: rgba(154, 134, 119, 0.2); }
+        .appbar .action:active { background: rgba(232, 93, 36, 0.14); }
+        a.row:active { background: var(--border); }
+        .row:has(> a.row-main:active) { background: var(--border); }
+        .move button:active { background: var(--border); }
+        /* Keyboard focus: one ring throughout, and only from the keyboard —
+           :focus-visible never draws for a click. Text inputs keep their own
+           cue (the border goes accent, above). The invisible radio behind a
+           picker hands its ring to the label the eye is on. */
+        :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+        a.row:focus-visible { outline-offset: -2px; }
+        .row:has(> a.row-main:focus-visible) { outline: 2px solid var(--accent); outline-offset: -2px; }
+        .row:has(> a.row-main:focus-visible) > a.row-main { outline: none; }
+        .picker input:focus-visible + label { outline: 2px solid var(--accent); outline-offset: 2px; }
+        .move button:focus-visible { outline-offset: 1px; }
     </style>
 </head>
 <body>

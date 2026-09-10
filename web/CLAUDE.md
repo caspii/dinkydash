@@ -22,6 +22,19 @@ field that is not a birthday needs a kind of its own rather than a looser bound 
 `web/templates/settings/home.html`. The list, edit, delete and reorder routes are generic and need
 no changes.
 
+**Every control has a hover, a press and a keyboard state, and a new one needs all three.** They
+live at the foot of the shared sheet in `settings/base.html`. Hover rules sit behind
+`@media (hover: hover)` — on a phone a hover is a tap that never ends, left glowing on the row
+you just came back from — while `:active` and `:focus-visible` apply everywhere. The cue is one
+the mockups set with `a:hover`: filled things darken, bare things get `--warm` or `--tint` behind
+them, links underline, and nothing changes size. **An inline `style` on a button beats every one
+of those rules**, which is why "Not now" and "Delete my account" became `.btn.quiet` and
+`.btn.danger.fill` rather than keeping theirs; a new look for a button is a variant, not an
+attribute. Two more things a pointer expects: `.btn:disabled` looks disabled and refuses the
+cursor, and on a list page the link stretches over the whole row (`a.row-main::after`), so the
+avatar and the pill open the item the way the home page's rows already did; anything that must
+stay its own target inside a row sits above it the way `.move` does.
+
 **A route gets its store from `web.family.current_store()`, never from `app.config`.** In single
 mode that is the one `FileStore` the process was built with. In cloud mode it is a `PostgresStore`
 built for this request from the family on the session, cached on `g`, over the process-wide pool.

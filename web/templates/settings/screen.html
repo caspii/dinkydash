@@ -2,6 +2,28 @@
 {% import "settings/_icons.html" as icons %}
 {% block title %}The screen{% endblock %}
 
+{% block head %}
+<style>
+    /* The two theme cards. Only this page has them. The chosen one is read off
+       the radio, so the choice shows the instant it is clicked, before the
+       form's own submit brings the page back. */
+    .theme-choice { flex: 1; cursor: pointer; position: relative; }
+    .theme-choice input { position: absolute; opacity: 0; pointer-events: none; }
+    .theme-card {
+        border: 1.5px solid var(--border); border-radius: 0.875rem; background: var(--surface);
+        padding: 0.5625rem 0.5625rem 0.625rem; display: flex; flex-direction: column; gap: 0.5rem;
+        transition: background-color 0.12s ease, border-color 0.12s ease;
+    }
+    .theme-name { text-align: center; font-size: 0.875rem; font-weight: 800; color: var(--text-mid); }
+    .theme-choice input:checked + .theme-card { border: 2px solid var(--accent); }
+    .theme-choice input:checked + .theme-card .theme-name { color: var(--accent-dark); }
+    .theme-choice input:focus-visible + .theme-card { outline: 2px solid var(--accent); outline-offset: 2px; }
+    @media (hover: hover) {
+        .theme-choice input:not(:checked) + .theme-card:hover { background: var(--warm); border-color: var(--border-strong); }
+    }
+</style>
+{% endblock %}
+
 {% block appbar %}
 {{ icons.back_to(url_for('settings.home'), 'Settings') }}
 <h1>{{ "The screen" if screen_link else "Colours" }}</h1>
@@ -13,12 +35,9 @@
     <div class="label">Board colours</div>
     <div style="display:flex;gap:0.625rem;">
         {% for theme in themes %}
-        <label style="flex:1;cursor:pointer;">
-            <input type="radio" name="theme" value="{{ theme }}" {{ 'checked' if config.theme == theme }}
-                   style="position:absolute;opacity:0;" onchange="this.form.submit()">
-            <div style="border:{{ '2px solid var(--accent)' if config.theme == theme else '1.5px solid var(--border)' }};
-                        border-radius:0.875rem;background:var(--surface);padding:0.5625rem 0.5625rem 0.625rem;
-                        display:flex;flex-direction:column;gap:0.5rem;">
+        <label class="theme-choice">
+            <input type="radio" name="theme" value="{{ theme }}" {{ 'checked' if config.theme == theme }} onchange="this.form.submit()">
+            <div class="theme-card">
                 {# A miniature of the real board, in that theme's actual palette. #}
                 <div style="height:4rem;border-radius:0.5625rem;padding:0.5625rem 0.625rem;display:flex;flex-direction:column;gap:0.3125rem;
                             {% if theme == 'dark' %}background:#17120f;{% else %}background:#ffffff;border:1px solid #f0e6da;{% endif %}">
@@ -27,10 +46,7 @@
                     <div style="width:72%;height:0.3125rem;border-radius:0.1875rem;background:{{ '#6f6053' if theme == 'dark' else '#c4b3a3' }};"></div>
                     <div style="width:86%;height:0.3125rem;border-radius:0.1875rem;background:{{ '#6f6053' if theme == 'dark' else '#c4b3a3' }};"></div>
                 </div>
-                <div style="text-align:center;font-size:0.875rem;font-weight:800;
-                            color:{{ 'var(--accent-dark)' if config.theme == theme else 'var(--text-mid)' }};">
-                    {{ theme | capitalize }}
-                </div>
+                <div class="theme-name">{{ theme | capitalize }}</div>
             </div>
         </label>
         {% endfor %}
