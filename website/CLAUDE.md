@@ -25,10 +25,12 @@ Guidance for `website/`. The root `CLAUDE.md` holds the rules that apply to ever
   two places at once.
 - **Every link to the hosted app is written as `https://app.dinkydash.co/...` and rewritten
   at request time.** `render.APP_URL` is the origin the content and the homepage name;
-  `site.py` swaps it for `DINKYDASH_APP_URL` when that is set, which the Conductor preview
-  does so that "Start your free trial" opens the dashboard on the workspace's own port rather
-  than production. Keep writing the real address in Markdown — the file is the document a
-  reader sees — and never a bare local port. `tests/test_site.py` checks both directions.
+  `site.py` swaps it for `DINKYDASH_APP_URL` when that is set, or for `127.0.0.1` on
+  `CONDUCTOR_PORT` when only that is — Conductor sets it for every run script and it is the
+  dashboard's port, so a preview's "Start your free trial" opens the board being worked on
+  rather than production even though Conductor reads its scripts from the main checkout. Keep
+  writing the real address in Markdown — the file is the document a reader sees — and never a
+  bare local port. `tests/test_site.py` checks every direction.
 - **Nunito lives here twice on purpose.** `website/static/fonts/` and `web/static/fonts/`
   are separate deployables, so editing one means editing both. The site's copy carries the
   italic pair as well; the board's does not, because the board never sets italic.

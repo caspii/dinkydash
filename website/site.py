@@ -47,11 +47,7 @@ def create_site_app(site_url=None, app_url=None):
     )
     app.config["SITE_URL"] = site_url or os.environ.get("DINKYDASH_SITE_URL",
                                                         render.SITE_URL)
-    # Where "Start your free trial" goes. Production leaves it alone; a local
-    # preview sets DINKYDASH_APP_URL to the dashboard on its own port, so the
-    # button opens the board being worked on rather than the live one.
-    app.config["APP_URL"] = (app_url or os.environ.get("DINKYDASH_APP_URL")
-                             or render.APP_URL).rstrip("/")
+    app.config["APP_URL"] = _app_url(app_url)
 
     # Read every page once, at start-up. The site redeploys when its content
     # changes, so re-reading Markdown per request would buy nothing and cost a
@@ -170,6 +166,25 @@ def create_site_app(site_url=None, app_url=None):
         return response
 
     return app
+
+
+def _app_url(explicit=None):
+    """Where "Start your free trial" goes.
+
+    Production leaves it alone. A local preview should open the board being
+    worked on rather than the live one, and it is told where that is in one of
+    two ways: `DINKYDASH_APP_URL`, or — because Conductor reads its run scripts
+    from the main checkout, so a script edited on a branch may never run —
+    `CONDUCTOR_PORT`, which Conductor sets for every script it starts and which
+    is the port the dashboard listens on (`.conductor/settings.toml`).
+    """
+    configured = explicit or os.environ.get("DINKYDASH_APP_URL")
+    if configured:
+        return configured.rstrip("/")
+    port = os.environ.get("CONDUCTOR_PORT", "").strip()
+    if port.isdigit():
+        return f"http://127.0.0.1:{port}"
+    return render.APP_URL
 
 
 def _bare_host(app):
