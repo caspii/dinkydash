@@ -49,6 +49,8 @@ raised to stay visible.
 ## Known gaps
 
 - Drag-to-reorder is not drawn; the "Reorder" affordance is a placeholder.
+- The artboards put Cancel and Save in the app bar. The built UI does not (September 2026):
+  the bar holds a labelled back button and the title, and Save ends the form.
 - Post-trial lapse behaviour is unresolved — an open question in [PLAN.md](../PLAN.md).
 - The QR code is an illustrative pattern, not a scannable code.
 - An Auto colour mode (dark after sunset, using the family timezone) is proposed

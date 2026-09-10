@@ -77,6 +77,15 @@ white with the dataviz palette validator (CVD ΔE 24.7, both above 3:1); a third
 running it again, not picking a colour. `tests/test_admin.py` covers the gate, the bounds on
 `?weeks=` and the drawing.
 
+**The app bar holds the way back and the title, and never a Save.** A page that saves ends its
+form with a full-width `.btn` Save, where the fields are, and the bar's left-hand button is
+`icons.back_to(href, label)` — the chevron plus the *name of the page it goes to* ("Settings",
+or the section title on an edit form), drawn as a bordered pill so the tap target is visible.
+A header Save was tried and taken out: it sat in the shared chrome rather than with the form
+it saved, and the bare chevron beside it was too small to read as a button. The calendar
+form carries one unseen submit button ahead of "Test calendar link", because Enter presses
+a form's first submit button and Enter should save there as it does everywhere else.
+
 **Every form that writes needs one hidden field.** `<input type="hidden" name="csrf_token"
 value="{{ csrf_token() }}">`, right inside the `<form>`. `csrf_token()` is a Jinja global set up by
 `web/session.py`, so no route has to remember to pass anything — but a form without the field is a

@@ -91,20 +91,35 @@
         .shell { max-width: 28.75rem; margin: 0 auto; min-height: 100vh; background: var(--bg); }
         a { color: var(--accent); text-decoration: none; }
 
+        /* The bar holds the way back and the title, and nothing that writes: a page
+           that saves ends with its own Save button, where the form does. */
         .appbar {
-            display: flex; align-items: center; gap: 0.25rem;
+            display: flex; align-items: center; gap: 0.625rem;
             height: 3.5rem; padding: 0 0.75rem;
             border-bottom: 1px solid var(--border);
             position: sticky; top: 0; background: var(--bg); z-index: 5;
         }
-        .appbar h1 { font-size: 1.0625rem; font-weight: 800; letter-spacing: -0.01em; flex-grow: 1; }
-        .appbar .back, .appbar .action {
-            display: inline-flex; align-items: center; justify-content: center;
-            min-width: 2.75rem; height: 2.75rem; color: var(--text-mid);
+        .appbar h1 {
+            font-size: 1.0625rem; font-weight: 800; letter-spacing: -0.01em; flex-grow: 1;
+            min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
-        .appbar .action { font-size: 0.9375rem; font-weight: 800; color: var(--accent); padding: 0 0.375rem; }
+        /* The way back is a button, not a bare chevron: it names the page it goes to, and
+           its edges show the whole tap target rather than leaving a thumb to guess at it. */
+        .appbar .back {
+            display: inline-flex; align-items: center; gap: 0.125rem; flex-shrink: 0;
+            min-height: 2.5rem; padding: 0 0.875rem 0 0.5rem;
+            border: 1.5px solid var(--border-strong); border-radius: 999px;
+            background: var(--surface); color: var(--text);
+            font-size: 0.875rem; font-weight: 800; white-space: nowrap;
+        }
+        .appbar .back:hover, .appbar .back:focus-visible { border-color: var(--accent); color: var(--accent); }
+        .appbar .back:active { background: var(--warm); }
+        .appbar .action {
+            display: inline-flex; align-items: center; justify-content: center;
+            min-width: 2.75rem; height: 2.75rem; padding: 0 0.375rem;
+            font-size: 0.9375rem; font-weight: 800; color: var(--accent);
+        }
         .appbar .action.muted { color: var(--text-muted); font-weight: 700; }
-        .appbar button.action { border: none; background: transparent; font-family: inherit; cursor: pointer; }
 
         .content { padding: 1rem; display: flex; flex-direction: column; gap: 1rem; }
 
