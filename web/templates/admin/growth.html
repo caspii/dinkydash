@@ -5,6 +5,9 @@
 {% extends "settings/base.html" %}
 {% import "settings/_icons.html" as icons %}
 {% block title %}Growth{% endblock %}
+{# No pre-rendering from here: the operator's page carries no script at all,
+   and a test holds it to that. It links nowhere a family would go anyway. #}
+{% block speculation %}{% endblock %}
 
 {% block head %}
 <style>

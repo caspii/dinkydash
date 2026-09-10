@@ -192,6 +192,6 @@ class TestNothingAsksGoogleForAFont:
 
     def test_the_board_serves_them_itself(self, client):
         page = client.get("/").get_data(as_text=True)
-        assert "/static/fonts.css" in page
-        assert client.get("/static/fonts.css").status_code == 200
+        assert "@font-face" in page
+        assert "/static/fonts/nunito-latin.woff2" in page
         assert client.get("/static/fonts/nunito-latin.woff2").status_code == 200

@@ -5,7 +5,7 @@
     <title>{% block title %}Settings{% endblock %} · DinkyDash</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex, nofollow">
-    <link rel="icon" href="{{ url_for('static', filename='favicon.svg') }}" type="image/svg+xml">
+    <link rel="icon" href="{{ static_url('favicon.svg') }}" type="image/svg+xml">
     <!-- Saved to a phone's home screen this opens like an app. The manifest is
          what Android reads; iOS ignores it and goes by the four lines below.
          A block, because the login page is behind no session and the manifest
@@ -14,12 +14,37 @@
     {# For the rare page with a rule of its own. Everything shared belongs in
        the stylesheet below, not here. #}
     {% block head %}{% endblock %}
-    <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
+    <link rel="apple-touch-icon" href="{{ static_url('apple-touch-icon.png') }}">
     <meta name="apple-mobile-web-app-title" content="DinkyDash">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#fffaf5">
-    <link rel="stylesheet" href="{{ url_for('static', filename='fonts.css') }}">
+    {% include "_fonts.html" %}
+    {# The pre-load. Chrome (121+) fetches and renders a settings page while the
+       pointer is still on the link — `moderate` is a hover of 200 ms, or a finger
+       touching down — so the tap lands on a page that is already there. Safari
+       and Firefox ignore the block. Both lists, because a prerender Chrome cannot
+       afford (memory, a data saver) still falls back to the prefetch.
+
+       Every page under /settings/ is a read on GET, which is what makes
+       rendering one unasked safe; the data export is the one link that is not a
+       page, and a hover must not download a family's data, so it is left out by
+       name. A new link that downloads, charges or writes on GET goes in the same
+       `not` clause. The board and /preview are outside the pattern on purpose:
+       the board reloads itself, and the preview renders it three times over.
+
+       A block, so the operator's page can drop it: `/admin` carries no
+       `<script>` of any kind, and `tests/test_admin.py` says so. #}
+    {% block speculation %}
+    {% set within_settings = {"and": [
+        {"href_matches": url_for('settings.home') ~ '*'},
+        {"not": {"href_matches": url_for('settings.export_account')}}
+    ]} %}
+    <script type="speculationrules">
+    {{ {"prefetch": [{"where": within_settings, "eagerness": "moderate"}],
+        "prerender": [{"where": within_settings, "eagerness": "moderate"}]} | tojson }}
+    </script>
+    {% endblock %}
     <style>
         :root {
             --bg: #fffaf5;
@@ -42,6 +67,14 @@
         *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
         /* An inline `display` beats the browser's own [hidden] rule, so say it here. */
         [hidden] { display: none !important; }
+        /* A tap crossfades to the next page instead of cutting to it. Chrome 126+ and
+           Safari 18.2+; anything older ignores the rule and cuts as before. Kept short:
+           the pages are quick, and a slow fade would read as a slow page. */
+        @view-transition { navigation: auto; }
+        ::view-transition-old(root), ::view-transition-new(root) { animation-duration: 0.15s; }
+        @media (prefers-reduced-motion: reduce) {
+            ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
+        }
         /* Everything below is sized in rem off this one value, like the board. A phone gets the
            mockup's 16px; a desktop browser gets up to 20px, so the same layout reads at arm's
            length instead of phone distance. Stated in rem, not px, so a raised browser default

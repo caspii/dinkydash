@@ -9,7 +9,9 @@ Both keep `scope` at "/", so following the link between board and settings stays
 inside the saved app instead of throwing the browser back open.
 """
 
-from flask import jsonify, url_for
+from flask import jsonify
+
+from .assets import static_url
 
 # Android reads these. iOS ignores them and uses the `apple-touch-icon` link in
 # the page head, which is why both are set.
@@ -29,7 +31,7 @@ def response(**fields):
         "display": "standalone",
         "lang": "en-GB",
         "icons": [
-            {"src": url_for("static", filename=name), "sizes": sizes,
+            {"src": static_url(name), "sizes": sizes,
              "type": "image/png", "purpose": purpose}
             for name, sizes, purpose in ICONS
         ],
