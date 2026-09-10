@@ -1,7 +1,9 @@
-"""Signups and activations over time, for whoever runs the service. Cloud only.
+"""Signups, activations and the newest accounts, for whoever runs the service.
+Cloud only.
 
     history(pool)                -> every day with a signup or an activation
     families_now(pool)           -> how many families exist right now
+    roster(pool, most)           -> the newest families: address and bookkeeping
     by_week(rows, weeks, today)  -> the last `weeks` weeks, gaps filled (pure)
     totals(rows)                 -> all-time signups and activations (pure)
 
@@ -13,12 +15,17 @@ the parent's first real act. Both are counted per UTC day by a trigger on
 counts in it and nothing else.
 
 **This is the fourth deliberately unscoped read in the product**, after
-`worker.family_ids`, `accounts.py` and `screens.py`, and it is the narrowest
-of them: the table it reads carries no family identifiers, so there is nothing
-here that *could* be scoped. `families_now` is a bare `count(*)`. No row about
-any one family is read, and no id passes through this module in either
-direction — which is the property an operator's page in a public repo should
-have, so that a bug in it cannot leak a family.
+`worker.family_ids`, `accounts.py` and `screens.py`. The counts are the
+narrowest read there is — `growth_by_day` carries no family identifier, and
+`families_now` is a bare `count(*)`. The roster is wider, and deliberately
+only so wide: the address on each account and the platform's own bookkeeping
+about it (when it was created, when it activated, its status and deadlines,
+when it last signed in). **Never the config.** Names, dates of birth and
+calendars are the family's content, and no operator page needs them. No
+family id leaves this module in either direction, because nothing on the page
+links to one family — so a bug in the page can show an operator an address,
+which the operator can already see in the mailbox that sent it, and nothing
+else.
 
 Like `accounts.py`, this imports no driver: it is handed a pool and asks it for
 connections.
@@ -30,6 +37,15 @@ from datetime import timedelta
 # One week on the chart. `start` is the Monday, as a date.
 Week = namedtuple("Week", "start signups activations")
 Totals = namedtuple("Totals", "signups activations")
+
+# One account on the roster: the address and the bookkeeping, nothing of the config.
+Account = namedtuple("Account", "email created_at activated_at status trial_ends_at "
+                                "lapsed_at last_login_at")
+
+# How many the roster shows. A page listing every address there has ever been
+# is a leak amplifier as well as a slow page; the newest are the ones an
+# operator is looking for, and the counts above the list are about everyone.
+MOST_IN_ROSTER = 100
 
 
 def history(pool):
@@ -48,6 +64,26 @@ def families_now(pool):
     with pool.connection() as conn, conn.cursor() as cur:
         cur.execute("SELECT count(*) FROM families")
         return cur.fetchone()[0]
+
+
+def roster(pool, most=MOST_IN_ROSTER):
+    """The newest `most` families, newest first, with the address on each.
+
+    A LEFT JOIN, because a family made by hand has no parent row yet and should
+    still be on the list rather than silently missing from it. One parent per
+    family at MVP; a second would be a second line, which is the right answer.
+    """
+    with pool.connection() as conn, conn.cursor() as cur:
+        cur.execute(
+            """SELECT u.email, f.created_at, f.activated_at, f.status,
+                      f.trial_ends_at, f.lapsed_at, u.last_login_at
+               FROM families AS f
+               LEFT JOIN users AS u ON u.family_id = f.id
+               ORDER BY f.created_at DESC, u.id
+               LIMIT %s""",
+            (max(1, int(most)),),
+        )
+        return [Account(*row) for row in cur.fetchall()]
 
 
 def week_of(day):

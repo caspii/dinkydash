@@ -1,4 +1,4 @@
-"""The operator's page: signups and activations by week. Cloud mode only.
+"""The operator's page: signups, activations and the newest accounts. Cloud only.
 
     GET /admin             the last twelve weeks
     GET /admin/            the same; a typed URL often ends in a slash
@@ -16,10 +16,13 @@ a stranger needs to know, and 404-on-a-mismatch is the rule every other
 authorisation miss in this app follows. An empty or missing list means nobody,
 which is the safe way for a new deployment to be wrong.
 
-**No family is read here.** The page is built from `dinkydash/growth.py`,
-which reads a table with no family identifiers in it plus one `count(*)`.
-Nothing in this file takes an id from the request, the session or the URL, so
-there is no id to check and nothing for a bug here to leak.
+**What the page reads is bounded, and the bound is written down.** The counts
+come from a table with no family identifiers in it plus one `count(*)`. The
+roster below them is the one read that touches a family's row, and it takes
+the address and the platform's bookkeeping — created, activated, status,
+deadlines, last sign-in — and never the config (`growth.roster`). Nothing in
+this file takes an id from the request, the session or the URL, and none is
+rendered, so there is no id to check and no way to reach one family from here.
 
 The chart is inline SVG drawn from numbers worked out below, with no script
 and no third-party request — the settings shell's own rules. Its two colours
@@ -98,6 +101,8 @@ def growth_page():
         # the counter in a way the backfill could not see.
         deleted=max(0, total.signups - families),
         chart=chart(weekly),
+        roster=[describe(account, today) for account in growth.roster(pool)],
+        most_in_roster=growth.MOST_IN_ROSTER,
     ))
     # Counts, not anybody's data — but it is the business's own page, and a
     # shared cache has no business holding it.
@@ -112,6 +117,50 @@ def span(raw):
     except (TypeError, ValueError):
         return DEFAULT_WEEKS
     return min(MOST_WEEKS, max(1, weeks))
+
+
+# -- the roster -------------------------------------------------------------
+
+# What the status pill says, and which of the shell's pill styles it wears.
+STATUS_WORDS = {"active": "Active", "past_due": "Past due", "canceled": "Cancelled"}
+
+
+def describe(account, today):
+    """One account as the page shows it: the address, a status pill, one line.
+
+    Pure, so the words are testable without a database. `today` is the UTC
+    date the rest of the page uses, and it decides one thing: a trial whose
+    deadline has passed but which the worker has not swept yet is shown as
+    ended, because that is what `lifecycle.access_for` already enforces.
+    """
+    status, tone = _status(account, today)
+    facts = [f"Signed up {_day(account.created_at)}"]
+    facts.append(f"activated {_day(account.activated_at)}" if account.activated_at
+                 else "not activated yet")
+    facts.append(f"last sign-in {_day(account.last_login_at)}" if account.last_login_at
+                 else "never signed in")
+    return {"email": account.email, "status": status, "tone": tone,
+            "detail": " · ".join(facts)}
+
+
+def _status(account, today):
+    if account.status == "trialing":
+        ends = account.trial_ends_at
+        if ends is None:
+            return "Trial", "warm"
+        if ends.astimezone(timezone.utc).date() < today:
+            return f"Trial ended {_day(ends)}", "muted"
+        return f"Trial to {_day(ends)}", "warm"
+    if account.status == "lapsed":
+        return (f"Lapsed {_day(account.lapsed_at)}" if account.lapsed_at else "Lapsed"), "muted"
+    if account.status == "active":
+        return "Active", "good"
+    return STATUS_WORDS.get(account.status, str(account.status).capitalize()), "muted"
+
+
+def _day(stamp):
+    """A timestamp as a UTC date the way the page writes them: `7 Sep 2026`."""
+    return stamp.astimezone(timezone.utc).strftime("%-d %b %Y")
 
 
 # -- the drawing ------------------------------------------------------------

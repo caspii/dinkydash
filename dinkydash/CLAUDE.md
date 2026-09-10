@@ -77,13 +77,15 @@ because there is no family to scope *to*:
   is why `users.email` is globally unique;
 - **`dinkydash/screens.py`**, which resolves a screen token to a family. A wall panel has no session
   to scope to and never will — that is what the token is for;
-- **`dinkydash/growth.py`**, which reads the signup and activation counter for the operator's page
-  (DIN-37). The narrowest of the four: `growth_by_day` is a date and two counts with no family
-  identifier to scope by, kept by a trigger on `families` (migration 006) so that it survives
-  deletion the way `global_model_spend` does, and `families_now` is a bare `count(*)`.
+- **`dinkydash/growth.py`**, which feeds the operator's page (DIN-37). Its counts are the narrowest
+  read there is: `growth_by_day` is a date and two counts with no family identifier to scope by,
+  kept by a trigger on `families` (migration 006) so that it survives deletion the way
+  `global_model_spend` does, and `families_now` is a bare `count(*)`. Its `roster` is wider, and
+  deliberately only so wide — the address and the platform's bookkeeping columns on the newest
+  families, never `config`, and no id in or out.
 
 Each of the first three hands its result to a `PostgresStore` built for exactly one family, and the
-fourth reads no row about any family at all, so the rule that matters is untouched. `web/family.py`
+fourth never reaches one family at all, so the rule that matters is untouched. `web/family.py`
 is where the second and third arrive, and it has both doors in one file on purpose — `is_admin`,
 the gate on the operator's page, sits beside them for the same reason: if another is ever added it
 should be as obvious as those are.

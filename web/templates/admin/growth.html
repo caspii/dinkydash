@@ -51,6 +51,11 @@
     .numbers tbody tr { border-top: 1px solid var(--border); }
     .numbers td + td { font-variant-numeric: tabular-nums; font-weight: 700; }
     .numbers td.zero { color: var(--faint); font-weight: 600; }
+
+    /* The roster. An address can be long and has no spaces to break at. */
+    .account .row-title { word-break: break-all; }
+    .account .row-sub { white-space: normal; }
+    .pill.good { background: rgba(22, 163, 74, 0.12); color: #15803d; }
 </style>
 {% endblock %}
 
@@ -160,6 +165,28 @@
                 {% endfor %}
             </tbody>
         </table>
+    </div>
+</div>
+
+{# The newest accounts: the address and the platform's bookkeeping, and never
+   anything from the family's config. Nothing here links to one family, so no
+   id is rendered. #}
+<div>
+    <div class="label">
+        Families{% if families_now > most_in_roster %} · newest {{ most_in_roster }} of {{ families_now }}{% endif %}
+    </div>
+    <div class="card">
+        {% for account in roster %}
+        <div class="row account">
+            <div class="row-main">
+                <div class="row-title">{{ account.email or "No address on file" }}</div>
+                <div class="row-sub">{{ account.detail }}</div>
+            </div>
+            <span class="pill {{ account.tone }}">{{ account.status }}</span>
+        </div>
+        {% else %}
+        <div class="row"><div class="row-sub">No families yet.</div></div>
+        {% endfor %}
     </div>
 </div>
 

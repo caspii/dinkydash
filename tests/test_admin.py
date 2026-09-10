@@ -7,8 +7,10 @@
   and not on `DINKYDASH_ADMIN_EMAILS` is a 404, never a 403;
 * **an empty list is nobody**, including the person who would obviously be
   on it. A new deployment is closed until somebody opens it;
-* **the page is counts.** It reads the counter and the number of families,
-  and it takes no id from the request, the session or the URL.
+* **the page is counts, and a bounded roster.** The counts read no family
+  row at all. The roster reads the address and the platform's bookkeeping on
+  the newest families and never the config — no name, no calendar, no child's
+  date of birth — and no family id is rendered or taken from anywhere.
 
 The chart's arithmetic is tested with no database. The rest skips without
 `DINKYDASH_TEST_DATABASE_URL`.
@@ -97,6 +99,62 @@ class TestTheChart:
     ])
     def test_the_span_is_bounded(self, raw, weeks):
         assert admin.span(raw) == weeks
+
+
+# -- the words on the roster, with no database -------------------------------
+
+def an_account(**over):
+    from datetime import datetime, timezone
+    fields = dict(email="parent@example.com",
+                  created_at=datetime(2026, 9, 1, 8, tzinfo=timezone.utc),
+                  activated_at=None, status="trialing",
+                  trial_ends_at=datetime(2026, 9, 15, 8, tzinfo=timezone.utc),
+                  lapsed_at=None, last_login_at=None)
+    fields.update(over)
+    return growth.Account(**fields)
+
+
+class TestDescribingAnAccount:
+    TODAY = date(2026, 9, 10)
+
+    def test_a_fresh_trial(self):
+        shown = admin.describe(an_account(), self.TODAY)
+        assert shown["status"] == "Trial to 15 Sep 2026"
+        assert shown["tone"] == "warm"
+        assert shown["detail"] == "Signed up 1 Sep 2026 · not activated yet · never signed in"
+
+    def test_an_activated_family_that_signs_in(self):
+        from datetime import datetime, timezone
+        shown = admin.describe(an_account(
+            activated_at=datetime(2026, 9, 2, 9, tzinfo=timezone.utc),
+            last_login_at=datetime(2026, 9, 9, 21, tzinfo=timezone.utc)), self.TODAY)
+        assert shown["detail"] == ("Signed up 1 Sep 2026 · activated 2 Sep 2026 · "
+                                   "last sign-in 9 Sep 2026")
+
+    def test_a_trial_past_its_deadline_reads_as_ended_before_the_sweep(self):
+        from datetime import datetime, timezone
+        shown = admin.describe(an_account(
+            trial_ends_at=datetime(2026, 9, 9, 8, tzinfo=timezone.utc)), self.TODAY)
+        assert shown["status"] == "Trial ended 9 Sep 2026"
+        assert shown["tone"] == "muted"
+
+    def test_the_other_statuses(self):
+        from datetime import datetime, timezone
+        assert admin.describe(an_account(status="active"), self.TODAY)["status"] == "Active"
+        assert admin.describe(an_account(status="active"), self.TODAY)["tone"] == "good"
+        assert admin.describe(an_account(status="past_due"), self.TODAY)["status"] == "Past due"
+        assert admin.describe(an_account(status="canceled"), self.TODAY)["status"] == "Cancelled"
+        lapsed = admin.describe(an_account(
+            status="lapsed", lapsed_at=datetime(2026, 9, 3, 8, tzinfo=timezone.utc)), self.TODAY)
+        assert lapsed["status"] == "Lapsed 3 Sep 2026"
+        assert lapsed["tone"] == "muted"
+
+    def test_dates_are_utc_days(self):
+        from datetime import datetime, timezone, timedelta
+        # 23:30 in UTC-2 is 01:30 the next day in UTC; the page writes UTC.
+        late = datetime(2026, 9, 1, 23, 30, tzinfo=timezone(timedelta(hours=-2)))
+        assert admin.describe(an_account(created_at=late), self.TODAY)["detail"].startswith(
+            "Signed up 2 Sep 2026")
 
 
 # -- who gets in, in Postgres ------------------------------------------------
@@ -246,3 +304,81 @@ class TestWhatItShows:
         html = admin_client.get("/admin").get_data(as_text=True)
         assert not re.search(r'(src|href)="https?://', html.replace("https://dinkydash.co", ""))
         assert "<script" not in html
+
+
+# -- the roster ----------------------------------------------------------------
+
+A_FAMILY_CONFIG = {
+    "family_name": "The Zebedees",
+    "people": [{"id": "zeb12345", "name": "Zebedee", "date_of_birth": "2015-04-01"}],
+    "calendars": [{"id": "cal12345", "label": "Zebra school",
+                   "url": "https://example.com/private-zzzz/basic.ics", "enabled": True}],
+}
+
+
+@pytest.fixture
+def another_family(pg_pool):
+    """A second family with a parent, a name, a child and a calendar — none of
+    which but the address may appear on the operator's page."""
+    from dinkydash import config as config_module
+    from dinkydash.pgstore import PostgresStore
+
+    with pg_pool.connection() as conn, conn.transaction(), conn.cursor() as cur:
+        cur.execute("INSERT INTO families (screen_token) VALUES (%s) RETURNING id",
+                    (config_module.new_screen_token(),))
+        family_id = cur.fetchone()[0]
+        cur.execute("INSERT INTO users (family_id, email, last_login_at) "
+                    "VALUES (%s, %s, now()) RETURNING id", (family_id, "zebedee@example.org"))
+    PostgresStore(pg_pool, family_id).save_config(dict(A_FAMILY_CONFIG))
+    yield family_id
+    with pg_pool.connection() as conn, conn.transaction(), conn.cursor() as cur:
+        cur.execute("DELETE FROM families WHERE id = %s", (family_id,))
+
+
+class TestTheRoster:
+    def test_the_newest_families_are_listed_with_their_address(
+            self, admin_client, another_family, pg_family):
+        html = admin_client.get("/admin").get_data(as_text=True)
+        assert "zebedee@example.org" in html
+        assert ADDRESS in html
+        # Newest first: the second family was made after the fixture's.
+        assert html.index("zebedee@example.org") < html.index(ADDRESS)
+        assert "activated" in html and "Trial to" in html
+
+    def test_nothing_from_the_config_is_on_the_page(self, admin_client, another_family):
+        html = admin_client.get("/admin").get_data(as_text=True)
+        for private in ("Zebedee", "Zebra school", "private-zzzz", "2015-04-01", "The Zebedees"):
+            assert private not in html, private
+
+    def test_no_family_id_is_rendered(self, admin_client, another_family, pg_family):
+        html = admin_client.get("/admin").get_data(as_text=True)
+        assert str(pg_family) not in html
+        assert str(another_family) not in html
+        assert not re.search(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", html)
+
+    def test_a_family_with_no_parent_row_is_still_listed(self, admin_client, pg_pool):
+        # The signed-in fixture family has a parent; make one by hand without.
+        from dinkydash import config as config_module
+        with pg_pool.connection() as conn, conn.transaction(), conn.cursor() as cur:
+            cur.execute("INSERT INTO families (screen_token) VALUES (%s) RETURNING id",
+                        (config_module.new_screen_token(),))
+            orphan = cur.fetchone()[0]
+        try:
+            html = admin_client.get("/admin").get_data(as_text=True)
+            assert "No address on file" in html
+        finally:
+            with pg_pool.connection() as conn, conn.transaction(), conn.cursor() as cur:
+                cur.execute("DELETE FROM families WHERE id = %s", (orphan,))
+
+    def test_a_deleted_family_leaves_the_list(self, admin_client, another_family, pg_pool):
+        from dinkydash import accounts
+        assert "zebedee@example.org" in admin_client.get("/admin").get_data(as_text=True)
+        assert accounts.delete_family(pg_pool, another_family)
+        assert "zebedee@example.org" not in admin_client.get("/admin").get_data(as_text=True)
+
+    def test_the_list_is_capped_and_says_so(self, admin_client, monkeypatch):
+        monkeypatch.setattr(growth, "MOST_IN_ROSTER", 1)
+        monkeypatch.setattr(growth, "families_now", lambda pool: 3)
+        html = admin_client.get("/admin").get_data(as_text=True)
+        assert "newest 1 of 3" in html
+        assert html.count('class="row account"') == 1
