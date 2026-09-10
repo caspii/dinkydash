@@ -3,9 +3,8 @@
 {% block title %}How often it updates{% endblock %}
 
 {% block appbar %}
-<a class="back" href="{{ url_for('settings.home') }}">{{ icons.back() }}</a>
+{{ icons.back_to(url_for('settings.home'), 'Settings') }}
 <h1>How often it updates</h1>
-<button class="action" type="submit" form="refresh-form">Save</button>
 {% endblock %}
 
 {% block content %}
@@ -38,6 +37,8 @@
             <strong>Rewrite now</strong> if you want a fresh one sooner.
         </div>
     </div>
+
+    <button class="btn" type="submit">Save</button>
 </form>
 
 <div class="note-box">

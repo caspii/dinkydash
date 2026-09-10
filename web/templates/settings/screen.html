@@ -3,7 +3,7 @@
 {% block title %}The screen{% endblock %}
 
 {% block appbar %}
-<a class="back" href="{{ url_for('settings.home') }}">{{ icons.back() }}</a>
+{{ icons.back_to(url_for('settings.home'), 'Settings') }}
 <h1>{{ "The screen" if screen_link else "Colours" }}</h1>
 {% endblock %}
 

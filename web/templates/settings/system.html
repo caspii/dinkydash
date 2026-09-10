@@ -3,9 +3,8 @@
 {% block title %}Family &amp; system{% endblock %}
 
 {% block appbar %}
-<a class="back" href="{{ url_for('settings.home') }}">{{ icons.back() }}</a>
+{{ icons.back_to(url_for('settings.home'), 'Settings') }}
 <h1>Family &amp; system</h1>
-<button class="action" type="submit" form="system-form">Save</button>
 {% endblock %}
 
 {% block content %}
@@ -52,6 +51,8 @@
         </div>
     </div>
     {% endif %}
+
+    <button class="btn" type="submit">Save</button>
 </form>
 
 {# Nothing to say to a hosted family: there is no .env of theirs to put a key in. #}
