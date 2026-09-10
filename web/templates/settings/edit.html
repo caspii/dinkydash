@@ -129,6 +129,10 @@
     {% endif %}
 </form>
 
+{% if section_name == 'calendars' %}
+{% include "settings/_calendar_wait.html" %}
+{% endif %}
+
 {% if checked %}
 <script>
     document.getElementById('calendar-test-result').focus();
