@@ -52,6 +52,9 @@ def create_app(store=None, *, pool=None):
     from .session import configure as configure_session
     configure_session(app)
 
+    from .assets import configure as configure_assets
+    configure_assets(app)
+
     from .routes.board import bp as board_bp
     from .routes.settings import bp as settings_bp
 

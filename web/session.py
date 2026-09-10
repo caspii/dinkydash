@@ -31,6 +31,7 @@ import secrets
 from datetime import timedelta
 
 from flask import abort, current_app, redirect, request, session, url_for
+from flask.sessions import SecureCookieSessionInterface
 
 # What the session holds when somebody is signed in.
 USER_ID = "user_id"
@@ -60,6 +61,25 @@ def configure(app):
     )
     app.jinja_env.globals["csrf_token"] = csrf_token
     app.before_request(check_csrf)
+    app.session_interface = CookieSession()
+
+
+class CookieSession(SecureCookieSessionInterface):
+    """Flask's signed cookie, except that a static file never carries it.
+
+    Flask re-signs a permanent session on every response — the signature
+    carries a timestamp, so the cookie's value changes each time — and marks
+    any response that read the session `Vary: Cookie`. Right for a page, and
+    wrong for a font: a cached file that varies on a cookie whose value moves
+    with every page is a file the cache can never match, however long it was
+    told to keep it. `web/assets.py` gives a versioned static file a year;
+    this is what makes the year mean anything.
+    """
+
+    def save_session(self, app, session, response):
+        if request.endpoint == "static":
+            return
+        super().save_session(app, session, response)
 
 
 # -- who is signed in -------------------------------------------------------

@@ -124,8 +124,10 @@ out freely for one measurement (`height:auto`) and puts it straight back.
 
 **Nunito is served from `web/static/fonts/`, not from Google**, as one variable font per subset
 (`nunito-latin.woff2`, `nunito-latin-ext.woff2`, covering weights 200-1000 so every weight the board
-asks for comes out of one download). `web/static/fonts.css` holds the `@font-face` rules and the
-reasoning; `website/static/` has its own copy plus the italic pair the marketing site uses. Editing
+asks for comes out of one download). `web/templates/_fonts.html` holds the `@font-face` rules and the
+reasoning, inline in every page's head with a preload of the Latin file — a stylesheet cost each page
+one more round trip before the font could start; `website/static/` has its own copy plus the italic
+pair the marketing site uses. Editing
 either means editing both — they are separate deployables on purpose, and `website/` never runs on
 the board. The files are byte-for-byte what Google was serving, so the metrics did not change; what
 changed is that a screen at `/s/<token>` no longer tells Google that URL, and a Pi with no internet
@@ -179,6 +181,32 @@ old mark: `website/static/favicon.ico` sat two weeks behind its own SVG that way
 remembers a "Not now" in `localStorage`; it hides itself when already running from a home screen.
 Note that Chrome's own install prompt needs https, so on a home network it never fires and the
 written steps are what people see.
+
+## Static files, and moving between pages
+
+**Every static URL goes through `static_url()`, never `url_for('static', ...)`**, and
+`tests/test_static_assets.py` walks `web/` to make sure. `web/assets.py` puts the file's content
+version on the URL — `?v=` and twelve hex digits of its SHA-256 — and answers a request carrying the
+current version with a year of `Cache-Control` and `immutable`. A bare URL, or one with the version
+from before a deploy, keeps Flask's `no-cache`. That is the whole difference between a tap that
+draws at once and one that asks the server about the font first: Flask's default made every
+navigation pay for the stylesheet and then the font again, one after the other, after the page.
+
+**A static response carries no session.** `web/session.py` skips `save_session` for the static
+endpoint, because Flask re-signs a permanent session on every response and marks the response
+`Vary: Cookie` — and a font that varies on a cookie whose value changes with every page is one no
+cache can ever match. Put a cookie on a static response and the year silently stops working.
+
+**The settings shell crossfades between pages and renders the next one early.** Both live in
+`settings/base.html`, and browsers that do not know them ignore them. `@view-transition
+{ navigation: auto }` turns the cut into a 150 ms fade (Chrome 126+, Safari 18.2+). The
+`speculationrules` block has Chrome (121+) fetch and render whichever `/settings/` link the pointer
+hovers or a finger touches down on, so the tap lands on a page that is already there. **Every page
+under `/settings/` is a read on GET, and has to stay one**: a prerender runs the page. The data
+export is the one link that is not a page, and it is excluded by name — a new link that downloads,
+charges or writes on GET goes in the same `not` clause. Forms are not links and are never
+speculated. The board is outside the pattern on purpose: it reloads itself, and `/preview` renders
+it three times over.
 
 ## Measuring the board
 

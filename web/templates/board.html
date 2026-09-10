@@ -15,19 +15,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <meta name="robots" content="noindex, nofollow">
     <meta http-equiv="refresh" content="{{ view.reload_seconds }}">
-    <link rel="icon" href="{{ url_for('static', filename='favicon.svg') }}" type="image/svg+xml">
+    <link rel="icon" href="{{ static_url('favicon.svg') }}" type="image/svg+xml">
     <!-- On a tablet used as the panel, saving this to the home screen gives a
          full-screen board with no browser around it. -->
     {# Which manifest depends on how this board was reached: the signed-in view
    has one behind the session, a wall panel needs the token-scoped one, or
    "save to home screen" gets a redirect to /login instead of a name. #}
 <link rel="manifest" href="{{ manifest_url }}">
-    <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
+    <link rel="apple-touch-icon" href="{{ static_url('apple-touch-icon.png') }}">
     <meta name="apple-mobile-web-app-title" content="{{ view.family_name or 'DinkyDash' }}">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="{{ '#17120f' if view.theme == 'dark' else '#ffffff' }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='fonts.css') }}">
+    {% include "_fonts.html" %}
     <style>
         /* Light is the default palette; dark redefines the same tokens so every
            rule below is written once. */
