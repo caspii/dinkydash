@@ -781,7 +781,7 @@ def _family_facts():
     """The platform's own bookkeeping about a family, for the export."""
     with current_app.config["POOL"].connection() as conn, conn.cursor() as cur:
         cur.execute(
-            """SELECT plan, status, trial_ends_at, created_at, lapsed_at
+            """SELECT plan, status, trial_ends_at, created_at, lapsed_at, activated_at
                FROM families WHERE id = %s""",
             (current_family_id(),),
         )
@@ -792,7 +792,8 @@ def _family_facts():
     # to somebody, saved to a downloads folder and forgotten; a live credential
     # should not ride along in one. It is on the screen page, where it can be
     # rotated in the same breath as being read.
-    return dict(zip(("plan", "status", "trial_ends_at", "created_at", "lapsed_at"), row))
+    return dict(zip(("plan", "status", "trial_ends_at", "created_at", "lapsed_at",
+                     "activated_at"), row))
 
 
 def delete_account():

@@ -66,11 +66,14 @@ def forget_unowned_rows(pool):
 
     The global model-call aggregate also has no family foreign key. Clear it
     explicitly here so one test's calls cannot exhaust another test's budget.
+    The signup and activation counter (migration 006) survives deletion for
+    the same reason and is cleared for the same one.
     """
     with pool.connection() as conn, conn.transaction():
         with conn.cursor() as cur:
             cur.execute("DELETE FROM login_tokens WHERE user_id IS NULL")
             cur.execute("DELETE FROM global_model_spend")
+            cur.execute("DELETE FROM growth_by_day")
 
 
 @pytest.fixture

@@ -154,6 +154,12 @@ mode is a different product on the same code.
   anywhere. When a route does one day take a family id — the admin view is the likely first — the
   check goes in `family.py`, before the store is built, and **a mismatch is a 404 and never a 403**:
   "forbidden" confirms the row exists, which tells one family that another one does.
+- **The operator's page is behind a list of addresses, and a miss is a 404.** `/admin` (DIN-37)
+  shows signups and activations by week, and only to a signed-in account whose address is in
+  `DINKYDASH_ADMIN_EMAILS`. Anybody else gets the same answer as a URL that does not exist, and an
+  unset list means nobody. It reads `growth_by_day` — a date and two counts, kept by a trigger on
+  `families` and surviving deletion the way `global_model_spend` does — and one bare `count(*)`, so
+  no family row is read and no id passes through it. `tests/test_admin.py` asserts each of those.
 - **`web/__init__.py` falls back to a hardcoded `app.secret_key`.** Harmless with no auth; in cloud
   mode the session *is* the authentication, so cloud mode must refuse to start without a real
   `DINKYDASH_SECRET_KEY`.
@@ -305,6 +311,7 @@ dinkydash/
 ├── screens.py         the token that puts a board on a wall (cloud only)
 ├── budget.py          what a family may spend on the model, and what everybody may
 │                     (`accounts.delete_family` is the hard delete; see phase 5)
+├── growth.py          signups and activations per day, with no family in the row (cloud only)
 └── runner.py          the two halves of the day, reading and writing through a store
 
 web/
@@ -316,7 +323,8 @@ web/
 ├── routes/settings.py the settings UI (one table drives every list section)
 ├── routes/auth.py     /login, /login/link, /logout — cloud mode only
 ├── routes/screen.py   /s/<token> — the board with no session, cloud mode only
-└── templates/         board.html, preview.html, auth/*.html, settings/*.html
+├── routes/admin.py    /admin — signups and activations by week, for DINKYDASH_ADMIN_EMAILS only
+└── templates/         board.html, preview.html, auth/*.html, settings/*.html, admin/growth.html
 ```
 
 ### The storage seam

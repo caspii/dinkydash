@@ -65,6 +65,9 @@ def create_app(store=None, *, pool=None):
         from .routes.screen import bp as screen_bp
         app.register_blueprint(screen_bp)
 
+        from .routes.admin import bp as admin_bp
+        app.register_blueprint(admin_bp)
+
         from dinkydash.pgstore import NoSuchFamily
 
         @app.errorhandler(NoSuchFamily)

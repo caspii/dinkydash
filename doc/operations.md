@@ -511,3 +511,19 @@ never a guarantee. The old
 `0 6 * * * generate.py` line still works and does both halves at once; use one or the other, not
 both. A failed run leaves the previous board in place rather than blanking the screen, the board
 labels itself stale, and the next tick tries again.
+
+
+## The operator's page, 10 September 2026 (DIN-37)
+
+`/admin` on `app.dinkydash.co` shows signups and activations by week, to accounts whose address is
+in `DINKYDASH_ADMIN_EMAILS` and to nobody else. **The variable is not set anywhere yet.** It is in
+`.do/app.yaml` as a `type: SECRET` entry with no value, so the next `doctl apps update` needs it in
+`.env` first or the merge snippet in the spec's header fails on the missing key — and until that
+apply happens the page answers 404 to everyone, including the owner. `deploy_on_push` does not
+apply the spec (see above), so merging alone does not open the page.
+
+Migration 006 (`growth_by_day`, `families.activated_at`) applies itself through the pre-deploy job
+on the next deploy. Its backfill stamps every family that already has a calendar with the time of
+its last settings save, which is the latest the calendar could have been added and the only stamp
+there is: approximate for the families that exist today, exact for every family after. Counts are
+per UTC day and are never subtracted from, so a deleted account still shows as a signup.

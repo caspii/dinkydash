@@ -61,6 +61,18 @@ iframes — uses `web.urls.board_path()`. Build absolute credential URLs with
 request host as a development fallback. The login-link CLI shares the origin policy and accepts
 an explicit local `--base-url`. QR codes are generated only on `/settings/screen`.
 
+**`web/routes/admin.py` is the third blueprint only cloud mode registers, and its gate is a list.**
+`/admin` (DIN-37) shows signups and activations by week to the operator and to nobody else:
+`guard()` first, so a signed-out visitor is sent to `/login` like everywhere else, then
+`family.is_admin()`, which compares the signed-in account's address with `DINKYDASH_ADMIN_EMAILS`
+and answers a miss with a 404 — never a 403, and an unset list is nobody. The page reads no family:
+its numbers come from `dinkydash/growth.py`, and the chart is inline SVG drawn from numbers the
+route works out (`admin.chart`), because arithmetic in a template is arithmetic nobody tests. Its
+two series colours are the shell's own `--accent` and `--purple`, checked as a pair on the card's
+white with the dataviz palette validator (CVD ΔE 24.7, both above 3:1); a third series means
+running it again, not picking a colour. `tests/test_admin.py` covers the gate, the bounds on
+`?weeks=` and the drawing.
+
 **Every form that writes needs one hidden field.** `<input type="hidden" name="csrf_token"
 value="{{ csrf_token() }}">`, right inside the `<form>`. `csrf_token()` is a Jinja global set up by
 `web/session.py`, so no route has to remember to pass anything — but a form without the field is a

@@ -68,19 +68,25 @@ thirty-day session can outlive the account it names, and that should sign the ho
 500. Catching the bare parent would swallow `KeyError` and `IndexError` too, which is to say every
 real bug, and send it to the login page.
 
-Three things are unscoped, all deliberately outside the store rather than weakening it, and each
-because there is no family to scope *to* yet:
+Four things are unscoped, all deliberately outside the store rather than weakening it, and each
+because there is no family to scope *to*:
 
 - **`worker.family_ids`**, whose whole job is to walk every family;
 - **`dinkydash/accounts.py`**, which resolves an email address to a user before there is a family.
   A magic link has to find exactly one person without being told which family they belong to, which
   is why `users.email` is globally unique;
 - **`dinkydash/screens.py`**, which resolves a screen token to a family. A wall panel has no session
-  to scope to and never will — that is what the token is for.
+  to scope to and never will — that is what the token is for;
+- **`dinkydash/growth.py`**, which reads the signup and activation counter for the operator's page
+  (DIN-37). The narrowest of the four: `growth_by_day` is a date and two counts with no family
+  identifier to scope by, kept by a trigger on `families` (migration 006) so that it survives
+  deletion the way `global_model_spend` does, and `families_now` is a bare `count(*)`.
 
-Each of the three hands its result to a `PostgresStore` built for exactly one family, so the rule
-that matters is untouched. `web/family.py` is where the last two arrive, and it has both doors in
-one file on purpose: if a third is ever added it should be as obvious as those two are.
+Each of the first three hands its result to a `PostgresStore` built for exactly one family, and the
+fourth reads no row about any family at all, so the rule that matters is untouched. `web/family.py`
+is where the second and third arrive, and it has both doors in one file on purpose — `is_admin`,
+the gate on the operator's page, sits beside them for the same reason: if another is ever added it
+should be as obvious as those are.
 
 ## Signing somebody in, and signing somebody up
 
