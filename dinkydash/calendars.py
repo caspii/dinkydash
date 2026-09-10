@@ -162,13 +162,87 @@ def parse_feed(ical_text, start, end, tzinfo, label=None, shared_with=None):
 def _occurrences(ical_text, start, end):
     """Every event in the window, with recurrences expanded."""
     try:
-        cal = Calendar.from_ical(ical_text)
+        cal = Calendar.from_ical(_trim(ical_text, start, end))
     except Exception as exc:
         # Not `{exc}`: a parser error quotes the line it choked on, which is
         # somebody's appointment.
         raise FeedError(f"could not read the calendar data ({type(exc).__name__})",
                         invalid_data=True) from exc
     return list(recurring_events_of(cal).between(start, end + timedelta(days=1)))
+
+
+# A personal Google calendar is a decade of appointments in one file — the
+# owner's is 8 MB and 14,000 events — and `icalendar` builds an object for every
+# property of every one of them. Measured on that feed: ~200 MB to parse and
+# ~250 MB kept by the process afterwards, because Python does not hand arenas
+# back. Two gunicorn workers each holding that is how the hosted site went past
+# its 512 MB and was killed on 10 September 2026, with nothing in the log but
+# the exit. The board only ever wants a fortnight, so `_trim` drops, as text and
+# before the parser sees them, the events that cannot fall in the window.
+#
+# Whatever the parser needs to get the window right is kept regardless of its
+# date: recurring events (their EXDATEs ride on them), extra dates, the
+# exceptions that move one occurrence, VTIMEZONE blocks, and any event whose
+# dates this cannot read. Over-keeping is always safe — the parsed result is
+# windowed again by `recurring_ical_events` — so every doubt resolves to keep.
+_TRIM_MARGIN = timedelta(days=2)   # a timezone moves a date by a day at most; be generous
+_RECURRENCE_LINE = re.compile(r"^(RRULE|RDATE|RECURRENCE-ID)[;:]", re.IGNORECASE)
+_DATE_LINE = re.compile(r"^(DTSTART|DTEND)(?:;[^:]*)?:(\d{4})(\d{2})(\d{2})", re.IGNORECASE)
+_DURATION_LINE = re.compile(r"^DURATION(?:;[^:]*)?:-?P(?:(\d+)W)?(?:(\d+)D)?", re.IGNORECASE)
+
+
+def _trim(ical_text, start, end):
+    """The feed as text, minus every VEVENT that cannot touch [start, end]."""
+    lo, hi = start - _TRIM_MARGIN, end + _TRIM_MARGIN
+    kept, block = [], None
+    for line in ical_text.splitlines(keepends=True):
+        if block is None:
+            if line.rstrip("\r\n").upper() == "BEGIN:VEVENT":
+                block = [line]
+            else:
+                kept.append(line)
+            continue
+        block.append(line)
+        if line.rstrip("\r\n").upper() == "END:VEVENT":
+            if _may_touch(block, lo, hi):
+                kept.extend(block)
+            block = None
+    if block is not None:
+        kept.extend(block)   # unterminated: the parser's complaint to make
+    return "".join(kept)
+
+
+def _may_touch(block, lo, hi):
+    """Whether an event, as its raw lines, could have an occurrence in [lo, hi].
+
+    Reads DTSTART, DTEND and DURATION only, and only their date digits. A line
+    it cannot read — a folded value, a parameter with a colon in it — means
+    keep: the parser decides, exactly as it did before the trim existed.
+    """
+    first = last = None
+    duration_days = 0
+    for line in block:
+        if _RECURRENCE_LINE.match(line):
+            return True
+        found = _DATE_LINE.match(line)
+        if found:
+            try:
+                day = date(int(found[2]), int(found[3]), int(found[4]))
+            except ValueError:
+                return True
+            if found[1].upper() == "DTSTART":
+                first = day
+            else:
+                last = day
+            continue
+        found = _DURATION_LINE.match(line)
+        if found:
+            duration_days = int(found[1] or 0) * 7 + int(found[2] or 0)
+    if first is None:
+        return True
+    if last is None:
+        last = first + timedelta(days=duration_days + 1)
+    return first <= hi and max(first, last) >= lo
 
 
 def _events(occurrences, tzinfo, label, shared_with):

@@ -305,6 +305,16 @@ nothing: switching a calendar off means switching it off. The failure is recorde
 `calendar_statuses` and shown on the settings page, and the stamp is written either way, so a broken
 feed is retried on the configured cadence rather than every tick.
 
+**A feed is trimmed to the window before it is parsed.** `calendars._trim` drops, as text, every
+VEVENT that cannot fall inside `[start, end]`, and keeps whatever the parser needs to decide that for
+itself: recurring events and their exceptions, extra dates, VTIMEZONE blocks, and any event whose
+dates it cannot read. The reason is memory, not speed: `icalendar` builds an object for every
+property of every event, a decade-long personal calendar is 8 MB and 14,000 of them, and parsing one
+cost ~200 MB with ~250 MB kept by the process afterwards — which is how two gunicorn workers took the
+hosted site past its 512 MB on 10 September 2026. The rule is that over-keeping is always safe and
+under-keeping is a hidden appointment, so every doubt resolves to keep, and `tests/test_feed_trim.py`
+asserts that the trimmed parse gives exactly what the untrimmed one gave.
+
 **A tick takes an exclusive `flock` on `.tick.lock` and skips itself if another holds it**
 (`generate.only_one_tick`). Its job is money, not consistency — the storage split is what stops two
 writers clobbering each other, and this stops a second tick paying Anthropic for a brief the first

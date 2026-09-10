@@ -527,3 +527,39 @@ on the next deploy. Its backfill stamps every family that already has a calendar
 its last settings save, which is the latest the calendar could have been added and the only stamp
 there is: approximate for the families that exist today, exact for every family after. Counts are
 per UTC day and are never subtracted from, so a deleted account still shows as a signup.
+
+
+## The site ran out of memory, 10 September 2026
+
+**What happened.** At 19:15:26 UTC the `site` container died with `exited with code: 128`, ten
+seconds after the owner pressed **Check** on a calendar link for the second time, and was serving
+again at 19:16. Nothing in the log but the exit line: no traceback, no 500, the `worker` untouched,
+no other app in the account restarted. Any request in that minute got the platform's error page.
+
+**Why.** Measured afterwards on the same feed, locally, with the link handed over through a file in
+`/tmp` and never pasted anywhere: 8.4 MB, ~13,900 events, 286 recurrence rules, 15,600 attendee
+lines. One Check adds ~200 MB at its peak and the process keeps ~250 MB afterwards — a plateau over
+four parses, not a leak; Python does not hand arenas back. `--workers 2` on a 512 MB instance means
+the second worker to parse it puts the container over the limit. DigitalOcean labelled the exit 128
+rather than the 137 it documents for out-of-memory; treat 128 the same way.
+
+**Two fixes.** `calendars._trim` drops, as text, every VEVENT that cannot fall in the fetched window
+before `icalendar` sees it — the same shape of feed now parses in 0.4 s at ~100 MB peak rather than
+3.5 s at ~240 MB, and `tests/test_feed_trim.py` pins that the trimmed parse equals the untrimmed
+one. And `site` is `apps-s-1vcpu-1gb-fixed` rather than `apps-s-1vcpu-0.5gb`: applied 19:51 UTC
+with the merge-from-`.env` dance in the spec's header, deployment `bdb642ca` active at 19:52:56,
+`doctl apps propose` pricing the app at $20 a month rather than $15. The `worker` component stays at
+0.5 GB: it is one process, and with the trim its refresh of the same feed is small.
+
+**What that apply also carried**, because the spec is the whole app: the dead `DINKYDASH_FAMILY_ID`
+is gone, `GIT_SHA` is bound and `/healthz` reports a commit at last, and the three spend-breaker
+variables are set at exactly their code defaults, so nothing changed there. It did **not** carry
+`DINKYDASH_ADMIN_EMAILS`: the spec it was built from predates DIN-37 and the key is not in this
+workspace's `.env`, so the operator's page above is still closed to everyone. The next apply needs
+the key in `.env` first.
+
+**How to read it next time.** After a restart, `doctl apps logs <id> site --type run` holds only the
+new container; the one that died is under `--type run_restarted`. The health probe arrives every
+10 s on a ~2 ms cadence, so a probe that lands late is the cheap sign that a request was CPU-bound
+just then. There is still no memory graph outside the dashboard's Insights tab, and no alert on
+restarts.
