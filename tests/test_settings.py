@@ -553,6 +553,50 @@ class TestTheGuestList:
         assert "24 events over the next 14 days. Next up: Swimming, 2026-09-04 at all day." in page
 
 
+class TestCalendarLinkFeedback:
+    @pytest.mark.parametrize("status, body, message", [
+        (401, b"", "isn't allowing DinkyDash"),
+        (403, b"", "isn't allowing DinkyDash"),
+        (404, b"", "It may be private, out of date, or copied incorrectly."),
+        (410, b"", "It may be private, out of date, or copied incorrectly."),
+        (200, b"<html>Sign in to your calendar</html>", "didn't return readable calendar data"),
+    ])
+    def test_unusable_links_explain_how_to_retry_without_saving(
+            self, client, config_path, monkeypatch, status, body, message):
+        from html import unescape
+        from test_feed_safety import FakeResponse, resolves_to, serves
+
+        resolves_to(monkeypatch, "1.1.1.1")
+        serves(monkeypatch, FakeResponse(status=status, body=body))
+        # A link can be tested before choosing a name. Testing must neither
+        # create a calendar nor lose the pasted link and guest filter.
+        link = "https://calendar.example/not-a-feed"
+        response = client.post("/settings/calendars/new", data={
+            "action": "check", "label": "", "url": link,
+            "shared_with": "sam@example.com", "enabled": "on",
+        })
+        assert response.status_code == 200
+        page = unescape(response.get_data(as_text=True))
+        assert message in page
+        assert "Copy a fresh iCal / ICS sharing link" in page
+        assert '<details class="note-box calendar-help" open>' in page
+        assert "This works for private calendars too" in page
+        assert f'value="{link}"' in page
+        assert 'value="sam@example.com"' in page
+        assert not config_module.load_config(config_path).get("calendars")
+
+    def test_server_failure_does_not_blame_calendar_sharing(self, client, monkeypatch):
+        from test_feed_safety import FakeResponse, resolves_to, serves
+
+        resolves_to(monkeypatch, "1.1.1.1")
+        serves(monkeypatch, FakeResponse(status=503))
+        page = client.post("/settings/calendars/new", data={
+            "action": "check", "url": "https://calendar.example/feed.ics",
+        }).get_data(as_text=True)
+        assert "503" in page
+        assert "Copy a fresh iCal / ICS sharing link" not in page
+
+
 class TestSavingACalendarForgetsWhatItFetched:
     """A guest list added after a fetch was never applied to what is stored.
 

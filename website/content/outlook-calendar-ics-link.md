@@ -109,8 +109,8 @@ it — the published link is the whole connection, and it can only read.
 To add it:
 
 1. Open **Settings → Calendars → Add a calendar**.
-2. Give it a name and paste the ICS address into **iCal link**.
-3. Press **Check this link**. It says how many events came back and what the next one is,
+2. Give it a name and paste the ICS address into **Calendar link (iCal / ICS)**.
+3. Press **Test calendar link**. It says how many events came back and what the next one is,
    before you save.
 
 ![Adding a calendar in DinkyDash's settings: a name, the iCal link, and a Check this link button](/images/settings-add-calendar.webp)

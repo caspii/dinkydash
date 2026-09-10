@@ -13,8 +13,8 @@
 <div class="problems"><ul>{% for problem in problems %}<li>{{ problem }}</li>{% endfor %}</ul></div>
 {% endif %}
 
-{% if checked %}
-<div class="flash {{ 'ok' if checked.ok else 'error' }}">{{ checked.message }}</div>
+{% if section_name == 'calendars' %}
+<p class="calendar-intro">Bring events onto your board. Name the calendar, then copy its sharing link from your calendar provider.</p>
 {% endif %}
 
 <form id="edit-form" method="post" class="card pad" style="display:flex;flex-direction:column;gap:1rem;">
@@ -24,10 +24,12 @@
         {% if kind != 'checkbox' %}<label for="f-{{ name }}">{{ label }}</label>{% endif %}
 
         {% if kind == 'text' %}
-            <input type="text" id="f-{{ name }}" name="{{ name }}" value="{{ item.get(name, '') }}" {{ 'required' if required }}>
+            <input type="text" id="f-{{ name }}" name="{{ name }}" value="{{ item.get(name, '') }}" {{ 'required' if required }}
+                   {% if section_name == 'calendars' and name == 'label' %}placeholder="e.g. Family or School" aria-describedby="hint-{{ name }}"{% endif %}>
 
         {% elif kind == 'url' %}
-            <input type="url" id="f-{{ name }}" name="{{ name }}" value="{{ item.get(name, '') }}" {{ 'required' if required }} placeholder="https://calendar.google.com/…/basic.ics">
+            <input type="url" id="f-{{ name }}" name="{{ name }}" value="{{ item.get(name, '') }}" {{ 'required' if required }}
+                   placeholder="https://…" autocapitalize="none" autocorrect="off" spellcheck="false" aria-describedby="hint-{{ name }}">
 
         {% elif kind == 'emails' %}
             {# Stored as a list, typed as one line. A hand-edited file may hold a string; show it as it is. #}
@@ -47,7 +49,7 @@
         {% elif kind == 'checkbox' %}
             <div class="checkline">
                 <input type="checkbox" id="f-{{ name }}" name="{{ name }}" {{ 'checked' if item.get(name) }}>
-                <span>{{ label }}</span>
+                <label for="f-{{ name }}">{{ label }}</label>
             </div>
 
         {% elif kind == 'monthday' %}
@@ -102,14 +104,36 @@
             {% endif %}
         {% endif %}
 
-        {% if help %}<div class="hint">{{ help }}</div>{% endif %}
+        {% if help %}<div class="hint" id="hint-{{ name }}">{{ help }}</div>{% endif %}
+        {% if section_name == 'calendars' and name == 'url' %}
+            {% include "settings/_calendar_help.html" %}
+        {% endif %}
     </div>
     {% endfor %}
 
     {% if section_name == 'calendars' %}
-    <button class="btn outline" type="submit" name="action" value="check">Check this link</button>
+    <div class="calendar-test">
+        <button class="btn outline" type="submit" name="action" value="check" formnovalidate aria-describedby="calendar-test-hint">Test calendar link</button>
+        <p class="hint" id="calendar-test-hint">Optional: fetch upcoming events to confirm the link works and see what passes your guest filter. Testing doesn't save your changes.</p>
+        {% if checked %}
+        <div class="flash {{ 'ok' if checked.ok else 'error' }}" role="status" id="calendar-test-result" tabindex="-1">
+            <strong>Calendar test result</strong>
+            <p>{{ checked.message }}</p>
+            {% if checked.recovery %}<p class="calendar-test-next">{{ checked.recovery }}</p>{% endif %}
+            {% if checked.link_help %}<p class="calendar-test-next"><a href="#f-url">Replace calendar link ↑</a></p>{% endif %}
+            {% if checked.ok %}<p class="calendar-test-next">Ready to keep it? Save the calendar below.</p>{% endif %}
+        </div>
+        {% endif %}
+    </div>
+    <button class="btn" type="submit" name="action" value="save">Save calendar</button>
     {% endif %}
 </form>
+
+{% if checked %}
+<script>
+    document.getElementById('calendar-test-result').focus();
+</script>
+{% endif %}
 
 {% if not is_new %}
 <form method="post" action="{{ url_for('settings.section_delete', section_name=section_name, item_id=item_id) }}"

@@ -122,17 +122,11 @@ SECTIONS = {
                  "sent to Anthropic each morning so Claude can write the day's line; an event "
                  "kept off the board by a guest list is never stored and never sent.",
         "fields": [
-            # "Name", like People and Pets, rather than an instruction. The
-            # heading above already says what is being named, and this string
-            # never reaches the board — it is how the settings list and the
-            # feed status refer to this calendar, so the hint says so.
-            ("label", "Name", "text", True,
-             "Only you see this — try “Family” or “School”."),
-            ("url", "iCal link", "url", True,
-             "Google → Settings and sharing → Integrate calendar → Secret address in iCal format. "
-             "iCloud → share the calendar → Public Calendar → Copy Link (a webcal:// link is "
-             "fine, it is converted for you). Outlook → Settings → Calendar → Shared calendars → "
-             "Publish a calendar, then the ICS link. Links must be https."),
+            ("label", "Calendar name", "text", True,
+             "A name to help you recognise this calendar in settings, such as “Family” or “School”. "
+             "It won't appear on the board."),
+            ("url", "Calendar link (iCal / ICS)", "url", True,
+             "Paste the calendar's sharing link here. HTTPS and webcal:// links work."),
             ("shared_with", "Only show events shared with", "emails", False,
              "Email addresses, with commas between them. Only events with one of these people "
              "on the guest list, or organised by them, go on the board — the rest of this "
@@ -465,7 +459,22 @@ def check_feed(item, config):
             days_ahead=int(config.get("calendar_days_ahead") or 14),
             shared_with=wanted,
         )
-    except (FeedError, GenerationError) as exc:
+    except FeedError as exc:
+        if exc.status_code in (401, 403, 404, 410) or exc.invalid_data:
+            if exc.status_code in (401, 403):
+                message = "This calendar isn't allowing DinkyDash to read it."
+            elif exc.status_code in (404, 410):
+                message = ("We couldn't find a calendar at this link. It may be private, "
+                           "out of date, or copied incorrectly.")
+            else:
+                message = ("This link didn't return readable calendar data. It may open "
+                           "a calendar webpage or a sign-in page instead.")
+            return {"ok": False, "link_help": True, "message": message,
+                    "recovery": "Copy a fresh iCal / ICS sharing link from your calendar's "
+                                "settings, paste it above, then test again. See the provider "
+                                "instructions above for the right link."}
+        return {"ok": False, "message": str(exc)}
+    except GenerationError as exc:
         return {"ok": False, "message": str(exc)}
     days = found["days_ahead"]
     if not found["total"]:

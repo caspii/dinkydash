@@ -69,7 +69,7 @@ Each family member is a separate feed, so share each one you want and add them a
 
 ### Then paste it in
 
-Put the link in `config.yaml` under `calendars:` (step 2 below), or add it later from the settings page: **Settings → Calendars → Add a calendar**, then press **Check this link** to confirm it works before you save.
+Put the link in `config.yaml` under `calendars:` (step 2 below), or add it later from the settings page: **Settings → Calendars → Add a calendar**, then press **Test calendar link** to confirm it works before you save.
 
 Whichever provider it came from, treat the link like a password. Anyone who has it can read that calendar, for as long as it exists, and there is no way to see who has.
 
@@ -80,7 +80,7 @@ You do not need a separate family calendar. If your own calendar also holds work
 Two things to get right:
 
 - **Use the address on the invitation.** Google, Apple and Outlook all record guests by email address, so it has to be the one you actually invite them with. If they have two, list both with a comma between them.
-- **Press Check this link before you save.** With a guest list filled in, it says how many events get through out of how many, and warns you if none do. That usually means the address is not the one on the invitations, or that nothing in the next fortnight has been shared yet.
+- **Press Test calendar link before you save.** With a guest list filled in, it says how many events get through out of how many, and warns you if none do. That usually means the address is not the one on the invitations, or that nothing in the next fortnight has been shared yet.
 
 Each calendar has its own list, so the school calendar, which has no guests, is left alone. Saving a calendar clears whatever was fetched from it before, so nothing from before the guest list lingers; the board picks it up again at the next refresh, or straight away if you press **Refresh calendars**. In `config.yaml` the same setting is `shared_with`, a list of addresses under that calendar.
 
@@ -219,7 +219,7 @@ The settings page adds a short `id` to each person, pet, chore, date and calenda
 Everything on the board is editable at `/settings`. Two things worth knowing:
 
 - **A saved board is from this morning.** Editing a chore or a person shows up on the next page load, but the headline and daily line are only rewritten each morning. Press **Rewrite now** on the settings home page to get fresh copy immediately. Each press is one API call.
-- **Adding a calendar checks the link.** Paste an iCal address and press **Check this link**. It tells you how many events it found and what the next one is, so you are not left guessing whether the URL works.
+- **Adding a calendar checks the link.** Paste an iCal address and press **Test calendar link**. It tells you how many events it found and what the next one is, so you are not left guessing whether the URL works.
 - **A personal calendar can keep its private side.** Fill in **Only show events shared with** on that calendar, and only the events the other parent is on reach the board. See [a personal calendar with work in it](#personal-calendar) above.
 
 The board can be in one of three states: the normal board, a first-run "waiting" screen before anything is generated, or a stale state after a failed or missing run. When stale, the times, turns and countdowns are still today's — only the written line is old, and the board says so.
@@ -464,7 +464,7 @@ The old `lcd_rotate` and `display_rotate` lines in `config.txt` no longer apply 
 
 **Times are off by an hour.** The timezone under Settings → Family & system is what the engine uses, not the machine clock. Set it even if the clock is already local.
 
-**A calendar shows nothing.** Check it under Settings → Calendars — a failed feed says so. Apple regenerates iCloud links when a calendar stops being shared, so a link that worked last month may need replacing. If the calendar has **Only show events shared with** filled in, open it and press **Check this link**: a working link with no events getting through means the address is not the one on the invitations.
+**A calendar shows nothing.** Check it under Settings → Calendars — a failed feed says so. Apple regenerates iCloud links when a calendar stops being shared, so a link that worked last month may need replacing. If the calendar has **Only show events shared with** filled in, open it and press **Test calendar link**: a working link with no events getting through means the address is not the one on the invitations.
 
 **A GNOME keyring password box appears.** The `--password-store=basic` flag in `run.sh` prevents this. Make sure it is present.
 
