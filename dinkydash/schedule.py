@@ -9,7 +9,10 @@ few HTTP requests and happens every `refresh_minutes`, which is what puts an
 appointment added at 09:00 onto the wall the same day. The brief is an API
 call and happens once a day, after `brief_time` on the family's own clock —
 **except the first one, which is owed the moment there is a family to write it
-for** (DIN-45).
+for** (DIN-45). A *set-up* family: while the household is still the invented
+starter or the timezone has not been chosen, there is nothing true to write
+and no right day to write it for, so the first brief waits for
+`config.is_set_up` rather than for the clock.
 
 A brief that fails is simply due again on the next tick. That is the retry.
 """
@@ -17,7 +20,7 @@ A brief that fails is simply due again on the next tick. That is the retry.
 import logging
 from datetime import datetime, time, timedelta, timezone
 
-from .config import tzinfo_for
+from .config import is_set_up, tzinfo_for
 
 log = logging.getLogger(__name__)
 
@@ -54,13 +57,20 @@ def refresh_due(config, payload, now):
 
 
 def brief_due(config, payload, now):
-    """Owe the first brief immediately; replace older briefs after brief_time.
+    """Owe the first brief as soon as the family is set up; later ones after brief_time.
 
     A calendar-only payload has no generated_for_date. Failed first briefs stay
     due on each tick; cloud callers remain subject to the spend breaker.
+
+    **The first brief waits for set-up, not for the morning.** A hosted family
+    starts with an invented household and no timezone, and a Pi copying the
+    example file starts the same way. Writing a brief then would spend a call
+    on somebody else's children, put that line into the family's history, and
+    hang it on the wall as the first thing they see. The moment the household
+    is theirs and the clock is theirs, it is owed at any hour, as before.
     """
     if not payload.get("generated_for_date"):
-        return True
+        return is_set_up(config)
     local = now.astimezone(tzinfo_for(config))
     if payload["generated_for_date"] == local.date().isoformat():
         return False

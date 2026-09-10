@@ -75,9 +75,11 @@ icon = "cloud"
 
 # The marketing site, on the second of the ten ports this workspace owns.
 # Hardcoding 5001 would collide the moment two workspaces ran at once.
+# DINKYDASH_APP_URL points its "Start your free trial" buttons at the
+# dashboard above rather than at production, which is where they go by default.
 [scripts.run.website]
 available_in = [ "local" ]
-command = "FLASK_APP=website.site venv/bin/flask run --port $((${CONDUCTOR_PORT:-5000} + 1))"
+command = "DINKYDASH_APP_URL=http://127.0.0.1:${CONDUCTOR_PORT:-5000} FLASK_APP=website.site venv/bin/flask run --port $((${CONDUCTOR_PORT:-5000} + 1))"
 icon = "book-open"
 
 [scripts.run.generate]

@@ -12,6 +12,7 @@ from dinkydash.board import build_view, computed_headline
 
 CONFIG = {
     "family_name": "The Wilsons",
+    "timezone": "Europe/Berlin",  # set up: a real family's board, not the starter
     "theme": "light",
     "people": [{"name": "Mia", "date_of_birth": "2017-03-15"}],
     "recurring": [{"title": "Set the table", "emoji": "🍽", "choices": ["Mia", "Theo"]}],
@@ -195,10 +196,10 @@ class TestEmptyStates:
         assert view["chores"]
 
     def test_an_agenda_with_no_brief_yet_still_shows_the_day(self):
-        # A `--tick` that refreshed the calendars before brief_time leaves a
-        # payload with events and no words. Reachable only since the split, and
-        # the right answer is today's agenda under the amber banner rather than
-        # the first-run screen.
+        # A `--tick` that refreshed the calendars before the brief leaves a
+        # payload with events and no words — after a first brief that failed,
+        # say. For a set-up family the right answer is today's agenda under the
+        # amber banner rather than the first-run screen.
         agenda = {"events": [event("2026-09-03", "08:20", "School run")],
                   "calendars_fetched_at": "2026-09-03T03:00:00+00:00"}
         view = build_view(CONFIG, agenda, TODAY)
@@ -207,6 +208,50 @@ class TestEmptyStates:
         assert view["headline"] == "1 thing on today, starting at 08:20."
         assert view["note"] == ""
         assert view["stale_days"] is None
+
+
+class TestStillSettingUp:
+    """A family that is not set up yet gets the waiting screen, and it says why.
+
+    `config.is_set_up` is false while the household is still the invented
+    starter or the timezone is unset. Nothing is being written for such a
+    family (`schedule.brief_due`), so the board must not say "writing your
+    first board" — and it must not show the invented household's turns under
+    an amber banner either.
+    """
+
+    STARTER = {**CONFIG, "timezone": "UTC"}
+
+    def test_no_payload_is_waiting_and_says_it_is_not_set_up(self):
+        view = build_view(self.STARTER, None, TODAY)
+        assert view["state"] == "waiting"
+        assert view["set_up"] is False
+
+    def test_a_set_up_family_with_no_payload_is_waiting_for_the_first_board(self):
+        view = build_view(CONFIG, None, TODAY)
+        assert view["state"] == "waiting"
+        assert view["set_up"] is True
+
+    def test_an_agenda_with_no_brief_is_still_the_waiting_screen(self):
+        # The calendars have been fetched — that half is free and runs
+        # regardless — but no brief was attempted, so no amber banner.
+        agenda = {"events": [event("2026-09-03", "08:20", "School run")],
+                  "calendars_fetched_at": "2026-09-03T03:00:00+00:00"}
+        view = build_view(self.STARTER, agenda, TODAY)
+        assert view["state"] == "waiting"
+        assert view["events"] == []
+
+    def test_an_invented_household_is_not_set_up_whatever_the_timezone(self):
+        from dinkydash import config as config_module
+        starter = config_module.starter_config()
+        starter["timezone"] = "Europe/Berlin"
+        assert build_view(starter, None, TODAY)["set_up"] is False
+
+    def test_a_written_brief_renders_as_usual(self):
+        # A brief that already exists is shown, set up or not: the family
+        # that signed up before this rule still has yesterday's board.
+        view = build_view(self.STARTER, payload("2026-09-03"), TODAY)
+        assert view["state"] == "ready"
 
 
 class TestTheme:
@@ -280,4 +325,20 @@ class TestTheWaitingScreen:
         assert "generate.py" not in page
 
     def test_it_names_the_button_the_settings_page_actually_has(self, page):
-        assert "Write it now" in page
+        assert "Write the first board" in page
+
+    def test_a_family_still_setting_up_is_told_that_instead(self, tmp_path):
+        # The example file's household is invented, so nothing is being
+        # written and the screen must not claim it is.
+        from dinkydash.store import FileStore
+        from tests.conftest import client_for
+        from web import create_app
+
+        path = tmp_path / "config.yaml"
+        path.write_text('family_name: "The Wilsons"\ntimezone: "Europe/Berlin"\n'
+                        'people:\n  - name: "Mia"\n    date_of_birth: "2017-03-15"\n'
+                        '    invented: true\n')
+        page = client_for(create_app(FileStore(path))).get("/").get_data(as_text=True)
+        assert "Nearly there" in page
+        assert "first board" not in page.split("Nearly there")[0]
+        assert "Writing" not in page

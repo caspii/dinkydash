@@ -51,6 +51,12 @@ AVATAR_COLORS = ("purple", "blue", "green", "pink", "orange", "amber", "teal")
 # The lists the settings UI edits. Every item in them carries a stable `id`.
 LIST_KEYS = ("people", "pets", "recurring", "special_dates", "calendars")
 
+# The mark on a person or pet the app invented rather than a family typed
+# (see `starter_config`). The settings form drops it the first time that item
+# is saved, so "still marked" means exactly "never touched" — which is what
+# `invented_names` and `is_set_up` read, and what holds the first brief back.
+INVENTED = "invented"
+
 # Ids are short and typed by nobody, but they end up in URLs and get read aloud
 # when something goes wrong, so leave out the characters that look like others.
 ID_ALPHABET = "23456789abcdefghjkmnpqrstuvwxyz"
@@ -190,19 +196,27 @@ def starter_config():
     the ages computed from them move on their own. `ensure_ids` runs here so
     the settings UI can address a person the moment the family exists, rather
     than rewriting the document on first open.
+
+    **Every invented person and pet is marked `invented: true`.** That mark is
+    how the settings home knows what still has to be replaced, and how the
+    tick knows not to write a brief about children who do not exist
+    (`is_set_up`). Saving the item from the settings form clears it, so the
+    mark says "never touched" and nothing else — a family who keeps the name
+    Mia for a real Mia has still touched her.
     """
     config = with_defaults({
         "family_name": "Our family",
         "people": [
             {"name": "Mia", "date_of_birth": "2017-03-15",
              "avatar_emoji": "\U0001f996", "avatar_color": "purple",
-             "interests": "dinosaurs, drawing, swimming"},
+             "interests": "dinosaurs, drawing, swimming", INVENTED: True},
             {"name": "Theo", "date_of_birth": "2019-06-20",
              "avatar_emoji": "\u26bd", "avatar_color": "blue",
-             "interests": "football, lego"},
+             "interests": "football, lego", INVENTED: True},
         ],
         "pets": [
-            {"name": "Biscuit", "type": "dog", "avatar_emoji": "\U0001f415"},
+            {"name": "Biscuit", "type": "dog", "avatar_emoji": "\U0001f415",
+             INVENTED: True},
         ],
         "recurring": [
             {"title": "Set the table", "emoji": "\U0001f37d",
@@ -282,3 +296,72 @@ def today_for(config):
 
 def people_names(config):
     return [p.get("name", "") for p in config.get("people", []) if p.get("name")]
+
+
+def invented_names(config):
+    """The people and pets the app invented that nobody has touched yet.
+
+    `starter_config` marks each one, and the settings form drops the mark the
+    first time that item is saved — so this is exactly "what is still somebody
+    else's household", in the order the board shows it. A config written by
+    hand carries no marks and returns nothing, whatever the names in it: a
+    real Mia born on the example's date is still theirs.
+    """
+    return [item["name"]
+            for key in ("people", "pets")
+            for item in config.get(key) or []
+            if isinstance(item, dict) and item.get(INVENTED) and item.get("name")]
+
+
+def timezone_is_set(config):
+    """False while the timezone is still the default.
+
+    The default is UTC, which is nobody's kitchen; a family that really lives
+    on it picks its named zone. It is the one setting that changes what the
+    board *says* — when today rolls over, when the brief is written, and what
+    time an appointment shows — so a board is not set up until it is chosen.
+    """
+    return (config.get("timezone") or DEFAULTS["timezone"]) != DEFAULTS["timezone"]
+
+
+def is_set_up(config):
+    """Is this a real family's board yet?
+
+    Two things have to be true: the invented household is gone, and the
+    timezone has been chosen. Until then a brief would be written about
+    children who do not exist, for a day that may not be theirs — so the
+    tick holds the first one back (`schedule.brief_due`), the wall says
+    "nearly there" (`board.build_view`), and the settings home shows the
+    set-up checklist instead of the daily controls (`web/setup.py`).
+
+    **Pure and config-only**, so all three ask the same question of the same
+    data. There is no stored "onboarding step" to drift out of line with what
+    the config actually holds, and no mode check: a freshly cloned Pi running
+    the untouched example file is in the same state as a hosted family five
+    seconds old.
+    """
+    return not invented_names(config) and timezone_is_set(config)
+
+
+def rename_in_chores(config, old, new):
+    """A person renamed in the settings keeps their place in every rotation.
+
+    Chores hold names as plain text, so without this a family who replaced
+    the invented Mia by editing her would have a board announcing Mia's turn
+    for the rest of time. Edited in place: a flow-style list in config.yaml
+    stays a flow-style list.
+    """
+    for chore in config.get("recurring") or []:
+        choices = chore.get("choices") or []
+        for index, name in enumerate(choices):
+            if name == old:
+                choices[index] = new
+
+
+def drop_from_chores(config, name):
+    """A person removed from the settings leaves every rotation too."""
+    for chore in config.get("recurring") or []:
+        choices = chore.get("choices") or []
+        for index in range(len(choices) - 1, -1, -1):
+            if choices[index] == name:
+                del choices[index]

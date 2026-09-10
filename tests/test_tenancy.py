@@ -379,7 +379,9 @@ class TestSingleModeIsUntouched:
         assert client.get("/").status_code == 200
 
     def test_the_settings_need_no_session(self, client):
-        assert "The Wilsons" in client.get("/settings/").get_data(as_text=True)
+        # No board written yet, so this is the set-up checklist — which reads
+        # the same config: the calendar step names the Wilsons' feed.
+        assert "Wilson school" in client.get("/settings/").get_data(as_text=True)
 
     def test_it_still_uses_the_one_store_it_was_given(self, tmp_path, monkeypatch):
         monkeypatch.delenv("DINKYDASH_MODE", raising=False)

@@ -21,6 +21,20 @@ from website import render
 from website.site import create_site_app
 
 
+@pytest.fixture(autouse=True)
+def as_production(monkeypatch):
+    """The site as deployed, whatever shell the tests run in.
+
+    A Conductor shell carries CONDUCTOR_PORT, and `site.py` reads it as "the
+    dashboard is on this port" — so without this, every hosted link in the
+    suite would point at a local port on a developer's machine and at
+    production in CI. The tests that want the preview behaviour set the
+    variables themselves.
+    """
+    monkeypatch.delenv("CONDUCTOR_PORT", raising=False)
+    monkeypatch.delenv("DINKYDASH_APP_URL", raising=False)
+
+
 @pytest.fixture
 def client():
     app = create_site_app(site_url="https://dinkydash.co")
@@ -53,6 +67,45 @@ class TestHostedSignup:
             if page["url"] in self.HOSTED_PAGES:
                 assert f'href="{self.URL}"' in body, page["url"]
                 assert 'href="/getting-started/"' in body, page["url"]
+
+    def test_the_app_address_is_configurable(self):
+        """A preview runs the board on a local port; its trial button must not
+        land on production. Only the app's origin moves — the privacy and terms
+        pages name `app.dinkydash.co` as a fact about production and keep it."""
+        local = create_site_app(site_url="https://dinkydash.co",
+                                app_url="http://127.0.0.1:5000/").test_client()
+        for page in render.pages():
+            body = local.get(page["url"]).get_data(as_text=True)
+            assert self.URL not in body, page["url"]
+            if page["url"] in self.HOSTED_PAGES:
+                assert 'href="http://127.0.0.1:5000/login"' in body, page["url"]
+        assert "app.dinkydash.co" in local.get("/privacy/").get_data(as_text=True)
+
+    def test_and_read_from_the_environment(self, monkeypatch):
+        monkeypatch.setenv("DINKYDASH_APP_URL", "http://127.0.0.1:5000")
+        body = create_site_app().test_client().get("/").get_data(as_text=True)
+        assert 'href="http://127.0.0.1:5000/login"' in body
+
+    def test_a_conductor_preview_finds_the_dashboard_on_its_own(self, monkeypatch):
+        # Conductor runs its scripts from the main checkout, so the script on
+        # this branch may never run — but it sets CONDUCTOR_PORT for whatever
+        # it starts, and that is the dashboard's port.
+        monkeypatch.delenv("DINKYDASH_APP_URL", raising=False)
+        monkeypatch.setenv("CONDUCTOR_PORT", "55030")
+        body = create_site_app().test_client().get("/").get_data(as_text=True)
+        assert 'href="http://127.0.0.1:55030/login"' in body
+
+    def test_an_explicit_address_beats_the_port(self, monkeypatch):
+        monkeypatch.setenv("CONDUCTOR_PORT", "55030")
+        monkeypatch.setenv("DINKYDASH_APP_URL", "https://staging.app.dinkydash.co")
+        body = create_site_app().test_client().get("/").get_data(as_text=True)
+        assert 'href="https://staging.app.dinkydash.co/login"' in body
+
+    def test_production_is_untouched_by_either(self, monkeypatch):
+        monkeypatch.delenv("DINKYDASH_APP_URL", raising=False)
+        monkeypatch.delenv("CONDUCTOR_PORT", raising=False)
+        body = create_site_app().test_client().get("/").get_data(as_text=True)
+        assert f'href="{self.URL}"' in body
 
     def test_readme_sends_visitors_to_signup(self):
         readme = (Path(__file__).resolve().parents[1] / "README.md").read_text()

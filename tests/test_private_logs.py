@@ -85,7 +85,9 @@ def test_server_formatting_cannot_expose_the_tail_of_a_decoded_token(encoded, se
 @pytest.fixture
 def generated_store(tmp_path, monkeypatch):
     path = tmp_path / "config.yaml"
-    path.write_text('family_name: "Invented family"\ncalendars: []\n')
+    # A timezone, because a family with none is still setting up and the tick
+    # writes nothing for it (`config.is_set_up`).
+    path.write_text('family_name: "Invented family"\ntimezone: "Europe/Berlin"\ncalendars: []\n')
     store = FileStore(path)
     monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-ant-not-a-real-key")
 

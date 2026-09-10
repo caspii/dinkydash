@@ -2,40 +2,111 @@
 {% import "settings/_icons.html" as icons %}
 {% block title %}Settings{% endblock %}
 
+{% block head %}
+<style>
+    /* The set-up checklist. Only this page has one, so its rules live here
+       rather than in the shared sheet; sized in rem and em like everything
+       else, so it scales with the root. */
+    .step-badge {
+        width: 1.875rem; height: 1.875rem; border-radius: 50%; flex-shrink: 0;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 0.8125rem; font-weight: 800;
+        background: var(--warm); color: var(--accent-dark);
+    }
+    .step.done .step-badge { background: rgba(22, 163, 74, 0.12); color: var(--green); }
+    .step.done .row-title { color: var(--text-mid); }
+    .step + .step { border-top: 1px solid var(--border); }
+    .step .row-sub { white-space: normal; }
+    /* The one-tap offer sits under its row, indented to the text. */
+    .step-offer { padding: 0 0.875rem 0.875rem 3.5625rem; }
+</style>
+{% endblock %}
+
 {% block appbar %}
 <h1 style="padding-left:0.25rem;color:var(--accent);font-size:1.15rem;">DinkyDash</h1>
-<a class="action muted" href="{{ url_for('board.index') }}">Board</a>
+{# The board link is "View board" by another name, so it waits with it. #}
+{% if not setting_up %}<a class="action muted" href="{{ board_link }}">Board</a>{% endif %}
 {% endblock %}
 
 {% block content %}
-{% if first_run %}
-{# Shown while the board is still the one it was handed: no calendar, and the
-   default family name. A new family is seeded with an invented household so
-   that the board has something on it, and this is what stops that reading as
-   a bug — somebody else's children on your settings page, unexplained. It
-   goes as soon as either half is answered, so there is nothing to dismiss. #}
-<div class="card pad" style="display:flex;flex-direction:column;gap:0.75rem;">
-    <div>
-        <div style="font-size:1.125rem;font-weight:800;">Make it yours</div>
-        <div class="hint" style="margin-top:0.1875rem;">
-            The people, pets and chores below are invented, so the board has something
-            to show while you set it up. Replace them with your own.
+{% if setting_up %}
+{# **The checklist.** Shown until the family is set up and its first board is
+   written, in place of the daily controls — "Refresh calendars" with no
+   calendar, "View board" on an invented household and "Write it now" about
+   the same are the three buttons a new parent used to be met with. Every
+   step's "done" is read off the config by `web/setup.py`, and the engine
+   asks the same question (`config.is_set_up`) before writing anything, so
+   the page and the tick cannot disagree. Nothing to dismiss and nothing
+   remembered: it leaves on its own. #}
+<div class="card pad" style="display:flex;flex-direction:column;gap:0.1875rem;">
+    <div style="font-size:1.125rem;font-weight:800;">Set up your board</div>
+    <div class="hint">
+        Three steps, then a screen to put it on. The board writes itself as soon as
+        the first two are done.
+    </div>
+</div>
+
+<div class="card">
+    {% for step in setup.steps %}
+    <div class="step{{ ' done' if step.done }}">
+        <div class="row">
+            <div class="step-badge">{% if step.done %}{{ icons.tick() }}{% else %}{{ loop.index }}{% endif %}</div>
+            <a class="row-main" href="{{ step.href }}">
+                <div class="row-title">{{ step.title }}</div>
+                <div class="row-sub">{{ step.detail }}</div>
+            </a>{{ icons.chevron() }}
+        </div>
+        {% if step.key == 'timezone' and not step.done %}
+        {# Hidden until the script below has read the phone's own zone into it.
+           Without JavaScript the row above still leads to the full list. #}
+        <form class="step-offer" id="tz-offer" method="post" action="{{ url_for('settings.set_timezone') }}" hidden>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="timezone" value="">
+            <button class="btn small" type="submit">Use <span id="tz-zone"></span></button>
+        </form>
+        {% endif %}
+    </div>
+    {% endfor %}
+    <div class="step">
+        <div class="row">
+            <div class="step-badge">4</div>
+            <div class="row-main">
+                <div class="row-title">Put it on the screen</div>
+                <div class="row-sub">
+                    {% if screen %}Open the link below on the TV, tablet or Pi and leave the page up. It redraws itself.
+                    {% else %}Once the first two steps are done, the link for the screen appears here.{% endif %}
+                </div>
+            </div>
         </div>
     </div>
-    <div class="note-box">
-        Two things are worth doing first: add a calendar, which is what puts today's
-        plans on the board, and set your timezone — it decides when the day rolls over
-        and when the morning's line is written.
+</div>
+
+{% if screen %}
+{# Steps one and two are done: a board written now would be theirs. The link,
+   and the button that writes it without waiting for the worker's next pass. #}
+<div class="card pad" style="display:flex;flex-direction:column;gap:0.875rem;">
+    {% with screen_link = screen.link, screen_qr = screen.qr %}
+    {% include "settings/_screen_link.html" %}
+    {% endwith %}
+    {% if cloud %}
+    <div class="hint">
+        <strong>Anyone with this link can see your board.</strong> There is no password on it, which
+        is what lets a screen show it without signing in. You can change it later under The screen.
     </div>
-    <div style="display:flex;gap:0.625rem;">
-        <a class="btn" style="flex:1;"
-           href="{{ url_for('settings.section_list', section_name='calendars') }}">Add a calendar</a>
-        <a class="btn outline" style="flex:1;"
-           href="{{ url_for('settings.system') }}">Set the timezone</a>
+    {% endif %}
+    <form class="inline-form" method="post" action="{{ url_for('settings.generate_now') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        {# Keep this label in sync with the waiting screen in board.html. #}
+        <button class="btn" type="submit">Write the first board</button>
+    </form>
+    <div class="hint">
+        It writes itself within a few minutes anyway; this is the shortcut. Everything above can
+        still be changed afterwards.
     </div>
 </div>
 {% endif %}
 
+{% else %}
 <div class="card pad" style="display:flex;flex-direction:column;gap:0.875rem;">
     <div>
         <div style="font-size:1.125rem;font-weight:800;">{{ config.family_name or "Your board" }}</div>
@@ -47,21 +118,26 @@
     <div style="display:flex;flex-direction:column;gap:0.625rem;">
         {# The cheap half first: fetching the calendars costs a few requests,
            while rewriting the line costs a call to Claude. #}
+        {% if calendars_on %}
         <form class="inline-form" method="post" action="{{ url_for('settings.refresh_now') }}">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button class="btn" type="submit" {{ 'disabled' if status.state == 'lapsed' }}>{{ icons.refresh() }} Refresh calendars</button>
         </form>
+        {% else %}
+        {# Nothing to refresh, so the slot offers the thing that would give it
+           something to do. #}
+        <a class="btn" href="{{ url_for('settings.section_edit', section_name='calendars', item_id='new') }}">{{ icons.plus() }} Add a calendar</a>
+        {% endif %}
         <div style="display:flex;gap:0.625rem;">
             <a class="btn outline" style="flex:1;" href="{{ board_link }}">{{ icons.screen() }} View board</a>
             <form class="inline-form" method="post" action="{{ url_for('settings.generate_now') }}" style="flex:1;">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <button class="btn outline" type="submit" {{ 'disabled' if status.state == 'lapsed' }}>
-                    {{ "Write it now" if status.state == "waiting" else "Rewrite now" }}
-                </button>
+                <button class="btn outline" type="submit" {{ 'disabled' if status.state == 'lapsed' }}>Rewrite now</button>
             </form>
         </div>
     </div>
 </div>
+{% endif %}
 
 {% if broken %}
 <div class="flash error">
@@ -87,7 +163,12 @@
         <a class="row" href="{{ url_for('settings.section_list', section_name='recurring') }}">
             <div class="row-main">
                 <div class="row-title">Chores</div>
-                <div class="row-sub">{{ counts.recurring }} job{{ "s" if counts.recurring != 1 }}, rotating daily</div>
+                <div class="row-sub">
+                    {# The titles, not a count: a starter job left behind — "Feed
+                       Biscuit" after Biscuit has gone — should be visible from here. #}
+                    {% if counts.recurring and counts.recurring <= 3 %}{{ config.recurring | map(attribute='title') | join(' · ') }}{% else %}{{ counts.recurring }} job{{ "s" if counts.recurring != 1 }}, rotating daily{% endif %}{% if counts.jobs_unassigned %}
+                    &middot; <span style="color:var(--amber-dark);font-weight:700;">{{ counts.jobs_unassigned }} with nobody assigned</span>{% endif %}
+                </div>
             </div>{{ icons.chevron() }}
         </a>
         <a class="row" href="{{ url_for('settings.section_list', section_name='special_dates') }}">
@@ -111,10 +192,13 @@
 <div>
     <div class="label">This screen</div>
     <div class="card">
+        {# Hosted, this page is where the screen link lives, and the row has to
+           say so — the wall link is the finish line of the whole product and
+           it used to be filed under "Colours". #}
         <a class="row" href="{{ url_for('settings.screen') }}">
             <div class="row-main">
-                <div class="row-title">Colours</div>
-                <div class="row-sub">{{ config.theme | capitalize }}</div>
+                <div class="row-title">{{ "The screen" if cloud else "Colours" }}</div>
+                <div class="row-sub">{{ config.theme | capitalize }}{{ " · the link and QR code for the board" if cloud }}</div>
             </div>{{ icons.chevron() }}
         </a>
         <a class="row" href="{{ url_for('settings.refresh') }}">
@@ -162,8 +246,27 @@
 </form>
 {% endif %}
 
+{% if setting_up %}
+<script>
+    // The phone's own clock setting, offered back as one tap. `Intl` is what
+    // the browser itself uses for dates, so this is the zone the person is
+    // actually in — unlike a guess from an IP address. Nothing is written
+    // until the button is pressed, and the server checks the name.
+    (function () {
+        var form = document.getElementById('tz-offer');
+        if (!form) return;
+        var zone;
+        try { zone = Intl.DateTimeFormat().resolvedOptions().timeZone; } catch (e) { return; }
+        if (!zone || zone === 'UTC' || zone === 'Etc/UTC') return;
+        form.querySelector('input[name=timezone]').value = zone;
+        document.getElementById('tz-zone').textContent = zone;
+        form.hidden = false;
+    })();
+</script>
+{% else %}
 {# Hidden until the script below decides it is worth showing: not already saved,
-   and not waved away before. #}
+   and not waved away before. Not offered while setting up — a page somebody
+   opened a minute ago is not one to keep yet. #}
 <div class="card pad" id="install-nudge" hidden style="display:flex;flex-direction:column;gap:0.75rem;">
     <div>
         <div style="font-size:0.9375rem;font-weight:800;">Keep this on your home screen</div>
@@ -217,4 +320,5 @@
         });
     })();
 </script>
+{% endif %}
 {% endblock %}

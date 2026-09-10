@@ -35,22 +35,31 @@ calendars:
     # shared_with: ["partner@example.com"]
 
 # Birthdays here become countdowns; names here are who chores rotate between.
+#
+# Mia, Theo and Biscuit are invented, and `invented: true` is how the app
+# knows: the settings page asks you to replace them, and the daily brief waits
+# until you have — a board about children who are not yours is not a board.
+# Saving a person from the settings page clears the mark; so does deleting the
+# line. A family written by hand needs no marks at all.
 people:
   - name: "Mia"
     date_of_birth: "2017-03-15"
     avatar_emoji: "🦖"
     avatar_color: purple
     interests: "dinosaurs, drawing, swimming"
+    invented: true
   - name: "Theo"
     date_of_birth: "2019-06-20"
     avatar_emoji: "⚽"
     avatar_color: blue
     interests: "football, lego"
+    invented: true
 
 pets:
   - name: "Biscuit"
     type: "dog"
     avatar_emoji: "🐕"
+    invented: true
 
 # Rotated one person per day, by day of the year, in the order listed.
 recurring:

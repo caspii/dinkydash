@@ -32,6 +32,11 @@ STATIC = HERE / "static"
 # Canonical origin for canonical tags, og:url and the sitemap. Overridable so a
 # staging copy does not tell search engines it is production.
 SITE_URL = "https://dinkydash.co"
+# Where the hosted app is. The content and the homepage link to it at this
+# address, and `site.py` rewrites those links when it is told the app lives
+# somewhere else — a Conductor preview runs the board on a local port, and a
+# "Start your free trial" that lands on production from there is a trap.
+APP_URL = "https://app.dinkydash.co"
 
 
 def read_markdown(filename):

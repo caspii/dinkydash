@@ -59,7 +59,8 @@ used to link to `url_for('board.index')` for a board — the "View board" button
 iframes — uses `web.urls.board_path()`. Build absolute credential URLs with
 `web.urls.absolute_url(path)`: it uses HTTPS and the configured `DINKYDASH_APP_HOST`, with the
 request host as a development fallback. The login-link CLI shares the origin policy and accepts
-an explicit local `--base-url`. QR codes are generated only on `/settings/screen`.
+an explicit local `--base-url`. QR codes are drawn by `settings/_screen_link.html`, included by
+`/settings/screen` and by the last step of the set-up checklist, and nowhere else.
 
 **`web/routes/admin.py` is the third blueprint only cloud mode registers, and its gate is a list.**
 `/admin` (DIN-37) shows signups and activations by week to the operator and to nobody else:
@@ -80,12 +81,19 @@ value="{{ csrf_token() }}">`, right inside the `<form>`. `csrf_token()` is a Jin
 deliberately no switch to turn the check off; the test client in `tests/conftest.py` fills the field
 in the way a browser does.
 
-**The settings home has a first-run card**, shown by `settings.looks_untouched`: no calendar and the
-default family name. A hosted family is created with an invented household in it so the board has
-something to show (DIN-41), and this is what stops that reading as a bug. **The signal is the config,
-not the mode** — a freshly cloned Pi is in the same state and wants the same two prompts — so there
-is no `cloud` branch in it, and it leaves on its own the moment either half is answered. Nothing to
-dismiss and nothing remembered.
+**The settings home has two personalities**, decided by `web/setup.py`. Until the family is set up
+and its first board written, the top of the page is a checklist — who lives here, time zone, a
+calendar, the screen — and the daily controls (Refresh calendars, View board, Rewrite now) are not
+offered at all; after that it is the day's status card. A hosted family is created with an invented
+household in it so the board has something to show (DIN-41), each person and pet marked
+`invented: true`, and step one names what is still marked. Saving the item from the edit form
+clears the mark; renaming a person follows into the chores that name them, and removing one drops
+them from those rotations. **The signal is the config, not the mode** — a freshly cloned Pi running
+the untouched example file is in the same state — so there is no `cloud` branch in it, and it
+leaves on its own. Nothing to dismiss and nothing remembered. The engine asks the same question
+(`config.is_set_up`) before writing a brief, so the page and the tick cannot disagree. The time
+zone step reads the phone's own zone with `Intl.DateTimeFormat` and offers it as one tap to
+`POST /settings/timezone`, which refuses any name `zoneinfo` does not know.
 
 **Two chromes, one base.** `settings/base.html` is the phone-shaped shell for everything a person
 signs into — the settings pages and, in cloud mode, `auth/login.html` and `auth/sent.html`. The
@@ -144,9 +152,11 @@ single-column layout (an iPad in portrait) has no side column to hide behind and
 full price, around 13-18%. Everything fits at all three sizes in every case. Raising either
 constant spends more type size, so measure at `/preview` before you do.
 
-**The shared waiting screen must work in both modes.** Refer to the settings button, **Write it
-now**, rather than a shell command. Keep that label in sync with `settings/home.html` and see
-[The first board](../PLAN.md#the-first-board) for scheduling behaviour.
+**The shared waiting screen must work in both modes.** Refer to the settings button, **Write the
+first board**, rather than a shell command. Keep that label in sync with `settings/home.html` and
+see [The first board](../PLAN.md#the-first-board) for scheduling behaviour. It has two wordings,
+chosen by `view.set_up`: "writing your first board" when one is on its way, and "nearly there"
+while the family is still setting up and nothing is being written.
 
 In two-column mode the body is a grid, and **the note sits under the agenda, not across the
 bottom**. The agenda is short on a quiet day while chores plus countdowns are not, so a full-width

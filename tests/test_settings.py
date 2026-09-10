@@ -290,13 +290,14 @@ class TestTheClockOnTheStatusLine:
         assert "Calendars refreshed 18:00" in client.get("/settings/").get_data(as_text=True)
 
     def test_an_agenda_with_no_brief_yet_is_still_waiting(self, client, board, today):
-        # Events, no words. Since DIN-45 a first tick writes both, so this is
-        # the state between the two halves of one — or after a brief that
-        # failed. Either way the page must not claim a board it hasn't got.
+        # Events, no words: the state between the two halves of a first tick,
+        # or after a brief that failed. The family is set up, so this is the
+        # last step of the checklist — and the page must not claim a board it
+        # hasn't got.
         board({"calendars_fetched_at": f"{today}T05:00:00+00:00", "events": []})
         page = client.get("/settings/").get_data(as_text=True)
-        assert "No board has been generated yet." in page
-        assert "Calendars refreshed 10:30" in page
+        assert "board is up" not in page
+        assert "Rewrite now" not in page
         assert "from None" not in page
 
     def test_the_button_offers_a_first_board_rather_than_a_rewrite(self, client, board, today):
@@ -304,11 +305,11 @@ class TestTheClockOnTheStatusLine:
 
         "Rewrite now" is the wrong word for a board nobody has written, and
         `board.html` — which is byte-identical in both modes — tells a family
-        to press "Write it now" (DIN-45).
+        to press "Write the first board" (DIN-45).
         """
         board({"calendars_fetched_at": f"{today}T05:00:00+00:00", "events": []})
         page = client.get("/settings/").get_data(as_text=True)
-        assert "Write it now" in page
+        assert "Write the first board" in page
         assert "Rewrite now" not in page
 
     def test_and_goes_back_to_a_rewrite_once_there_is_one(self, client, board, today):
@@ -316,7 +317,7 @@ class TestTheClockOnTheStatusLine:
                "headline": "Hi", "note": "There", "events": []})
         page = client.get("/settings/").get_data(as_text=True)
         assert "Rewrite now" in page
-        assert "Write it now" not in page
+        assert "Write the first board" not in page
 
     def test_an_unreadable_stamp_does_not_break_the_page(self, client, board, today):
         board({"generated_for_date": today, "generated_at": "who knows",
@@ -340,6 +341,176 @@ people:
     name: "Mia"
     date_of_birth: "2017-03-15"
 """
+
+
+STARTER_CONFIG = """\
+family_name: "Our family"
+timezone: "UTC"
+people:
+  - id: mia12345
+    name: "Mia"
+    date_of_birth: "2017-03-15"
+    invented: true
+  - id: theo1234
+    name: "Theo"
+    date_of_birth: "2019-06-20"
+    invented: true
+pets:
+  - id: dog12345
+    name: "Biscuit"
+    type: "dog"
+    invented: true
+recurring:
+  - id: job12345
+    title: "Set the table"
+    choices: ["Mia", "Theo"]
+"""
+
+
+class TestTheSetUpChecklist:
+    """What the settings home is until the family is set up and its board written.
+
+    The example file's household, in single mode — the same state a hosted
+    family is created in (`tests/test_signup.py` covers that side). The daily
+    controls are not offered: nothing to refresh, no board worth viewing, and
+    nothing worth writing until the answers are real.
+    """
+
+    @pytest.fixture
+    def config_path(self, tmp_path):
+        path = tmp_path / "config.yaml"
+        path.write_text(STARTER_CONFIG)
+        return path
+
+    def home(self, client):
+        return client.get("/settings/").get_data(as_text=True)
+
+    def loaded(self, config_path):
+        return config_module.load_config(config_path)
+
+    def make_it_theirs(self, client):
+        """Steps one and two, the way a person would do them."""
+        client.post("/settings/people/mia12345",
+                    data={"name": "Anna", "date_of_birth": "2018-05-02"})
+        client.post("/settings/people/theo1234/delete")
+        client.post("/settings/pets/dog12345/delete")
+        client.post("/settings/timezone", data={"timezone": "Europe/Berlin"})
+
+    def test_it_replaces_the_daily_controls(self, client):
+        page = self.home(client)
+        assert "Set up your board" in page
+        for button in ("Refresh calendars", "View board", "Rewrite now",
+                       "Write the first board", ">Board<"):
+            assert button not in page
+
+    def test_step_one_names_what_is_invented(self, client):
+        page = self.home(client)
+        assert "Mia, Theo and Biscuit are invented" in page
+        assert 'href="/settings/people"' in page
+
+    def test_the_steps_come_in_order(self, client):
+        page = self.home(client)
+        assert page.index("Who lives here") < page.index("Time zone") \
+            < page.index("A calendar") < page.index("Put it on the screen")
+
+    def test_nothing_nags_about_the_home_screen_yet(self, client):
+        assert "install-nudge" not in self.home(client)
+
+    def test_the_lists_mark_who_is_invented(self, client):
+        people = client.get("/settings/people").get_data(as_text=True)
+        assert people.count("Invented") == 2
+        pets = client.get("/settings/pets").get_data(as_text=True)
+        assert pets.count("Invented") == 1
+
+    def test_and_stop_once_they_are_saved(self, client):
+        client.post("/settings/people/mia12345",
+                    data={"name": "Mia", "date_of_birth": "2017-03-15"})
+        assert client.get("/settings/people").get_data(as_text=True).count("Invented") == 1
+
+    def test_saving_a_person_makes_them_yours(self, client, config_path):
+        client.post("/settings/people/mia12345",
+                    data={"name": "Anna", "date_of_birth": "2018-05-02"})
+        assert "Theo and Biscuit are invented" in self.home(client)
+        assert "invented" not in self.loaded(config_path)["people"][0]
+
+    def test_and_their_chores_follow_the_new_name(self, client, config_path):
+        client.post("/settings/people/mia12345",
+                    data={"name": "Anna", "date_of_birth": "2017-03-15"})
+        assert self.loaded(config_path)["recurring"][0]["choices"] == ["Anna", "Theo"]
+
+    def test_removing_a_person_takes_them_out_of_the_rotation(self, client, config_path):
+        client.post("/settings/people/theo1234/delete")
+        assert self.loaded(config_path)["recurring"][0]["choices"] == ["Mia"]
+
+    def test_a_rotation_left_empty_is_said_on_the_chores_row(self, client, config_path):
+        client.post("/settings/people/mia12345/delete")
+        client.post("/settings/people/theo1234/delete")
+        assert "1 with nobody assigned" in self.home(client)
+        assert self.loaded(config_path)["recurring"][0]["choices"] == []
+
+    def test_the_chores_row_names_the_jobs(self, client):
+        # So a starter job left behind is visible from the home page.
+        assert "Set the table" in self.home(client)
+
+    def test_the_time_zone_is_one_tap_away(self, client, config_path):
+        page = self.home(client)
+        assert 'id="tz-offer"' in page and 'action="/settings/timezone"' in page
+        landed = client.post("/settings/timezone", data={"timezone": "Europe/Berlin"},
+                             follow_redirects=True).get_data(as_text=True)
+        assert "Time zone set to Europe/Berlin." in landed
+        assert self.loaded(config_path)["timezone"] == "Europe/Berlin"
+        assert 'id="tz-offer"' not in landed  # done, so no longer offered
+
+    def test_a_made_up_zone_is_refused(self, client, config_path):
+        landed = client.post("/settings/timezone", data={"timezone": "Mars/Olympus"},
+                             follow_redirects=True).get_data(as_text=True)
+        assert "not a time zone this board knows" in landed
+        assert self.loaded(config_path)["timezone"] == "UTC"
+
+    def test_the_screen_step_waits_for_the_first_two(self, client):
+        client.post("/settings/timezone", data={"timezone": "Europe/Berlin"})
+        page = self.home(client)
+        assert "Once the first two steps are done" in page
+        assert "Write the first board" not in page
+
+    def test_then_the_link_and_the_button_arrive(self, client):
+        self.make_it_theirs(client)
+        page = self.home(client)
+        assert "Open the link below" in page
+        assert "http://localhost/" in page  # single mode: the board is at /
+        assert "Write the first board" in page
+        assert "Anna" in page  # step one, done, names who is here
+
+    def test_a_calendar_is_not_required_to_finish(self, client):
+        self.make_it_theirs(client)
+        page = self.home(client)
+        assert "None yet. The board works without one" in page
+        assert "Write the first board" in page
+
+    def test_writing_the_first_board_says_so(self, client, monkeypatch):
+        self.make_it_theirs(client)
+        monkeypatch.setattr("web.routes.settings.run_generation",
+                            lambda config, store, **kw: {"headline": "Hello, Anna"})
+        landed = client.post("/settings/generate", follow_redirects=True).get_data(as_text=True)
+        assert "Your first board is written — “Hello, Anna”" in landed
+
+    def test_it_leaves_once_the_first_board_is_written(self, client, tmp_path):
+        self.make_it_theirs(client)
+        (tmp_path / "dashboard_data.json").write_text(json.dumps({
+            "generated_for_date": "2026-09-03", "headline": "Hi", "note": "There",
+            "events": []}))
+        page = self.home(client)
+        assert "Set up your board" not in page
+        assert "Rewrite now" in page and "View board" in page
+        assert "Add a calendar" in page  # still no calendar, so not "Refresh"
+
+    def test_a_written_board_alone_does_not_end_set_up(self, client, tmp_path):
+        # The family that signed up before the rule has a board about Mia and
+        # Theo. That is not set up; the checklist stays until they are gone.
+        (tmp_path / "dashboard_data.json").write_text(json.dumps({
+            "generated_for_date": "2026-09-03", "headline": "Hi", "note": "There",
+            "events": []}))
+        assert "Set up your board" in self.home(client)
 
 
 class TestTheCadencePage:
@@ -665,6 +836,17 @@ class TestRefreshingTheCalendarsByHand:
     """The cheap half of "Rewrite now": fetch the feeds, ask Claude nothing."""
 
     @pytest.fixture
+    def config_path(self, tmp_path):
+        # A family with calendars and a written board: the running page, where
+        # the button lives. With no calendar the slot offers "Add a calendar".
+        path = tmp_path / "config.yaml"
+        path.write_text(CALENDAR_CONFIG)
+        (tmp_path / "dashboard_data.json").write_text(json.dumps({
+            "generated_for_date": "2026-09-03", "headline": "Hi", "note": "There",
+            "events": [], "calendars_fetched_at": "2026-09-03T08:00:00+00:00"}))
+        return path
+
+    @pytest.fixture
     def refreshed(self, monkeypatch):
         """Stub the runner, so the test touches neither the network nor a key."""
         calls = []
@@ -680,6 +862,16 @@ class TestRefreshingTheCalendarsByHand:
         page = client.get("/settings/").get_data(as_text=True)
         assert 'action="/settings/refresh-now"' in page
         assert "Refresh calendars" in page
+
+    def test_with_nothing_to_refresh_the_slot_offers_a_calendar(self, tmp_path, config_path):
+        # Same written board, no calendars: "Refresh calendars" would fetch
+        # nothing and say so, which is the button a new family was met with.
+        config_path.write_text(CALENDAR_CONFIG.split("calendars:")[0])
+        page = client_for(create_app(FileStore(config_path))).get("/settings/").get_data(as_text=True)
+        assert "Refresh calendars" not in page
+        assert "Add a calendar" in page
+        assert 'href="/settings/calendars/new"' in page
+        assert "Rewrite now" in page and "View board" in page
 
     def test_it_reports_what_it_found(self, client, refreshed):
         page = client.post("/settings/refresh-now", follow_redirects=True)

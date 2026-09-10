@@ -39,7 +39,7 @@ ROOT_FILES = {
 }
 
 
-def create_site_app(site_url=None):
+def create_site_app(site_url=None, app_url=None):
     app = Flask(
         __name__,
         template_folder=str(render.TEMPLATES),
@@ -47,6 +47,7 @@ def create_site_app(site_url=None):
     )
     app.config["SITE_URL"] = site_url or os.environ.get("DINKYDASH_SITE_URL",
                                                         render.SITE_URL)
+    app.config["APP_URL"] = _app_url(app_url)
 
     # Read every page once, at start-up. The site redeploys when its content
     # changes, so re-reading Markdown per request would buy nothing and cost a
@@ -54,14 +55,27 @@ def create_site_app(site_url=None):
     pages = {page["url"]: page for page in render.pages()}
     app.config["PAGES"] = pages
 
+    def pointed_at_the_app(html):
+        """The content's links to the hosted app, on the configured address.
+
+        The Markdown writes `https://app.dinkydash.co/login` in full, because
+        that is the address a reader of the file should see. Only the origin is
+        swapped — bare mentions of the hostname in the privacy and terms pages
+        are statements about production and stay as written.
+        """
+        if app.config["APP_URL"] == render.APP_URL:
+            return html
+        return html.replace(render.APP_URL + "/", app.config["APP_URL"] + "/")
+
     def render_page(page):
         front_matter = page["front_matter"]
         return render_template(
             page["template"],
-            content=page["html"],
+            content=pointed_at_the_app(page["html"]),
             canonical_url=app.config["SITE_URL"] + page["url"],
             last_modified=page["last_modified"],
             faq_schema=render.faq_schema(front_matter.get("faq")),
+            app_url=app.config["APP_URL"],
             **front_matter,
         )
 
@@ -119,8 +133,8 @@ def create_site_app(site_url=None):
 
     @app.errorhandler(404)
     def not_found(_error):
-        return render_template("404.html",
-                               canonical_url=app.config["SITE_URL"]), 404
+        return render_template("404.html", canonical_url=app.config["SITE_URL"],
+                               app_url=app.config["APP_URL"]), 404
 
     @app.before_request
     def canonical_host():
@@ -152,6 +166,25 @@ def create_site_app(site_url=None):
         return response
 
     return app
+
+
+def _app_url(explicit=None):
+    """Where "Start your free trial" goes.
+
+    Production leaves it alone. A local preview should open the board being
+    worked on rather than the live one, and it is told where that is in one of
+    two ways: `DINKYDASH_APP_URL`, or — because Conductor reads its run scripts
+    from the main checkout, so a script edited on a branch may never run —
+    `CONDUCTOR_PORT`, which Conductor sets for every script it starts and which
+    is the port the dashboard listens on (`.conductor/settings.toml`).
+    """
+    configured = explicit or os.environ.get("DINKYDASH_APP_URL")
+    if configured:
+        return configured.rstrip("/")
+    port = os.environ.get("CONDUCTOR_PORT", "").strip()
+    if port.isdigit():
+        return f"http://127.0.0.1:{port}"
+    return render.APP_URL
 
 
 def _bare_host(app):

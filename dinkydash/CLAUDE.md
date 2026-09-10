@@ -283,8 +283,13 @@ These rules hold this together:
   due when `generated_for_date` is not today *in the family's timezone* and the local clock has
   passed `brief_time`; a refresh is due when `calendars_fetched_at` is missing or older than
   `refresh_minutes`.
-- **The first brief is due immediately** when `generated_for_date` is absent. Calendar-only
-  payloads still qualify. See [The first board](../PLAN.md#the-first-board) for retry behaviour.
+- **The first brief is due immediately** when `generated_for_date` is absent — **for a set-up
+  family** (`config.is_set_up`: no person or pet still marked `invented`, and a timezone other
+  than the UTC default). The starter household and the untouched example file are not one, and a
+  brief about them would be a paid call for invented children; the tick writes nothing until the
+  answers are real, and the board says "nearly there" rather than "writing". Calendar-only
+  payloads still qualify once set up. See [The first board](../PLAN.md#the-first-board) for retry
+  behaviour.
 - **A refresh must not touch `headline`, `note` or `generated_for_date`**, and it now cannot: it
   writes through `store.save_agenda`, which only accepts `store.AGENDA_KEYS`. A fresh agenda under
   yesterday's brief is exactly the amber-banner state `board.build_view` already handles, and the

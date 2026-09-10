@@ -1,0 +1,24 @@
+{# Where the board is: the link, and hosted a QR code of it. Shared by the
+   screen page and the last step of the set-up checklist, so the credential
+   is drawn in exactly one place.
+
+   `word-break` because the URL must wrap on a phone rather than push the card
+   sideways, and `user-select:all` so one tap selects the whole thing.
+
+   **The one `|safe` in `web/`, and it is on machine-generated markup.**
+   `segno` emits the SVG from a URL this app built out of its own alphabet and
+   its own configured hostname — no feed, no form field and no calendar text
+   reaches it. Autoescaping stays on for everything else, and a `|safe` on
+   anything a person or a calendar wrote would be the bug this note exists to
+   keep visible. Drawn here rather than fetched: handing this URL to a QR
+   service would be publishing the credential. #}
+<div class="screen-link">{{ screen_link }}</div>
+{% if screen_qr %}
+<div style="display:flex;flex-direction:column;align-items:center;gap:0.5rem;">
+    {# **A white plate, in both themes.** The one place in this UI that ignores
+       the theme tokens, and not an oversight: scanners expect a QR to be dark
+       on light, and an inverted one is read by some phones and not others. #}
+    <div class="qr-code" style="width:11rem;">{{ screen_qr | safe }}</div>
+    <div class="hint" style="text-align:center;">Scan it with the tablet's camera.</div>
+</div>
+{% endif %}

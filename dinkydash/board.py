@@ -10,6 +10,7 @@ written line is yesterday's, and it says so.
 from datetime import date, datetime, timedelta
 
 from .calendars import events_on
+from .config import is_set_up
 from .context import build_countdowns, compute_chore_assignments
 from .schedule import refresh_interval
 
@@ -65,6 +66,11 @@ def build_view(config, payload, today):
         limit=MAX_COUNTDOWNS,
     )
 
+    # Whether there is a real family to write for yet. The waiting screen
+    # reads it to say "nearly there" rather than "writing your first board"
+    # while nothing is being written — see `schedule.brief_due`.
+    set_up = is_set_up(config)
+
     view = {
         "family_name": config.get("family_name", ""),
         "theme": theme,
@@ -77,10 +83,18 @@ def build_view(config, payload, today):
         "note": "",
         "stale": False,
         "state": "waiting",
+        "set_up": set_up,
         "reload_seconds": WAITING_RELOAD_SECONDS,
     }
 
     if not payload:
+        return view
+    if not set_up and not payload.get("generated_for_date"):
+        # The calendars have been fetched but the family is still setting up.
+        # An agenda under an amber "this morning's brief didn't arrive" banner
+        # would be wrong twice over: no brief was attempted, and the chores
+        # beside it would be the invented household's. The waiting screen
+        # says what is actually going on.
         return view
 
     view["reload_seconds"] = reload_seconds(config)

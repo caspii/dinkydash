@@ -318,6 +318,7 @@ web/
 ├── __init__.py        create_app(): the pool, the mode gates, the blueprints
 ├── family.py          which family a request is for, and its store
 ├── session.py         what the cookie carries: who is signed in, and CSRF
+├── setup.py           the set-up checklist: what a new family still has to do, from the config
 ├── ratelimit.py       a per-key counter, in this process (the per-IP half)
 ├── routes/board.py    the board and the preview harness
 ├── routes/settings.py the settings UI (one table drives every list section)

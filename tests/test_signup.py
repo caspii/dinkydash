@@ -280,54 +280,72 @@ class TestTheStartingConfig:
 
 
 class TestTheSettingsSayTheHouseholdIsInvented:
-    """Seeding without saying so is somebody else's children on your page."""
+    """Seeding without saying so is somebody else's children on your page.
+
+    A brand-new family lands on the set-up checklist rather than the daily
+    controls: nothing to refresh, no board to view and nothing worth writing
+    yet. The first step names what is invented, and the buttons that would
+    act on it are not there.
+    """
 
     def test_a_brand_new_family_is_told(self, client, sent):
         client.post("/login", data={"email": NEWCOMER})
         client.get(link_in(sent[0]))
         page = client.get("/settings/").get_data(as_text=True)
-        assert "Make it yours" in page
-        assert "invented" in page
+        assert "Set up your board" in page
+        assert "Mia, Theo and Biscuit are invented" in page
 
-    def test_and_pointed_at_the_two_things_that_matter_first(self, client, sent):
+    def test_and_walked_through_the_steps_in_order(self, client, sent):
         client.post("/login", data={"email": NEWCOMER})
         client.get(link_in(sent[0]))
         page = client.get("/settings/").get_data(as_text=True)
-        assert "Add a calendar" in page and "Set the timezone" in page
+        assert page.index("Who lives here") < page.index("Time zone") \
+            < page.index("A calendar") < page.index("Put it on the screen")
 
-    def test_it_goes_once_there_is_a_calendar(self, client, sent, pg_pool):
+    def test_the_daily_controls_are_not_offered_yet(self, client, sent):
+        client.post("/login", data={"email": NEWCOMER})
+        client.get(link_in(sent[0]))
+        page = client.get("/settings/").get_data(as_text=True)
+        assert "Refresh calendars" not in page
+        assert "View board" not in page
+        assert "Rewrite now" not in page
+        assert "Write the first board" not in page  # not until the steps are done
+
+    def test_the_screen_link_arrives_with_the_last_step(self, client, sent, pg_pool):
         from dinkydash.pgstore import PostgresStore
 
         client.post("/login", data={"email": NEWCOMER})
         client.get(link_in(sent[0]))
-        store = PostgresStore(pg_pool, family_of(pg_pool, NEWCOMER)["id"])
+        family = family_of(pg_pool, NEWCOMER)
+        store = PostgresStore(pg_pool, family["id"])
         config = store.load_config()
-        config["calendars"] = [{"id": "cal11111", "label": "Ours",
-                                "url": "https://example.com/private-xxxx/basic.ics",
-                                "enabled": True}]
+        for item in config["people"] + config["pets"]:
+            item.pop(config_module.INVENTED)
+        config["timezone"] = "Europe/Berlin"
         store.save_config(config)
-        assert "Make it yours" not in client.get("/settings/").get_data(as_text=True)
+        page = client.get("/settings/").get_data(as_text=True)
+        assert f"/s/{family['screen_token']}" in page
+        assert "Write the first board" in page
+        assert 'class="qr"' in page  # drawn locally, never fetched
 
-    def test_it_goes_once_the_family_has_a_name(self, client, sent, pg_pool):
-        from dinkydash.pgstore import PostgresStore
+    def test_the_worker_writes_nothing_for_them_yet(self, client, sent, pg_pool):
+        """The seeded family is not a family to write about (`config.is_set_up`)."""
+        from datetime import datetime, timezone as tz
+
+        from dinkydash.schedule import due
 
         client.post("/login", data={"email": NEWCOMER})
         client.get(link_in(sent[0]))
-        store = PostgresStore(pg_pool, family_of(pg_pool, NEWCOMER)["id"])
-        config = store.load_config()
-        config["family_name"] = "The Bakers"
-        store.save_config(config)
-        assert "Make it yours" not in client.get("/settings/").get_data(as_text=True)
+        config = family_of(pg_pool, NEWCOMER)["config"]
+        assert due(config, None, datetime.now(tz.utc))["brief"] is False
 
     def test_the_signal_needs_no_mode_check(self):
-        """It is the config that says untouched, so a freshly cloned Pi is told
-        the same two things — which is why there is no `cloud` branch in it."""
-        from web.routes.settings import looks_untouched
-
-        assert looks_untouched(config_module.starter_config())
-        assert not looks_untouched({"family_name": "The Bakers", "calendars": []})
-        assert not looks_untouched(
-            {"family_name": "Our family", "calendars": [{"id": "c", "url": "x"}]})
+        """It is the config that says set up, so a freshly cloned Pi running the
+        example file is told the same things — which is why there is no `cloud`
+        branch in it."""
+        assert not config_module.is_set_up(config_module.starter_config())
+        assert config_module.is_set_up({"family_name": "The Bakers",
+                                        "timezone": "Europe/London"})
 
 
 # -- one family, however many links -----------------------------------------
