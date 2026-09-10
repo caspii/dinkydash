@@ -63,12 +63,15 @@ an explicit local `--base-url`. QR codes are drawn by `settings/_screen_link.htm
 `/settings/screen` and by the last step of the set-up checklist, and nowhere else.
 
 **`web/routes/admin.py` is the third blueprint only cloud mode registers, and its gate is a list.**
-`/admin` (DIN-37) shows signups and activations by week to the operator and to nobody else:
-`guard()` first, so a signed-out visitor is sent to `/login` like everywhere else, then
-`family.is_admin()`, which compares the signed-in account's address with `DINKYDASH_ADMIN_EMAILS`
-and answers a miss with a 404 — never a 403, and an unset list is nobody. The page reads no family:
-its numbers come from `dinkydash/growth.py`, and the chart is inline SVG drawn from numbers the
-route works out (`admin.chart`), because arithmetic in a template is arithmetic nobody tests. Its
+`/admin` (DIN-37) shows signups and activations by week and the newest accounts to the operator and
+to nobody else: `guard()` first, so a signed-out visitor is sent to `/login` like everywhere else,
+then `family.is_admin()`, which compares the signed-in account's address with
+`DINKYDASH_ADMIN_EMAILS` and answers a miss with a 404 — never a 403, and an unset list is nobody.
+Everything on it comes from `dinkydash/growth.py`: counts that read no family row, and a roster
+that reads the address and bookkeeping columns and never the config — `tests/test_admin.py` puts a
+named child and a labelled calendar on a family and asserts neither reaches the page. The chart is
+inline SVG drawn from numbers the route works out (`admin.chart`), because arithmetic in a
+template is arithmetic nobody tests. Its
 two series colours are the shell's own `--accent` and `--purple`, checked as a pair on the card's
 white with the dataviz palette validator (CVD ΔE 24.7, both above 3:1); a third series means
 running it again, not picking a colour. `tests/test_admin.py` covers the gate, the bounds on

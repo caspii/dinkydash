@@ -210,6 +210,26 @@ class TestTheCounter:
                             [(date(2026, 9, 9), 2, 1), (date(2026, 9, 1), 1, 0)])
         assert growth.history(pg_pool) == [(date(2026, 9, 1), 1, 0), (date(2026, 9, 9), 2, 1)]
 
+    def test_the_roster_is_newest_first_and_carries_no_config(self, pg_pool, pg_family, store):
+        config = store.load_config()
+        config["family_name"] = "The Quiet Ones"
+        config["calendars"] = [dict(A_CALENDAR)]
+        store.save_config(config)
+        with pg_pool.connection() as conn, conn.transaction(), conn.cursor() as cur:
+            cur.execute("INSERT INTO users (family_id, email) VALUES (%s, %s)",
+                        (pg_family, "quiet@example.com"))
+        newer = a_family(pg_pool)
+        try:
+            listed = growth.roster(pg_pool)
+            assert [a.email for a in listed[:2]] == [None, "quiet@example.com"]
+            mine = listed[1]
+            assert mine.activated_at is not None and mine.status == "trialing"
+            assert mine._fields == ("email", "created_at", "activated_at", "status",
+                                    "trial_ends_at", "lapsed_at", "last_login_at")
+            assert growth.roster(pg_pool, most=1) == listed[:1]
+        finally:
+            forget(pg_pool, newer)
+
     def test_families_now_is_a_count_of_rows(self, pg_pool):
         before = growth.families_now(pg_pool)
         family_id = a_family(pg_pool)

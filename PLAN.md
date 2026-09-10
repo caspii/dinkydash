@@ -254,7 +254,7 @@ or duplicate self-hosted config loader.
 | `/settings/…` | Local settings | Settings scoped to the session's family |
 | `/s/<token>` | Not used | Bearer-token board |
 | `/preview` | Three sizes of the local board | Authenticated preview of the tokenised board |
-| `/admin` | Not used | Signups and activations by week, for addresses in `DINKYDASH_ADMIN_EMAILS` only |
+| `/admin` | Not used | Signups and activations by week and the newest accounts, for addresses in `DINKYDASH_ADMIN_EMAILS` only |
 | `/healthz` | Process health | Process health, not worker/database health |
 
 Stripe routes are not implemented; their contract belongs to [DIN-53](https://linear.app/keepthescore/issue/DIN-53).
@@ -416,7 +416,7 @@ alone does not close the phase.
 - [ ] Worker heartbeat and external health alerts, verified by a controlled failure ([DIN-54](https://linear.app/keepthescore/issue/DIN-54)).
 - [ ] Repeatable restore into an isolated database, with a successful drill recorded ([DIN-56](https://linear.app/keepthescore/issue/DIN-56)).
 - [x] Preserve explicit preview database overrides ([DIN-48](https://linear.app/keepthescore/issue/DIN-48)).
-- [ ] Admin dashboard ([DIN-37](https://linear.app/keepthescore/issue/DIN-37)): signups and activations by week exist at `/admin`, behind `DINKYDASH_ADMIN_EMAILS` (migration 006, `dinkydash/growth.py`). Spend, trial status and calendar health, per the issue's triage, remain Backlog.
+- [ ] Admin dashboard ([DIN-37](https://linear.app/keepthescore/issue/DIN-37)): signups and activations by week and a roster of the newest accounts (address, created, activated, status, trial deadline, last sign-in) exist at `/admin`, behind `DINKYDASH_ADMIN_EMAILS` (migration 006, `dinkydash/growth.py`). Country of origin is not shown: App Platform forwards `do-connecting-ip` only, and `CF-IPCountry` would need the hostname proxied through our own Cloudflare zone, which App Platform's certificates rule out (DIN-29). Spend and calendar health, per the issue's triage, remain Backlog.
 
 **Done when:** an operator can detect stopped/failed work, inspect useful metadata and
 recover the application. A healthy `/healthz` response alone is insufficient.

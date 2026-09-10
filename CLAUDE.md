@@ -155,11 +155,15 @@ mode is a different product on the same code.
   check goes in `family.py`, before the store is built, and **a mismatch is a 404 and never a 403**:
   "forbidden" confirms the row exists, which tells one family that another one does.
 - **The operator's page is behind a list of addresses, and a miss is a 404.** `/admin` (DIN-37)
-  shows signups and activations by week, and only to a signed-in account whose address is in
-  `DINKYDASH_ADMIN_EMAILS`. Anybody else gets the same answer as a URL that does not exist, and an
-  unset list means nobody. It reads `growth_by_day` — a date and two counts, kept by a trigger on
-  `families` and surviving deletion the way `global_model_spend` does — and one bare `count(*)`, so
-  no family row is read and no id passes through it. `tests/test_admin.py` asserts each of those.
+  shows signups and activations by week and the newest accounts, and only to a signed-in account
+  whose address is in `DINKYDASH_ADMIN_EMAILS`. Anybody else gets the same answer as a URL that does
+  not exist, and an unset list means nobody. The counts read `growth_by_day` — a date and two
+  counts, kept by a trigger on `families` and surviving deletion the way `global_model_spend` does —
+  and one bare `count(*)`. The roster reads each family's address and the platform's bookkeeping
+  (created, activated, status, deadlines, last sign-in) and **never the config**: no name, no
+  calendar, no child's date of birth. No family id is rendered or taken from anywhere, so nothing
+  on the page reaches one family. `tests/test_admin.py` asserts each of those, including that a
+  family's name and calendar label do not appear.
 - **`web/__init__.py` falls back to a hardcoded `app.secret_key`.** Harmless with no auth; in cloud
   mode the session *is* the authentication, so cloud mode must refuse to start without a real
   `DINKYDASH_SECRET_KEY`.
