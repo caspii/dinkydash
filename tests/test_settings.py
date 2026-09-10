@@ -6,6 +6,7 @@ above shifted everybody below onto somebody else's edit form.
 """
 
 import json
+from datetime import date, timedelta
 
 import pytest
 
@@ -101,6 +102,64 @@ class TestEditing:
     def test_an_unknown_id_is_a_404(self, client, config_path):
         client.get("/settings/people")
         assert client.get("/settings/people/nosuchid").status_code == 404
+
+
+class TestDatesOfBirth:
+    """A browser's date input accepts any year from 0001, and a flick of the
+    year wheel on a phone saved "0017-03-04" without complaint — the People
+    page then read "2009 years old". The form refuses what cannot be a date of
+    birth, and says which year it received."""
+
+    def test_a_year_before_1900_is_refused(self, client, config_path):
+        client.get("/settings/people")
+        page = client.post("/settings/people/new",
+                           data={"name": "Otto", "date_of_birth": "0017-03-04"})
+        assert page.status_code == 200
+        assert "Date of birth has the year 0017" in page.get_data(as_text=True)
+        assert len(people(config_path)) == 3
+
+    def test_a_date_in_the_future_is_refused(self, client, config_path):
+        client.get("/settings/people")
+        # Two days on: the family's date is in Berlin, this machine's may not be.
+        soon = (date.today() + timedelta(days=2)).isoformat()
+        page = client.post("/settings/people/new",
+                           data={"name": "Otto", "date_of_birth": soon})
+        assert "Date of birth is in the future" in page.get_data(as_text=True)
+        assert len(people(config_path)) == 3
+
+    def test_a_baby_born_today_is_fine(self, client, config_path):
+        client.get("/settings/people")
+        today = config_module.today_for(config_module.load_config(config_path))
+        client.post("/settings/people/new",
+                    data={"name": "Otto", "date_of_birth": today.isoformat()})
+        assert len(people(config_path)) == 4
+
+    def test_a_shape_that_is_not_a_date_is_still_refused(self, client, config_path):
+        client.get("/settings/people")
+        page = client.post("/settings/people/new",
+                           data={"name": "Otto", "date_of_birth": "17-03-04"})
+        assert "should look like 2017-03-15" in page.get_data(as_text=True)
+        assert len(people(config_path)) == 3
+
+    def test_a_stored_bad_year_must_be_fixed_before_the_person_saves(self, tmp_path):
+        # The remediation path for a row that got in before the check existed:
+        # renaming the person is refused until the year is corrected.
+        path = tmp_path / "config.yaml"
+        path.write_text(CONFIG.replace('"2019-06-20"', '"0978-06-20"'))
+        client = client_for(create_app(FileStore(path)))
+        client.get("/settings/people")
+        theo = ids_for(path)[1]
+        page = client.post(f"/settings/people/{theo}",
+                           data={"name": "Theodore", "date_of_birth": "0978-06-20"})
+        assert "Date of birth has the year 0978" in page.get_data(as_text=True)
+        assert people(path)[1]["name"] == "Theo"
+
+    def test_the_input_carries_the_same_bounds(self, client, config_path):
+        client.get("/settings/people")
+        today = config_module.today_for(config_module.load_config(config_path))
+        page = client.get("/settings/people/new").get_data(as_text=True)
+        assert 'min="1900-01-01"' in page
+        assert f'max="{today.isoformat()}"' in page
 
 
 class TestDeleting:

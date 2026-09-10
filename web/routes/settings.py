@@ -35,6 +35,13 @@ log = logging.getLogger(__name__)
 
 bp = Blueprint("settings", __name__)
 
+# The one `date` field is a date of birth, so the form bounds it between this
+# year and today, and `validate` refuses anything outside. A browser's date
+# input accepts any year from 0001 — a flick of the year wheel on a phone, or
+# a dropped keystroke, saved "0017-03-04" without complaint, and the People
+# page then read "2009 years old". Nobody alive was born before 1900.
+EARLIEST_BIRTH_YEAR = 1900
+
 
 @bp.before_request
 def _needs_a_session():
@@ -197,8 +204,13 @@ def parse_field(field, form, existing):
     return value
 
 
-def validate(section, item):
-    """Return a list of human-readable problems with a submitted item."""
+def validate(section, item, today):
+    """Return a list of human-readable problems with a submitted item.
+
+    `today` is the family's own date: a date of birth after it is a typo,
+    and so is one before EARLIEST_BIRTH_YEAR. The message names the year the
+    form received, because the input itself can show "0017" quite quietly.
+    """
     problems = []
     for name, label, kind, required, _help in section["fields"]:
         value = item.get(name)
@@ -206,9 +218,16 @@ def validate(section, item):
             problems.append(f"{label} is needed.")
         if kind == "date" and value:
             try:
-                datetime.strptime(str(value), "%Y-%m-%d")
+                dob = datetime.strptime(str(value), "%Y-%m-%d").date()
             except ValueError:
                 problems.append(f"{label} should look like 2017-03-15.")
+            else:
+                if dob.year < EARLIEST_BIRTH_YEAR:
+                    problems.append(f"{label} has the year {dob.year:04d}. "
+                                    f"Check the year and try again.")
+                elif dob > today:
+                    problems.append(f"{label} is in the future. "
+                                    f"Check the year and try again.")
         if kind == "emails":
             for address in value or []:
                 if "@" not in address:
@@ -370,6 +389,7 @@ def section_edit(section_name, item_id):
     section = section_or_404(section_name)
     config = current_config()
     items = config.setdefault(section["key"], [])
+    today = config_module.today_for(config)
 
     is_new = item_id == "new"
     if is_new:
@@ -391,7 +411,7 @@ def section_edit(section_name, item_id):
             checked = check_feed(submitted, config)
             item = submitted
         else:
-            problems = validate(section, submitted)
+            problems = validate(section, submitted, today)
             if not problems:
                 if is_new:
                     submitted["id"] = config_module.new_id(
@@ -419,6 +439,7 @@ def section_edit(section_name, item_id):
         "settings/edit.html", section=section, section_name=section_name,
         item=item, item_id=item_id, is_new=is_new, problems=problems,
         checked=checked, config=config, months=MONTHS,
+        date_min=f"{EARLIEST_BIRTH_YEAR}-01-01", date_max=today.isoformat(),
         emoji=EMOJI_SUGGESTIONS.get(section_name, []),
         colors=config_module.AVATAR_COLORS, people=config_module.people_names(config),
     )
