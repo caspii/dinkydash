@@ -77,7 +77,7 @@ full screen with no browser around it.
 
 ## Adding a calendar
 
-Settings → Calendars → Add a calendar. Paste an iCal link and press **Check this link** — it will
+Settings → Calendars → Add a calendar. Paste an iCal link and press **Test calendar link** — it will
 tell you how many events it found and what the next one is, rather than silently accepting a URL
 that returns nothing.
 
@@ -99,7 +99,7 @@ skipped rather than emptying the board.
 A personal calendar with work and private appointments in it can still go on the board. Fill in
 **Only show events shared with** on that calendar with the other parent's email address — the one
 on the invitations — and only the events they are a guest at, or organised, get through. The rest
-is dropped as the feed is read, so it is never stored and never sent to Claude. **Check this link**
+is dropped as the feed is read, so it is never stored and never sent to Claude. **Test calendar link**
 says how many events get through out of how many, and warns you if none do. Saving a calendar
 clears what was fetched from it before, and the next tick fetches it afresh — or press **Refresh
 calendars**. In `config.yaml` the setting is `shared_with`, a list of addresses under that calendar.

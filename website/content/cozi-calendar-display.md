@@ -69,8 +69,8 @@ does not work on, and [the Echo Show page](/echo-show-calendar-display/) says wh
 Point it at Cozi:
 
 1. Open **Settings → Calendars → Add a calendar**.
-2. Give it a name — "Cozi" or the child's name — and paste the URL into **iCal link**.
-3. Press **Check this link**. It reports how many events it found and what the next one is,
+2. Give it a name — "Cozi" or the child's name — and paste the URL into **Calendar link (iCal / ICS)**.
+3. Press **Test calendar link**. It reports how many events it found and what the next one is,
    so you know it works before you save.
 4. Repeat for each family member's feed you shared.
 

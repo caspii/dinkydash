@@ -1,0 +1,14 @@
+<p class="hint">Open your provider to copy the link (opens in a new tab):</p>
+<div class="calendar-providers">
+    <a class="btn outline" href="https://calendar.google.com/calendar/u/0/r/settings" target="_blank" rel="noopener noreferrer">Google Calendar ↗</a>
+    <a class="btn outline" href="https://www.icloud.com/calendar/" target="_blank" rel="noopener noreferrer">Apple Calendar (iCloud) ↗</a>
+    <a class="btn outline" href="https://outlook.live.com/calendar/" target="_blank" rel="noopener noreferrer">Outlook ↗</a>
+</div>
+<details class="note-box calendar-help" {{ 'open' if checked and checked.link_help }}>
+    <summary>Where do I find my calendar link?</summary>
+    <ol>
+        <li><strong>Google Calendar:</strong> On a computer, open Settings, choose your calendar, then Integrate calendar. Copy the “Secret address in iCal format”. This works for private calendars too. The public iCal address only works if your calendar is public.</li>
+        <li><strong>Apple Calendar (iCloud):</strong> Open the calendar's sharing options, turn on Public Calendar, then copy the link. On iPhone, tap Calendars, the info button, then Share Link.</li>
+        <li><strong>Outlook:</strong> Open Settings → Calendar → Shared calendars. Under Publish a calendar, choose your calendar and a permission level that includes event details, then Publish and copy the ICS link.</li>
+    </ol>
+</details>

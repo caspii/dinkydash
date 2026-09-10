@@ -47,6 +47,13 @@ class FeedError(Exception):
     it must never carry the URL or the feed's contents — see `_why`.
     """
 
+    def __init__(self, message, *, status_code=None, invalid_data=False):
+        super().__init__(message)
+        # Let the UI offer a repair without parsing the diagnostic or exposing
+        # the original Requests exception, which can contain the private URL.
+        self.status_code = status_code
+        self.invalid_data = invalid_data
+
 
 class FeedRefused(FeedError):
     """The URL was refused before any request was made.
@@ -159,7 +166,8 @@ def _occurrences(ical_text, start, end):
     except Exception as exc:
         # Not `{exc}`: a parser error quotes the line it choked on, which is
         # somebody's appointment.
-        raise FeedError(f"could not read the calendar data ({type(exc).__name__})") from exc
+        raise FeedError(f"could not read the calendar data ({type(exc).__name__})",
+                        invalid_data=True) from exc
     return list(recurring_events_of(cal).between(start, end + timedelta(days=1)))
 
 
@@ -311,7 +319,9 @@ def fetch_text(url, timeout=DEFAULT_TIMEOUT):
     except FeedError:
         raise
     except Exception as exc:
-        raise FeedError(f"could not fetch the calendar: {_why(exc)}") from exc
+        response = getattr(exc, "response", None)
+        raise FeedError(f"could not fetch the calendar: {_why(exc)}",
+                        status_code=getattr(response, "status_code", None)) from exc
 
     raise FeedError("could not fetch the calendar: too many redirects")
 
