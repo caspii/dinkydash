@@ -1,10 +1,10 @@
 {% extends "settings/base.html" %}
 {% import "settings/_icons.html" as icons %}
-{% block title %}{{ item.name or item.title or item.label or section.singular }}{% endblock %}
+{% block title %}{{ ("New " ~ section.singular) if is_new else (item.name or item.title or item.label or section.singular) }}{% endblock %}
 
 {% block appbar %}
 <a class="action muted" href="{{ url_for('settings.section_list', section_name=section_name) }}">Cancel</a>
-<h1 style="text-align:center;">{{ item.name or item.title or item.label or ("New " ~ section.singular) }}</h1>
+<h1 style="text-align:center;">{{ ("New " ~ section.singular) if is_new else (item.name or item.title or item.label or section.singular) }}</h1>
 <button class="action" type="submit" form="edit-form" name="action" value="save">Save</button>
 {% endblock %}
 

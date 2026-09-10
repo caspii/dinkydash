@@ -434,7 +434,9 @@ def section_edit(section_name, item_id):
 
     is_new = item_id == "new"
     if is_new:
-        item = {"enabled": True} if section_name == "calendars" else {}
+        item = {}
+        if section_name == "calendars":
+            item = {"enabled": True, "label": suggested_calendar_label(config)}
         index = None
     else:
         index, item = config_module.find_item(items, item_id)
@@ -490,6 +492,27 @@ def section_edit(section_name, item_id):
         emoji=EMOJI_SUGGESTIONS.get(section_name, []),
         colors=config_module.AVATAR_COLORS, people=config_module.people_names(config),
     )
+
+
+def suggested_calendar_label(config):
+    """A name for a new calendar, filled in so it need not be typed.
+
+    The name never reaches the board — it is how the settings list and the
+    feed status refer to the calendar — so making somebody invent one before
+    they can paste the link they came with is friction for nothing. "Family"
+    for the first; after that a numbered one, because two feeds with one name
+    are filed together (`calendars.feed_label`) and the second would silently
+    inherit the first's events when it failed. Whatever is filled in can be
+    typed over.
+    """
+    taken = {feed_label(c).strip().lower() for c in config.get("calendars") or []
+             if isinstance(c, dict)}
+    if "family" not in taken:
+        return "Family"
+    number = 2
+    while f"calendar {number}" in taken:
+        number += 1
+    return f"Calendar {number}"
 
 
 def follow_a_rename(config, old, new):

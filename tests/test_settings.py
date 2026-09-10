@@ -768,6 +768,55 @@ class TestCalendarLinkFeedback:
         assert "Copy a fresh iCal / ICS sharing link" not in page
 
 
+class TestANewCalendarComesWithAName:
+    """The name is for the settings list, not the board, so it is filled in.
+
+    Somebody arriving with a link should be able to paste it and save. The
+    suggestion is "Family" unless a calendar already has that name, and then a
+    numbered one — two feeds sharing a name are filed together.
+    """
+
+    def test_the_first_calendar_is_called_family(self, client):
+        page = client.get("/settings/calendars/new").get_data(as_text=True)
+        assert 'name="label" value="Family"' in page
+        assert "<h1" in page and "New calendar" in page
+
+    def test_pasting_a_link_and_saving_is_enough(self, client, config_path):
+        client.post("/settings/calendars/new", data={
+            "label": "Family", "url": "https://calendar.example/private-xxxx/basic.ics",
+            "enabled": "on"})
+        [saved] = config_module.load_config(config_path)["calendars"]
+        assert saved["label"] == "Family"
+
+    def test_a_second_calendar_gets_a_number_rather_than_the_same_name(self, tmp_path):
+        path = tmp_path / "config.yaml"
+        path.write_text('calendars:\n  - id: fam12345\n    label: "Family"\n'
+                        '    url: "https://calendar.example/private-xxxx/basic.ics"\n'
+                        '    enabled: true\n')
+        page = client_for(create_app(FileStore(path))).get(
+            "/settings/calendars/new").get_data(as_text=True)
+        assert 'name="label" value="Calendar 2"' in page
+
+    def test_the_number_skips_names_already_taken(self, tmp_path):
+        path = tmp_path / "config.yaml"
+        path.write_text('calendars:\n  - id: fam12345\n    label: "family"\n'
+                        '    url: "https://a.example/private-xxxx/a.ics"\n'
+                        '  - id: two12345\n    label: "Calendar 2"\n'
+                        '    url: "https://b.example/private-xxxx/b.ics"\n')
+        page = client_for(create_app(FileStore(path))).get(
+            "/settings/calendars/new").get_data(as_text=True)
+        assert 'name="label" value="Calendar 3"' in page
+
+    def test_an_existing_calendar_keeps_its_own_name_in_the_heading(self, tmp_path):
+        path = tmp_path / "config.yaml"
+        path.write_text('calendars:\n  - id: sch12345\n    label: "School"\n'
+                        '    url: "https://a.example/private-xxxx/a.ics"\n')
+        page = client_for(create_app(FileStore(path))).get(
+            "/settings/calendars/sch12345").get_data(as_text=True)
+        assert "New calendar" not in page
+        assert 'name="label" value="School"' in page
+
+
 class TestSavingACalendarForgetsWhatItFetched:
     """A guest list added after a fetch was never applied to what is stored.
 
