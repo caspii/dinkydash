@@ -558,6 +558,18 @@ variables are set at exactly their code defaults, so nothing changed there. It d
 workspace's `.env`, so the operator's page above is still closed to everyone. The next apply needs
 the key in `.env` first.
 
+**The key was set later the same evening**, without another full apply: the live spec was fetched
+with `doctl apps spec get`, the one entry added, and the result applied back with `doctl apps update`
+— existing secrets round-trip as `EV[...]` ciphertext that App Platform accepts unchanged, so nothing
+else in the running app moved and no plaintext secret was needed from `.env`. Deployment `af1c9fa9`
+active at 2026-09-10 20:10:55 UTC. The address is also in `.env` in the main checkout, so the next
+merge-from-`.env` apply carries it too. Which address it is stays out of this file on purpose.
+
+**The first visit was to `/admin/`, and it was a 404.** The route was registered as `/admin` only,
+and Flask adds the slash-tolerant redirect to rules that end in a slash, not to ones that do not, so
+the typed URL never reached the admin check — and a 404 is exactly what not being on the list looks
+like. Fixed by making the rule accept both; `tests/test_admin.py` asserts it.
+
 **How to read it next time.** After a restart, `doctl apps logs <id> site --type run` holds only the
 new container; the one that died is under `--type run_restarted`. The health probe arrives every
 10 s on a ~2 ms cadence, so a probe that lands late is the cheap sign that a request was CPU-bound
