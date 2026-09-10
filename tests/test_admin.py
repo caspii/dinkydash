@@ -34,6 +34,7 @@ def test_single_mode_has_no_admin_page(tmp_path, monkeypatch):
     (tmp_path / "config.yaml").write_text('family_name: "The Wilsons"\n')
     client = client_for(create_app(FileStore(tmp_path / "config.yaml")))
     assert client.get("/admin").status_code == 404
+    assert client.get("/admin/").status_code == 404
 
 
 # -- the drawing, with no database ------------------------------------------
@@ -149,6 +150,21 @@ class TestWhoMayLook:
         assert response.status_code == 200
         assert response.headers["Cache-Control"] == "no-store"
         assert "Growth" in response.get_data(as_text=True)
+
+    def test_a_trailing_slash_is_the_same_page(self, cloud, user, monkeypatch):
+        """The first real visit was to `/admin/`, and it was a 404 — before the
+        admin check ran, so it looked exactly like not being on the list."""
+        monkeypatch.setenv("DINKYDASH_ADMIN_EMAILS", ADDRESS)
+        response = signed_in(cloud, user).get("/admin/")
+        assert response.status_code == 200
+        assert "Growth" in response.get_data(as_text=True)
+
+    def test_a_trailing_slash_opens_nothing_for_anybody_else(self, cloud, user, monkeypatch):
+        monkeypatch.setenv("DINKYDASH_ADMIN_EMAILS", "somebody@example.com")
+        assert signed_in(cloud, user).get("/admin/").status_code == 404
+        signed_out = client_for(cloud).get("/admin/")
+        assert signed_out.status_code == 302
+        assert signed_out.headers["Location"].endswith("/login")
 
     def test_a_session_naming_a_user_that_is_gone_is_a_404(self, cloud, user, monkeypatch):
         monkeypatch.setenv("DINKYDASH_ADMIN_EMAILS", ADDRESS)

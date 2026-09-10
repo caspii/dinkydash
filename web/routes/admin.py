@@ -1,6 +1,7 @@
 """The operator's page: signups and activations by week. Cloud mode only.
 
     GET /admin             the last twelve weeks
+    GET /admin/            the same; a typed URL often ends in a slash
     GET /admin?weeks=52    further back, up to a year
 
 Registered only in cloud mode, like `auth` and `screen` — a self-hoster is one
@@ -74,7 +75,11 @@ def _admins_only():
     return None
 
 
-@bp.route("/admin")
+# `strict_slashes=False`, so `/admin/` is the page and not a 404. Flask only
+# adds the slash-tolerant redirect to rules that *end* in one, and the first
+# person to open this typed the slash — a 404 that arrives before the admin
+# check runs looks exactly like not being on the list.
+@bp.route("/admin", strict_slashes=False)
 def growth_page():
     weeks = span(request.args.get("weeks"))
     pool = current_app.config["POOL"]
