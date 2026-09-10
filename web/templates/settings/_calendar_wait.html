@@ -1,0 +1,30 @@
+<dialog class="calendar-wait card" id="calendar-wait" aria-labelledby="calendar-wait-title" aria-describedby="calendar-wait-description">
+    <span class="calendar-wait-spinner" aria-hidden="true"></span>
+    <h2 id="calendar-wait-title" tabindex="-1" autofocus>Checking your calendar…</h2>
+    <p id="calendar-wait-description">We're fetching your upcoming events. This may take a little while.</p>
+    <p class="calendar-wait-hint">Keep this page open. Your result will appear here.</p>
+</dialog>
+<script>
+    (() => {
+        const form = document.getElementById('edit-form');
+        const waiting = document.getElementById('calendar-wait');
+        // Keep the ordinary form submission, including its action and CSRF token.
+        // Older browsers still submit normally without the waiting screen.
+        if (typeof waiting.showModal !== 'function') return;
+
+        form.addEventListener('submit', (event) => {
+            if (waiting.open) {
+                event.preventDefault();
+                return;
+            }
+            if (event.defaultPrevented || event.submitter?.value !== 'check') return;
+            waiting.showModal();
+        });
+        // Closing the dialog would not cancel the request already in flight.
+        waiting.addEventListener('cancel', (event) => event.preventDefault());
+        // A browser may restore this exact page when the user goes back.
+        window.addEventListener('pageshow', () => {
+            if (waiting.open) waiting.close();
+        });
+    })();
+</script>
