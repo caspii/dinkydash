@@ -551,8 +551,8 @@ with the merge-from-`.env` dance in the spec's header, deployment `bdb642ca` act
 `doctl apps propose` pricing the app at $20 a month rather than $15. The `worker` component stays at
 0.5 GB: it is one process, and with the trim its refresh of the same feed is small.
 
-**What that apply also carried**, because the spec is the whole app: the dead `DINKYDASH_FAMILY_ID`
-is gone, `GIT_SHA` is bound and `/healthz` reports a commit at last, and the three spend-breaker
+**What that apply also carried**, because the spec is the whole app: the dead single-family variable
+from before DIN-39 is gone, `GIT_SHA` is bound and `/healthz` reports a commit at last, and the three spend-breaker
 variables are set at exactly their code defaults, so nothing changed there. It did **not** carry
 `DINKYDASH_ADMIN_EMAILS`: the spec it was built from predates DIN-37 and the key is not in this
 workspace's `.env`, so the operator's page above is still closed to everyone. The next apply needs
