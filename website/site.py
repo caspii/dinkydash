@@ -39,7 +39,7 @@ ROOT_FILES = {
 }
 
 
-def create_site_app(site_url=None):
+def create_site_app(site_url=None, app_url=None):
     app = Flask(
         __name__,
         template_folder=str(render.TEMPLATES),
@@ -47,6 +47,11 @@ def create_site_app(site_url=None):
     )
     app.config["SITE_URL"] = site_url or os.environ.get("DINKYDASH_SITE_URL",
                                                         render.SITE_URL)
+    # Where "Start your free trial" goes. Production leaves it alone; a local
+    # preview sets DINKYDASH_APP_URL to the dashboard on its own port, so the
+    # button opens the board being worked on rather than the live one.
+    app.config["APP_URL"] = (app_url or os.environ.get("DINKYDASH_APP_URL")
+                             or render.APP_URL).rstrip("/")
 
     # Read every page once, at start-up. The site redeploys when its content
     # changes, so re-reading Markdown per request would buy nothing and cost a
@@ -54,14 +59,27 @@ def create_site_app(site_url=None):
     pages = {page["url"]: page for page in render.pages()}
     app.config["PAGES"] = pages
 
+    def pointed_at_the_app(html):
+        """The content's links to the hosted app, on the configured address.
+
+        The Markdown writes `https://app.dinkydash.co/login` in full, because
+        that is the address a reader of the file should see. Only the origin is
+        swapped — bare mentions of the hostname in the privacy and terms pages
+        are statements about production and stay as written.
+        """
+        if app.config["APP_URL"] == render.APP_URL:
+            return html
+        return html.replace(render.APP_URL + "/", app.config["APP_URL"] + "/")
+
     def render_page(page):
         front_matter = page["front_matter"]
         return render_template(
             page["template"],
-            content=page["html"],
+            content=pointed_at_the_app(page["html"]),
             canonical_url=app.config["SITE_URL"] + page["url"],
             last_modified=page["last_modified"],
             faq_schema=render.faq_schema(front_matter.get("faq")),
+            app_url=app.config["APP_URL"],
             **front_matter,
         )
 
@@ -119,8 +137,8 @@ def create_site_app(site_url=None):
 
     @app.errorhandler(404)
     def not_found(_error):
-        return render_template("404.html",
-                               canonical_url=app.config["SITE_URL"]), 404
+        return render_template("404.html", canonical_url=app.config["SITE_URL"],
+                               app_url=app.config["APP_URL"]), 404
 
     @app.before_request
     def canonical_host():

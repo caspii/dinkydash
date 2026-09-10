@@ -270,7 +270,7 @@
     <div class="waiting-sub">Board updates are paused. Open your settings on a phone or computer to manage your account.</div>
 </div>
 
-{% elif view.state == 'waiting' %}
+{% elif view.state == 'waiting' and view.set_up %}
 <div class="waiting">
     <div class="family">DinkyDash</div>
     <div class="waiting-head">Writing {{ view.family_name or "your" }}{{ "'s" if view.family_name else "" }} first board&hellip;</div>
@@ -279,7 +279,21 @@
     <div class="waiting-sub">
         The next run writes it, usually within a few minutes, and this page fills
         itself in. To have it now, open the settings page and press
-        &ldquo;Write it now&rdquo;.
+        &ldquo;Write the first board&rdquo;.
+    </div>
+</div>
+
+{% elif view.state == 'waiting' %}
+{# Nothing is being written, and the screen must not say it is: the household
+   is still the invented one or the timezone is unset, and the settings home
+   is showing the checklist. The same words in both modes — a Pi running the
+   untouched example file is in exactly this state. #}
+<div class="waiting">
+    <div class="family">DinkyDash</div>
+    <div class="waiting-head">Nearly there</div>
+    <div class="waiting-sub">
+        Finish the set-up steps on the settings page, and this screen fills
+        itself in as soon as the first board is written.
     </div>
 </div>
 

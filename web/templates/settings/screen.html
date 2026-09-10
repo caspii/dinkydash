@@ -2,18 +2,6 @@
 {% import "settings/_icons.html" as icons %}
 {% block title %}The screen{% endblock %}
 
-{% block head %}
-<style>
-    /* **A white plate, in both themes.** The one place in this UI that ignores
-       the theme tokens, and not an oversight: scanners expect a QR to be dark
-       on light, and an inverted one is read by some phones and not others.
-       Better a code that looks slightly out of place on a dark settings page
-       than one somebody cannot scan from the kitchen doorway. */
-    .qr-code { background: #ffffff; border-radius: 0.875rem; padding: 0.75rem; }
-    .qr-code svg { display: block; width: 100%; height: auto; }
-</style>
-{% endblock %}
-
 {% block appbar %}
 <a class="back" href="{{ url_for('settings.home') }}">{{ icons.back() }}</a>
 <h1>{{ "The screen" if screen_link else "Colours" }}</h1>
@@ -64,28 +52,7 @@
             Open this on the TV, tablet or Pi and leave the page up. It redraws itself; how
             often is under <a href="{{ url_for('settings.refresh') }}">How often it updates</a>.
         </div>
-        {# `word-break` because the URL must wrap on a phone rather than push the
-           card sideways, and `user-select:all` so one tap selects the whole thing. #}
-        <div style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.875rem;
-                    background:var(--warm);border-radius:0.875rem;padding:0.75rem 0.875rem;
-                    word-break:break-all;user-select:all;">{{ screen_link }}</div>
-        {% if screen_qr %}
-        <div style="display:flex;flex-direction:column;align-items:center;gap:0.5rem;">
-            {# Drawn here rather than fetched: handing this URL to a QR service
-               would be publishing the credential. `currentColor` is what makes
-               it work in both themes without a second copy.
-
-               **The one `|safe` in `web/`, and it is on machine-generated
-               markup.** `segno` emits the SVG from a URL this app built out of
-               its own alphabet and its own configured hostname — no feed, no
-               form field and no calendar text reaches it. Autoescaping stays on
-               for everything else on this page, and a `|safe` on anything a
-               person or a calendar wrote would be the bug this note exists to
-               keep visible. #}
-            <div class="qr-code" style="width:11rem;">{{ screen_qr | safe }}</div>
-            <div class="hint" style="text-align:center;">Scan it with the tablet's camera.</div>
-        </div>
-        {% endif %}
+        {% include "settings/_screen_link.html" %}
     </div>
 </div>
 

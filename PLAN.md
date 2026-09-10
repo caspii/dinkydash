@@ -121,18 +121,27 @@ serializes each subject's limit with a transaction-scoped advisory lock before c
 
 Cloud settings require a session. Cookies are Secure in cloud mode, HttpOnly and
 SameSite=Lax. Every writing form carries a CSRF token in both modes. New families get
-fictional starter entries and no calendar URL, plus links to replace the defaults.
+fictional starter entries, each marked `invented: true`, and no calendar URL. The
+settings home shows a set-up checklist — who lives here, time zone, a calendar, the
+screen — until the marks are gone, the time zone is chosen and the first board is
+written (`web/setup.py`); the daily controls are not offered before that. The time
+zone is offered as one tap from the phone's own clock setting.
 
 ### The first board
 
 Built in [DIN-45](https://linear.app/keepthescore/issue/DIN-45) / PR #85. `schedule.brief_due` owes a brief whenever
-`generated_for_date` is absent, including when a calendar-only payload exists.
-The existing cloud worker attempts it on its next five-minute pass; a self-hoster's
-cron does the same. Signup itself does not call the model or enqueue another job.
+`generated_for_date` is absent, including when a calendar-only payload exists —
+**once the family is set up** (`config.is_set_up`: no `invented` person or pet
+left, and a time zone chosen). Until then nothing is written: a brief about the
+starter household would spend a call on invented children and hang it on the wall
+as the first thing the family sees. The existing cloud worker attempts it on its
+next five-minute pass after set-up; a self-hoster's cron does the same. Signup
+itself does not call the model or enqueue another job.
 
 Failed first briefs remain due, subject to the hosted call cap. Later briefs follow
-`brief_time` in the family's timezone. **Write it now** in settings becomes
-**Rewrite now** after a successful first brief.
+`brief_time` in the family's timezone. The checklist's **Write the first board** is
+the shortcut; the running page offers **Rewrite now** once there is one, and
+**Refresh calendars** only when there is a calendar to refresh.
 
 ### The screen
 

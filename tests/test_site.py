@@ -54,6 +54,24 @@ class TestHostedSignup:
                 assert f'href="{self.URL}"' in body, page["url"]
                 assert 'href="/getting-started/"' in body, page["url"]
 
+    def test_the_app_address_is_configurable(self):
+        """A preview runs the board on a local port; its trial button must not
+        land on production. Only the app's origin moves — the privacy and terms
+        pages name `app.dinkydash.co` as a fact about production and keep it."""
+        local = create_site_app(site_url="https://dinkydash.co",
+                                app_url="http://127.0.0.1:5000/").test_client()
+        for page in render.pages():
+            body = local.get(page["url"]).get_data(as_text=True)
+            assert self.URL not in body, page["url"]
+            if page["url"] in self.HOSTED_PAGES:
+                assert 'href="http://127.0.0.1:5000/login"' in body, page["url"]
+        assert "app.dinkydash.co" in local.get("/privacy/").get_data(as_text=True)
+
+    def test_and_read_from_the_environment(self, monkeypatch):
+        monkeypatch.setenv("DINKYDASH_APP_URL", "http://127.0.0.1:5000")
+        body = create_site_app().test_client().get("/").get_data(as_text=True)
+        assert 'href="http://127.0.0.1:5000/login"' in body
+
     def test_readme_sends_visitors_to_signup(self):
         readme = (Path(__file__).resolve().parents[1] / "README.md").read_text()
         assert f"]({self.URL})" in readme

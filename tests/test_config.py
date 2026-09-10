@@ -246,6 +246,90 @@ class TestTimezone:
         assert config_module.tzinfo_for(config).key == "UTC"
 
 
+class TestTheInventedHousehold:
+    """`starter_config` marks what it invents, and set-up is "the marks are gone".
+
+    The mark is how the settings home knows what still has to be replaced and
+    how the tick knows not to write about it. It says "never touched" and
+    nothing else: a hand-written config has none, whatever the names in it.
+    """
+
+    def test_the_starter_marks_every_person_and_pet(self):
+        starter = config_module.starter_config()
+        assert all(p[config_module.INVENTED] for p in starter["people"])
+        assert all(p[config_module.INVENTED] for p in starter["pets"])
+        assert config_module.invented_names(starter) == ["Mia", "Theo", "Biscuit"]
+
+    def test_the_example_file_carries_the_same_marks(self):
+        from pathlib import Path
+        example = config_module.load_config(
+            Path(__file__).resolve().parent.parent / "config.example.yaml")
+        assert config_module.invented_names(example) == ["Mia", "Theo", "Biscuit"]
+
+    def test_a_hand_written_config_has_no_marks_whatever_the_names(self, config_file):
+        # The example's Mia, born on the example's date, is still theirs.
+        config = config_module.load_config(config_file)
+        assert config_module.invented_names(config) == []
+
+    def test_the_starter_is_not_set_up(self):
+        assert config_module.is_set_up(config_module.starter_config()) is False
+
+    def test_replacing_the_household_is_only_half_of_it(self):
+        home = config_module.starter_config()
+        for item in home["people"] + home["pets"]:
+            item.pop(config_module.INVENTED)
+        assert config_module.timezone_is_set(home) is False
+        assert config_module.is_set_up(home) is False
+        home["timezone"] = "Europe/Berlin"
+        assert config_module.is_set_up(home) is True
+
+    def test_the_timezone_alone_is_not_enough_either(self):
+        home = config_module.starter_config()
+        home["timezone"] = "Europe/Berlin"
+        assert config_module.is_set_up(home) is False
+
+    def test_a_hand_written_config_with_a_timezone_is_set_up(self, config_file):
+        assert config_module.is_set_up(config_module.load_config(config_file)) is True
+
+    def test_utc_is_read_as_unset(self):
+        # Nobody's kitchen: a family that really lives on it picks its named zone.
+        assert config_module.timezone_is_set({"timezone": "UTC"}) is False
+        assert config_module.timezone_is_set({}) is False
+        assert config_module.timezone_is_set({"timezone": "Atlantic/Reykjavik"}) is True
+
+
+class TestPeopleAndTheirChores:
+    """Chores hold names as text, so a rename or a removal has to follow them."""
+
+    def test_a_rename_follows_into_every_rotation(self):
+        home = {"recurring": [{"title": "Table", "choices": ["Mia", "Theo"]},
+                              {"title": "Dog", "choices": ["Theo", "Mia"]}]}
+        config_module.rename_in_chores(home, "Mia", "Anna")
+        assert [c["choices"] for c in home["recurring"]] == [["Anna", "Theo"], ["Theo", "Anna"]]
+
+    def test_a_removal_leaves_every_rotation(self):
+        home = {"recurring": [{"title": "Table", "choices": ["Mia", "Theo"]},
+                              {"title": "Dog", "choices": ["Mia"]}]}
+        config_module.drop_from_chores(home, "Mia")
+        assert [c["choices"] for c in home["recurring"]] == [["Theo"], []]
+
+    def test_a_chore_with_no_rotation_survives_both(self):
+        home = {"recurring": [{"title": "Table"}]}
+        config_module.rename_in_chores(home, "Mia", "Anna")
+        config_module.drop_from_chores(home, "Mia")
+        assert home["recurring"] == [{"title": "Table"}]
+
+    def test_the_file_keeps_its_flow_style_lists(self, tmp_path):
+        # Edited in place: `choices: ["Mia", "Theo"]` must not come back as a
+        # block sequence the first time somebody is renamed.
+        path = tmp_path / "config.yaml"
+        path.write_text('recurring:\n  - title: "Table"\n    choices: ["Mia", "Theo"]\n')
+        config = config_module.load_config(path)
+        config_module.rename_in_chores(config, "Mia", "Anna")
+        config_module.save_config(config, path)
+        assert 'choices: ["Anna", "Theo"]' in path.read_text()
+
+
 def test_people_names_skips_the_nameless(config_file):
     config = config_module.load_config(config_file)
     config["people"].append({"date_of_birth": "2020-01-01"})

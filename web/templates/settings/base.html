@@ -169,6 +169,17 @@
         .pill.muted { background: rgba(154, 134, 119, 0.12); color: var(--text-mid); }
 
         .inline-form { display: inline; }
+
+        /* Where the board is (settings/_screen_link.html). The QR plate is white
+           in both themes on purpose: scanners expect dark on light, and an
+           inverted code is read by some phones and not others. */
+        .screen-link {
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.875rem;
+            background: var(--warm); border-radius: 0.875rem; padding: 0.75rem 0.875rem;
+            word-break: break-all; user-select: all;
+        }
+        .qr-code { background: #ffffff; border-radius: 0.875rem; padding: 0.75rem; }
+        .qr-code svg { display: block; width: 100%; height: auto; }
         .move { display: flex; flex-direction: column; gap: 0.125rem; }
         .move button {
             width: 1.875rem; height: 1.5rem; border: 1px solid var(--border); background: var(--surface);

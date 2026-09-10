@@ -12,6 +12,7 @@ import io
 import json
 import logging
 from datetime import datetime, time, timezone
+from zoneinfo import ZoneInfo
 
 from flask import (Blueprint, abort, current_app, flash, redirect,
                    render_template, request, url_for)
@@ -26,6 +27,7 @@ from dinkydash.runner import refresh_calendars
 from dinkydash.runner import run as run_generation
 from web import CLOUD
 from web import manifest as manifest_module
+from web import setup as setup_module
 from web.family import current_access, current_budget, current_family_id, current_store
 from web import session as session_module
 from web.session import guard
@@ -242,43 +244,86 @@ def home():
             status["detail"] += f" Calendars refreshed {fetched}."
 
     access = current_access()
-    if access and access.ended:
+    lapsed = bool(access and access.ended)
+    if lapsed:
         status = {"state": "lapsed", "detail": lifecycle.ENDED_MESSAGE}
 
     calendars = config.get("calendars") or []
     broken = [c for c in (payload or {}).get("calendar_statuses", []) if c.get("ok") is False]
+    jobs = [c for c in config.get("recurring") or [] if isinstance(c, dict)]
 
     counts = {
         "people": len(config.get("people") or []),
         "pets": len(config.get("pets") or []),
-        "recurring": len(config.get("recurring") or []),
+        "recurring": len(jobs),
         "special_dates": len(config.get("special_dates") or []),
         "calendars": len(calendars),
+        # A job with nobody in its rotation is skipped on the board. Say so on
+        # the row rather than counting it as rotating.
+        "jobs_unassigned": sum(1 for c in jobs if not c.get("choices")),
     }
+
+    # **Two personalities.** Until the family is set up and its first board
+    # written, the top of the page is the checklist in `web/setup.py` and the
+    # daily controls are not offered at all: "Refresh calendars" with no
+    # calendar and "View board" on somebody else's household are the two
+    # buttons a new parent was met with. A lapsed family gets the status card
+    # whatever state its config is in — the one thing it needs is the "has
+    # ended" line, and the buttons that line disables.
+    setup = setup_module.status(config, payload)
+    setting_up = setup["in_progress"] and not lapsed
+    screen = screen_for_setup() if setting_up and setup["ready"] else None
+
     return render_template(
         "settings/home.html", config=config, status=status, counts=counts,
         broken=broken, sections=SECTIONS, cadence=cadence_summary(config),
-        first_run=looks_untouched(config),
+        setup=setup, setting_up=setting_up, screen=screen,
+        calendars_on=any(c.get("enabled") for c in calendars if isinstance(c, dict)),
         board_link=board_path(),
     )
 
 
-def looks_untouched(config):
-    """Is this still the board it was handed, rather than one somebody made?
+def screen_for_setup():
+    """The board's address, for the last step of the checklist.
 
-    A family created by sign-up starts with an invented household in it, so
-    that the board has something to show rather than looking broken (DIN-41).
-    That is only kind if the settings page says so — otherwise a new parent
-    opens it and finds two children who are not theirs, with no explanation.
-
-    **The signal is the config, not the mode.** No calendar and the default
-    family name means nothing has been set up, and that is as true of a Pi
-    somebody has just cloned as of a hosted family five seconds old. Both
-    should be told the same two things, so there is no mode check here. The
-    banner leaves on its own the moment either is answered.
+    Hosted, it is the same credential the screen page shows, drawn as a QR
+    code the same way; self-hosted, the local URL and no code — a Pi's kiosk
+    browser has the address typed into it once.
     """
-    return (not (config.get("calendars") or [])
-            and config.get("family_name") == config_module.DEFAULTS["family_name"])
+    if current_app.config["MODE"] != CLOUD:
+        return {"link": url_for("board.index", _external=True), "qr": None}
+    link = absolute_url(board_path())
+    return {"link": link, "qr": qr_svg(link)}
+
+
+@bp.route("/timezone", methods=["POST"])
+def set_timezone():
+    """One tap on the checklist: the zone the phone itself is set to.
+
+    Guessing a timezone from an IP address is wrong often enough to be worse
+    than asking (`config.starter_config`). The phone's own clock setting is a
+    different thing, and offering it back is still asking: the page reads it
+    with `Intl.DateTimeFormat` and puts it on a button, and nothing is written
+    until the button is pressed. Anything that is not a zone this Python
+    knows is refused, so the form cannot write nonsense into the config.
+    """
+    name = request.form.get("timezone", "").strip()
+    known = False
+    if name and len(name) <= 64:
+        try:
+            ZoneInfo(name)
+            known = True
+        except Exception:  # ZoneInfoNotFoundError, or a key that is not a key
+            known = False
+    if not known:
+        flash("That is not a time zone this board knows. Pick one under Family & system.",
+              "error")
+        return redirect(url_for("settings.home"))
+    config = current_config()
+    config["timezone"] = name
+    save(config)
+    flash(f"Time zone set to {name}.", "ok")
+    return redirect(url_for("settings.home"))
 
 
 def _clock(stamp, tzinfo):
@@ -334,6 +379,7 @@ def generate_now():
     the branch below that already existed and the person is told plainly.
     """
     config = current_config()
+    first = not (current_store().load_payload(config) or {}).get("generated_for_date")
     try:
         payload = run_generation(config, current_store(), budget=current_budget())
     except GenerationError as exc:
@@ -342,7 +388,8 @@ def generate_now():
         log.exception("Generation failed")
         flash(f"Generation failed: {exc}", "error")
     else:
-        flash(f"Board rewritten — “{payload['headline']}”", "ok")
+        what = "Your first board is written" if first else "Board rewritten"
+        flash(f"{what} — “{payload['headline']}”", "ok")
     return redirect(url_for("settings.home"))
 
 
@@ -393,6 +440,10 @@ def section_edit(section_name, item_id):
         else:
             problems = validate(section, submitted)
             if not problems:
+                # The mark `starter_config` puts on an invented person or pet.
+                # Saving the form is the touch that makes the item theirs,
+                # whatever they left in the boxes.
+                submitted.pop(config_module.INVENTED, None)
                 if is_new:
                     submitted["id"] = config_module.new_id(
                         i.get("id") for i in items if isinstance(i, dict)
@@ -401,6 +452,8 @@ def section_edit(section_name, item_id):
                 else:
                     submitted["id"] = item_id
                     items[index] = submitted
+                    if section_name == "people":
+                        follow_a_rename(config, item.get("name"), submitted.get("name"))
                 # Pressing Save explicitly refreshes this calendar even when
                 # the values are unchanged. The store also detects changed or
                 # removed sources and clears them in the same operation.
@@ -422,6 +475,22 @@ def section_edit(section_name, item_id):
         emoji=EMOJI_SUGGESTIONS.get(section_name, []),
         colors=config_module.AVATAR_COLORS, people=config_module.people_names(config),
     )
+
+
+def follow_a_rename(config, old, new):
+    """A person renamed on the form keeps their turns in every chore.
+
+    Chores hold names as plain text, so without this the natural way to
+    replace the invented Mia — open her, type your own child's name, save —
+    leaves "Set the table" rotating between Mia and Theo for ever, and the
+    board announcing the turn of somebody who is not there. Skipped when
+    another person still has the old name: then it was not a rename.
+    """
+    if not old or not new or old == new:
+        return
+    if old in config_module.people_names(config):
+        return
+    config_module.rename_in_chores(config, old, new)
 
 
 def check_feed(item, config):
@@ -479,6 +548,12 @@ def section_delete(section_name, item_id):
     if removed is None:
         abort(404)
     items.pop(index)
+    if section_name == "people":
+        # Deleting Mia means Mia is gone from the board, turns included — not
+        # a chore still announcing her day. Unless somebody else has the name.
+        gone = removed.get("name")
+        if gone and gone not in config_module.people_names(config):
+            config_module.drop_from_chores(config, gone)
     save(config)
     flash(f"Removed {removed.get('name') or removed.get('title') or removed.get('label') or 'it'}.", "ok")
     return redirect(url_for("settings.section_list", section_name=section_name))

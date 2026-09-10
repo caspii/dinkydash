@@ -89,6 +89,57 @@ class TestTheFirstBrief:
                          utc("2026-06-14 18:00")) is False
 
 
+class TestTheFirstBriefWaitsForSetUp:
+    """The DIN-45 exception is for a real family, not for the invented one.
+
+    A hosted family starts with `starter_config` — Mia, Theo, Biscuit and no
+    timezone — and a Pi copying the example file starts the same way. Writing
+    the first brief then would spend a call on somebody else's children and
+    hang it on the wall as the first thing the family sees. So "no brief yet"
+    is owed only once `config.is_set_up` says there is a family to write for.
+    """
+
+    def test_the_starter_household_is_owed_nothing_at_any_hour(self):
+        from dinkydash import config as config_module
+        starter = config_module.starter_config()
+        for moment in ("2026-09-03 01:00", "2026-09-03 07:00", "2026-09-03 22:30"):
+            assert brief_due(starter, {}, utc(moment)) is False
+
+    def test_nor_with_the_calendars_fetched(self):
+        from dinkydash import config as config_module
+        stored = payload(fetched="2026-09-03T01:00:00+00:00")
+        assert brief_due(config_module.starter_config(), stored, utc("2026-09-03 01:00")) is False
+
+    def test_but_the_refresh_is_still_owed(self):
+        # Fetching is free, and the agenda is ready when the brief is written.
+        from dinkydash import config as config_module
+        assert due(config_module.starter_config(), None, utc("2026-09-03 01:00")) == \
+            {"refresh": True, "brief": False}
+
+    def test_a_real_household_on_the_default_timezone_still_waits(self):
+        # Replacing the people is half of set-up. On UTC the "day" the brief is
+        # written for may not be the family's, so the timezone is the other half.
+        home = {"timezone": "UTC", "people": [{"name": "Ines", "date_of_birth": "2022-01-09"}]}
+        assert brief_due(home, {}, utc("2026-09-03 12:00")) is False
+
+    def test_once_set_up_it_is_owed_immediately(self):
+        from dinkydash import config as config_module
+        home = config_module.starter_config()
+        home["timezone"] = "Europe/Berlin"
+        for person in home["people"] + home["pets"]:
+            person.pop(config_module.INVENTED)
+        assert brief_due(home, {}, utc("2026-09-03 01:00")) is True  # 03:00 Berlin
+
+    def test_a_written_brief_follows_the_ordinary_rule_whatever_the_config(self):
+        # The family that signed up before this rule has yesterday's board;
+        # it is replaced at brief_time like anybody's, not held back.
+        from dinkydash import config as config_module
+        starter = config_module.starter_config()
+        stored = payload(generated_for="2026-09-02")
+        assert brief_due(starter, stored, utc("2026-09-03 05:59")) is False
+        assert brief_due(starter, stored, utc("2026-09-03 06:00")) is True
+
+
 class TestRefresh:
     def test_not_due_inside_the_interval(self):
         stored = payload(fetched="2026-09-03T10:00:00+00:00")

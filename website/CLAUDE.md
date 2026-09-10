@@ -23,6 +23,12 @@ Guidance for `website/`. The root `CLAUDE.md` holds the rules that apply to ever
   copy of this whole site sat on `caspii.github.io` for a fortnight. See
   [doc/operations.md](../doc/operations.md). Nothing here should ever be written to be served from
   two places at once.
+- **Every link to the hosted app is written as `https://app.dinkydash.co/...` and rewritten
+  at request time.** `render.APP_URL` is the origin the content and the homepage name;
+  `site.py` swaps it for `DINKYDASH_APP_URL` when that is set, which the Conductor preview
+  does so that "Start your free trial" opens the dashboard on the workspace's own port rather
+  than production. Keep writing the real address in Markdown — the file is the document a
+  reader sees — and never a bare local port. `tests/test_site.py` checks both directions.
 - **Nunito lives here twice on purpose.** `website/static/fonts/` and `web/static/fonts/`
   are separate deployables, so editing one means editing both. The site's copy carries the
   italic pair as well; the board's does not, because the board never sets italic.

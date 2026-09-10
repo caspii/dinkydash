@@ -39,7 +39,8 @@ so today's times are still there and still right.
 |---|---|---|
 | The board, no banner | Today's run succeeded | Nothing |
 | An amber banner across the top | Today's brief failed or hasn't happened yet. Times, turns and countdowns are still today's; only the written line is older, and it is labelled | Nothing — the next tick retries. Check `generate.log` if it stays. Press **Rewrite now** in settings to force it |
-| "Writing … first board" | Nothing has ever been generated | Nothing — the next tick writes it, whatever the hour. Press **Write it now** in settings if you'd rather not wait |
+| "Nearly there" | The people are still the example file's invented ones, or the timezone is still UTC | Finish the set-up steps on the settings home. The tick writes nothing until then |
+| "Writing … first board" | Set up, but nothing has been generated yet | Nothing — the next tick writes it, whatever the hour. Press **Write the first board** in settings if you'd rather not wait |
 
 The board never blanks itself. A failed run leaves the previous one up rather than clearing the
 screen, on the grounds that a stale kitchen board beats an empty one.
