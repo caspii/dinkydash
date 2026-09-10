@@ -3,13 +3,20 @@
 Cloud requests use the signed session or a verified screen token. Stores are
 cached on Flask's g and share the app's pool. Single mode uses a fixed store.
 See web/CLAUDE.md for route authentication requirements.
+
+`is_admin` is the third door, and the only one that is not a family: whether
+the signed-in person may open the operator's page (`web/routes/admin.py`).
 """
 
+import os
 import uuid
 
 from flask import abort, current_app, g, session
 
-from .session import FAMILY_ID
+from .session import FAMILY_ID, USER_ID
+
+# Who may open /admin: a comma-separated list of addresses. Unset means nobody.
+ADMIN_EMAILS = "DINKYDASH_ADMIN_EMAILS"
 
 
 def current_store():
@@ -51,6 +58,38 @@ def current_screen_token():
     from dinkydash import screens
 
     return screens.token_for(_the_pool(), _family_on_the_session())
+
+
+def is_admin():
+    """Is the person on the session on the `DINKYDASH_ADMIN_EMAILS` list?
+
+    Decided from the account's *address* rather than a flag on the row, so
+    that who may see the operator's page is set where the other operator
+    settings are — the app spec — and needs no SQL to change. The address is
+    only ever compared, never used to look anything up: the session says who
+    is signed in, and the list says whether that person may look. An empty or
+    missing list means nobody may, which is the safe way for a new deployment
+    to be wrong.
+
+    Cloud mode only. Callers answer `False` with a 404 and never a 403 —
+    "forbidden" would say the page exists (`web/routes/admin.py`).
+    """
+    from dinkydash import accounts
+
+    allowed = admin_addresses()
+    user_id = session.get(USER_ID)
+    if not allowed or not user_id:
+        return False
+    address = accounts.address_for(_the_pool(), user_id)
+    return accounts.normalise(address) in allowed
+
+
+def admin_addresses():
+    """The operator addresses, normalised the way `accounts` compares them."""
+    from dinkydash import accounts
+
+    raw = os.environ.get(ADMIN_EMAILS, "")
+    return {accounts.normalise(part) for part in raw.split(",") if part.strip()}
 
 
 def store_for_token(token):

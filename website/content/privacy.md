@@ -5,7 +5,7 @@ template: page.html
 description: What DinkyDash stores, who it is sent to, how long it is kept, and how to get it back or delete it.
 ---
 
-*Last updated: 9 September 2026.*
+*Last updated: 10 September 2026.*
 
 DinkyDash puts a family's day on a screen. That means the things it holds are a
 household's names, dates of birth and movements — which is about as personal as
@@ -33,6 +33,7 @@ either something you typed or something the software produced.
 | **The written line** | Written by Claude each morning | The board's headline and note |
 | **Sign-in links** | Generated when you ask for one | Hashed, never stored as a working link |
 | **Counts of model calls** | Recorded when the board is written | So one account cannot run up an unbounded bill |
+| **Counts of sign-ups and first calendar connections** | Recorded when a family is created, and the first time it saves a calendar link | So we can see whether the product is being used, without looking at anyone's account |
 
 **We do not use cookies for tracking.** The hosted app sets one cookie, and it
 is the session that keeps you signed in. There is no analytics on
@@ -97,6 +98,9 @@ We would rather hold less, so most of this expires on its own.
 - **Daily totals of model calls across the service**: kept without an account
   identifier, including after account deletion, so deleting an account does not
   reset the service's spending limit. These totals contain only a date and count.
+- **Daily counts of sign-ups and of families that first connected a calendar**:
+  kept without an account identifier, including after account deletion. Like the
+  model-call totals, these hold a date and a count and nothing else.
 
 After your trial or subscription ends, the screen shows the last saved board
 with an ended-access message for 30 days, then only the message. This changes

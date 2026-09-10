@@ -109,6 +109,15 @@ envs:
   - key: SENDGRID_API_KEY
     scope: RUN_TIME
     type: SECRET
+  # Who may open /admin, the operator's page (DIN-37): a comma-separated list
+  # of account addresses. Not a credential — but an address is personal data
+  # and this file is public, the same reason the logs record a domain and
+  # never an address — so it is merged in from `.env` like the secrets above.
+  # **Put it in `.env` before the next apply**, or the merge snippet in the
+  # header fails on the missing key. Unset means nobody can open the page.
+  - key: DINKYDASH_ADMIN_EMAILS
+    scope: RUN_TIME
+    type: SECRET
 
   # The spend breaker (DIN-43), in model calls a day. Written out at their
   # defaults rather than left implicit, because a ceiling nobody can see is a

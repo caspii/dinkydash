@@ -232,7 +232,8 @@ in `calendars.py`. Keep business calculations independent of clocks and files.
 | `.do/app.yaml`, `.python-version`, `requirements-cloud.txt` | Hosted components, Python build and dependencies |
 | `tests/`, `.github/workflows/test.yml` | Both-mode validation and CI |
 
-Billing and admin functionality are future work; there is no planned ORM/model layer
+Billing is future work, and admin functionality so far is the growth page at `/admin`
+([DIN-37](https://linear.app/keepthescore/issue/DIN-37)); there is no planned ORM/model layer
 or duplicate self-hosted config loader.
 
 ### URL map
@@ -244,6 +245,7 @@ or duplicate self-hosted config loader.
 | `/settings/…` | Local settings | Settings scoped to the session's family |
 | `/s/<token>` | Not used | Bearer-token board |
 | `/preview` | Three sizes of the local board | Authenticated preview of the tokenised board |
+| `/admin` | Not used | Signups and activations by week, for addresses in `DINKYDASH_ADMIN_EMAILS` only |
 | `/healthz` | Process health | Process health, not worker/database health |
 
 Stripe routes are not implemented; their contract belongs to [DIN-53](https://linear.app/keepthescore/issue/DIN-53).
@@ -254,7 +256,7 @@ The SQL files in [migrations/](migrations/) are authoritative. The current table
 
 | Table | Stored data / current use |
 |---|---|
-| `families` | Config, screen token, account status, trial deadline and lapse timestamp |
+| `families` | Config, screen token, account status, trial deadline, lapse and activation timestamps |
 | `users` | Family membership and login address |
 | `login_tokens` | Hashed single-use token, expiry, and either user or signup email |
 | `agendas` | One overwritten calendar window and fetch status per family |
@@ -262,6 +264,7 @@ The SQL files in [migrations/](migrations/) are authoritative. The current table
 | `content_history` | Recent generated copy, trimmed to the configured history length (at least 30) |
 | `model_spend` | Daily per-family calls and reported tokens |
 | `global_model_spend` | Daily call totals without family identifiers; survives deletion |
+| `growth_by_day` | Daily signups and activations without family identifiers, kept by a trigger; survives deletion |
 | `calendar_health` | Schema exists; recurring-failure tracking is not yet wired up |
 | `schema_migrations` | Applied migration versions |
 
@@ -404,7 +407,7 @@ alone does not close the phase.
 - [ ] Worker heartbeat and external health alerts, verified by a controlled failure ([DIN-54](https://linear.app/keepthescore/issue/DIN-54)).
 - [ ] Repeatable restore into an isolated database, with a successful drill recorded ([DIN-56](https://linear.app/keepthescore/issue/DIN-56)).
 - [x] Preserve explicit preview database overrides ([DIN-48](https://linear.app/keepthescore/issue/DIN-48)).
-- [ ] Dedicated admin/registration analytics dashboard ([DIN-37](https://linear.app/keepthescore/issue/DIN-37); Backlog).
+- [ ] Admin dashboard ([DIN-37](https://linear.app/keepthescore/issue/DIN-37)): signups and activations by week exist at `/admin`, behind `DINKYDASH_ADMIN_EMAILS` (migration 006, `dinkydash/growth.py`). Spend, trial status and calendar health, per the issue's triage, remain Backlog.
 
 **Done when:** an operator can detect stopped/failed work, inspect useful metadata and
 recover the application. A healthy `/healthz` response alone is insufficient.
@@ -434,9 +437,9 @@ already exist and are not exclusions. Manual rewrites also already exist.
 Weather ([DIN-24](https://linear.app/keepthescore/issue/DIN-24)) and photo/screensaver mode ([DIN-11](https://linear.app/keepthescore/issue/DIN-11)) remain deferred scope decisions.
 Their issues must agree with the plan before either is promoted into the MVP.
 
-Additional edge rules, Sentry instrumentation, an admin analytics dashboard,
-persisted retry backoff/parent notifications, a feedback widget and public launch
-promotion are also Backlog. Existing redacted logs, bounded retries and support email
+Additional edge rules, Sentry instrumentation, the rest of the admin dashboard (spend,
+trial status, calendar health), persisted retry backoff/parent notifications, a feedback
+widget and public launch promotion are also Backlog. Existing redacted logs, bounded retries and support email
 cover those needs for the MVP alongside the remaining liveness and recovery work.
 
 ## Open questions

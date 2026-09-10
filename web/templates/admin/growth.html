@@ -1,0 +1,164 @@
+{# The operator's page: signups and activations by week (DIN-37). Cloud mode
+   only, and only for the addresses in DINKYDASH_ADMIN_EMAILS — everyone else
+   gets a 404 before this renders. Nothing here belongs to any one family:
+   the numbers are counts, and the page takes no id from anywhere. #}
+{% extends "settings/base.html" %}
+{% import "settings/_icons.html" as icons %}
+{% block title %}Growth{% endblock %}
+
+{% block head %}
+<style>
+    /* The two series wear the shell's own tokens, checked as a pair on the
+       card's white (CVD ΔE 24.7, both above 3:1). Text never wears them: the
+       swatch beside a label carries identity, the label stays in ink. */
+    .growth { --signups: var(--accent); --activations: var(--purple); }
+
+    .tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.625rem; }
+    .tile { padding: 0.75rem 0.8125rem; display: flex; flex-direction: column; gap: 0.125rem; min-width: 0; }
+    .tile .name { font-size: 0.6875rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); }
+    .tile .value { font-size: 1.75rem; font-weight: 800; line-height: 1.15; letter-spacing: -0.02em; }
+    .tile .sub { font-size: 0.75rem; color: var(--text-muted); }
+
+    .spans { display: flex; align-items: center; gap: 0.375rem; flex-wrap: wrap; }
+    .spans .label { padding: 0 0.25rem 0 0; }
+
+    .legend { display: flex; gap: 0.875rem; font-size: 0.75rem; font-weight: 700; color: var(--text-mid); }
+    .legend .key { display: inline-flex; align-items: center; gap: 0.375rem; }
+    .legend .swatch { width: 0.75rem; height: 0.75rem; border-radius: 0.1875rem; }
+    .legend .swatch.signups { background: var(--signups); }
+    .legend .swatch.activations { background: var(--activations); }
+
+    /* The drawing scales with the card; its own numbers are SVG user units,
+       not screen pixels, which is why the font sizes below are attributes on
+       the elements rather than lengths in this sheet. */
+    .chart { display: block; width: 100%; height: auto; overflow: visible; }
+    .chart .grid { stroke: var(--border); stroke-width: 1; }
+    .chart .baseline { stroke: var(--border-strong); stroke-width: 1; }
+    .chart .tick { fill: var(--text-muted); }
+    .chart .direct { fill: var(--text); }
+    .chart .hit { fill: transparent; pointer-events: all; }
+    .chart .bar.signups { fill: var(--signups); }
+    .chart .bar.activations { fill: var(--activations); }
+    .chart .week:hover .bar { opacity: 0.72; }
+
+    .numbers { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+    .numbers th, .numbers td { padding: 0.625rem 0.875rem; text-align: right; }
+    .numbers th:first-child, .numbers td:first-child { text-align: left; }
+    .numbers th { font-size: 0.6875rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); }
+    .numbers tbody tr { border-top: 1px solid var(--border); }
+    .numbers td + td { font-variant-numeric: tabular-nums; font-weight: 700; }
+    .numbers td.zero { color: var(--faint); font-weight: 600; }
+</style>
+{% endblock %}
+
+{% block appbar %}
+<a class="back" href="{{ url_for('settings.home') }}">{{ icons.back() }}</a>
+<h1>Growth</h1>
+{% endblock %}
+
+{% block content %}
+<div class="growth" style="display:flex;flex-direction:column;gap:1rem;">
+
+<div class="tiles">
+    <div class="card tile">
+        <div class="name">Signups</div>
+        <div class="value">{{ totals.signups }}</div>
+        <div class="sub">{{ latest.signups }} this week</div>
+    </div>
+    <div class="card tile">
+        <div class="name">Activations</div>
+        <div class="value">{{ totals.activations }}</div>
+        <div class="sub">
+            {%- if totals.signups -%}
+                {{ (100 * totals.activations / totals.signups) | round | int }}% of signups
+            {%- else -%}
+                {{ latest.activations }} this week
+            {%- endif -%}
+        </div>
+    </div>
+    <div class="card tile">
+        <div class="name">Families now</div>
+        <div class="value">{{ families_now }}</div>
+        <div class="sub">{{ deleted }} deleted</div>
+    </div>
+</div>
+
+{# One row of range choices, above everything it scopes. #}
+<div class="spans">
+    <span class="label">Last</span>
+    {% for n in spans %}
+    <a class="pill {{ 'warm' if n == span else 'muted' }}"
+       href="{{ url_for('admin.growth_page', weeks=n) }}">{{ n }} weeks</a>
+    {% endfor %}
+</div>
+
+<div class="card pad" style="display:flex;flex-direction:column;gap:0.75rem;">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:0.5rem;flex-wrap:wrap;">
+        <div style="font-size:0.9375rem;font-weight:800;">By week</div>
+        <div class="legend">
+            <span class="key"><span class="swatch signups"></span>Signups</span>
+            <span class="key"><span class="swatch activations"></span>Activations</span>
+        </div>
+    </div>
+
+    <svg class="chart" viewBox="0 0 {{ chart.width }} {{ chart.height }}" role="img"
+         aria-labelledby="growth-chart-title">
+        <title id="growth-chart-title">Signups and activations over the last {{ span }} weeks</title>
+        {% for line in chart.gridlines %}
+        <line class="{{ 'baseline' if line.value == 0 else 'grid' }}"
+              x1="{{ chart.left }}" x2="{{ chart.right }}" y1="{{ line.y }}" y2="{{ line.y }}"/>
+        <text class="tick" x="{{ chart.left - 6 }}" y="{{ line.y }}" text-anchor="end"
+              dominant-baseline="middle" font-size="12">{{ line.value }}</text>
+        {% endfor %}
+        {% for column in chart.columns %}
+        {% set week = column.week %}
+        <g class="week">
+            {# The whole week's slot is the hover target, not the painted pixels. #}
+            <title>Week of {{ week.start.strftime('%-d %B') }}: {{ week.signups }} signup{{ '' if week.signups == 1 else 's' }}, {{ week.activations }} activation{{ '' if week.activations == 1 else 's' }}</title>
+            <rect class="hit" x="{{ column.slot_x }}" y="{{ chart.top }}"
+                  width="{{ column.slot_w }}" height="{{ chart.plot_h }}"/>
+            {% for bar in column.bars %}
+            {% if bar.path %}<path class="bar {{ bar.series }}" d="{{ bar.path }}"/>{% endif %}
+            {# Direct labels on the latest week only; the axis and the table carry the rest. #}
+            {% if column.last and bar.value %}
+            <text class="direct" x="{{ bar.x + chart.thickness / 2 }}" y="{{ bar.y - 4 }}"
+                  text-anchor="middle" font-size="13" font-weight="800">{{ bar.value }}</text>
+            {% endif %}
+            {% endfor %}
+            {% if column.label %}
+            <text class="tick" x="{{ column.slot_x + column.slot_w / 2 }}" y="{{ chart.height - 8 }}"
+                  text-anchor="middle" font-size="12">{{ column.label }}</text>
+            {% endif %}
+        </g>
+        {% endfor %}
+    </svg>
+
+    <div class="hint">
+        A signup is a family created by opening its emailed link. An activation is the
+        first time a family saves a calendar link. Days are UTC, weeks start on Monday,
+        and both counts stay when an account is deleted.
+    </div>
+</div>
+
+<div>
+    <div class="label">The numbers</div>
+    <div class="card">
+        <table class="numbers">
+            <thead>
+                <tr><th>Week of</th><th>Signups</th><th>Activations</th></tr>
+            </thead>
+            <tbody>
+                {% for week in weekly | reverse %}
+                <tr>
+                    <td>{{ week.start.strftime('%-d %b %Y') }}</td>
+                    <td class="{{ 'zero' if not week.signups }}">{{ week.signups }}</td>
+                    <td class="{{ 'zero' if not week.activations }}">{{ week.activations }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+</div>
+{% endblock %}
