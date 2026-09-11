@@ -1,0 +1,25 @@
+{# The rest of the emoji, behind the row of quick picks. One per form, so the ids are fixed,
+   and outside the form on purpose: Enter in the search box must not press Save, and nothing
+   here carries a `name`, so nothing here is submitted. `emoji-picker.js` fills the dialog from
+   emoji.json the first time it opens and unhides the "More…" button beside the quick picks;
+   without it the quick picks work as they always did. #}
+<dialog class="emoji-dialog card" id="emoji-dialog" aria-labelledby="emoji-dialog-title">
+    <div class="emoji-dialog-head">
+        <h2 id="emoji-dialog-title">Choose an emoji</h2>
+        <button class="btn quiet small" type="button" data-close>Cancel</button>
+    </div>
+    <div class="field">
+        <label class="sr-only" for="emoji-search">Search</label>
+        <input type="text" id="emoji-search" placeholder="Search — dog, cake, football…"
+               autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="search" autofocus>
+    </div>
+    <div class="emoji-results">
+        <p class="emoji-note hint" role="status" hidden></p>
+        <span class="sr-only emoji-count" role="status"></span>
+        <section class="emoji-group emoji-typed" hidden>
+            <h3 class="label">What you typed</h3>
+            <div class="emoji-grid"><button type="button" data-emoji=""></button></div>
+        </section>
+    </div>
+</dialog>
+<script src="{{ static_url('emoji-picker.js') }}" defer></script>
