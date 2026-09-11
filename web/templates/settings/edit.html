@@ -95,17 +95,25 @@
             </div>
 
         {% elif kind == 'emoji' %}
-            <div class="picker">
+            {% set current = item.get(name) or '' %}
+            {# The quick picks, then the one that is neither of them — chosen from the full
+               list, or typed into a hand-written file. That chip is always in the markup and
+               hidden when empty, so the picker has somewhere to put what it chooses; the form
+               still submits one radio group either way. "More…" is hidden until
+               emoji-picker.js has a dialog to open, so without it this is the old row. #}
+            {% set own = current if current not in emoji else '' %}
+            <div class="picker" data-emoji-picker>
                 {% for choice in emoji %}
-                <input type="radio" id="e-{{ name }}-{{ loop.index }}" name="{{ name }}" value="{{ choice }}" {{ 'checked' if item.get(name) == choice }}>
+                <input type="radio" id="e-{{ name }}-{{ loop.index }}" name="{{ name }}" value="{{ choice }}" {{ 'checked' if current == choice }}>
                 <label for="e-{{ name }}-{{ loop.index }}">{{ choice }}</label>
                 {% endfor %}
-                {% if item.get(name) and item.get(name) not in emoji %}
-                <input type="radio" id="e-{{ name }}-own" name="{{ name }}" value="{{ item.get(name) }}" checked>
-                <label for="e-{{ name }}-own">{{ item.get(name) }}</label>
-                {% endif %}
-                <input type="radio" id="e-{{ name }}-none" name="{{ name }}" value="" {{ 'checked' if not item.get(name) }}>
-                <label for="e-{{ name }}-none" style="font-size:0.75rem;font-weight:700;color:var(--text-muted);">None</label>
+                <input type="radio" id="e-{{ name }}-own" name="{{ name }}" value="{{ own }}" data-own {{ 'checked' if own }} {{ 'hidden' if not own }}>
+                <label for="e-{{ name }}-own" {{ 'hidden' if not own }}>{{ own }}</label>
+                <input type="radio" id="e-{{ name }}-none" name="{{ name }}" value="" {{ 'checked' if not current }}>
+                <label for="e-{{ name }}-none" class="text">None</label>
+                <button class="more" type="button" hidden data-src="{{ static_url('emoji.json') }}"
+                        aria-haspopup="dialog" aria-controls="emoji-dialog">{{ icons.search() }}More…</button>
+                <span class="sr-only" role="status" data-chosen></span>
             </div>
 
         {% elif kind == 'color' %}
@@ -146,6 +154,10 @@
 
     <button class="btn" type="submit" name="action" value="save">{{ "Save calendar" if section_name == 'calendars' else "Save" }}</button>
 </form>
+
+{% if emoji_field %}
+{% include "settings/_emoji_picker.html" %}
+{% endif %}
 
 {% if section_name == 'calendars' %}
 {% include "settings/_calendar_wait.html" %}

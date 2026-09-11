@@ -28,6 +28,7 @@ from dinkydash.runner import run as run_generation
 from web import CLOUD
 from web import manifest as manifest_module
 from web import setup as setup_module
+from web.emoji import one_emoji
 from web.family import (current_access, current_address, current_budget,
                         current_family_id, current_store, is_admin)
 from web import session as session_module
@@ -245,6 +246,8 @@ def validate(section, item, today):
                     problems[name] = (f"“{address}” is not an email address. Use the address "
                                       "on the invitation, like sam@example.com.")
                     break
+        if kind == "emoji" and value and not one_emoji(str(value)):
+            problems[name] = "Choose one emoji."
     return problems
 
 
@@ -531,6 +534,9 @@ def section_edit(section_name, item_id):
         checked=checked, config=config, months=MONTHS,
         date_min=f"{EARLIEST_BIRTH_YEAR}-01-01", date_max=today.isoformat(),
         emoji=EMOJI_SUGGESTIONS.get(section_name, []),
+        # The picker's dialog is drawn once, after the form, and only where there is an
+        # emoji to choose. Each section has at most one.
+        emoji_field=next((f[0] for f in section["fields"] if f[2] == "emoji"), None),
         colors=config_module.AVATAR_COLORS, people=participants,
         draft_changed=any((item.get(name) or None) != (saved_item.get(name) or None)
                           for name, *_ in section["fields"]),

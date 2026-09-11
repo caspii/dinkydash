@@ -30,6 +30,30 @@ Both halves are needed: a phone's year wheel scrolls down to the year 1, and a m
 used to be saved silently and show up on the People page as somebody 2,009 years old. A `date`
 field that is not a birthday needs a kind of its own rather than a looser bound on this one.
 
+**The `emoji` kind is a row of quick picks, None, and a dialog with the rest.** The row is
+plain radios; the dialog is `settings/_emoji_picker.html` plus `web/static/emoji-picker.js`,
+drawn once after the form (so Enter in its search box cannot press Save, and nothing in it
+carries a `name`) and filled on first open from `web/static/emoji.json`. That list is
+hand-maintained: nine groups, each entry `[emoji, Unicode's short name, search words]`, the
+search words being British spellings and what a family calls things ("football", "biscuit",
+"bins", "bonfire night"), and **nothing newer than Emoji 13.1**, so a Pi's Noto Color Emoji
+draws all of it. `tests/test_emoji_picker.py` checks the shape, that nothing is in twice and
+that every quick pick is in it. A choice lands in the field's `-own` radio — always in the
+markup, hidden while empty — or ticks the quick pick it matches, ignoring the variation
+selector, so "🍽️" from the list saves as the "🍽" the quick pick already had. The search box
+also takes an emoji typed on the phone's own keyboard, which is how anything not on the list
+gets in. Without the script, "More…" stays `hidden` and the row is what it always was. Server
+side, `web/emoji.py` checks the *shape* of one emoji — a pictograph from Unicode's
+`Extended_Pictographic` ranges (reserved space included, so next year's emoji pass), with an
+optional variation selector and skin tone or tag flag, or a keycap, or a two-letter flag,
+joined by zero-width joiners, ten code points at most — and `validate` answers anything
+else, "🐶🐱" and "!!!" and "日本語" included, with "Choose one emoji." The standard library
+cannot split graphemes, which is why the grammar is written out rather than counted. The
+browser applies the same grammar before offering what was typed (`looksLikeEmoji` in
+`emoji-picker.js`), so the dialog never offers what Save would refuse: change one, change
+the other, and `tests/test_emoji_picker.py::TestOneEmoji` is the table to keep them honest
+against.
+
 **Adding a whole settings section.** Add an entry to `SECTIONS` and a row to
 `web/templates/settings/home.html`. The list, edit, delete and reorder routes are generic and need
 no changes.
