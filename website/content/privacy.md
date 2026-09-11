@@ -5,7 +5,7 @@ template: page.html
 description: What DinkyDash stores, who it is sent to, how long it is kept, and how to get it back or delete it.
 ---
 
-*Last updated: 10 September 2026.*
+*Last updated: 11 September 2026.*
 
 DinkyDash puts a family's day on a screen. That means the things it holds are a
 household's names, dates of birth and movements — which is about as personal as
@@ -43,8 +43,8 @@ Analytics, which is cookieless and collects no personal data.
 
 ## Where it goes
 
-Two things leave our servers, they are different in kind, and it matters which
-is which.
+Three things leave our servers, they are different in kind, and it matters
+which is which.
 
 **Anthropic sees your family's day.** Once each morning the day's agenda — the
 event titles and times, your family's names and interests — is sent to
@@ -55,6 +55,16 @@ models.
 **SendGrid sees who is signing in, and nothing else.** When you ask for a sign-in
 link, your email address and the link go to SendGrid to be delivered. SendGrid
 never sees a calendar, a name or a date of birth.
+
+**Sentry sees that something broke, and not whose board it was.** When the app
+or the background worker hits an error, a report goes to Sentry: which line of
+our code failed, the kind of request it was in, and which version was running.
+Never the page's address, and never a name, a calendar link, an appointment, an
+email address or a written line — those are stripped before the report leaves,
+and a test in the code base fails if they are not. The worker also tells Sentry
+every few minutes that it is still running, which is how we find out when it is
+not, and Sentry checks from outside that the sign-in page answers. Neither
+carries anything about you.
 
 If you would rather Anthropic saw nothing, self-host: the board works with no
 API key at all, and simply goes without the written line.
@@ -67,10 +77,12 @@ API key at all, and simply goes without the written line.
 | **DigitalOcean** | Runs the app and the database | Frankfurt, Germany (US company) |
 | **SendGrid** (Twilio) | Delivers sign-in emails | United States |
 | **Cloudflare** | DNS, and TLS at the edge | Global (US company) |
+| **Sentry** (Functional Software) | Error reports, and the checks that the app and the worker are running | United States |
 
 The app and the database are in **Frankfurt**. DigitalOcean and Cloudflare are
-United States companies operating them, so transfers outside the EU are covered
-by standard contractual clauses.
+United States companies operating them, and SendGrid and Sentry are in the
+United States, so transfers outside the EU are covered by standard contractual
+clauses.
 
 **Google Fonts is not on this list, and that is deliberate.** The typeface is
 served from our own servers, so no page of DinkyDash — not the board, not the

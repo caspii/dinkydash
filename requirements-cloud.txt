@@ -30,3 +30,13 @@ psycopg-pool==3.3.1
 # Cloud only, and imported lazily in `settings.qr_svg`: a Pi has no screen token
 # and must not install a library it can never use.
 segno==1.6.6
+
+# Error reports and the worker's liveness (DIN-35, DIN-54). The one outbound
+# call this app makes that is about *us* rather than about a family, and the
+# reason it is allowed in an app holding other people's calendars is that
+# `dinkydash/sentry.py` decides what a report may hold before it leaves — and
+# `tests/test_sentry.py` captures real events to prove it. Its own
+# dependencies are `urllib3` and `certifi`, both already here under
+# `requests`. Cloud only and imported lazily: with no SENTRY_DSN nothing is
+# initialised, and a Pi never installs it at all.
+sentry-sdk==2.69.1

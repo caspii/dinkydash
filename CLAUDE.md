@@ -209,6 +209,18 @@ mode is a different product on the same code.
   the one path with no limit on it at all, and it is charged now too.
   The budget also applies the platform's model and output-token ceiling before hosted generation.
   Its global daily aggregate has no family identifiers and survives account deletion (DIN-49/51).
+- **Error reports leave the machine, and `dinkydash/sentry.py` decides what they may hold** (DIN-35).
+  With `SENTRY_DSN` set — cloud mode, and only there — an unhandled exception in a request or a
+  log record at ERROR becomes a Sentry event. What goes: the exception, where in *our* code it was
+  raised, the log line's **template**, the request's **method**, the release, the component. What
+  is stripped in `scrub`, whatever the SDK's PII switch says: the URL and query string (a screen
+  token, a login token), the Referer, headers, cookies and body, local variables, breadcrumbs, and
+  the log line's **arguments** — "Tick failed for family %s" is about our code and the `%s` is
+  which family. Free text is regex-scrubbed of URLs, tokens, addresses and UUIDs as well.
+  `tests/test_sentry.py` captures real events through an in-process transport and asserts each
+  absence; **a new `log.error` is an event, so keep the data in the arguments, never the
+  template**, and anything that adds a report path takes the same `scrub`. The privacy page and
+  `/settings/account` name Sentry as a sub-processor, and say what it never sees.
 
 ### The safety net, and what it does not cover
 
@@ -232,6 +244,22 @@ that way. The single allowlist entry is the Ahrefs Web Analytics site key, which
 committed `docs/`; with the site rendered on request there is one copy of it, in a template.
 **Allowlisting is for values that are public by design.** A real secret that reached a commit is
 fixed by rotating it.
+
+**What decides whether a deploy goes live, and what watches it afterwards** (DIN-54). App
+Platform probes `/healthz` on the platform's own hostname, so it is the marketing app that answers
+it; the probe reads nothing on purpose, because three failed probes restart the container and a
+probe that depended on the database would turn a slow query into a rolled-back deploy. So it only
+proves that the process came up — which is why `create_app` calls `db.ready` and refuses to start
+when the pooled database does not answer within ten seconds, turning a wrong `DATABASE_URL` into
+a deploy that never goes live, and App Platform's own `DEPLOYMENT_FAILED` alert (in `.do/app.yaml`)
+into the message. The two things a probe cannot see are Sentry's, with no code of ours beyond one
+call: **the worker checks in with a cron monitor after every completed pass** (`worker.run_pass` →
+`sentry.check_in`; a stop request or a pass that could not list the families sends nothing, and a
+missed check-in is the alert), and **an uptime monitor fetches `app.dinkydash.co/login`** from
+outside, which proves DNS, TLS, the container, the host routing and a rendered page with no
+database in the path. Nothing here polls, stores a heartbeat or runs a workflow; an in-house
+version of all this was built and dropped as 1,300 lines for what a monitoring service does with
+configuration. `tests/test_deploy_spec.py` pins the probe path, the alert and the DSN's shape.
 
 Two things the net does not catch, both worth knowing before trusting it:
 
@@ -316,6 +344,7 @@ dinkydash/
 ├── budget.py          what a family may spend on the model, and what everybody may
 │                     (`accounts.delete_family` is the hard delete; see phase 5)
 ├── growth.py          signups and activations per day, with no family in the row (cloud only)
+├── sentry.py          error reports and the worker's check-in, and what neither may carry (cloud only)
 └── runner.py          the two halves of the day, reading and writing through a store
 
 web/

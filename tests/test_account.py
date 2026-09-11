@@ -326,3 +326,12 @@ class TestSingleModeHasNoAccount:
     def test_the_settings_home_does_not_offer_one(self, single):
         page = single.test_client().get("/settings/").get_data(as_text=True)
         assert "Your data" not in page
+
+
+class TestWhereItGoes:
+    """The account page says who sees what, beside the buttons (DIN-44)."""
+
+    @pytest.mark.parametrize("who", ["Anthropic", "SendGrid", "Sentry"])
+    def test_it_names(self, parent, who):
+        page = parent.get("/settings/account").get_data(as_text=True)
+        assert who in page

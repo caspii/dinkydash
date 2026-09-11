@@ -209,6 +209,22 @@ under transaction-mode pooling the next execution can land on a different backen
 full reasoning, and why KeepTheScore's clean record on psycopg2 does not transfer, is in PLAN.md
 under [Connection pooling](../PLAN.md#connection-pooling).
 
+**`db.ready(pool)` is what makes a wrong `DATABASE_URL` a failed deploy rather than a live one.**
+A pool opens in the background and a connection string that goes nowhere is only a warning in its
+log — the process came up, `/healthz` answered, and every request that needed the database then
+waited thirty seconds and failed. `create_app` calls `ready` right after building the pool, and it
+raises after `STARTUP_TIMEOUT` seconds naming the variable and nothing else; under gunicorn a
+worker that raises on boot halts the server, so the container never becomes healthy and the
+previous release keeps serving. The worker does not call it: it has no probe, and a worker looping
+on a dead database sends no check-in to Sentry, which is already the alert (DIN-54).
+
+**`sentry.py` is the other cloud-only module that talks to somebody else**, and it is the same
+shape as `mail.py`: a lazy import, nothing initialised without its variable, and one narrow
+promise about what leaves. The promise is in the root `CLAUDE.md` under *Hosted mode raises the
+stakes*; the check-in that `worker.run_pass` sends after a completed pass is the whole of the
+worker's liveness story, and `monitor_config` derives its schedule from `DINKYDASH_WORKER_INTERVAL`
+so there is nothing to keep in step by hand.
+
 **`psycopg` is in `requirements-cloud.txt`, not `requirements.txt`.** A Pi has no database and
 should not install a driver for one, so single mode never imports `pgstore` or `db` — the import in
 `create_app` is inside the cloud branch on purpose. **App Platform's Python buildpack installs

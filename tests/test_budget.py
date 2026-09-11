@@ -513,7 +513,7 @@ def test_hosted_callers_enforce_model_policy_at_the_api(
     assert before["max_tokens"] == stored_tokens
 
     if caller == "worker":
-        assert tick_all(pg_pool) == 1
+        assert tick_all(pg_pool).ticked == 1
     else:
         assert parent.post("/settings/generate").status_code == 302
 

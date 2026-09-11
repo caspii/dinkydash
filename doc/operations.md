@@ -575,3 +575,85 @@ new container; the one that died is under `--type run_restarted`. The health pro
 10 s on a ~2 ms cadence, so a probe that lands late is the cheap sign that a request was CPU-bound
 just then. There is still no memory graph outside the dashboard's Insights tab, and no alert on
 restarts.
+
+## Sentry and the deploy alert, 11 September 2026 (DIN-35, DIN-54)
+
+**Two in-house monitors were built and dropped.** Draft PR #97 pinged a heartbeat URL after each
+pass; draft PR #108 (branch `caspar/health-check-audit`, commit `4d65b38`) wrote a `worker_heartbeat`
+row, served it at `/healthz/worker`, and polled it from a GitHub Actions cron with `monitor.py` —
+about 1,300 lines to do what a monitoring service does with configuration, and its alert was a
+failed workflow's email, which GitHub switches off after 60 days without a push. The owner called
+it overengineering; Sentry does both halves. #108 is closed; the `db.ready` piece of it is kept.
+#97's restore-drill half (DIN-56) is untouched and still wants merging on its own.
+
+**What runs now.**
+
+- **Error reports** from the web service and the worker go to the `dinkydash` project in the
+  `keepthescore` Sentry org (US region; the org's other projects are KeepTheScore's). The DSN is in
+  `.env` of the main checkout and in the live App Platform spec as the `SENTRY_DSN` secret, never
+  in a commit. What a report may hold is decided in `dinkydash/sentry.py` and asserted on real
+  captured events in `tests/test_sentry.py`; the privacy page and `/settings/account` name Sentry
+  and say what it never sees.
+- **Worker liveness** is a Sentry cron monitor, slug `worker-pass`, created by the worker's own
+  first check-in — one `ok` after each completed pass, with the schedule derived from
+  `DINKYDASH_WORKER_INTERVAL`: 5 minutes, 10 minutes' grace, so the third silent pass opens an
+  issue, and the next check-in closes it. A stop request or a pass that cannot list the families
+  sends nothing. Crons → `worker-pass` is the whole status; `find_monitors` in the Sentry MCP
+  lists it with each environment's last check-in (`get_monitor_details` 404s on the slug).
+- **Uptime** is a Sentry uptime monitor on `https://app.dinkydash.co/login` (id 10299376, one
+  request a minute, down after three failures). **It is disabled**: creating it succeeded, but
+  the org's one included uptime seat is on `keepthescore.com`, and activating a second answers
+  *"You don't have enough pay-as-you-go available to create a new seat"*. Either move the seat or
+  add pay-as-you-go budget; a code change is not involved.
+- **A failed build or deploy** is App Platform's own `DEPLOYMENT_FAILED` alert, now in
+  `.do/app.yaml` and applied. `db.ready` is what makes a wrong `DATABASE_URL` one of those rather
+  than a live deploy that 500s every board.
+- **Alerting inside Sentry** is the project's default rule, *Send a notification for high priority
+  issues* (id 3975564, created with the project on 10 September). Error events at ERROR level,
+  missed cron check-ins and uptime failures are all high priority, so one rule covers the three.
+  The MCP's `find_alert_rules` needs `kind: issue`; `kind: all` is HTTP 410.
+
+**The spec apply.** Done from this branch with the merge snippet in the file's header, after
+diffing `doctl apps spec get` against the committed file (only env order and the platform's own
+`ingress` block differed). Deployment `7abc8538` ("app spec updated", 05:47 UTC) went ACTIVE within
+two minutes — a spec-only change on the code already on `main`, which ignores `SENTRY_DSN` until
+this branch merges. The alert arrived already addressed to the account owner (`doctl apps
+list-alerts` shows one email), so `update-alert-destinations` was not needed.
+
+**The drill, against a local worker and a scratch database, never production.** Scratch Postgres
+17 on this Mac on a private port, migrated by the test fixture, holding no families; the real
+`python -m worker` with `DINKYDASH_WORKER_INTERVAL=60`, `SENTRY_ENVIRONMENT=drill`, the real DSN, a
+fake model key and the spend brake at 0, so nothing but check-ins could leave the machine. Zero
+families still completes a pass. Sentry counts in whole minutes, so the drill monitor expected a
+check-in every minute with two minutes' grace. All times UTC:
+
+| When | What | Sentry said (`drill` environment) |
+|---|---|---|
+| 05:46:08 | worker started; first pass complete in 0.1 s | monitor `worker-pass` created, `ok` |
+| 05:47:08, 05:48:08 | two more passes, two more check-ins | `ok`, last check-in 05:48:08 |
+| 05:48:27 | SIGTERM; "Stop requested … Worker stopped", no check-in | `ok`, still 05:48:08 |
+| 05:49:08, 05:50:08 | two expected check-ins pass with nothing sent | `ok` — inside the grace |
+| 05:51:00 | the third expected check-in is a minute late | issue **DINKYDASH-1**, *Cron failure: worker-pass*, "A missed check-in was detected", environment `drill`, level error; environment `error` |
+| 05:52:34 | worker started again; first pass complete, check-in sent | environment `ok`, last check-in 05:52:34 |
+| 05:53 | — | DINKYDASH-1 **resolved** on its own (`recovery_threshold: 1`) |
+
+What this proves: a stopped worker is an open Sentry issue within one grace period — the default
+project rule emails it — and a restarted one closes the issue on its first pass. The missed
+detection took the three intervals the margin promises (last check-in 05:48:08, issue at 05:51:00).
+
+**How to read it next time.** Crons → `worker-pass` → the `production` environment is the
+worker's pulse; an open *missed check-in* issue is the alert, and it resolves itself on the next
+check-in. `doctl apps logs <id> worker --type run` holds the worker's own "Pass complete" lines.
+A worker that has stopped restarts with `doctl apps restart <id> --components worker`. Running
+anything HTTPS from this venv's Python still needs `SSL_CERT_FILE=$(venv/bin/python -m certifi)`.
+
+**The `drill` environment outlived the drill.** The local worker was stopped for good at 05:53:54,
+so that environment misses its check-ins from then on. The REST call that deletes one environment
+(`DELETE .../monitors/worker-pass/?environment=drill`) answered 403 with the token on this Mac, so
+DINKYDASH-1 was archived for seven days with a note instead, and **the environment wants deleting
+in the UI** — Crons → `worker-pass` → the `drill` row's menu. Until then it shows as failed on the
+monitor page; it never stands in for `production`, which is its own environment with its own
+issue.
+
+**Not done here.** Frontend error capture (DIN-35's third leg): the board and the settings pages
+make no third-party request by design, and a first-party reporting path is separate work.

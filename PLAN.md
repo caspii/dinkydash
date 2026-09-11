@@ -31,8 +31,7 @@ Optional features, promotion and additional operational tooling are Backlog.
 Hosted readiness is still open. The remaining sequence is:
 
 1. Complete Stripe conversion, subscription changes and cancellation before accepting payment ([DIN-53](https://linear.app/keepthescore/issue/DIN-53)).
-2. Add liveness alerts and recovery checks ([DIN-54](https://linear.app/keepthescore/issue/DIN-54),
-   [DIN-56](https://linear.app/keepthescore/issue/DIN-56)), and finish the trust work in Phase 5.
+2. Add the recovery drill ([DIN-56](https://linear.app/keepthescore/issue/DIN-56)) — liveness alerts are done ([DIN-54](https://linear.app/keepthescore/issue/DIN-54)) — and finish the trust work in Phase 5.
 3. Verify real screens and run the small private beta ([DIN-58](https://linear.app/keepthescore/issue/DIN-58)), collecting feedback through the existing support email. Use observed setup
    problems to decide whether the existing settings flow needs a wizard.
 
@@ -201,7 +200,8 @@ uniqueness, not a guarantee that concurrent callers cannot make two paid model c
 Every hosted attempt must continue to pass through the budget.
 
 Keep-last-good and retries on subsequent ticks exist. Persistent failure tracking,
-backoff and parent notification are Backlog ([DIN-55](https://linear.app/keepthescore/issue/DIN-55)); the MVP worker heartbeat remains [DIN-54](https://linear.app/keepthescore/issue/DIN-54).
+backoff and parent notification are Backlog ([DIN-55](https://linear.app/keepthescore/issue/DIN-55)); the worker's liveness is a Sentry cron
+check-in after each completed pass ([DIN-54](https://linear.app/keepthescore/issue/DIN-54)).
 Trial access ends at `trial_ends_at`, using the database's timezone-aware clock ([DIN-52](https://linear.app/keepthescore/issue/DIN-52)).
 The worker persists expired trials as lapsed; selection, manual feed checks, calendar refreshes
 and model calls also enforce the deadline independently of that sweep. Legacy trials with no
@@ -297,7 +297,11 @@ The spec is [`.do/app.yaml`](.do/app.yaml); secrets stay in encrypted platform e
 variables. The Python buildpack installs `requirements-cloud.txt`. No Dockerfile is needed.
 
 Changes on main deploy through App Platform with a pre-deploy migration job and
-`/healthz` readiness checks. GitHub CI checks pytest and gitleaks; the tests run with
+`/healthz` readiness checks. The probe reads nothing, so `create_app` also refuses to start
+until the pooled database answers (`db.ready`), which is what stops a wrong `DATABASE_URL`
+going live, and the spec carries App Platform's own `DEPLOYMENT_FAILED` alert. Error reports
+and the worker's liveness go to Sentry (`dinkydash/sentry.py`): a check-in after each completed
+pass, and an uptime monitor on `app.dinkydash.co/login`. GitHub CI checks pytest and gitleaks; the tests run with
 Postgres 17 and without a configured database. The current branch rules and deployment
 history are recorded in [doc/operations.md](doc/operations.md).
 
@@ -320,8 +324,11 @@ PR #86 uses `pg_advisory_xact_lock` for token issuance: the lock belongs to the 
 transaction. It does not introduce a session-scoped lock or require session pooling.
 
 Managed backups are documented in operations; the independent restore drill remains
-[DIN-56](https://linear.app/keepthescore/issue/DIN-56). Worker liveness alerts remain MVP work ([DIN-54](https://linear.app/keepthescore/issue/DIN-54));
-Sentry instrumentation is Backlog ([DIN-35](https://linear.app/keepthescore/issue/DIN-35)).
+[DIN-56](https://linear.app/keepthescore/issue/DIN-56). Worker liveness is a Sentry cron check-in after each completed pass and
+an uptime monitor on the sign-in page ([DIN-54](https://linear.app/keepthescore/issue/DIN-54)); error reports for the web service and the
+worker go to the same project with a scrubber that strips URLs, tokens, addresses, ids and log
+arguments ([DIN-35](https://linear.app/keepthescore/issue/DIN-35)). Frontend error capture is not done: the board and the settings
+pages make no third-party request, and a first-party reporting path is separate work.
 Cloud startup validates the session key and database configuration; model/email failures
 have their own runtime handling. Stripe credentials are not required before billing exists.
 
@@ -412,8 +419,8 @@ alone does not close the phase.
 ### Phase 6 — Ops
 
 - [x] Transactional email wired into signup/login ([DIN-36](https://linear.app/keepthescore/issue/DIN-36), [DIN-38](https://linear.app/keepthescore/issue/DIN-38)).
-- [ ] Sentry for web, worker and applicable frontend errors, with sensitive-data filtering ([DIN-35](https://linear.app/keepthescore/issue/DIN-35); Backlog).
-- [ ] Worker heartbeat and external health alerts, verified by a controlled failure ([DIN-54](https://linear.app/keepthescore/issue/DIN-54)).
+- [x] Sentry for web and worker errors, with sensitive-data filtering ([DIN-35](https://linear.app/keepthescore/issue/DIN-35)): `dinkydash/sentry.py`, on with `SENTRY_DSN` in cloud mode only, scrubbing asserted on real captured events in `tests/test_sentry.py`. Frontend errors are not captured — the board and settings pages make no third-party request — and remain open on that issue.
+- [x] Worker liveness and external health alerts, verified by a controlled failure ([DIN-54](https://linear.app/keepthescore/issue/DIN-54)): a Sentry cron check-in after each completed pass, a Sentry uptime monitor on the sign-in page, `db.ready` at start-up and App Platform's `DEPLOYMENT_FAILED` alert. The stop-and-recover drill was run against a local worker on 11 September 2026 ([doc/operations.md](doc/operations.md)).
 - [ ] Repeatable restore into an isolated database, with a successful drill recorded ([DIN-56](https://linear.app/keepthescore/issue/DIN-56)).
 - [x] Preserve explicit preview database overrides ([DIN-48](https://linear.app/keepthescore/issue/DIN-48)).
 - [ ] Admin dashboard ([DIN-37](https://linear.app/keepthescore/issue/DIN-37)): signups and activations by week and a roster of the newest accounts (address, created, activated, status, trial deadline, last sign-in) exist at `/admin`, behind `DINKYDASH_ADMIN_EMAILS` (migration 006, `dinkydash/growth.py`). Country of origin is not shown: App Platform forwards `do-connecting-ip` only, and `CF-IPCountry` would need the hostname proxied through our own Cloudflare zone, which App Platform's certificates rule out (DIN-29). Spend and calendar health, per the issue's triage, remain Backlog.
@@ -446,10 +453,10 @@ already exist and are not exclusions. Manual rewrites also already exist.
 Weather ([DIN-24](https://linear.app/keepthescore/issue/DIN-24)) and photo/screensaver mode ([DIN-11](https://linear.app/keepthescore/issue/DIN-11)) remain deferred scope decisions.
 Their issues must agree with the plan before either is promoted into the MVP.
 
-Additional edge rules, Sentry instrumentation, the rest of the admin dashboard (spend,
+Additional edge rules, frontend error capture, the rest of the admin dashboard (spend,
 trial status, calendar health), persisted retry backoff/parent notifications, a feedback
-widget and public launch promotion are also Backlog. Existing redacted logs, bounded retries and support email
-cover those needs for the MVP alongside the remaining liveness and recovery work.
+widget and public launch promotion are also Backlog. Existing redacted logs, bounded retries, Sentry and support email
+cover those needs for the MVP alongside the remaining recovery work.
 
 ## Open questions
 

@@ -62,6 +62,43 @@ def pool(conninfo=None, min_size=1, max_size=3, **kwargs):
                           configure=_prepare, open=True, **kwargs)
 
 
+# How long a starting process waits for its first connection before it refuses
+# to start. Long enough for a cold pool and a TLS handshake; short enough that a
+# deploy fails before the platform's probe has given up on the container.
+STARTUP_TIMEOUT = 10.0
+
+
+def ready(pool, timeout=None):
+    """Wait for the pool's first connection, or refuse to start.
+
+    A pool opens in the background, and a wrong connection string is only a
+    warning in its log: the process comes up, `/healthz` answers, the deploy is
+    declared healthy, and every request that needs the database then waits
+    thirty seconds and fails. This was demonstrated, not guessed — the cloud
+    entry point built in half a second against a closed port and answered
+    200 on both hostnames. Waiting here turns that into a process that never
+    starts, which under gunicorn is a container that never becomes healthy,
+    which is a deploy that never goes live while the previous one carries on —
+    and App Platform's own DEPLOYMENT_FAILED alert says so (DIN-54).
+
+    Not called by the worker: it has no probe, and a worker that loops on a
+    dead database sends no check-in, which is already the alert.
+
+    The message names the variable and nothing else. A connection string
+    carries a password, and this runs on a start-up path that logs.
+    """
+    from psycopg_pool import PoolTimeout
+
+    # Read at call time rather than bound as a default, so a test can shorten it.
+    timeout = STARTUP_TIMEOUT if timeout is None else timeout
+    try:
+        pool.wait(timeout=timeout)
+    except PoolTimeout:
+        raise RuntimeError(
+            f"The database did not answer within {timeout:g} seconds. Cloud mode "
+            "will not start without it; check DATABASE_URL.") from None
+
+
 def connect(conninfo=None):
     """One connection, outside any pool. For migrations and one-off scripts.
 

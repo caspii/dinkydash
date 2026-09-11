@@ -87,8 +87,13 @@ def create_application():
             "wsgi.py is the cloud entry point. Single mode runs app.py."
         )
 
+    from dinkydash import sentry
     from web import create_app
     from website.site import create_site_app
+
+    # First, so that a container that cannot build its apps says so somewhere
+    # other than a log nobody is reading. A no-op without SENTRY_DSN.
+    sentry.init("web")
 
     return dispatch(create_site_app(), create_app(), _board_host())
 
