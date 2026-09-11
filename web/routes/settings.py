@@ -22,7 +22,7 @@ from dinkydash import config as config_module
 from dinkydash import lifecycle, schedule, screens
 from dinkydash.calendars import FeedError, addresses, describe_feed, feed_label
 from dinkydash.claude_client import GenerationError
-from dinkydash.context import compute_birthday_info, upcoming_for
+from dinkydash.context import compute_birthday_info, parse_monthday, upcoming_for
 from dinkydash.runner import refresh_calendars
 from dinkydash.runner import run as run_generation
 from web import CLOUD
@@ -190,9 +190,11 @@ def parse_field(field, form, existing):
     if kind == "monthday":
         month = form.get(f"{name}_month", "").strip()
         day = form.get(f"{name}_day", "").strip()
-        if not (month and day):
-            return existing.get(name, "")
-        return f"{int(month):02d}/{int(day):02d}"
+        try:
+            return f"{int(month):02d}/{int(day):02d}"
+        except ValueError:
+            # Keep incomplete/malformed input for validation and redisplay.
+            return f"{month}/{day}"
     value = form.get(name, "").strip()
     if kind == "date" and value:
         # <input type="date"> already gives YYYY-MM-DD.
@@ -201,34 +203,41 @@ def parse_field(field, form, existing):
 
 
 def validate(section, item, today):
-    """Return a list of human-readable problems with a submitted item.
+    """Return field names mapped to human-readable validation errors.
 
     `today` is the family's own date: a date of birth after it is a typo,
     and so is one before EARLIEST_BIRTH_YEAR. The message names the year the
     form received, because the input itself can show "0017" quite quietly.
     """
-    problems = []
+    problems = {}
     for name, label, kind, required, _help in section["fields"]:
         value = item.get(name)
         if required and not value:
-            problems.append(f"{label} is needed.")
+            problems[name] = ("Choose at least one person." if kind == "people"
+                              else f"{label} is needed.")
         if kind == "date" and value:
             try:
                 dob = datetime.strptime(str(value), "%Y-%m-%d").date()
             except ValueError:
-                problems.append(f"{label} should look like 2017-03-15.")
+                problems[name] = f"{label} should look like 2017-03-15."
             else:
                 if dob.year < EARLIEST_BIRTH_YEAR:
-                    problems.append(f"{label} has the year {dob.year:04d}. "
-                                    f"Check the year and try again.")
+                    problems[name] = (f"{label} has the year {dob.year:04d}. "
+                                      "Check the year and try again.")
                 elif dob > today:
-                    problems.append(f"{label} is in the future. "
-                                    f"Check the year and try again.")
+                    problems[name] = (f"{label} is in the future. "
+                                      "Check the year and try again.")
+        if kind == "monthday":
+            try:
+                parse_monthday(value)
+            except ValueError:
+                problems[name] = "Choose a valid day and month. February can have up to 29 days."
         if kind == "emails":
             for address in value or []:
                 if "@" not in address:
-                    problems.append(f"“{address}” is not an email address. Use the address "
-                                    f"on the invitation, like sam@example.com.")
+                    problems[name] = (f"“{address}” is not an email address. Use the address "
+                                      "on the invitation, like sam@example.com.")
+                    break
     return problems
 
 
@@ -418,6 +427,14 @@ def section_list(section_name):
         extras["birthdays"] = [compute_birthday_info(p, today) for p in items]
     if section_name == "recurring":
         extras["turns"] = [upcoming_for(c, today, days=1) for c in items]
+    if section_name == "special_dates":
+        extras["dates"] = []
+        for item in items:
+            try:
+                display = parse_monthday(item.get("date")).strftime("%-d %B")
+            except ValueError:
+                display = "Check this date — it is not shown on the dashboard"
+            extras["dates"].append(display)
 
     return render_template(
         "settings/list.html", section=section, section_name=section_name,
@@ -443,14 +460,25 @@ def section_edit(section_name, item_id):
         if item is None:
             abort(404)
 
-    problems, checked = [], None
+    problems, checked = {}, None
 
     if request.method == "POST":
         submitted = dict(item)
         for field in section["fields"]:
             submitted[field[0]] = parse_field(field, request.form, item)
 
-        if request.form.get("action") == "check":
+        if section_name == "recurring" and (request.form.get("move_choice")
+                                            or request.form.get("action") == "update_choices"):
+            # No-JavaScript ordering edits the submitted draft, never storage.
+            direction, _, person = request.form.get("move_choice", "").partition(":")
+            choices = submitted["choices"]
+            if person in choices and direction in ("up", "down"):
+                position = choices.index(person)
+                target = position + (-1 if direction == "up" else 1)
+                if 0 <= target < len(choices):
+                    choices[position], choices[target] = choices[target], choices[position]
+            item = submitted
+        elif request.form.get("action") == "check":
             checked = check_feed(submitted, config)
             item = submitted
         else:
@@ -484,13 +512,15 @@ def section_edit(section_name, item_id):
                 return redirect(url_for("settings.section_list", section_name=section_name))
             item = submitted
 
+    selected = item.get("choices") or []
+    participants = list(dict.fromkeys([*selected, *config_module.people_names(config)]))
     return render_template(
         "settings/edit.html", section=section, section_name=section_name,
         item=item, item_id=item_id, is_new=is_new, problems=problems,
         checked=checked, config=config, months=MONTHS,
         date_min=f"{EARLIEST_BIRTH_YEAR}-01-01", date_max=today.isoformat(),
         emoji=EMOJI_SUGGESTIONS.get(section_name, []),
-        colors=config_module.AVATAR_COLORS, people=config_module.people_names(config),
+        colors=config_module.AVATAR_COLORS, people=participants,
     )
 
 
@@ -614,7 +644,7 @@ def section_delete(section_name, item_id):
 
 @bp.route("/<section_name>/<item_id>/move", methods=["POST"])
 def section_move(section_name, item_id):
-    """Reorder within a list — chore rotation order is the reason this exists."""
+    """Reorder displayed items; this does not change a chore's participants."""
     section = section_or_404(section_name)
     config = current_config()
     items = config.get(section["key"]) or []

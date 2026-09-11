@@ -12,6 +12,18 @@ form both render from it, and `parse_field` reads it back. `kind` is one of `tex
 `monthday`, `textarea`, `checkbox`, `emoji`, `color`, `people`, `emails`. A new `kind` needs a
 branch in `parse_field` and a branch in `web/templates/settings/edit.html`; nothing else.
 
+**Validation errors belong to fields.** `validate` maps field names to messages. The editor links
+an error summary to each control or fieldset, focuses the summary, and connects inline errors
+with `aria-describedby` and `aria-invalid`. Grouped controls use legends; date parts and colour
+choices also have individual names. Annual dates validate through `context.parse_monthday`,
+which accepts 29 February but rejects impossible combinations. Invalid stored dates remain
+editable in settings and are omitted from countdowns until repaired.
+
+**A chore owns its participant order.** Render saved choices before unselected people and submit
+them in that order. Reordering People or chores must not change it. The rotation picker moves
+checked inputs in the DOM; without JavaScript, its update/move buttons redisplay the submitted
+draft. Only Save persists it. Keep an initial hidden Save button so Enter still saves.
+
 **`date` means a date of birth, and it is bounded.** The input carries `min` and `max` of
 1900-01-01 and today, and `validate` refuses anything outside them, naming the year it received.
 Both halves are needed: a phone's year wheel scrolls down to the year 1, and a mistyped year

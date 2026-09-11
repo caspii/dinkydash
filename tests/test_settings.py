@@ -186,7 +186,7 @@ class TestDeleting:
 
 
 class TestReordering:
-    """Chore rotation follows list order, so moving a job has to be exact."""
+    """Moving a chore changes its display position, not its participant rotation."""
 
     def test_moving_down_swaps_with_the_next_one(self, client, config_path):
         client.get("/settings/recurring")

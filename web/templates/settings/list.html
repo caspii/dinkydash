@@ -29,7 +29,7 @@
                 {% elif section_name == 'recurring' %}
                     {{ item.choices | join(' → ') if item.choices else "Nobody assigned" }}
                 {% elif section_name == 'special_dates' %}
-                    {{ item.date }}
+                    {{ extras.dates[loop.index0] }}
                 {% elif section_name == 'calendars' %}
                     {% if item.shared_with %}
                     Only events shared with {{ item.shared_with if item.shared_with is string else item.shared_with | join(', ') }}
@@ -54,11 +54,11 @@
         <div class="move">
             <form class="inline-form" method="post" action="{{ url_for('settings.section_move', section_name=section_name, item_id=item.id) }}">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <input type="hidden" name="direction" value="up"><button type="submit" title="Move up">&#9650;</button>
+                <input type="hidden" name="direction" value="up"><button type="submit" title="Move up" aria-label="Move {{ item.name or item.title or item.label }} up" {{ 'disabled' if loop.first }}>&#9650;</button>
             </form>
             <form class="inline-form" method="post" action="{{ url_for('settings.section_move', section_name=section_name, item_id=item.id) }}">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <input type="hidden" name="direction" value="down"><button type="submit" title="Move down">&#9660;</button>
+                <input type="hidden" name="direction" value="down"><button type="submit" title="Move down" aria-label="Move {{ item.name or item.title or item.label }} down" {{ 'disabled' if loop.last }}>&#9660;</button>
             </form>
         </div>
     </div>
