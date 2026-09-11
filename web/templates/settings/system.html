@@ -1,11 +1,7 @@
 {% extends "settings/base.html" %}
-{% import "settings/_icons.html" as icons %}
 {% block title %}Family &amp; system{% endblock %}
-
-{% block appbar %}
-{{ icons.back_to(url_for('settings.home'), 'Settings') }}
-<h1>Family &amp; system</h1>
-{% endblock %}
+{% set back_href = url_for('settings.home') %}
+{% set back_label = 'Settings' %}
 
 {% block content %}
 <form data-dirty-guard id="system-form" method="post" class="card pad" style="display:flex;flex-direction:column;gap:1rem;">

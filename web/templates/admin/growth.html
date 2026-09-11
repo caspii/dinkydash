@@ -3,8 +3,9 @@
    gets a 404 before this renders. Nothing here belongs to any one family:
    the numbers are counts, and the page takes no id from anywhere. #}
 {% extends "settings/base.html" %}
-{% import "settings/_icons.html" as icons %}
 {% block title %}Growth{% endblock %}
+{% set back_href = url_for('settings.home') %}
+{% set back_label = 'Settings' %}
 {# No pre-rendering from here: the operator's page carries no script at all,
    and a test holds it to that. It links nowhere a family would go anyway. #}
 {% block speculation %}{% endblock %}
@@ -59,11 +60,6 @@
     .account .row-sub { white-space: normal; }
     .pill.good { background: rgba(22, 163, 74, 0.12); color: #15803d; }
 </style>
-{% endblock %}
-
-{% block appbar %}
-{{ icons.back_to(url_for('settings.home'), 'Settings') }}
-<h1>Growth</h1>
 {% endblock %}
 
 {% block content %}

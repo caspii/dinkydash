@@ -5,8 +5,9 @@
    each other: one is a link, the other is a form that will not submit until an
    address has been typed into it. #}
 {% extends "settings/base.html" %}
-{% import "settings/_icons.html" as icons %}
 {% block title %}Your data{% endblock %}
+{% set back_href = url_for('settings.home') %}
+{% set back_label = 'Settings' %}
 
 {% block head %}
 <style>
@@ -17,11 +18,6 @@
     .confirm-field > label { text-transform: none; letter-spacing: 0; font-size: 0.8125rem; }
     .confirm-field > label strong { word-break: break-all; }
 </style>
-{% endblock %}
-
-{% block appbar %}
-{{ icons.back_to(url_for('settings.home'), 'Settings') }}
-<h1>Your data</h1>
 {% endblock %}
 
 {% block content %}

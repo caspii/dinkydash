@@ -1,9 +1,5 @@
 {% macro chevron() %}<svg class="chev" style="width:1.125em;height:1.125em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>{% endmacro %}
 {% macro back() %}<svg style="width:1.375em;height:1.375em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>{% endmacro %}
-{# The way back: the chevron and the name of the page it goes to, drawn as a button.
-   `label` is the destination, never "Back" — a person on the edit form should know
-   that the arrow returns them to People and drops what they typed. #}
-{% macro back_to(href, label) %}<a class="back" href="{{ href }}">{{ back() }}<span>{{ label }}</span></a>{% endmacro %}
 {% macro plus() %}<svg style="width:1.1875em;height:1.1875em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg>{% endmacro %}
 {% macro refresh() %}<svg style="width:1.0625em;height:1.0625em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 12a8.5 8.5 0 1 1-2.7-6.2"></path><polyline points="20.8 4.2 20.8 9.4 15.6 9.4"></polyline></svg>{% endmacro %}
 {% macro screen() %}<svg style="width:1.0625em;height:1.0625em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="4" width="19" height="13" rx="2"></rect><path d="M8 20.5h8"></path></svg>{% endmacro %}
