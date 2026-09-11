@@ -1,7 +1,4 @@
 {% extends "settings/base.html" %}
-{# Hosted, the page is about the screen and its link; on a Pi there is no link
-   to show and it is only the colours. The title says which, and the bar's
-   heading follows it. #}
 {% block title %}{{ "The screen" if screen_link else "Colours" }}{% endblock %}
 {% set back_href = url_for('settings.home') %}
 {% set back_label = 'Settings' %}

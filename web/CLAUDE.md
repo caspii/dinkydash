@@ -146,19 +146,10 @@ variable set still gets a page. `is_admin()` compares that address and takes no 
 nothing a request carries can reach the comparison; `tests/test_admin.py` asserts the link is
 shown to the listed address and to nobody else, in either mode.
 
-**The app bar is drawn once, in `settings/base.html`, and holds the way back and the title,
-never a Save.** A page draws none of it; it states two facts at its top level. `{% set back_href
-%}` and `{% set back_label %}` say where back goes and what it is called — the *name of the page
-it goes to* ("Settings", or the section title on an edit form), never "Back" — and the heading
-is the page's own `title` block, so the tab and the bar cannot disagree. The base draws the way
-back as a bordered pill so the tap target is visible, or nothing where the page set no
-`back_href`. Only the settings home and the two sign-in pages override `{% block appbar %}`, to
-put the brand where the heading would be; `tests/test_settings.py` pins that list, so a fourth
-override has to say why. A page that saves ends its form with a full-width `.btn` Save, where
-the fields are. A header Save was tried and taken out: it sat in the shared chrome rather than
-with the form it saved, and the bare chevron beside it was too small to read as a button. The
-calendar form carries one unseen submit button ahead of "Test calendar link", because Enter
-presses a form's first submit button and Enter should save there as it does everywhere else.
+**The app bar lives in `settings/base.html`.** Pages set `back_href` and `back_label` for
+the back link; the heading reuses the `title` block. Settings home and sign-in pages override
+`appbar` for their branded headers. Save belongs at the end of the form. Keep an initial
+hidden Save button before "Test calendar link" so Enter saves.
 
 **Every form that writes needs one hidden field.** `<input type="hidden" name="csrf_token"
 value="{{ csrf_token() }}">`, right inside the `<form>`. `csrf_token()` is a Jinja global set up by
@@ -308,9 +299,9 @@ link is the finish line of the product, and as the ninth row down it was not fou
 
 ## Static files, and moving between pages
 
-**Every static URL goes through `static_url()`, never `url_for('static', ...)`**, and
-`tests/test_static_assets.py` walks `web/` to make sure. `web/assets.py` puts the file's content
-version on the URL — `?v=` and twelve hex digits of its SHA-256 — and answers a request carrying the
+**Every static URL goes through `static_url()`, never `url_for('static', ...)`**.
+`web/assets.py` puts the file's content version on the URL — `?v=` and twelve hex digits of its
+SHA-256 — and answers a request carrying the
 current version with a year of `Cache-Control` and `immutable`. A bare URL, or one with the version
 from before a deploy, keeps Flask's `no-cache`. That is the whole difference between a tap that
 draws at once and one that asks the server about the font first: Flask's default made every

@@ -427,17 +427,7 @@
 <body>
 <div class="shell">
     <div class="appbar">
-        {# Drawn here, once, from two facts a page states at its top level: where back
-           goes and what it is called (`back_href` and `back_label`), and its heading,
-           which is the `title` block it already has for the browser tab — so a page
-           names itself once. A page with no way back sets neither. The three pages
-           whose bar is something else (the settings home, and the two sign-in pages,
-           with the brand where the heading would be) override the block instead. #}
         {% block appbar %}
-        {# The way back: the chevron and the name of the page it goes to, drawn as a
-           button. `back_label` is the destination, never "Back" — a person on the edit
-           form should know that the arrow returns them to People and drops what they
-           typed. #}
         {% if back_href %}<a class="back" href="{{ back_href }}">{{ icons.back() }}<span>{{ back_label }}</span></a>{% endif %}
         <h1>{{ self.title() }}</h1>
         {% endblock %}
