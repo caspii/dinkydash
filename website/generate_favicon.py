@@ -15,7 +15,7 @@ Writes, for the marketing site:
     static/favicon.ico              16/32/48/64 — the /favicon.ico browsers guess at
     static/apple-touch-icon.png     180x180 — iOS home screen
 
-and, for the app itself (the settings UI and the board, saved to a phone or a
+and, for the app itself (the settings UI and the dashboard, saved to a phone or a
 tablet home screen from `/settings/manifest.webmanifest`):
     ../web/static/apple-touch-icon.png    180 — iOS, full bleed: iOS rounds it itself
     ../web/static/icon-192.png            192 — Android, rounded like the favicon

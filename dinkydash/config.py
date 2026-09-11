@@ -44,7 +44,7 @@ DEFAULTS = {
 
 THEMES = ("light", "dark")
 
-# Avatar colours the board and the settings UI both understand. Names rather
+# Avatar colours the dashboard and the settings UI both understand. Names rather
 # than hex so a theme change doesn't strand a colour nobody can read.
 AVATAR_COLORS = ("purple", "blue", "green", "pink", "orange", "amber", "teal")
 
@@ -160,9 +160,9 @@ def new_id(taken=()):
 
 
 def new_screen_token():
-    """The unguessable part of a family's board URL.
+    """The unguessable part of a family's dashboard URL.
 
-    A bearer credential: whoever holds it sees the board, which is the whole
+    A bearer credential: whoever holds it sees the dashboard, which is the whole
     point — a wall panel cannot sign in. Rotatable from the settings page, so
     this is called again rather than once per family for ever.
     """
@@ -173,7 +173,7 @@ def new_screen_token():
 def starter_config():
     """What a brand-new family gets before they have typed anything.
 
-    A board with nothing on it looks broken rather than empty, and the first
+    A dashboard with nothing on it looks broken rather than empty, and the first
     thing a parent sees should be the shape of the thing they signed up for —
     so this seeds the same invented family `config.example.yaml` documents:
     two children, a dog, two chores that rotate between them, and two
@@ -181,14 +181,14 @@ def starter_config():
 
     **No calendar.** Not even an example URL. An iCal address is a password in
     a URL, and one that worked would put somebody else's appointments on a
-    stranger's wall; one that did not would be a broken feed on a board nobody
+    stranger's wall; one that did not would be a broken feed on a dashboard nobody
     has finished setting up yet. Adding the first calendar is the parent's
     first real act in the settings UI, and the per-provider help is written for
     exactly that moment.
 
     **The timezone is the default, which is UTC**, because guessing it from an
     IP address is wrong often enough to be worse than asking. It is the one
-    setting that changes what the board *says* — when today rolls over, and
+    setting that changes what the dashboard *says* — when today rolls over, and
     what time the brief is written — so the welcome on the settings home points
     at it first.
 
@@ -303,7 +303,7 @@ def invented_names(config):
 
     `starter_config` marks each one, and the settings form drops the mark the
     first time that item is saved — so this is exactly "what is still somebody
-    else's household", in the order the board shows it. A config written by
+    else's household", in the order the dashboard shows it. A config written by
     hand carries no marks and returns nothing, whatever the names in it: a
     real Mia born on the example's date is still theirs.
     """
@@ -318,14 +318,14 @@ def timezone_is_set(config):
 
     The default is UTC, which is nobody's kitchen; a family that really lives
     on it picks its named zone. It is the one setting that changes what the
-    board *says* — when today rolls over, when the brief is written, and what
-    time an appointment shows — so a board is not set up until it is chosen.
+    dashboard *says* — when today rolls over, when the brief is written, and what
+    time an appointment shows — so a dashboard is not set up until it is chosen.
     """
     return (config.get("timezone") or DEFAULTS["timezone"]) != DEFAULTS["timezone"]
 
 
 def is_set_up(config):
-    """Is this a real family's board yet?
+    """Is this a real family's dashboard yet?
 
     Two things have to be true: the invented household is gone, and the
     timezone has been chosen. Until then a brief would be written about
@@ -347,7 +347,7 @@ def rename_in_chores(config, old, new):
     """A person renamed in the settings keeps their place in every rotation.
 
     Chores hold names as plain text, so without this a family who replaced
-    the invented Mia by editing her would have a board announcing Mia's turn
+    the invented Mia by editing her would have a dashboard announcing Mia's turn
     for the rest of time. Edited in place: a flow-style list in config.yaml
     stays a flow-style list.
     """

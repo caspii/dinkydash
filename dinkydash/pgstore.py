@@ -1,7 +1,7 @@
 """The cloud half of the storage seam: one family's rows in Postgres.
 
 Same seven operations as `FileStore`, same dicts in and out, so the runner, the
-board route and the settings routes cannot tell which one they were handed
+dashboard route and the settings routes cannot tell which one they were handed
 (PLAN.md decision 10, and the seam named in DIN-19).
 
 Kept in its own module rather than beside `FileStore` for one reason: single
@@ -98,10 +98,10 @@ class PostgresStore:
             raise NoSuchFamily(f"No family {self.family_id}")
         return config_module.with_defaults(dict(row[0] or {}))
 
-    # -- the board ----------------------------------------------------------
+    # -- the dashboard ----------------------------------------------------------
 
     def load_payload(self, config=None):
-        """The stored board, or None when this family has never had one."""
+        """The stored dashboard, or None when this family has never had one."""
         with self.pool.connection() as conn, conn.cursor() as cur:
             agenda = self._load_agenda(cur)
             cur.execute(
@@ -168,7 +168,7 @@ class PostgresStore:
 
         A brief with no date is a refresh-shaped payload arriving at the wrong
         door — there is no generation to write, and inventing one would put a
-        board with no words on the wall claiming a date.
+        dashboard with no words on the wall claiming a date.
         """
         for_date = brief.get("generated_for_date")
         if not for_date:
@@ -209,7 +209,7 @@ class PostgresStore:
         """Add one entry and trim to the last `keep`. Never raises.
 
         A history that cannot be written costs a repeated octopus fact in a
-        fortnight; it is not worth losing a written board over. Same promise
+        fortnight; it is not worth losing a written dashboard over. Same promise
         `FileStore` makes, for the same reason.
         """
         try:
@@ -273,7 +273,7 @@ def _iso(value):
     `FileStore` stores what the runner wrote, which is always UTC ISO. Postgres
     hands back an aware datetime in whatever the session zone is, so it is
     converted rather than formatted — otherwise the two stores would disagree
-    about what time a board was written, and only one of them would be right.
+    about what time a dashboard was written, and only one of them would be right.
     """
     if value is None:
         return None

@@ -102,7 +102,7 @@
       "x": 470,
       "y": 1852,
       "w": 390,
-      "text": "Chore rotation was undefined in PLAN.md. Proposal: an explicit ordered list plus a next-week preview, so the day-of-year modulo is visible rather than mysterious. Reordering takes effect tomorrow \u2014 today's board is already written."
+      "text": "Chore rotation was undefined in PLAN.md. Proposal: an explicit ordered list plus a next-week preview, so the day-of-year modulo is visible rather than mysterious. Reordering takes effect tomorrow \u2014 today's dashboard is already written."
     },
     {
       "id": "calendar-note",
@@ -123,7 +123,7 @@
       "x": 470,
       "y": 2820,
       "w": 390,
-      "text": "Light/Dark lives here rather than in Account: it is a property of the screen on the wall, not of the person editing. An Auto option (dark after sunset, using the family timezone) would suit a kitchen board \u2014 not drawn, say the word."
+      "text": "Light/Dark lives here rather than in Account: it is a property of the screen on the wall, not of the person editing. An Auto option (dark after sunset, using the family timezone) would suit a kitchen dashboard \u2014 not drawn, say the word."
     }
   ],
   "launch": {

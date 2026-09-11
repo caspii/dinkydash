@@ -38,9 +38,9 @@ class TestFirstRun:
         assert due(BERLIN, None, utc("2026-09-03 01:00"))["refresh"] is True
 
     def test_no_payload_before_the_brief_time_owes_both_anyway(self):
-        # 03:00 Berlin, and the first board does not wait for 06:00 (DIN-45).
+        # 03:00 Berlin, and the first dashboard does not wait for 06:00 (DIN-45).
         # Somebody who signed up in the night has the waiting screen on the
-        # wall, and that is not a board at any hour.
+        # wall, and that is not a dashboard at any hour.
         owed = due(BERLIN, None, utc("2026-09-03 01:00"))
         assert owed == {"refresh": True, "brief": True}
 
@@ -68,7 +68,7 @@ class TestTheFirstBrief:
     def test_a_fetched_agenda_is_not_a_brief(self):
         # The worker's first tick refreshes and writes, in that order. Between
         # the two the payload holds an agenda and nothing else, and that must
-        # still read as "no brief" or the board it just fetched for stays blank.
+        # still read as "no brief" or the dashboard it just fetched for stays blank.
         stored = payload(fetched="2026-09-03T01:00:00+00:00")
         assert brief_due(BERLIN, stored, utc("2026-09-03 01:00")) is True
 
@@ -131,7 +131,7 @@ class TestTheFirstBriefWaitsForSetUp:
         assert brief_due(home, {}, utc("2026-09-03 01:00")) is True  # 03:00 Berlin
 
     def test_a_written_brief_follows_the_ordinary_rule_whatever_the_config(self):
-        # The family that signed up before this rule has yesterday's board;
+        # The family that signed up before this rule has yesterday's dashboard;
         # it is replaced at brief_time like anybody's, not held back.
         from dinkydash import config as config_module
         starter = config_module.starter_config()
@@ -178,7 +178,7 @@ class TestRefresh:
 
     def test_a_stale_brief_does_not_make_a_fetch_due(self):
         # The two clocks are independent: yesterday's headline over a
-        # ten-minute-old agenda is a state the board already handles.
+        # ten-minute-old agenda is a state the dashboard already handles.
         stored = payload(fetched="2026-09-03T10:00:00+00:00", generated_for="2026-09-02")
         assert refresh_due(BERLIN, stored, utc("2026-09-03 10:10")) is False
 
@@ -237,7 +237,7 @@ class TestTheOtherSideOfTheWorld:
         assert brief_due(AUCKLAND, stored, utc("2026-06-14 18:00")) is True   # 06:00 local
 
     def test_a_server_at_utc_midnight_is_mid_afternoon_there(self):
-        # A board written at 18:00 local looks, from UTC, like it was written
+        # A dashboard written at 18:00 local looks, from UTC, like it was written
         # "tomorrow". It is still today's, and must not be rewritten.
         assert brief_due(AUCKLAND, payload(generated_for="2026-06-15"),
                          utc("2026-06-15 06:00")) is False

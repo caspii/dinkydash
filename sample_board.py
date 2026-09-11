@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-"""Seed a sample `dashboard_data.json` so a fresh workspace opens on a real board.
+"""Seed a sample `dashboard_data.json` so a fresh workspace opens on a real dashboard.
 
 `dashboard_data.json` is gitignored, so a new Conductor workspace only gets one
-if Files to copy brought it across from the main checkout. Without it the board
+if Files to copy brought it across from the main checkout. Without it the dashboard
 shows the first-run screen, which is a poor thing to check a layout change
 against — and a payload written before the engine rebuild has none of the keys
-`board.build_view` reads, so it renders an empty, permanently stale board.
+`board.build_view` reads, so it renders an empty, permanently stale dashboard.
 
-This writes a plausible board for today, using whatever `config.yaml` is
+This writes a plausible dashboard for today, using whatever `config.yaml` is
 present. It costs nothing and calls no API. Real data always wins: if a payload
 in the current schema is already here, this leaves it alone.
 """
@@ -36,7 +36,7 @@ SAMPLE_EVENTS = [
 ]
 
 HEADLINE = "Swimming, then football — a full day."
-NOTE = ("Sample data, so the board has something to show. Run generate.py, or "
+NOTE = ("Sample data, so the dashboard has something to show. Run generate.py, or "
         "press “Rewrite now” in settings, for the real thing.")
 
 
@@ -86,17 +86,17 @@ def main():
     config = store.load_config()
 
     if is_usable(store.load_payload(config)):
-        print("A current board is already stored; leaving it alone.")
+        print("A current dashboard is already stored; leaving it alone.")
         return 0
 
     today = config_module.today_for(config)
     payload = build_payload(config, today, config_module.tzinfo_for(config))
-    # Both halves, because this invents a whole board rather than refreshing
+    # Both halves, because this invents a whole dashboard rather than refreshing
     # one — the two doors exist so that the *runner* cannot write the other
     # side's keys by accident, not to stop anyone writing both on purpose.
     store.save_agenda(config, payload)
     store.save_brief(config, payload)
-    print(f"Wrote sample board data for {today}.")
+    print(f"Wrote sample dashboard data for {today}.")
     return 0
 
 

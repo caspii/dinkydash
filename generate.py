@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Write the board. Run from cron.
+"""Write the dashboard. Run from cron.
 
     */5 * * * * cd /home/pi/dinkydash && venv/bin/python generate.py --tick >> generate.log 2>&1
 
@@ -19,7 +19,7 @@ from contextlib import contextmanager
 from datetime import date, datetime, timezone
 
 try:
-    import fcntl  # POSIX only; the board runs on a Pi
+    import fcntl  # POSIX only; the dashboard runs on a Pi
 except ImportError:  # pragma: no cover - Windows has no flock
     fcntl = None
 
@@ -36,7 +36,7 @@ log = logging.getLogger("dinkydash")
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(description="Generate the DinkyDash board.")
+    parser = argparse.ArgumentParser(description="Generate the DinkyDash dashboard.")
     parser.add_argument("--config", help="path to config.yaml")
     parser.add_argument("--date", help="generate for this date (YYYY-MM-DD) instead of today")
     parser.add_argument("--tick", action="store_true",
@@ -74,9 +74,9 @@ def main(argv=None):
     try:
         payload = run(config, store, today=today)
     except GenerationError as exc:
-        # The previous board is left in place rather than blanking the screen.
+        # The previous dashboard is left in place rather than blanking the screen.
         log.error("%s", exc)
-        log.error("Keeping the previous board.")
+        log.error("Keeping the previous dashboard.")
         return 1
 
     report(payload)
@@ -142,7 +142,7 @@ def tick(config, store, budget=None):
             write_brief(config, store, today=today, budget=budget)
     except GenerationError as exc:
         log.error("%s", exc)
-        log.error("Keeping the previous board; the next tick will try again.")
+        log.error("Keeping the previous dashboard; the next tick will try again.")
         return 1
     return 0
 

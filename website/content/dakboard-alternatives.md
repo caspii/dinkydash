@@ -54,7 +54,7 @@ Full disclosure: DinkyDash is our project, so treat this entry accordingly — t
 
 DinkyDash turns any TV, tablet, Raspberry Pi or spare monitor into a family calendar. It shows today's events from any iCal link, a chore chart that rotates between kids automatically, countdowns to birthdays and holidays, and **a daily brief written by AI every morning** — a fresh greeting written around your family's actual day. No other option on this page does that last one.
 
-![The DinkyDash board showing today's agenda, whose turn each chore is, countdowns to birthdays and holidays, and the AI-written daily note](/images/family-dashboard-board.webp)
+![The DinkyDash dashboard showing today's agenda, whose turn each chore is, countdowns to birthdays and holidays, and the AI-written daily note](/images/family-dashboard-board.webp)
 
 It is MIT-licensed, and self-hosting it is free forever, with no paid tier and no screen limit. Run it yourself and your config — names, birthdays, calendar links — stays on your own machine. To be precise about the one thing that does leave: the day's agenda is sent to Anthropic each morning to write the note. You can try the whole thing without an API key first — there is a no-key preview in the [setup guide](/getting-started/) — but the daily brief is the part that needs one.
 
@@ -125,7 +125,7 @@ A comparison page that only flatters its own product is not worth reading, so:
 - **Breadth of data sources.** Calendars, photos, weather, news, sports, stocks, smart-home feeds. DinkyDash does a family's day and nothing else, on purpose.
 - **Official hardware.** Their ~$80 CPU plugs into any TV and is genuinely plug-and-play. Self-hosting means you own the boot problems.
 - **It just works.** There is a company, a support queue and an uptime record. DinkyDash self-hosting is community-supported, which is a polite way of saying you are the support queue.
-- **Multiple screens.** If you want a display in the kitchen and another in the office showing different things, DAKboard is built for that. DinkyDash is built for one family board.
+- **Multiple screens.** If you want a display in the kitchen and another in the office showing different things, DAKboard is built for that. DinkyDash is built for one family dashboard.
 
 If those matter more than price or source, stay where you are. That is a reasonable answer.
 
@@ -134,7 +134,7 @@ If those matter more than price or source, stay where you are. That is a reasona
 - **Want $0, the source code, and a family calendar that works out of the box:** [DinkyDash, self-hosted](/getting-started/)
 - **Want DAKboard's flexibility for free, and enjoy configuring things:** MagicMirror²
 - **Already running Home Assistant:** add a dashboard, don't add a service
-- **Want the same board without the terminal:** [start a free 14-day hosted trial](https://app.dinkydash.co/login) — no card required
+- **Want the same dashboard without the terminal:** [start a free 14-day hosted trial](https://app.dinkydash.co/login) — no card required
 - **Want zero setup today, and will pay for it:** Mango Display Pro — budget for Pro, not the free tier, which has no calendar
 - **Want a finished touchscreen on the wall:** Skylight, or Hearth if mornings are the problem
 - **Want maximum layout control with support behind it:** stay on DAKboard

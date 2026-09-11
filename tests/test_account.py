@@ -48,7 +48,7 @@ ADDRESS = "parent@example.com"
 
 @pytest.fixture
 def family(pg_pool, pg_family):
-    """One family with a parent, a board and a written line behind it."""
+    """One family with a parent, a dashboard and a written line behind it."""
     from dinkydash.pgstore import PostgresStore
 
     store = PostgresStore(pg_pool, pg_family)
@@ -238,7 +238,7 @@ class TestDelete:
             assert "family_id" not in stored
 
     def test_and_the_board_stops_working(self, parent, pg_pool, family):
-        """"Every screen showing your board stops working" is what the page
+        """"Every screen showing your dashboard stops working" is what the page
         promises, and a screen that kept serving a deleted family's day would be
         the worst possible way to find out otherwise."""
         path = f"/s/{screens.token_for(pg_pool, family[0])}"

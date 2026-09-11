@@ -4,7 +4,7 @@ template: page.html
 description: Set up DinkyDash from scratch — first on your computer, then as a permanent wall dashboard on a Raspberry Pi running the current Raspberry Pi OS.
 ---
 
-This guide takes you from nothing to a working family dashboard. You start on your own computer, see the board, then move it onto a Raspberry Pi that shows it on the wall and refreshes itself every morning.
+This guide takes you from nothing to a working family dashboard. You start on your own computer, see the dashboard, then move it onto a Raspberry Pi that shows it on the wall and refreshes itself every morning.
 
 You do not need an Anthropic API key to try it — there is a no-key preview in step 3. You only need a key for the AI-written daily line, which runs once a day.
 
@@ -12,8 +12,8 @@ You do not need an Anthropic API key to try it — there is a no-key preview in 
 
 - **Python 3.11 or newer.**
 - **One or more calendar links** in iCal format. Google Calendar, Apple iCloud Calendar, Outlook and Cozi all give you one — see [find your calendar link](#find-your-calendar-link) below for the steps. Treat that link like a password: anyone who has it can read that calendar.
-- **An Anthropic API key** ([get one here](https://console.anthropic.com/settings/keys)) — only for the daily headline and one line of copy. You can run the whole board without it first.
-- **A Raspberry Pi** with a small screen, for the permanent version. A Pi 4 with 2GB of RAM and the official 7-inch display (800×480) is the easy path. Hardware details are on the [Raspberry Pi build guide](/raspberry-pi-family-calendar/). A Pi is not the only option — the board is a web page, so an [old iPad](/ipad-calendar-display/), an [Android tablet](/android-tablet-calendar-display/), a [smart TV](/smart-tv-calendar-display/) or a [Fire TV](/fire-tv-calendar-display/) will show it too.
+- **An Anthropic API key** ([get one here](https://console.anthropic.com/settings/keys)) — only for the daily headline and one line of copy. You can run the whole dashboard without it first.
+- **A Raspberry Pi** with a small screen, for the permanent version. A Pi 4 with 2GB of RAM and the official 7-inch display (800×480) is the easy path. Hardware details are on the [Raspberry Pi build guide](/raspberry-pi-family-calendar/). A Pi is not the only option — the dashboard is a web page, so an [old iPad](/ipad-calendar-display/), an [Android tablet](/android-tablet-calendar-display/), a [smart TV](/smart-tv-calendar-display/) or a [Fire TV](/fire-tv-calendar-display/) will show it too.
 
 ---
 
@@ -43,7 +43,7 @@ If the address ever leaks, **Reset** on that same screen issues a new one and ki
 3. Switch on **Public Calendar**, then press **Copy**.
 4. **Paste it as it is.** A `webcal://` link is converted to `https://` for you — the rest of the address stays exactly as it is. Links have to be https; a plain `http://` feed is refused, because it would send the secret address across the network in the clear.
 
-"Public" here means a long random address rather than a listed page, but anyone holding it can read that calendar — keep it to yourself. Turning sharing off and on again issues a *different* link, and the old one stops working, so the board will need the new one.
+"Public" here means a long random address rather than a listed page, but anyone holding it can read that calendar — keep it to yourself. Turning sharing off and on again issues a *different* link, and the old one stops working, so the dashboard will need the new one.
 
 → [The iCloud calendar link, in full](/icloud-calendar-link/)
 
@@ -51,7 +51,7 @@ If the address ever leaks, **Reset** on that same screen issues a new one and ki
 
 1. Open [Outlook on the web](https://outlook.live.com/calendar/) and go to **Settings** (the gear) → **Calendar** → **Shared calendars**.
 2. Under **Publish a calendar**, choose the calendar you want.
-3. Set the permission to **Can view all details**. The lesser options hide event titles, and titles are what the board shows.
+3. Set the permission to **Can view all details**. The lesser options hide event titles, and titles are what the dashboard shows.
 4. Press **Publish**. Two links appear — copy the **ICS** one, not the HTML one.
 
 → [Publishing an Outlook calendar, in full](/outlook-calendar-ics-link/)
@@ -75,14 +75,14 @@ Whichever provider it came from, treat the link like a password. Anyone who has 
 
 <h3 id="personal-calendar">A personal calendar with work in it</h3>
 
-You do not need a separate family calendar. If your own calendar also holds work meetings and private appointments, paste it anyway, then fill in **Only show events shared with** on that calendar with the other parent's email address. Only the events they are invited to, or that they organised, reach the board. Everything else stays off it, and is never sent to Claude.
+You do not need a separate family calendar. If your own calendar also holds work meetings and private appointments, paste it anyway, then fill in **Only show events shared with** on that calendar with the other parent's email address. Only the events they are invited to, or that they organised, reach the dashboard. Everything else stays off it, and is never sent to Claude.
 
 Two things to get right:
 
 - **Use the address on the invitation.** Google, Apple and Outlook all record guests by email address, so it has to be the one you actually invite them with. If they have two, list both with a comma between them.
 - **Press Test calendar link before you save.** With a guest list filled in, it says how many events get through out of how many, and warns you if none do. That usually means the address is not the one on the invitations, or that nothing in the next fortnight has been shared yet.
 
-Each calendar has its own list, so the school calendar, which has no guests, is left alone. Saving a calendar clears whatever was fetched from it before, so nothing from before the guest list lingers; the board picks it up again at the next refresh, or straight away if you press **Refresh calendars**. In `config.yaml` the same setting is `shared_with`, a list of addresses under that calendar.
+Each calendar has its own list, so the school calendar, which has no guests, is left alone. Saving a calendar clears whatever was fetched from it before, so nothing from before the guest list lingers; the dashboard picks it up again at the next refresh, or straight away if you press **Refresh calendars**. In `config.yaml` the same setting is `shared_with`, a list of addresses under that calendar.
 
 ---
 
@@ -158,16 +158,16 @@ max_tokens: 1024
 
 The example URL above is deliberately fake. Paste your own iCal address in its place — [find your calendar link](#find-your-calendar-link) has the steps for Google, Apple and Outlook. Add one calendar entry per person, and they all merge into a single agenda.
 
-### Step 3: See the board with no API key
+### Step 3: See the dashboard with no API key
 
-You can look at the real board before you get an API key. This costs nothing and calls no service:
+You can look at the real dashboard before you get an API key. This costs nothing and calls no service:
 
 ```bash
-python sample_board.py     # writes a board for today, with a canned headline
+python sample_board.py     # writes a dashboard for today, with a canned headline
 python app.py              # starts the server
 ```
 
-Open **http://localhost:5000**. The chore turns, ages and countdowns are computed from the `config.yaml` you just wrote, so edit it, reload, and you see your own family. Only the headline and the one written line are fake. `sample_board.py` refuses to overwrite a real board, so it is safe to leave in place.
+Open **http://localhost:5000**. The chore turns, ages and countdowns are computed from the `config.yaml` you just wrote, so edit it, reload, and you see your own family. Only the headline and the one written line are fake. `sample_board.py` refuses to overwrite a real dashboard, so it is safe to leave in place.
 
 Stop the server with `Ctrl+C` when you are done looking.
 
@@ -181,24 +181,24 @@ echo "ANTHROPIC_API_KEY=sk-ant-..." > .env
 
 `.env` holds the key and nothing else. The key never goes in `config.yaml`, because that file is meant to be shared and edited.
 
-### Step 5: Generate the real board and run it
+### Step 5: Generate the real dashboard and run it
 
 ```bash
-python generate.py        # fetches calendars, calls Claude, writes today's board
+python generate.py        # fetches calendars, calls Claude, writes today's dashboard
 python app.py             # starts the server
 ```
 
 Now these three pages are live:
 
-- **http://localhost:5000** — the board.
+- **http://localhost:5000** — the dashboard.
 - **http://localhost:5000/settings** — change people, chores, calendars, colours and the timezone from a phone. It writes `config.yaml` and keeps your comments.
-- **http://localhost:5000/preview** — the board at the Pi, TV and tablet sizes at once, handy for a layout change.
+- **http://localhost:5000/preview** — the dashboard at the Pi, TV and tablet sizes at once, handy for a layout change.
 
 #### Config fields explained
 
 | Field | What it does |
 |---|---|
-| `family_name` | Shown in the corner of the board. |
+| `family_name` | Shown in the corner of the dashboard. |
 | `timezone` | An IANA name like `Europe/Berlin`. Decides when "today" rolls over and how event times read. Set it even on a Pi whose clock is already local — the engine works from this, not the machine clock. |
 | `location` | Your city and country. Optional; gives the daily line local flavour. |
 | `theme` | `light` or `dark`. |
@@ -207,28 +207,28 @@ Now these three pages are live:
 | `pets` | `name`, `type` and an `avatar_emoji`. |
 | `recurring` | Chores that rotate one person per day, in the order you list under `choices`. |
 | `special_dates` | Countdowns to yearly events, as `MM/DD` with no year. |
-| `claude_model` | `claude-haiku-4-5` costs roughly $0.13 a month at one board a day. `claude-sonnet-5` writes better for about three times that. |
+| `claude_model` | `claude-haiku-4-5` costs roughly $0.13 a month at one dashboard a day. `claude-sonnet-5` writes better for about three times that. |
 | `max_tokens` | Maximum length of the AI response. |
 
 The settings page adds a short `id` to each person, pet, chore, date and calendar the first time you open it. Leave those alone — they are how the page tells one entry from another.
 
-**Upgrading an old config?** A single `calendar_url` becomes the first entry in `calendars` automatically, and a `calendar_filter_emails` list moves onto that entry as its `shared_with`. Photos are gone; the board uses an emoji and a colour.
+**Upgrading an old config?** A single `calendar_url` becomes the first entry in `calendars` automatically, and a `calendar_filter_emails` list moves onto that entry as its `shared_with`. Photos are gone; the dashboard uses an emoji and a colour.
 
 #### Editing from your phone
 
-Everything on the board is editable at `/settings`. Two things worth knowing:
+Everything on the dashboard is editable at `/settings`. Two things worth knowing:
 
-- **A saved board is from this morning.** Editing a chore or a person shows up on the next page load, but the headline and daily line are only rewritten each morning. Press **Rewrite now** on the settings home page to get fresh copy immediately. Each press is one API call.
+- **A saved dashboard is from this morning.** Editing a chore or a person shows up on the next page load, but the headline and daily line are only rewritten each morning. Press **Rewrite now** on the settings home page to get fresh copy immediately. Each press is one API call.
 - **Adding a calendar checks the link.** Paste an iCal address and press **Test calendar link**. It tells you how many events it found and what the next one is, so you are not left guessing whether the URL works.
-- **A personal calendar can keep its private side.** Fill in **Only show events shared with** on that calendar, and only the events the other parent is on reach the board. See [a personal calendar with work in it](#personal-calendar) above.
+- **A personal calendar can keep its private side.** Fill in **Only show events shared with** on that calendar, and only the events the other parent is on reach the dashboard. See [a personal calendar with work in it](#personal-calendar) above.
 
-The board can be in one of three states: the normal board, a first-run "waiting" screen before anything is generated, or a stale state after a failed or missing run. When stale, the times, turns and countdowns are still today's — only the written line is old, and the board says so.
+The dashboard can be in one of three states: the normal dashboard, a first-run "waiting" screen before anything is generated, or a stale state after a failed or missing run. When stale, the times, turns and countdowns are still today's — only the written line is old, and the dashboard says so.
 
 ---
 
 ## Part 2 — Put it on a Raspberry Pi
 
-This turns a Pi with a small screen into a wall dashboard that boots straight into the board and refreshes itself. The examples use the username `pi` and the folder `/home/pi`. If you chose a different username in Raspberry Pi Imager, substitute it everywhere.
+This turns a Pi with a small screen into a wall dashboard that boots straight into the dashboard and refreshes itself. The examples use the username `pi` and the folder `/home/pi`. If you chose a different username in Raspberry Pi Imager, substitute it everywhere.
 
 ### Step 1: Install Raspberry Pi OS
 
@@ -236,7 +236,7 @@ Install **Raspberry Pi OS** with the [Raspberry Pi Imager](https://www.raspberry
 
 ### Step 2: First boot — connect and install packages
 
-SSH in from your computer, update, and install what the board and the browser need:
+SSH in from your computer, update, and install what the dashboard and the browser need:
 
 ```bash
 ssh pi@raspberrypi.local
@@ -275,11 +275,11 @@ python generate.py
 python app.py
 ```
 
-Open `http://raspberrypi.local:5000` from another device on the same network to confirm the board appears, then stop it with `Ctrl+C`.
+Open `http://raspberrypi.local:5000` from another device on the same network to confirm the dashboard appears, then stop it with `Ctrl+C`.
 
 ### Step 5: Run it as a service
 
-A systemd service starts the board on boot and restarts it if it ever stops. `run_app.sh` ships with the repo and is what the service runs.
+A systemd service starts the dashboard on boot and restarts it if it ever stops. `run_app.sh` ships with the repo and is what the service runs.
 
 Create `/etc/systemd/system/dinkydash.service`:
 
@@ -298,7 +298,7 @@ Restart=always
 WantedBy=multi-user.target
 ```
 
-The board serves on port 5000. To use another port, add a line like `Environment=DINKYDASH_PORT=5123` under `[Service]` and use that port everywhere below.
+The dashboard serves on port 5000. To use another port, add a line like `Environment=DINKYDASH_PORT=5123` under `[Service]` and use that port everywhere below.
 
 Enable and start it:
 
@@ -309,11 +309,11 @@ sudo systemctl enable dinkydash.service
 sudo systemctl start dinkydash.service
 ```
 
-### Step 6: Keep the board up to date
+### Step 6: Keep the dashboard up to date
 
 A cron job ticks every five minutes, and each tick does only what your settings say is owed —
 nothing at all, most of the time. Calendars are re-fetched every hour, so an appointment added at
-09:00 for 15:00 reaches the board the same afternoon. The daily line is written once, at 6am. Both
+09:00 for 15:00 reaches the dashboard the same afternoon. The daily line is written once, at 6am. Both
 are yours to change under **Settings → How often it updates**.
 
 ```bash
@@ -327,7 +327,7 @@ Add this line:
 ```
 
 Runs never pile up: if one is still going when the next is due, the next skips itself. If a run
-fails, the previous board stays up and labels itself stale — the screen never goes blank, and the
+fails, the previous dashboard stays up and labels itself stale — the screen never goes blank, and the
 next tick tries again.
 
 The old daily line still works, and does the fetch and the line together:
@@ -339,11 +339,11 @@ The old daily line still works, and does the fetch and the line together:
 It just never sees a change you make to your calendar during the day, and the settings above have
 no effect on it. Use one line or the other, not both.
 
-### Step 7: Show the board full screen at boot (kiosk)
+### Step 7: Show the dashboard full screen at boot (kiosk)
 
 Kiosk mode launches Chromium full screen with nothing around it. Current Raspberry Pi OS uses the Wayland desktop by default, so that is the main path. A classic X11 alternative follows for people who want the older, simpler tools.
 
-First, save this launcher as `/home/pi/run.sh`. It waits for the board to answer before opening the browser, which avoids the "localhost refused to connect" screen at boot:
+First, save this launcher as `/home/pi/run.sh`. It waits for the dashboard to answer before opening the browser, which avoids the "localhost refused to connect" screen at boot:
 
 ```bash
 #!/bin/sh
@@ -375,7 +375,7 @@ Make it executable:
 chmod +x /home/pi/run.sh
 ```
 
-Turn screen blanking off so the board does not disappear after ten minutes: run `sudo raspi-config`, then **Display Options → Screen Blanking → No**. (Non-interactively: `sudo raspi-config nonint do_blanking 1`.)
+Turn screen blanking off so the dashboard does not disappear after ten minutes: run `sudo raspi-config`, then **Display Options → Screen Blanking → No**. (Non-interactively: `sudo raspi-config nonint do_blanking 1`.)
 
 #### The Wayland desktop (the default)
 
@@ -385,7 +385,7 @@ Create the file `/home/pi/.config/labwc/autostart` and put one line in it:
 /home/pi/run.sh &
 ```
 
-Reboot. The Pi logs in, the desktop starts, and the board opens full screen once the service is up.
+Reboot. The Pi logs in, the desktop starts, and the dashboard opens full screen once the service is up.
 
 One rough edge on Wayland: the mouse pointer does not hide itself when idle. If a mouse is plugged in, park the pointer in a corner, or unplug it — a wall panel needs no mouse. If that bothers you, use the X11 alternative below, which hides the pointer properly.
 
@@ -411,7 +411,7 @@ Then edit `/home/pi/.config/lxsession/LXDE-pi/autostart` so it reads:
 @/home/pi/run.sh
 ```
 
-That hides the pointer (`unclutter`), stops the screen blanking (`xset`), and launches the board. Reboot to apply. On the newest OS the X11 session differs and this file may not exist — if so, prefer the Wayland path above.
+That hides the pointer (`unclutter`), stops the screen blanking (`xset`), and launches the dashboard. Reboot to apply. On the newest OS the X11 session differs and this file may not exist — if so, prefer the Wayland path above.
 
 ### Step 8: Turn the screen off at night (optional)
 
@@ -458,9 +458,9 @@ The old `lcd_rotate` and `display_rotate` lines in `config.txt` no longer apply 
 
 **Emoji show as empty boxes.** Install the font and refresh the cache: `sudo apt install fonts-noto-color-emoji && fc-cache -fv`.
 
-**"localhost refused to connect" at boot.** Chromium started before the board was ready. The `run.sh` above waits up to 60 seconds; make sure your autostart calls it rather than launching Chromium directly.
+**"localhost refused to connect" at boot.** Chromium started before the dashboard was ready. The `run.sh` above waits up to 60 seconds; make sure your autostart calls it rather than launching Chromium directly.
 
-**The board is a day behind.** A generation run failed. Look at `generate.log` in the project folder. The usual causes are an expired API key, no network at 6am, or a calendar link that stopped working. Fix it, then press **Rewrite now** on the settings page.
+**The dashboard is a day behind.** A generation run failed. Look at `generate.log` in the project folder. The usual causes are an expired API key, no network at 6am, or a calendar link that stopped working. Fix it, then press **Rewrite now** on the settings page.
 
 **Times are off by an hour.** The timezone under Settings → Family & system is what the engine uses, not the machine clock. Set it even if the clock is already local.
 
@@ -476,7 +476,7 @@ The old `lcd_rotate` and `display_rotate` lines in `config.txt` no longer apply 
 
 ## Updating later
 
-To push a code change from your computer to the Pi, the repo includes `deploy_to_pi.sh`. It copies the code across and leaves the Pi's own `config.yaml`, board data and `.env` untouched, then installs any new dependencies and restarts the service. It creates the virtualenv on a first deploy, so it works for the initial install as well as later updates.
+To push a code change from your computer to the Pi, the repo includes `deploy_to_pi.sh`. It copies the code across and leaves the Pi's own `config.yaml`, dashboard data and `.env` untouched, then installs any new dependencies and restarts the service. It creates the virtualenv on a first deploy, so it works for the initial install as well as later updates.
 
 ```bash
 ./deploy_to_pi.sh                          # deploy
@@ -502,10 +502,10 @@ sudo systemctl restart dinkydash.service
 ```bash
 # On your computer
 source venv/bin/activate
-python sample_board.py                # a board with no API call, for a first look
-python generate.py                    # today's real board (one API call)
+python sample_board.py                # a dashboard with no API call, for a first look
+python generate.py                    # today's real dashboard (one API call)
 python generate.py --date 2026-12-24  # any date, for checking a countdown
-python app.py                         # board at /, settings at /settings
+python app.py                         # dashboard at /, settings at /settings
 
 # On the Raspberry Pi
 sudo systemctl status dinkydash       # is it running

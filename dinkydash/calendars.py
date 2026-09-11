@@ -99,7 +99,7 @@ def _localise(value, tzinfo):
     if isinstance(value, datetime):
         if value.tzinfo is None:
             # A floating time means "whatever the local clock says", which for a
-            # family board is the family's own timezone.
+            # family dashboard is the family's own timezone.
             return value.replace(tzinfo=tzinfo)
         return value.astimezone(tzinfo)
     # A bare date is an all-day event; anchor it to midnight for ordering.
@@ -153,7 +153,7 @@ def parse_feed(ical_text, start, end, tzinfo, label=None, shared_with=None):
     `shared_with` is a list of email addresses. Given one, only the events with
     one of those people on them — as a guest or as the organiser — come out.
     The rest of the calendar is dropped here, before an event dict exists, so a
-    hidden appointment never reaches the payload, the board or the prompt. And
+    hidden appointment never reaches the payload, the dashboard or the prompt. And
     the dict carries no addresses: nobody's guest list is written anywhere.
     """
     return _events(_occurrences(ical_text, start, end), tzinfo, label, shared_with)
@@ -177,7 +177,7 @@ def _occurrences(ical_text, start, end):
 # ~250 MB kept by the process afterwards, because Python does not hand arenas
 # back. Two gunicorn workers each holding that is how the hosted site went past
 # its 512 MB and was killed on 10 September 2026, with nothing in the log but
-# the exit. The board only ever wants a fortnight, so `_trim` drops, as text and
+# the exit. The dashboard only ever wants a fortnight, so `_trim` drops, as text and
 # before the parser sees them, the events that cannot fall in the window.
 #
 # Whatever the parser needs to get the window right is kept regardless of its
@@ -439,7 +439,7 @@ def fetch_events(calendars, today, tzinfo, days_ahead=DEFAULT_DAYS_AHEAD,
                  timeout=DEFAULT_TIMEOUT):
     """Fetch every enabled feed and merge into one ordered agenda.
 
-    One broken feed must not empty the board, so a failing feed is logged and
+    One broken feed must not empty the dashboard, so a failing feed is logged and
     skipped. The second return value reports per-feed status so the settings
     page can show which one needs attention.
     """
@@ -488,7 +488,7 @@ def describe_feed(url, tzinfo, today, days_ahead=DEFAULT_DAYS_AHEAD,
     Used by the settings UI so pasting a link answers with a real event count
     and the next thing in it, rather than a silent success. With `shared_with`
     set it also counts the events *before* the filter, because a guest list
-    that matches nobody looks exactly like an empty calendar from the board,
+    that matches nobody looks exactly like an empty calendar from the dashboard,
     and telling the two apart is the whole point of pressing the button.
     """
     end = today + timedelta(days=days_ahead)

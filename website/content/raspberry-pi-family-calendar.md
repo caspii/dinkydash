@@ -26,7 +26,7 @@ No touch interaction is required. It's a display, not an app — which is the po
 
 If you have not ordered parts yet, the [birthday countdown](/birthday-countdown/) is one panel of this running in a plain browser tab — a fair preview of what a wall screen feels like, on a screen you are already looking at.
 
-A Pi is not the only screen this runs on, and it is not the cheapest. The same board goes on an [old iPad](/ipad-calendar-display/), an [Android tablet](/android-tablet-calendar-display/), a [smart TV](/smart-tv-calendar-display/) or a [Fire TV](/fire-tv-calendar-display/) — and not, for one specific reason, on an [Echo Show](/echo-show-calendar-display/). A Pi is the tidiest permanent panel; a tablet is the quickest way to find out whether your family looks at one at all.
+A Pi is not the only screen this runs on, and it is not the cheapest. The same dashboard goes on an [old iPad](/ipad-calendar-display/), an [Android tablet](/android-tablet-calendar-display/), a [smart TV](/smart-tv-calendar-display/) or a [Fire TV](/fire-tv-calendar-display/) — and not, for one specific reason, on an [Echo Show](/echo-show-calendar-display/). A Pi is the tidiest permanent panel; a tablet is the quickest way to find out whether your family looks at one at all.
 
 ## Which Raspberry Pi
 

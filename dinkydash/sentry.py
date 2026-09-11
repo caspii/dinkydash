@@ -3,7 +3,7 @@
 Cloud mode only. `init` is called from `wsgi.py` for the web service and from
 `worker.main` for the tick loop, and it reads `SENTRY_DSN`. With no DSN it
 returns False and nothing is imported, initialised or sent — which is every
-self-hosted board and every test run. `sentry-sdk` lives in
+self-hosted dashboard and every test run. `sentry-sdk` lives in
 `requirements-cloud.txt` for the same reason psycopg does: a Pi never installs it.
 
 Two kinds of thing go out:

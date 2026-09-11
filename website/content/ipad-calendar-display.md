@@ -33,19 +33,19 @@ DinkyDash is a **web page**, not an app you install. So there are two parts:
 
 Nothing goes through the App Store, and there is no Apple ID to sign in to.
 
-![The DinkyDash board on a tablet in portrait, stacked into one column: today's events, whose turn each chore is, countdowns and the daily note](/images/family-calendar-tablet-board.webp)
+![The DinkyDash dashboard on a tablet in portrait, stacked into one column: today's events, whose turn each chore is, countdowns and the daily note](/images/family-calendar-tablet-board.webp)
 
-Portrait or landscape both work. The board is a single column on a tall screen and two columns
+Portrait or landscape both work. The dashboard is a single column on a tall screen and two columns
 on a wide one — it decides from the shape of the display, so an iPad standing upright looks
 like the picture above and one lying on its side splits into two.
 
 ## Set it up
 
-**1. Open the board in Safari.** Type the address DinkyDash is serving on. On your own
+**1. Open the dashboard in Safari.** Type the address DinkyDash is serving on. On your own
 network that looks like `http://192.168.1.50:5000` — the address of the machine running it.
 
 **2. Add it to the home screen.** Share button, then **Add to Home Screen**. This is the step
-that matters: launched from the home screen the board runs **full screen**, with no address
+that matters: launched from the home screen the dashboard runs **full screen**, with no address
 bar and no Safari furniture, and it gets the DinkyDash icon and your family's name under it.
 
 **3. Stop the screen sleeping.** Settings → **Display & Brightness** → **Auto-Lock** →
@@ -53,8 +53,8 @@ bar and no Safari furniture, and it gets the DinkyDash icon and your family's na
 panel is plugged in permanently.
 
 **4. Lock it to the page.** Settings → **Accessibility** → **Guided Access**, switch it on and
-set a passcode. Then open the board and triple-click the top button. The iPad now stays on the
-board until somebody triple-clicks and types the passcode — which is what stops a five-year-old
+set a passcode. Then open the dashboard and triple-click the top button. The iPad now stays on the
+dashboard until somebody triple-clicks and types the passcode — which is what stops a five-year-old
 ending up in Settings.
 
 **5. Leave it plugged in.** A right-angled cable and an adhesive wall mount are the usual
@@ -67,8 +67,8 @@ wall panel it barely matters — the iPad is on mains power, so a tired battery 
 how long it survives a power cut. An iPad old enough to be doing this job is past the point
 where its battery mattered.
 
-**Very old iPads lose some spacing.** The board leans on one modern CSS feature — flexbox
-`gap`, which arrived in Safari 14 — for the space between blocks. On anything older the board
+**Very old iPads lose some spacing.** The dashboard leans on one modern CSS feature — flexbox
+`gap`, which arrived in Safari 14 — for the space between blocks. On anything older the dashboard
 still renders and still updates itself; the blocks just sit closer together than they should.
 Nothing is hidden and nothing breaks.
 
@@ -82,7 +82,7 @@ Nothing is hidden and nothing breaks.
 - **Countdowns** to birthdays, Christmas and the school holidays.
 - **A daily line written each morning** by Claude, around your family's actual day.
 
-The board reloads itself every five minutes using a plain HTML refresh, so it stays current
+The dashboard reloads itself every five minutes using a plain HTML refresh, so it stays current
 even in a browser with JavaScript switched off. There is nothing to tap and nothing to
 maintain — you keep editing events in your normal calendar app, and the wall follows.
 
@@ -90,7 +90,7 @@ maintain — you keep editing events in your normal calendar app, and the wall f
 
 **Nothing, if the iPad is already in a drawer.** DinkyDash is free and MIT licensed with no
 subscription for the self-hosted version. The one running cost is the daily line, which is a
-Claude API call once a day — roughly $0.13 a month — and the board works without it.
+Claude API call once a day — roughly $0.13 a month — and the dashboard works without it.
 
 For comparison, a Skylight Calendar is $299.99 to $599.99 plus an optional $79 a year. The
 [best digital family calendar page](/best-digital-family-calendar/) has the full comparison.

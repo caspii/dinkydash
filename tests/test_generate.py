@@ -193,12 +193,12 @@ class TestGenerate:
         assert payload["model"] == "claude-haiku-4-5"
 
     def test_keeps_the_whole_fetched_window_not_just_today(self):
-        # This is what lets a stale board still show a correct agenda tomorrow.
+        # This is what lets a stale dashboard still show a correct agenda tomorrow.
         payload = generate(CONFIG, TODAY, EVENTS, client=FakeClient())
         assert len(payload["events"]) == len(EVENTS)
 
     def test_omits_chores_and_countdowns_from_the_payload(self, client):
-        # They are pure functions of config + date, so the board recomputes them
+        # They are pure functions of config + date, so the dashboard recomputes them
         # at render time rather than trusting a possibly-stale copy.
         payload = generate(CONFIG, TODAY, EVENTS, client=client)
         assert "chores" not in payload

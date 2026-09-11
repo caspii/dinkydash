@@ -1,4 +1,4 @@
-"""What the board shows, especially on a day the generation failed.
+"""What the dashboard shows, especially on a day the generation failed.
 
 The design claim being tested: when a morning's run fails, the times, turns and
 countdowns on the wall are still *today's* — only the written line is old.
@@ -12,7 +12,7 @@ from dinkydash.board import build_view, computed_headline
 
 CONFIG = {
     "family_name": "The Wilsons",
-    "timezone": "Europe/Berlin",  # set up: a real family's board, not the starter
+    "timezone": "Europe/Berlin",  # set up: a real family's dashboard, not the starter
     "theme": "light",
     "people": [{"name": "Mia", "date_of_birth": "2017-03-15"}],
     "recurring": [{"title": "Set the table", "emoji": "🍽", "choices": ["Mia", "Theo"]}],
@@ -215,8 +215,8 @@ class TestStillSettingUp:
 
     `config.is_set_up` is false while the household is still the invented
     starter or the timezone is unset. Nothing is being written for such a
-    family (`schedule.brief_due`), so the board must not say "writing your
-    first board" — and it must not show the invented household's turns under
+    family (`schedule.brief_due`), so the dashboard must not say "writing your
+    first dashboard" — and it must not show the invented household's turns under
     an amber banner either.
     """
 
@@ -249,7 +249,7 @@ class TestStillSettingUp:
 
     def test_a_written_brief_renders_as_usual(self):
         # A brief that already exists is shown, set up or not: the family
-        # that signed up before this rule still has yesterday's board.
+        # that signed up before this rule still has yesterday's dashboard.
         view = build_view(self.STARTER, payload("2026-09-03"), TODAY)
         assert view["state"] == "ready"
 
@@ -265,7 +265,7 @@ class TestTheme:
 
 
 class TestReloadInterval:
-    """The board reloads itself on a timer, derived from `refresh_minutes`.
+    """The dashboard reloads itself on a timer, derived from `refresh_minutes`.
 
     Five minutes is the ceiling, so the four longer intervals all render the
     same value the template used to hard-code. Only a shorter one moves it.
@@ -296,7 +296,7 @@ class TestReloadInterval:
 
 
 class TestTheWaitingScreen:
-    """What a family reads before their first board arrives.
+    """What a family reads before their first dashboard arrives.
 
     `board.html` is rendered from the same file in both modes and
     `tests/test_cloud_mode.py` asserts the two are byte-identical, so anything
@@ -318,14 +318,14 @@ class TestTheWaitingScreen:
         return client.get("/").get_data(as_text=True)
 
     def test_it_is_the_waiting_screen(self, page):
-        assert "first board" in page
+        assert "first dashboard" in page
 
     def test_it_names_no_command(self, page):
         # A parent reading this has no shell, and after DIN-45 nobody needs one.
         assert "generate.py" not in page
 
     def test_it_names_the_button_the_settings_page_actually_has(self, page):
-        assert "Write the first board" in page
+        assert "Write the first dashboard" in page
 
     def test_a_family_still_setting_up_is_told_that_instead(self, tmp_path):
         # The example file's household is invented, so nothing is being
@@ -340,5 +340,5 @@ class TestTheWaitingScreen:
                         '    invented: true\n')
         page = client_for(create_app(FileStore(path))).get("/").get_data(as_text=True)
         assert "Nearly there" in page
-        assert "first board" not in page.split("Nearly there")[0]
+        assert "first dashboard" not in page.split("Nearly there")[0]
         assert "Writing" not in page

@@ -33,7 +33,7 @@ A_SCREEN_TARGET = re.compile(SCREEN_PREFIX + r".*", re.IGNORECASE | re.DOTALL)
 SCREEN_REDACTED = r"\1[redacted]"
 
 SAME_ANSWER = ("A link is on its way. It works once, and for fifteen minutes. "
-               "If you have not got a board yet, the link starts one.")
+               "If you have not got a dashboard yet, the link starts one.")
 
 DEAD_LINK = ("That link no longer works — it has either been used already or "
              "expired. Ask for a new one.")
@@ -42,7 +42,7 @@ MOST_PER_IP = 20
 PER_SECONDS = 3600
 
 SUBJECT = "Your DinkyDash sign-in link"
-WELCOME_SUBJECT = "Start your DinkyDash board"
+WELCOME_SUBJECT = "Start your DinkyDash dashboard"
 
 _warned_about_anonymous = False
 
@@ -211,14 +211,14 @@ def _text(link, new_family=False):
 
     **The difference is safe.** What the page says back is identical either
     way; this only differs in a mailbox, and whoever opens that mailbox knows
-    whether they already had a board. Telling a new parent that the link starts
+    whether they already had a dashboard. Telling a new parent that the link starts
     one is the difference between finishing the sign-up and abandoning it.
     """
     if new_family:
         return f"""\
 Welcome to DinkyDash.
 
-Open this link and your board is ready — people, chores and countdowns are
+Open this link and your dashboard is ready — people, chores and countdowns are
 already filled in with an invented family for you to replace:
 
 {link}
@@ -251,9 +251,9 @@ def _html(link, new_family=False):
     if new_family:
         return f"""\
 <p>Welcome to DinkyDash.</p>
-<p>Open this link and your board is ready — people, chores and countdowns are
+<p>Open this link and your dashboard is ready — people, chores and countdowns are
 already filled in with an invented family for you to replace:</p>
-<p><a href="{link}">Start my board</a></p>
+<p><a href="{link}">Start my dashboard</a></p>
 <p>The link works once, and for fifteen minutes.</p>
 <p>If you did not ask for this, you can ignore it. Nothing has been created,
 and the link stops working on its own.</p>

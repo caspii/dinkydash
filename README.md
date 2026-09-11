@@ -4,7 +4,7 @@
 
 The digital family calendar for screens you already own — a TV, an old tablet, or a Raspberry Pi.
 
-![The DinkyDash board: today's agenda, whose turn each chore is, and the countdowns](screenshot.png)
+![The DinkyDash dashboard: today's agenda, whose turn each chore is, and the countdowns](screenshot.png)
 
 Website: [dinkydash.co](https://dinkydash.co)
 
@@ -18,7 +18,7 @@ Every morning, DinkyDash merges your calendars into one agenda, works out whose 
 
 **Hosted.** [Start a free 14-day trial.](https://app.dinkydash.co/login) No card required. Paid subscriptions are still in development; planned pricing is $39/year or $6/month. Built from this same repo — see [PLAN.md](PLAN.md).
 
-## What the board shows
+## What the dashboard shows
 
 - Today's agenda, in time order, merged from as many Google, Apple iCloud and Outlook
   calendars as you like — anything with an iCal link, pasted in, no account sign-in
@@ -43,18 +43,18 @@ the same file, and the UI keeps your comments.
                                      → saves dashboard_data.json
 
 [browser]       → web/routes/board.py → recomputes chores, countdowns and today's agenda
-                                      → renders the board
+                                      → renders the dashboard
 ```
 
 Only the headline and the written line come from the model. Ages, countdowns, chore turns and the
 agenda are recomputed on every render, so if a morning's run fails the times and turns on the wall
-are still today's — the board just labels the written line as older.
+are still today's — the dashboard just labels the written line as older.
 
 ---
 
 ## Quickstart
 
-You can see the real board in about two minutes, with no API key and nothing to pay for.
+You can see the real dashboard in about two minutes, with no API key and nothing to pay for.
 
 ```bash
 git clone https://github.com/caspii/dinkydash.git
@@ -62,11 +62,11 @@ cd dinkydash
 python3 -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
 cp config.example.yaml config.yaml    # edit by hand, or from /settings once it runs
-python sample_board.py                # a board for today; calls no API, costs nothing
+python sample_board.py                # a dashboard for today; calls no API, costs nothing
 python app.py
 ```
 
-- http://localhost:5000 — the board
+- http://localhost:5000 — the dashboard
 - http://localhost:5000/settings — configure it from a phone
 - http://localhost:5000/preview — Pi, TV and tablet sizes side by side
 
@@ -78,7 +78,7 @@ are canned until you add an Anthropic API key.
 the API key step, where to find your calendar's iCal link for Google, iCloud and Outlook, and
 the whole Raspberry Pi build with systemd, kiosk mode and the screen schedule.
 
-> **There is no login.** The board and the settings UI are both served without authentication, so
+> **There is no login.** The dashboard and the settings UI are both served without authentication, so
 > anyone who can reach the port can read your family's agenda and rewrite `config.yaml` — names,
 > birthdays, and every calendar link in it.
 >
@@ -104,6 +104,7 @@ the whole Raspberry Pi build with systemd, kiosk mode and the screen schedule.
 | Coming from an older version | [`doc/upgrading.md`](doc/upgrading.md) |
 | The hosted build: architecture, phases, decisions | [`PLAN.md`](PLAN.md) |
 | Working on the code | [`CLAUDE.md`](CLAUDE.md) |
+| Product terms and UI wording | [`doc/terminology.md`](doc/terminology.md) |
 
 The install and Pi guides live on the website rather than here, so there is one copy of each
 to keep right.
@@ -124,7 +125,7 @@ python -m pytest tests/ -q
 ```
 
 368 tests, well under a second. They cover leap years, timezone conversion, event ordering, chore
-rotation, the stale-board logic, the config round-trip, and the settings routes that write it.
+rotation, the stale-dashboard logic, the config round-trip, and the settings routes that write it.
 
 GitHub Actions runs the same command on every push and pull request, on Python 3.11
 (`.github/workflows/test.yml`), alongside a [gitleaks](https://github.com/gitleaks/gitleaks) scan of
@@ -138,20 +139,20 @@ versions CI passed on. A pull request that fails either check shows a red X.
 | `dinkydash/` | The engine. Pure functions plus the model call — no clock, no file reads |
 | `dinkydash/context.py` | Ages, birthdays, countdowns, chore rotation |
 | `dinkydash/calendars.py` | iCal fetch, parse, recurrence, merging feeds |
-| `dinkydash/board.py` | Turns config + payload into what the board renders |
+| `dinkydash/board.py` | Turns config + payload into what the dashboard renders |
 | `dinkydash/runner.py` | The two halves of the cycle: `refresh_calendars` and `write_brief` |
 | `dinkydash/schedule.py` | `due()` — which of the two the clock and the config owe right now |
-| `dinkydash/store.py` | Where the config, the board and the note history are kept |
+| `dinkydash/store.py` | Where the config, the dashboard and the note history are kept |
 | `migrations/` | The hosted schema, plain SQL. Self-hosting needs none of it |
-| `web/` | Flask app — board, settings UI, templates |
-| `web/templates/board.html` | The board itself, light and dark, all screen sizes |
+| `web/` | Flask app — dashboard, settings UI, templates |
+| `web/templates/board.html` | The dashboard itself, light and dark, all screen sizes |
 | `generate.py` | Command-line skin over `dinkydash.runner` — this is what cron calls |
 | `app.py` | Flask entry point |
 | `config.yaml` | All configuration. The settings UI writes this same file |
 | `config.example.yaml` | Template config, documenting every key |
 | `tests/` | 368 tests. Run them before committing |
 | `doc/` | Running it day to day, and upgrading from an older version |
-| `design/` | Mockups for the board and settings UI, with the reasoning |
+| `design/` | Mockups for the dashboard and settings UI, with the reasoning |
 | `deploy_to_pi.sh` | Deployment (rsync + service restart) |
 | `.env` | `ANTHROPIC_API_KEY` (not in git) |
 | `.env.example` | The template for it — copy to `.env` |

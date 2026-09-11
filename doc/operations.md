@@ -76,7 +76,7 @@ way. The connection strings are plain `SECRET` env vars instead.
 ## The deploy, 8 September 2026
 
 `dinkydash-site` now serves both hostnames from one container, `wsgi.py` routing on the `Host`
-header. `dinkydash.co` is the marketing site; `app.dinkydash.co` is the board, reading from
+header. `dinkydash.co` is the marketing site; `app.dinkydash.co` is the dashboard, reading from
 Postgres in cloud mode. Both verified live over TLS, and the `PRE_DEPLOY` migration job reported
 `Schema is up to date`.
 
@@ -109,7 +109,7 @@ deploy. The worker was held out of the first apply for exactly that reason, beca
 from `main` and the code was still on a branch.
 
 **The worker has been running since 8 September 2026, 10:58 UTC.** Its first pass refreshed the
-seeded family's (empty) calendars, called Claude, and wrote a board — `Tuesday with no plans means
+seeded family's (empty) calendars, called Claude, and wrote a dashboard — `Tuesday with no plans means
 extra time together`, visible on app.dinkydash.co within seconds. A pass every 300 seconds after
 that. There is no dead-man's switch yet (PLAN.md Phase 6), so a worker that stops looks exactly
 like a quiet day: `doctl apps logs <id> worker --type run --follow` is the only check there is.
@@ -242,9 +242,9 @@ own, which is why the two guessed fallbacks that used to be in `healthz` never f
 
 ## The screen, 8 September 2026 (DIN-42)
 
-**The board is reachable on a wall.** `/s/<token>` serves it with no session, `/settings/screen`
+**The dashboard is reachable on a wall.** `/s/<token>` serves it with no session, `/settings/screen`
 shows the link and a QR of it, and the same page rotates the token. In cloud mode `/` is now a
-redirect — signed in to `/settings/`, signed out to `/login` — so the board is *only* at the screen
+redirect — signed in to `/settings/`, signed out to `/login` — so the dashboard is *only* at the screen
 URL.
 
 **No spec change and no `doctl apps update` for this one.** `segno` is a new dependency but it is in
@@ -297,7 +297,7 @@ DINKYDASH_GLOBAL_CALL_FLOOR=0
 DINKYDASH_GLOBAL_CALLS_PER_FAMILY=0
 ```
 
-Every call is refused, every board on every wall stays exactly as it is, and calendars keep
+Every call is refused, every dashboard on every wall stays exactly as it is, and calendars keep
 refreshing — the refresh costs requests rather than money and is deliberately outside the budget.
 Set it in the App Platform dashboard for immediate effect, then **put the same value in
 `.do/app.yaml` the same day**: the spec is the whole app, so the next `doctl apps update` undoes a
@@ -509,7 +509,7 @@ due" is at DEBUG precisely because it is the answer to roughly 260 of the day's 
 that overruns its slot makes the next one skip rather than double up, so the interval is a floor and
 never a guarantee. The old
 `0 6 * * * generate.py` line still works and does both halves at once; use one or the other, not
-both. A failed run leaves the previous board in place rather than blanking the screen, the board
+both. A failed run leaves the previous dashboard in place rather than blanking the screen, the dashboard
 labels itself stale, and the next tick tries again.
 
 
@@ -607,7 +607,7 @@ it overengineering; Sentry does both halves. #108 is closed; the `db.ready` piec
   add pay-as-you-go budget; a code change is not involved.
 - **A failed build or deploy** is App Platform's own `DEPLOYMENT_FAILED` alert, now in
   `.do/app.yaml` and applied. `db.ready` is what makes a wrong `DATABASE_URL` one of those rather
-  than a live deploy that 500s every board.
+  than a live deploy that 500s every dashboard.
 - **Alerting inside Sentry** is the project's default rule, *Send a notification for high priority
   issues* (id 3975564, created with the project on 10 September). Error events at ERROR level,
   missed cron check-ins and uptime failures are all high priority, so one rule covers the three.
@@ -655,5 +655,5 @@ in the UI** — Crons → `worker-pass` → the `drill` row's menu. Until then i
 monitor page; it never stands in for `production`, which is its own environment with its own
 issue.
 
-**Not done here.** Frontend error capture (DIN-35's third leg): the board and the settings pages
+**Not done here.** Frontend error capture (DIN-35's third leg): the dashboard and the settings pages
 make no third-party request by design, and a first-party reporting path is separate work.

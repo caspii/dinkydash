@@ -104,7 +104,7 @@ def test_real_worker_tick_logs_metadata_without_generated_text(generated_store, 
     with caplog.at_level(logging.INFO):
         assert tick_all(FakePool(["family"]), store_factory=lambda _: generated_store,
                         budget_factory=FakeBudget).ticked == 1
-    assert "Board written for" in caplog.text
+    assert "Dashboard written for" in caplog.text
     assert "123 tokens in, 45 out" in caplog.text
     assert "Private headline marker" not in caplog.text
     assert "Private note marker" not in caplog.text

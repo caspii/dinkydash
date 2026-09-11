@@ -40,8 +40,8 @@ One account is one family. Accounts are for adults.
 
 ## The screen link
 
-Your board is served at an unguessable URL so that a screen on a wall can show
-it without anybody signing in. **Anyone who has that link can see your board.**
+Your dashboard is served at an unguessable URL so that a screen on a wall can show
+it without anybody signing in. **Anyone who has that link can see your dashboard.**
 That is the trade that makes a wall panel possible.
 
 You can change the link at any time from your settings page, which immediately
@@ -50,7 +50,7 @@ stops the old one working. If you share a screenshot, crop it out.
 ## What you may not do
 
 - Put anything unlawful on it, or use it to harass, impersonate or abuse anyone
-- Try to reach another family's board, account or data
+- Try to reach another family's dashboard, account or data
 - Script, scrape or automate the service beyond ordinary use, or try to work
   around the limits that stop one account spending our money
 - Resell the hosted service, or present it as your own
@@ -68,7 +68,7 @@ is collected. When it arrives, this section will say who processes it and these
 terms will be updated before it takes effect.
 
 When your trial or subscription ends, calendar fetches and new written briefs
-stop. The screen keeps the last saved board with an ended-access message for
+stop. The screen keeps the last saved dashboard with an ended-access message for
 30 days, then shows only the message. You can still sign in to manage, export
 or delete your data.
 
@@ -84,7 +84,7 @@ days' notice and the unused part of anything paid back.
 
 **We may stop offering the hosted service.** If that happens you will get
 reasonable notice and your data in a portable form. The code is open source, so
-the board itself can keep running on your own machine.
+the dashboard itself can keep running on your own machine.
 
 ## What we do not promise
 

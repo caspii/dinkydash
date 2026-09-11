@@ -22,7 +22,7 @@ Cloud mode is HTTPS only and sets it.
 **CSRF is on in both modes**, and that is deliberate. Self-hosted has no
 accounts, but it does sit on a home network with a guessable address: a page
 in another tab can POST to `http://raspberrypi.local:5123/settings/...` and
-edit somebody's board. It costs a hidden field, and running the same code in
+edit somebody's dashboard. It costs a hidden field, and running the same code in
 both modes is what stops it being a check nobody exercises.
 """
 
@@ -44,7 +44,7 @@ CSRF_FIELD = "csrf_token"
 # Everything that must not change anything. RFC 9110's safe methods.
 SAFE_METHODS = frozenset({"GET", "HEAD", "OPTIONS", "TRACE"})
 
-# How long a sign-in lasts. A board on a wall is furniture and its owner should
+# How long a sign-in lasts. A dashboard on a wall is furniture and its owner should
 # not be signed out of the settings for it every fortnight.
 SESSION_LIFETIME = timedelta(days=30)
 
@@ -120,7 +120,7 @@ def guard():
     """Cloud mode: no session, no family. Returns a redirect, or None.
 
     Authentication and authorisation are the same act here, because the session
-    is not merely permission to see a board — it *is* which board. The family
+    is not merely permission to see a dashboard — it *is* which dashboard. The family
     on it is the only thing `web/family.py` will build a store from (DIN-39).
 
     No `next` parameter. A redirect target taken from a URL is an open redirect

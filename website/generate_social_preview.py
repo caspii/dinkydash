@@ -2,7 +2,7 @@
 """Generator for the repository's social preview card (GitHub, Slack, Reddit).
 
 Run by hand, not by the site — the output is committed, so serving needs no
-browser. Re-run this only if the card's wording, the palette or the board image
+browser. Re-run this only if the card's wording, the palette or the dashboard image
 changes:
 
     python3 generate_social_preview.py     # requires Pillow and Google Chrome
@@ -24,19 +24,19 @@ which is that 40pt at 2x.
 WHY A CARD AND NOT A PHOTOGRAPH. The preview that was set before this was
 `og-hero.jpg` — a kitchen with an abstract panel on the wall. It is a nice
 photograph of a room and it says nothing: no name, no product, and the panel is
-not even the board. This card names the thing, says what it is, and shows the
-real board, in that order of size, because that is the order a stranger reads
+not even the dashboard. This card names the thing, says what it is, and shows the
+real dashboard, in that order of size, because that is the order a stranger reads
 them in.
 
-The board shown is `images/family-dashboard-board.webp`, the marketing site's
-own board image, rather than the README's `screenshot.png`. Same dimensions and
+The dashboard shown is `images/family-dashboard-board.webp`, the marketing site's
+own dashboard image, rather than the README's `screenshot.png`. Same dimensions and
 same layout; it simply has a fuller day on it and a family name that reads like
 a family's — "THE WILSONS" rather than the default config's "OUR FAMILY". Using
 the site's image also means the card and the shop window show the same day.
 
 WHY IT IS DRAWN IN A BROWSER. Nunito ships here as woff2 only, which Pillow
 cannot read; Chrome can. Rendering the card as HTML also means the palette is
-the same set of hex values the board and the site already use, copied from one
+the same set of hex values the dashboard and the site already use, copied from one
 place, rather than a second set maintained in an image editor.
 
 Two headless-Chrome traps, both documented in ../CLAUDE.md and both avoided
@@ -85,7 +85,7 @@ CHROME = os.environ.get(
 INK = '#2d2319'          # --text
 MID = '#5c4a3a'          # --text-mid
 CREAM = '#fffaf5'        # site --bg
-BEZEL = '#17120f'        # the board's dark-theme --bg, used as a panel frame
+BEZEL = '#17120f'        # the dashboard's dark-theme --bg, used as a panel frame
 ORANGE = '#e85d24'       # --accent
 PURPLE = '#7c5cbf'
 GREEN = '#16a34a'
@@ -93,8 +93,8 @@ BLUE = '#3b82f6'
 
 # The four dots of the mark, in the mark's own order — orange top-left, purple
 # top-right, green bottom-left, blue bottom-right — against the four things the
-# board puts on the wall. The legend is laid out as a 2x2 grid for the same
-# reason: at the size this card is usually seen, the board is an illegible
+# dashboard puts on the wall. The legend is laid out as a 2x2 grid for the same
+# reason: at the size this card is usually seen, the dashboard is an illegible
 # rectangle, and this row of colour is what says what is in it.
 LEGEND = [
     (ORANGE, "Today's agenda"),
@@ -239,9 +239,9 @@ html, body {{ background: #ffffff; }}
 }}
 
 /* A wall panel, not a browser window: a dark frame the thickness of a real
-   bezel, and the dark used is the board's own dark-theme background. On cream
+   bezel, and the dark used is the dashboard's own dark-theme background. On cream
    it is also what gives the card a shape at thumbnail size, where a white
-   board on a cream card would disappear. */
+   dashboard on a cream card would disappear. */
 .panel {{
     flex: none;
     margin-left: auto;
@@ -254,7 +254,7 @@ html, body {{ background: #ffffff; }}
 .panel img {{
     display: block;
     width: 600px;
-    height: 360px;   /* 5:3, the 800x480 panel the board is drawn for */
+    height: 360px;   /* 5:3, the 800x480 panel the dashboard is drawn for */
     border-radius: 8px;
 }}
 </style>
@@ -342,7 +342,7 @@ def render(html):
         )
         # Chrome writes the screenshot and then does not exit — it sits there
         # until something kills it, the same way `--screenshot` hangs on the
-        # board's meta refresh. Waiting on the process is therefore waiting for
+        # dashboard's meta refresh. Waiting on the process is therefore waiting for
         # a timeout; wait for the file instead, and let it settle in case the
         # write is still in flight.
         _wait_for(shot, chrome)

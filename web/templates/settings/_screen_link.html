@@ -1,4 +1,4 @@
-{# Where the board is: the link, and hosted a QR code of it. Shared by the
+{# Where the dashboard is: the link, and hosted a QR code of it. Shared by the
    screen page and the last step of the set-up checklist, so the credential
    is drawn in exactly one place.
 
@@ -82,7 +82,7 @@
             if (navigator.share && (!navigator.canShare || navigator.canShare({url: address}))) {
                 share.hidden = false;
                 share.addEventListener('click', function () {
-                    navigator.share({title: 'DinkyDash board', url: address}).catch(function () {});
+                    navigator.share({title: 'DinkyDash dashboard', url: address}).catch(function () {});
                 });
             }
             box.querySelector('.screen-actions').hidden = false;

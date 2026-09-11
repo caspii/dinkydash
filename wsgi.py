@@ -2,7 +2,7 @@
 
     gunicorn "wsgi:application"
 
-`dinkydash.co` is the marketing site; `app.dinkydash.co` is the board and the
+`dinkydash.co` is the marketing site; `app.dinkydash.co` is the dashboard and the
 settings UI. They are separate Flask apps and stay that way — `website/site.py`
 explains why, and both of them want to own `/`. What this module adds is the
 one thing that lets them share a container: a look at the `Host` header, above
@@ -18,7 +18,7 @@ no others still holds: neither app below knows this file exists, neither one
 checks a hostname, and single mode never loads it. `app.py` is untouched and is
 still what a Pi runs.
 
-**Unknown hostnames get the site, never the board.** App Platform always hands
+**Unknown hostnames get the site, never the dashboard.** App Platform always hands
 out an `.ondigitalocean.app` name whatever custom domains are configured, and
 its health check uses it — so an unknown host has to answer, or a deploy rolls
 itself back. Sending it to the site is also the safer of the two: the site
@@ -32,7 +32,7 @@ from web import CLOUD, mode
 
 
 def dispatch(site_app, board_app, board_host):
-    """Route by hostname: `board_host` gets the board, everything else the site.
+    """Route by hostname: `board_host` gets the dashboard, everything else the site.
 
     Both apps are WSGI callables, so this is a WSGI callable too and gunicorn
     cannot tell the difference.
@@ -63,10 +63,10 @@ def _normalise(host):
 
 
 def _board_host():
-    """The hostname the board answers on. Required, and only in cloud mode.
+    """The hostname the dashboard answers on. Required, and only in cloud mode.
 
     Defaulting this would be the wrong kind of helpful. A typo in the app spec
-    would leave the board silently unreachable while the marketing site served
+    would leave the dashboard silently unreachable while the marketing site served
     every request with a 404 — a failure that looks like a routing bug for as
     long as it takes somebody to think of the header.
     """

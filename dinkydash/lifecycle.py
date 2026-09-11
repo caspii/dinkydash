@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from .claude_client import GenerationError
 
 FROZEN_BOARD_PERIOD = timedelta(days=30)
-ENDED_MESSAGE = "Your trial or subscription has ended. Board updates are paused."
+ENDED_MESSAGE = "Your trial or subscription has ended. Dashboard updates are paused."
 
 
 @dataclass(frozen=True)

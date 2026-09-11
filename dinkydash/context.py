@@ -1,7 +1,7 @@
 """Deterministic context: ages, birthdays, countdowns, chore rotation.
 
 Nothing here calls the network or the model. Everything is a pure function of
-the config plus the date you pass in, which is why the board can recompute it
+the config plus the date you pass in, which is why the dashboard can recompute it
 at render time even when the day's generated text is stale.
 """
 
@@ -85,7 +85,7 @@ def compute_chore_assignments(recurring, today):
     """Whose turn each recurring job is on `today`.
 
     Rotation is by day-of-year modulo the number of people, so it keeps in step
-    whether or not the board was switched on yesterday.
+    whether or not the dashboard was switched on yesterday.
     """
     day_of_year = today.timetuple().tm_yday
     assignments = []

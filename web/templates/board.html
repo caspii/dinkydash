@@ -17,8 +17,8 @@
     <meta http-equiv="refresh" content="{{ view.reload_seconds }}">
     <link rel="icon" href="{{ static_url('favicon.svg') }}" type="image/svg+xml">
     <!-- On a tablet used as the panel, saving this to the home screen gives a
-         full-screen board with no browser around it. -->
-    {# Which manifest depends on how this board was reached: the signed-in view
+         full-screen dashboard with no browser around it. -->
+    {# Which manifest depends on how this dashboard was reached: the signed-in view
    has one behind the session, a wall panel needs the token-scoped one, or
    "save to home screen" gets a redirect to /login instead of a name. #}
 <link rel="manifest" href="{{ manifest_url }}">
@@ -267,19 +267,19 @@
 <div class="waiting">
     <div class="family">DinkyDash</div>
     <div class="waiting-head">Your trial or subscription has ended</div>
-    <div class="waiting-sub">Board updates are paused. Open your settings on a phone or computer to manage your account.</div>
+    <div class="waiting-sub">Dashboard updates are paused. Open your settings on a phone or computer to manage your account.</div>
 </div>
 
 {% elif view.state == 'waiting' and view.set_up %}
 <div class="waiting">
     <div class="family">DinkyDash</div>
-    <div class="waiting-head">Writing {{ view.family_name or "your" }}{{ "'s" if view.family_name else "" }} first board&hellip;</div>
+    <div class="waiting-head">Writing {{ view.family_name or "your" }}{{ "'s" if view.family_name else "" }} first dashboard&hellip;</div>
     <div class="bar"><span></span></div>
     {# Keep the button name in sync with settings/home.html. #}
     <div class="waiting-sub">
         The next run writes it, usually within a few minutes, and this page fills
         itself in. To have it now, open the settings page and press
-        &ldquo;Write the first board&rdquo;.
+        &ldquo;Write the first dashboard&rdquo;.
     </div>
 </div>
 
@@ -293,7 +293,7 @@
     <div class="waiting-head">Nearly there</div>
     <div class="waiting-sub">
         Finish the set-up steps on the settings page, and this screen fills
-        itself in as soon as the first board is written.
+        itself in as soon as the first dashboard is written.
     </div>
 </div>
 
@@ -301,7 +301,7 @@
 
 {% if view.state == 'frozen' %}
 <div class="banner">
-    Your trial or subscription has ended. Showing the last saved board; its dates and turns are paused.
+    Your trial or subscription has ended. Showing the last saved dashboard; its dates and turns are paused.
 </div>
 {% elif view.stale %}
 <div class="banner">

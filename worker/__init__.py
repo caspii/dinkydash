@@ -52,7 +52,7 @@ class Stopping:
 
     App Platform sends SIGTERM before it replaces a container. Finishing the
     family in hand and then stopping is the difference between a redeploy that
-    is invisible and one that leaves a half-written board — the brief has been
+    is invisible and one that leaves a half-written dashboard — the brief has been
     paid for by the time it is written, so being killed between the API call
     and the save is the expensive way to lose.
     """
@@ -78,7 +78,7 @@ def family_ids(pool):
     query lives outside the store rather than weakening it.
 
     Lapsed families are skipped. PLAN.md's freeze behaviour is that fetches and
-    briefs stop while the board keeps its last good state, and that is exactly
+    briefs stop while the dashboard keeps its last good state, and that is exactly
     "the worker does not tick them".
     """
     with pool.connection() as conn, conn.cursor() as cur:
@@ -104,7 +104,7 @@ def tick_all(pool, store_factory=None, tick=None, stopping=None,
     rather than inside the tick for the same reason the store is: this is the
     only place that knows both the pool and which family. A refusal is an
     ordinary `GenerationError` inside `tick`, so it is already handled — the
-    board on the wall stays, and the next pass asks again.
+    dashboard on the wall stays, and the next pass asks again.
     """
     from dinkydash.pgstore import PostgresStore
     store_factory = store_factory or (lambda fid: PostgresStore(pool, fid))
@@ -148,7 +148,7 @@ def run_pass(pool, stopping=None, check_in=None):
     tick raised is *inside* the pass and is counted in `failed`; the pass
     still finished, and the failure is a Sentry event of its own.
 
-    A check-in that cannot be sent is logged and otherwise ignored. The boards
+    A check-in that cannot be sent is logged and otherwise ignored. The dashboards
     were written; a pulse that stops the worker is a pulse that kills the
     patient.
 
@@ -198,7 +198,7 @@ def sweep_logins(pool):
     happens to arrive at the wrong moment.
 
     Never raises. A table of dead hashes growing for five more minutes is not
-    worth a pass of unwritten boards, and the next pass tries again — which is
+    worth a pass of unwritten dashboards, and the next pass tries again — which is
     how the whole tick handles failure already.
     """
     from dinkydash import accounts

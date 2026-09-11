@@ -119,7 +119,7 @@ class TestRefreshCalendars:
         assert seen[0]["days_ahead"] == 14
 
     def test_it_leaves_the_brief_alone(self, home, store, config, monkeypatch):
-        # The state the board labels amber: today's times under yesterday's words.
+        # The state the dashboard labels amber: today's times under yesterday's words.
         write_stored(home, {
             "generated_for_date": "2026-09-02", "generated_at": "2026-09-02T04:00:00+00:00",
             "headline": "Yesterday's headline", "note": "Yesterday's note",
@@ -160,7 +160,7 @@ class TestRefreshCalendars:
     def test_a_healthy_feed_that_dropped_an_event_really_drops_it(self, home, store,
                                                                   config, monkeypatch):
         # Nothing stale is kept for a feed that answered, or a deleted
-        # appointment would live on the board for ever.
+        # appointment would live on the dashboard for ever.
         write_stored(home, {"events": EVENTS + SCHOOL})
         monkeypatch.setattr(runner, "fetch_events", fake_fetch(SCHOOL, MIXED_STATUS))
         runner.refresh_calendars(config, store, now=NOW)
@@ -396,7 +396,7 @@ class TestTick:
         assert payload["events"] == EVENTS
 
     def test_the_next_tick_after_it_is_quiet_again(self, home, monkeypatch):
-        """The exception is for the first board only, not a standing licence.
+        """The exception is for the first dashboard only, not a standing licence.
 
         Five minutes after the tick above, with the brief written and the
         calendars just fetched, nothing may be owed — or a family who signed

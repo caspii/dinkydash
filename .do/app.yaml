@@ -51,7 +51,7 @@
 # installs what `build_command` says (DIN-30, reversed).
 #
 # One service serves both hostnames. `wsgi.py` routes on the `Host` header —
-# dinkydash.co to the marketing site, app.dinkydash.co to the board — because
+# dinkydash.co to the marketing site, app.dinkydash.co to the dashboard — because
 # qrpage.co and abc-league already run one container each in this account and a
 # second service is $5/month for isolation with no revenue behind it yet. See
 # PLAN.md, Hosting and deployment.
@@ -68,7 +68,7 @@ domains:
     type: PRIMARY
   - domain: www.dinkydash.co
     type: ALIAS
-  # The board. DNS-only in Cloudflare: a proxied CNAME answers as Cloudflare
+  # The dashboard. DNS-only in Cloudflare: a proxied CNAME answers as Cloudflare
   # and App Platform's certificate never issues.
   #
   # A response from here still carries a `cf-ray`, and that is **not** evidence
@@ -84,8 +84,8 @@ envs:
   - key: DINKYDASH_MODE
     scope: RUN_TIME
     value: cloud
-  # Which hostname wsgi.py hands to the board. Not defaulted in code: a typo
-  # here would leave the board silently unreachable behind a 404 from the
+  # Which hostname wsgi.py hands to the dashboard. Not defaulted in code: a typo
+  # here would leave the dashboard silently unreachable behind a 404 from the
   # marketing site, so it refuses to start instead.
   - key: DINKYDASH_APP_HOST
     scope: RUN_TIME
@@ -144,7 +144,7 @@ envs:
   # emergency change made there belongs here as well, the same day.
   #
   # `0` everywhere is the brake. It refuses every model call and leaves every
-  # board exactly as it is, which is the right shape for "stop the bill now".
+  # dashboard exactly as it is, which is the right shape for "stop the bill now".
   - key: DINKYDASH_FAMILY_CALLS_A_DAY
     scope: RUN_TIME
     value: "12"

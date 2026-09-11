@@ -64,7 +64,7 @@ Pi](/raspberry-pi-family-calendar/) the tidiest, and a [smart TV](/smart-tv-cale
 or [Fire TV](/fire-tv-calendar-display/) will show it on the big screen. There is one device it
 does not work on, and [the Echo Show page](/echo-show-calendar-display/) says why.
 
-![The DinkyDash board on a kitchen wall, showing today's events, chores and countdowns](/images/family-calendar-kitchen-wall.webp)
+![The DinkyDash dashboard on a kitchen wall, showing today's events, chores and countdowns](/images/family-calendar-kitchen-wall.webp)
 
 Point it at Cozi:
 
@@ -74,7 +74,7 @@ Point it at Cozi:
    so you know it works before you save.
 4. Repeat for each family member's feed you shared.
 
-![Adding a calendar in DinkyDash's settings: a name, the iCal link, and a Check this link button](/images/settings-add-calendar.webp)
+![Adding a calendar in DinkyDash's settings: a name, the iCal link, and a Test calendar link button](/images/settings-add-calendar.webp)
 
 Everything stays where it is. You keep adding events in Cozi on your phone, because the feed
 is read-only and a display cannot write back to it. The screen just shows what Cozi already
@@ -110,7 +110,7 @@ Nothing, if you have a spare screen. DinkyDash is MIT-licensed and free to run y
   panel. The [Raspberry Pi build guide](/raspberry-pi-family-calendar/) has the parts list.
 
 There is no subscription for the self-hosted version. The one running cost is the AI daily
-line, which is a Claude API call once a day — roughly $0.13 a month — and the board works
+line, which is a Claude API call once a day — roughly $0.13 a month — and the dashboard works
 without it.
 
 Compare that with a dedicated display: a Skylight Calendar is $299.99 to $599.99 plus an
@@ -132,7 +132,7 @@ all merge into a single agenda on the screen:
 
 ## Start here
 
-The [setup guide](/getting-started/) walks the whole thing: run the board on your own computer
+The [setup guide](/getting-started/) walks the whole thing: run the dashboard on your own computer
 first, see your own family on it, then move it onto the screen that stays on the wall. Budget
 an evening for the Raspberry Pi version; a spare tablet takes about ten minutes.
 

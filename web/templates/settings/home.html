@@ -19,30 +19,34 @@
     .step .row-sub { white-space: normal; }
     /* The one-tap offer sits under its row, indented to the text. */
     .step-offer { padding: 0 0.875rem 0.875rem 3.5625rem; }
+    .dashboard-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.625rem; }
+    @media (max-width: 26rem) {
+        .dashboard-actions { grid-template-columns: 1fr; }
+    }
 </style>
 {% endblock %}
 
 {% block appbar %}
 <h1 style="padding-left:0.25rem;color:var(--accent);font-size:1.15rem;">DinkyDash</h1>
-{# The board link is "View board" by another name, so it waits with it and
+{# The dashboard link is "View dashboard" by another name, so it waits with it and
    opens its own tab for the same reason — see the button. #}
-{% if not setting_up %}<a class="action muted" href="{{ board_link }}" target="_blank" rel="noopener">Board</a>{% endif %}
+{% if not setting_up %}<a class="action muted" href="{{ board_link }}" target="_blank" rel="noopener">Dashboard</a>{% endif %}
 {% endblock %}
 
 {% block content %}
 {% if setting_up %}
-{# **The checklist.** Shown until the family is set up and its first board is
+{# **The checklist.** Shown until the family is set up and its first dashboard is
    written, in place of the daily controls — "Refresh calendars" with no
-   calendar, "View board" on an invented household and "Write it now" about
+   calendar, "View dashboard" on an invented household and "Write it now" about
    the same are the three buttons a new parent used to be met with. Every
    step's "done" is read off the config by `web/setup.py`, and the engine
    asks the same question (`config.is_set_up`) before writing anything, so
    the page and the tick cannot disagree. Nothing to dismiss and nothing
    remembered: it leaves on its own. #}
 <div class="card pad" style="display:flex;flex-direction:column;gap:0.1875rem;">
-    <div style="font-size:1.125rem;font-weight:800;">Set up your board</div>
+    <div style="font-size:1.125rem;font-weight:800;">Set up your dashboard</div>
     <div class="hint">
-        Three steps, then a screen to put it on. The board writes itself as soon as
+        Three steps, then a screen to put it on. The dashboard writes itself as soon as
         the first two are done.
     </div>
 </div>
@@ -83,7 +87,7 @@
 </div>
 
 {% if screen %}
-{# Steps one and two are done: a board written now would be theirs. The link,
+{# Steps one and two are done: a dashboard written now would be theirs. The link,
    and the button that writes it without waiting for the worker's next pass. #}
 <div class="card pad" style="display:flex;flex-direction:column;gap:0.875rem;">
     {% with screen_link = screen.link, screen_qr = screen.qr %}
@@ -91,14 +95,14 @@
     {% endwith %}
     {% if cloud %}
     <div class="hint">
-        <strong>Anyone with this link can see your board.</strong> There is no password on it, which
+        <strong>Anyone with this link can see your dashboard.</strong> There is no password on it, which
         is what lets a screen show it without signing in. You can change it later under The screen.
     </div>
     {% endif %}
     <form class="inline-form" method="post" action="{{ url_for('settings.generate_now') }}">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         {# Keep this label in sync with the waiting screen in board.html. #}
-        <button class="btn" type="submit">Write the first board</button>
+        <button class="btn" type="submit">Write the first dashboard</button>
     </form>
     <div class="hint">
         It writes itself within a few minutes anyway; this is the shortcut. Everything above can
@@ -110,7 +114,7 @@
 {% else %}
 <div class="card pad" style="display:flex;flex-direction:column;gap:0.875rem;">
     <div>
-        <div style="font-size:1.125rem;font-weight:800;">{{ config.family_name or "Your board" }}</div>
+        <div style="font-size:1.125rem;font-weight:800;">{{ config.family_name or "Your dashboard" }}</div>
         <div style="display:flex;align-items:center;gap:0.4375rem;margin-top:0.1875rem;">
             <span class="dot {{ status.state }}"></span>
             <span style="font-size:0.8125rem;color:var(--text-mid);">{{ status.detail }}</span>
@@ -129,18 +133,18 @@
            something to do. #}
         <a class="btn" href="{{ url_for('settings.section_edit', section_name='calendars', item_id='new') }}">{{ icons.plus() }} Add a calendar</a>
         {% endif %}
-        <div style="display:flex;gap:0.625rem;">
-            {# **The board opens in its own tab, on purpose.** It is the wall
+        <div class="dashboard-actions">
+            {# **The dashboard opens in its own tab, on purpose.** It is the wall
                panel: full screen, no link out, reloading itself for years.
                Opened in this tab from a settings page saved to a phone's home
                screen it was a dead end — a saved web app has no address bar
                and, on an iPhone, no Back button, so the way out was to
-               force-quit the app. Its own tab is a way back the board never
+               force-quit the app. Its own tab is a way back the dashboard never
                has to draw: a tab to close, an in-app sheet with Done on iOS,
                a custom tab with an X on Android. The panel never follows this
                link; it opens the screen URL itself. #}
-            <a class="btn outline" style="flex:1;" href="{{ board_link }}" target="_blank" rel="noopener">{{ icons.screen() }} View board</a>
-            <form class="inline-form" method="post" action="{{ url_for('settings.generate_now') }}" style="flex:1;">
+            <a class="btn outline" href="{{ board_link }}" target="_blank" rel="noopener">{{ icons.screen() }} View dashboard</a>
+            <form class="inline-form" method="post" action="{{ url_for('settings.generate_now') }}">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <button class="btn outline" type="submit" {{ 'disabled' if status.state == 'lapsed' }}>Rewrite now</button>
             </form>
@@ -149,7 +153,7 @@
         {# The link and the QR code, from the card a parent looks at for them.
            They were the ninth row down, under a title that reads like "Preview
            the screens" two rows later, and were not found there. Hosted only:
-           a self-hoster's board is at `/` on the host they are already on, and
+           a self-hoster's dashboard is at `/` on the host they are already on, and
            the Colours page says so. #}
         <a class="btn outline" href="{{ url_for('settings.screen') }}">{{ icons.link() }} Screen link &amp; QR code</a>
         {% endif %}
@@ -164,7 +168,7 @@
 {% endif %}
 
 <div>
-    <div class="label">What's on the board</div>
+    <div class="label">What's on the dashboard</div>
     <div class="card">
         <a class="row" href="{{ url_for('settings.section_list', section_name='people') }}">
             <div class="row-main">
@@ -216,7 +220,7 @@
         <a class="row" href="{{ url_for('settings.screen') }}">
             <div class="row-main">
                 <div class="row-title">{{ "The screen" if cloud else "Colours" }}</div>
-                <div class="row-sub">{{ config.theme | capitalize }}{{ " · the link and QR code for the board" if cloud }}</div>
+                <div class="row-sub">{{ config.theme | capitalize }}{{ " · the link and QR code for the dashboard" if cloud }}</div>
             </div>{{ icons.chevron() }}
         </a>
         <a class="row" href="{{ url_for('settings.refresh') }}">

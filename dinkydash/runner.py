@@ -10,7 +10,7 @@ the wall the same day (`generate.py --tick`, and `dinkydash.schedule.due`).
 meant and what the settings page's "Rewrite now" does.
 
 All three take a `store` and read and write only through it, so nothing here
-knows whether the board it is replacing is a file on a Pi or a row belonging to
+knows whether the dashboard it is replacing is a file on a Pi or a row belonging to
 one family among thousands.
 
 **Each half writes only what it owns** — `save_agenda` or `save_brief`, never a
@@ -86,7 +86,7 @@ def _with_last_known(fresh, previous, failed_labels, start, end):
     the previous fetch reached the same fourteen days ahead — so a feed that
     fails holds its last agenda rather than emptying it. Only that feed does:
     the ones that answered are always fresh, or a single dead URL would freeze
-    the whole board for as long as nobody fixed it.
+    the whole dashboard for as long as nobody fixed it.
 
     Events are kept only inside the current window, so a permanently broken feed
     empties out as the days pass instead of accumulating a tail of past events.
@@ -113,13 +113,13 @@ def write_brief(config, store, today=None, client=None, budget=None):
     """Ask Claude for today's headline and note, and store them. Costs one call.
 
     The events come from the stored payload rather than a second fetch, so the
-    brief always describes the agenda the board is showing, and a tick that
+    brief always describes the agenda the dashboard is showing, and a tick that
     owes both does one fetch rather than two.
 
     Raises GenerationError if the model call fails **or if the budget refuses
     it** — the caller decides what to do, and the previous payload is left
-    untouched either way. That sameness is the point: a board that is too
-    expensive to rewrite and a board whose rewrite failed should both leave the
+    untouched either way. That sameness is the point: a dashboard that is too
+    expensive to rewrite and a dashboard whose rewrite failed should both leave the
     screen on the wall showing yesterday, labelled stale.
     """
     require_api_key()
@@ -158,7 +158,7 @@ def write_brief(config, store, today=None, client=None, budget=None):
         keep=max(keep, 30),
     )
     log.info(
-        "Board written for %s (%s tokens in, %s out)",
+        "Dashboard written for %s (%s tokens in, %s out)",
         today, payload.get("input_tokens"), payload.get("output_tokens"),
     )
     return payload
@@ -169,7 +169,7 @@ def run(config, store, today=None, client=None, budget=None):
 
     The refresh is deliberately outside the budget: fetching calendars costs a
     few HTTP requests to somebody else's server, not money, and a family whose
-    board cannot be rewritten today should still have an accurate agenda under
+    dashboard cannot be rewritten today should still have an accurate agenda under
     yesterday's headline.
     """
     require_api_key()  # before the fetch, so a missing key fails in a second

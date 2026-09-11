@@ -7,7 +7,7 @@ Four claims, and the first is the one the whole design turns on:
   one would let a script run up a bill with no card behind it. An unverified
   sign-up must cost exactly one `login_tokens` row and one email;
 * **the family and the parent arrive together**, in one transaction, with a
-  screen token and a config that renders a board rather than an empty page;
+  screen token and a config that renders a dashboard rather than an empty page;
 * **the sign-up page and the sign-in page are the same page**, byte for byte,
   because a separate "create an account" route publishes which addresses have
   one;
@@ -175,7 +175,7 @@ class TestClickingTheLinkStartsTheFamily:
 
     def test_the_screen_token_is_there_from_the_first_moment(
             self, client, sent, pg_pool):
-        """Never null: the board's URL is not something to add later."""
+        """Never null: the dashboard's URL is not something to add later."""
         client.post("/login", data={"email": NEWCOMER})
         client.get(link_in(sent[0]))
         token = family_of(pg_pool, NEWCOMER)["screen_token"]
@@ -218,7 +218,7 @@ class TestClickingTheLinkStartsTheFamily:
 class TestTheStartingConfig:
     def test_the_board_has_people_on_it_rather_than_nothing(
             self, client, sent, pg_pool):
-        """An empty board looks broken; the invented family is there to replace."""
+        """An empty dashboard looks broken; the invented family is there to replace."""
         client.post("/login", data={"email": NEWCOMER})
         client.get(link_in(sent[0]))
         config = family_of(pg_pool, NEWCOMER)["config"]
@@ -253,14 +253,14 @@ class TestTheStartingConfig:
         right: there is no payload until the worker's next tick writes one.
 
         **The seeded config is what the tick then has to work with**, which is
-        the reason for seeding it — a family with no people would get a board
+        the reason for seeding it — a family with no people would get a dashboard
         with nothing on it but a date. PLAN.md's "Generate now on signup" is
-        what closes the gap between the click and the first board, and it is a
+        what closes the gap between the click and the first dashboard, and it is a
         phase 2 worker item: a web request must not call Anthropic.
 
         Read at the screen URL, which sign-up gave the family a token for
         before anybody asked. That is the point of writing it at creation
-        rather than later: a board is reachable from the first second.
+        rather than later: a dashboard is reachable from the first second.
         """
         from tests.conftest import board_path
 
@@ -283,7 +283,7 @@ class TestTheSettingsSayTheHouseholdIsInvented:
     """Seeding without saying so is somebody else's children on your page.
 
     A brand-new family lands on the set-up checklist rather than the daily
-    controls: nothing to refresh, no board to view and nothing worth writing
+    controls: nothing to refresh, no dashboard to view and nothing worth writing
     yet. The first step names what is invented, and the buttons that would
     act on it are not there.
     """
@@ -292,7 +292,7 @@ class TestTheSettingsSayTheHouseholdIsInvented:
         client.post("/login", data={"email": NEWCOMER})
         client.get(link_in(sent[0]))
         page = client.get("/settings/").get_data(as_text=True)
-        assert "Set up your board" in page
+        assert "Set up your dashboard" in page
         assert "Mia, Theo and Biscuit are invented" in page
 
     def test_and_walked_through_the_steps_in_order(self, client, sent):
@@ -307,9 +307,9 @@ class TestTheSettingsSayTheHouseholdIsInvented:
         client.get(link_in(sent[0]))
         page = client.get("/settings/").get_data(as_text=True)
         assert "Refresh calendars" not in page
-        assert "View board" not in page
+        assert "View dashboard" not in page
         assert "Rewrite now" not in page
-        assert "Write the first board" not in page  # not until the steps are done
+        assert "Write the first dashboard" not in page  # not until the steps are done
 
     def test_the_screen_link_arrives_with_the_last_step(self, client, sent, pg_pool):
         from dinkydash.pgstore import PostgresStore
@@ -325,7 +325,7 @@ class TestTheSettingsSayTheHouseholdIsInvented:
         store.save_config(config)
         page = client.get("/settings/").get_data(as_text=True)
         assert f"/s/{family['screen_token']}" in page
-        assert "Write the first board" in page
+        assert "Write the first dashboard" in page
         assert 'class="qr"' in page  # drawn locally, never fetched
 
     def test_the_worker_writes_nothing_for_them_yet(self, client, sent, pg_pool):
@@ -386,7 +386,7 @@ class TestOnlyEverOneFamilyPerAddress:
     def test_signing_up_with_an_address_that_already_has_an_account(
             self, client, sent, pg_pool):
         """A token minted for an address that gained an account meanwhile signs
-        them in rather than giving them a second board."""
+        them in rather than giving them a second dashboard."""
         client.post("/login", data={"email": NEWCOMER})
         client.get(link_in(sent[0]))
         family = family_of(pg_pool, NEWCOMER)["id"]
@@ -454,12 +454,12 @@ class TestTheAnswerIsStillTheSame:
 
     def test_the_two_emails_differ_only_in_the_mailbox(self, client, sent):
         """Safe, because whoever opens that mailbox already knows which they are.
-        Telling a new parent the link starts a board is what gets it finished."""
+        Telling a new parent the link starts a dashboard is what gets it finished."""
         client.post("/login", data={"email": NEWCOMER})
         client.get(link_in(sent[0]))
         client.post("/logout")
         client.post("/login", data={"email": NEWCOMER})
-        assert "Start your DinkyDash board" in sent[0]["subject"]
+        assert "Start your DinkyDash dashboard" in sent[0]["subject"]
         assert "sign-in link" in sent[1]["subject"]
 
     def test_neither_email_carries_anything_but_the_link(self, client, sent):

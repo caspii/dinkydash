@@ -38,7 +38,7 @@ DINKYDASH_PORT=5100 DINKYDASH_WEBSITE_PORT=5101 venv/bin/python dev.py
 
 The dashboard always runs in cloud mode. A missing database URL, missing session
 key, unreachable database or unapplied migration fails startup; it never falls
-back to the self-hosted board. Website login and trial/signup links, including
+back to the self-hosted dashboard. Website login and trial/signup links, including
 those in Markdown pages, open this local dashboard's `/login`. The launcher
 overrides `DINKYDASH_APP_URL` and clears the production `DINKYDASH_APP_HOST` for
 its child processes.

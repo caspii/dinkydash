@@ -43,7 +43,7 @@ Cloud generation uses the platform's model and output-token ceiling. Family
 config cannot change either; single mode keeps the self-hoster's settings.
 
 **The global cap scales with the number of families**, and that is deliberate: a
-fixed number is a control that silently starts starving real boards on the day
+fixed number is a control that silently starts starving real dashboards on the day
 the product grows into it, and nobody notices because the failure looks like a
 quiet morning. `GLOBAL_FLOOR + GLOBAL_PER_FAMILY × families` stays generous at
 every size while still catching a runaway, which is what a breaker is for.
@@ -78,7 +78,7 @@ class OverBudget(GenerationError):
     """The call was refused because it would cost more than is allowed.
 
     **A `GenerationError` on purpose.** Every caller already handles one of
-    those by keeping the board that is on the wall and trying again later — a
+    those by keeping the dashboard that is on the wall and trying again later — a
     failure here is "not handled, simply due again", which is how the whole tick
     treats failure. Inventing a second kind of failure would mean a second
     keep-last-good path, and the one that got written second is the one that
@@ -173,7 +173,7 @@ class PostgresBudget:
         if row is None:
             # **Which of the two limits tripped is deliberately not worked
             # out.** It would be a second query on the path that is already
-            # refusing, and it would change nothing: the caller keeps the board
+            # refusing, and it would change nothing: the caller keeps the dashboard
             # that is on the wall either way. The numbers are in the line so
             # that whoever reads it can tell at a glance which one it must have
             # been, and `used_today()` answers it exactly if anybody needs it.
@@ -182,8 +182,8 @@ class PostgresBudget:
                         self.family_id, self.family_a_day,
                         self.global_floor, self.global_per_family)
             raise OverBudget(
-                "Today's limit on rewriting the board has been reached. "
-                "The board on the screen is unchanged, and this will work "
+                "Today's limit on rewriting the dashboard has been reached. "
+                "The dashboard on the screen is unchanged, and this will work "
                 "again tomorrow.")
         return row[0]
 
@@ -191,7 +191,7 @@ class PostgresBudget:
         """Add what the call used. Never raises.
 
         Bookkeeping rather than control: the breaker already counted the call,
-        and losing a token count must not turn a written board into a failure.
+        and losing a token count must not turn a written dashboard into a failure.
         The row exists by now — `allow()` made it — so this only ever updates.
         """
         try:
@@ -208,7 +208,7 @@ class PostgresBudget:
                     )
         except Exception:
             log.exception("Could not record what a model call used; the call "
-                          "itself was counted and the board was written.")
+                          "itself was counted and the dashboard was written.")
 
     def used_today(self):
         """(this family's calls, everybody's calls) today. For the settings page
@@ -261,7 +261,7 @@ def _today():
     """The UTC date. Not the family's, and that is the point.
 
     `generations.generated_for_date` is the family's local date, which is right
-    for "is today's board written" and wrong for a global total: a day summed
+    for "is today's dashboard written" and wrong for a global total: a day summed
     over a dozen local dates is not a day.
     """
     return datetime.now(timezone.utc).date()

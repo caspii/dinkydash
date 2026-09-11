@@ -1,6 +1,6 @@
 """Prompt construction.
 
-The board shows one written line a day plus a headline, so that is all we ask
+The dashboard shows one written line a day plus a headline, so that is all we ask
 for. Which *kind* of line — a fact, or something about the pet — is chosen here
 in Python rather than left to the model, so the rotation is even and the
 history can tell whether today repeats last Tuesday.
@@ -41,7 +41,7 @@ RESPONSE_SCHEMA = {
         },
         "note": {
             "type": "string",
-            "description": "The single line for the board's note box, at most 25 words.",
+            "description": "The single line for the dashboard's note box, at most 25 words.",
         },
     },
     "required": ["headline", "note"],
@@ -49,11 +49,11 @@ RESPONSE_SCHEMA = {
 }
 
 SYSTEM_PROMPT = """\
-You write the daily text for DinkyDash, a family board that hangs on a kitchen \
+You write the daily text for DinkyDash, a family dashboard that hangs on a kitchen \
 wall. Young children read it, so keep the language simple and warm. It is a \
 glanceable display, not an article: every word has to earn its place.
 
-Write British English. Do not use emoji — the board adds its own. Do not \
+Write British English. Do not use emoji — the dashboard adds its own. Do not \
 mention that you are an AI, and do not greet the reader by describing the \
 weather, which you cannot see.
 

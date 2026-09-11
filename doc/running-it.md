@@ -1,6 +1,6 @@
 # Running DinkyDash day to day
 
-What the board does on its own, what the two buttons in the settings UI do, and what to
+What the dashboard does on its own, what the two buttons in the settings UI do, and what to
 check when something looks wrong.
 
 Setting it up for the first time? Use the
@@ -12,7 +12,7 @@ Cron runs `generate.py --tick` every five minutes, and the tick does only what i
 
 **Every hour**, it re-fetches every enabled calendar and merges them into one time-ordered agenda
 for the next 14 days. This costs nothing but a few HTTP requests, and it is what puts an
-appointment added at 09:00 for 15:00 onto the board the same afternoon. Make that 15 minutes or
+appointment added at 09:00 for 15:00 onto the dashboard the same afternoon. Make that 15 minutes or
 once a day under **Settings → How often it updates**. Fetching faster than the provider updates
 buys nothing: Google's secret `.ics` link is cached at their end and can lag by hours.
 
@@ -21,8 +21,8 @@ the only part that costs money. The same page changes the hour. A brief that fai
 owed again five minutes later, so a network blip at dawn no longer means a day-old line.
 
 **The very first one does not wait for the morning.** That hour says when to replace yesterday's
-line, and on a board nobody has generated yet there is nothing to replace — so a Pi set up after
-dinner writes its board on the next tick rather than showing "Writing … first board" all evening.
+line, and on a dashboard nobody has generated yet there is nothing to replace — so a Pi set up after
+dinner writes its dashboard on the next tick rather than showing "Writing … first dashboard" all evening.
 
 Both write atomically to `dashboard_data.json`, and a refresh never touches the written line.
 
@@ -33,22 +33,22 @@ headline and the written line come from the model.
 That split is why a failed run is not a disaster. Yesterday's fetch already reached 14 days ahead,
 so today's times are still there and still right.
 
-## The three states the board can be in
+## The three states the dashboard can be in
 
 | What you see | What it means | What to do |
 |---|---|---|
-| The board, no banner | Today's run succeeded | Nothing |
+| The dashboard, no banner | Today's run succeeded | Nothing |
 | An amber banner across the top | Today's brief failed or hasn't happened yet. Times, turns and countdowns are still today's; only the written line is older, and it is labelled | Nothing — the next tick retries. Check `generate.log` if it stays. Press **Rewrite now** in settings to force it |
 | "Nearly there" | The people are still the example file's invented ones, or the timezone is still UTC | Finish the set-up steps on the settings home. The tick writes nothing until then |
-| "Writing … first board" | Set up, but nothing has been generated yet | Nothing — the next tick writes it, whatever the hour. Press **Write the first board** in settings if you'd rather not wait |
+| "Writing … first dashboard" | Set up, but nothing has been generated yet | Nothing — the next tick writes it, whatever the hour. Press **Write the first dashboard** in settings if you'd rather not wait |
 
-The board never blanks itself. A failed run leaves the previous one up rather than clearing the
-screen, on the grounds that a stale kitchen board beats an empty one.
+The dashboard never blanks itself. A failed run leaves the previous one up rather than clearing the
+screen, on the grounds that a stale kitchen dashboard beats an empty one.
 
 ## Changing things
 
 Everything is editable from a phone at `/settings` — people, pets, chores and their rotation order,
-special dates, calendars, and whether the board is light or dark. It writes `config.yaml`, keeping
+special dates, calendars, and whether the dashboard is light or dark. It writes `config.yaml`, keeping
 your comments and formatting, so editing the file by hand and editing through the UI are
 interchangeable.
 
@@ -64,7 +64,7 @@ Two buttons on the settings home force the point:
 **How often it updates** sets both cadences — how often the calendars are fetched, and what time
 the daily line is written, on your own clock. They are the `refresh_minutes` and `brief_time` keys,
 so editing them by hand still works; the page is just the version you can reach from a phone. The
-board's own reload follows: it redraws every five minutes, or every `refresh_minutes` if you set
+dashboard's own reload follows: it redraws every five minutes, or every `refresh_minutes` if you set
 something shorter than that.
 
 ## Keeping settings on your phone
@@ -73,7 +73,7 @@ Save `/settings` to your phone's home screen and it opens like an app, with the 
 name rather than a bare URL. On an iPhone: **Share** → **Add to Home Screen**. On Android: the **⋮**
 menu → **Add to home screen**. The settings page offers this itself the first time, until you say no.
 
-The board does the same at `/` — worth doing if a tablet is your panel, because a saved board opens
+The dashboard does the same at `/` — worth doing if a tablet is your panel, because a saved dashboard opens
 full screen with no browser around it.
 
 ## Adding a calendar
@@ -95,9 +95,9 @@ The [getting started guide](https://dinkydash.co/getting-started/#find-your-cale
 full steps and the gotchas.
 
 Add one feed per person. A feed that stops answering is reported on the settings home page and is
-skipped rather than emptying the board.
+skipped rather than emptying the dashboard.
 
-A personal calendar with work and private appointments in it can still go on the board. Fill in
+A personal calendar with work and private appointments in it can still go on the dashboard. Fill in
 **Only show events shared with** on that calendar with the other parent's email address — the one
 on the invitations — and only the events they are a guest at, or organised, get through. The rest
 is dropped as the feed is read, so it is never stored and never sent to Claude. **Test calendar link**
@@ -107,17 +107,17 @@ calendars**. In `config.yaml` the setting is `shared_with`, a list of addresses 
 
 ## Costs
 
-One board a day on `claude-haiku-4-5` is roughly **$0.13 a month** — about 2,500 tokens in and 350
+One dashboard a day on `claude-haiku-4-5` is roughly **$0.13 a month** — about 2,500 tokens in and 350
 out. `claude-sonnet-5` is around three times that and writes better. Change it under
 Settings → Family & system. **Rewrite now** costs the same as a scheduled run, so don't sit on it.
 
 ## When something looks wrong
 
-**The board is a day behind.** Look at `generate.log`. The commonest causes are an expired API key
+**The dashboard is a day behind.** Look at `generate.log`. The commonest causes are an expired API key
 or no network. With the `--tick` cron line a single failure fixes itself five minutes later, so a
 banner that is still there an hour on is a real fault. Fix it and press **Rewrite now**.
 
-**An event I just added is not on the board.** Give it up to `refresh_minutes` (an hour by
+**An event I just added is not on the dashboard.** Give it up to `refresh_minutes` (an hour by
 default), plus your provider's own lag — Google's secret `.ics` link is cached at their end and can
 take hours to show a change. Press **Rewrite now** if you cannot wait.
 
@@ -141,7 +141,7 @@ it, the model has nothing to avoid. It refills itself over the next few days.
 
 ---
 
-Trouble getting a Raspberry Pi to *boot* into the board — Chromium starting before Flask,
+Trouble getting a Raspberry Pi to *boot* into the dashboard — Chromium starting before Flask,
 a keyring dialog, a blanking screen, blocked Wi-Fi — is covered under
 [Troubleshooting](https://dinkydash.co/getting-started/#troubleshooting) in the getting
 started guide.

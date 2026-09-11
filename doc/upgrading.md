@@ -14,7 +14,7 @@ Nothing to do to your config — it is migrated on load. But be aware:
   config already has a `calendars:` list, there is no way to tell which feed the old key meant, and
   it is dropped with a warning in the log; set **Only show events shared with** on the right
   calendar in the settings UI instead.
-- **Photos are no longer used.** The board shows an agenda rather than person cards, so the `image:`
+- **Photos are no longer used.** The dashboard shows an agenda rather than person cards, so the `image:`
   fields do nothing, and the root `static/` folder that held the JPEGs is gone. `avatar_emoji` and
   `avatar_color` replace them, and are used in the settings UI. Old keys are harmless if left in
   place, but the photos themselves can be deleted.

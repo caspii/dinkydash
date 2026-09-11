@@ -34,7 +34,7 @@ STATIC = HERE / "static"
 SITE_URL = "https://dinkydash.co"
 # Where the hosted app is. The content and the homepage link to it at this
 # address, and `site.py` rewrites those links when it is told the app lives
-# somewhere else — a Conductor preview runs the board on a local port, and a
+# somewhere else — a Conductor preview runs the dashboard on a local port, and a
 # "Start your free trial" that lands on production from there is a trap.
 APP_URL = "https://app.dinkydash.co"
 

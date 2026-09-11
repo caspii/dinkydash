@@ -1,4 +1,4 @@
-"""Trial deadlines, manual access and the board after a lapse (DIN-52)."""
+"""Trial deadlines, manual access and the dashboard after a lapse (DIN-52)."""
 
 from datetime import datetime, timedelta, timezone
 

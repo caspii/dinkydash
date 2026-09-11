@@ -1,14 +1,14 @@
 """One container, two hostnames: what `wsgi.py` must route where.
 
 The dispatcher is four lines of logic guarding a $5-a-month decision, and every
-way it can be wrong is quiet. A board served on the marketing hostname is a
-family's calendar on a page Google crawls. A marketing page served on the board
+way it can be wrong is quiet. A dashboard served on the marketing hostname is a
+family's calendar on a page Google crawls. A marketing page served on the dashboard
 hostname is a broken product. An unknown hostname that 404s takes the whole
 deploy down, because App Platform's health check arrives on a name nobody
 configured.
 
 `dispatch` takes both apps as arguments precisely so this file can use stubs:
-building the real board app in cloud mode wants a database, and none of these
+building the real dashboard app in cloud mode wants a database, and none of these
 assertions is about a database.
 """
 
@@ -16,7 +16,7 @@ import pytest
 
 from wsgi import _board_host, _normalise, create_application, dispatch
 
-SITE, BOARD = "the site", "the board"
+SITE, BOARD = "the site", "the dashboard"
 
 
 def stub(name):
@@ -62,7 +62,7 @@ class TestRouting:
     def test_the_forwarded_host_header_cannot_choose_the_app(self):
         """Upstream of App Platform is the public internet.
 
-        If `X-Forwarded-Host` picked the app, anyone could ask for the board by
+        If `X-Forwarded-Host` picked the app, anyone could ask for the dashboard by
         setting a header. Only `Host` counts, and App Platform matches its
         custom domains on that anyway.
         """

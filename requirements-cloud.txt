@@ -8,7 +8,7 @@
 # runs. `gunicorn` is inherited from it and is deliberately not repeated here.
 #
 # Deliberately not in requirements.txt, which is what deploy_to_pi.sh installs:
-# a self-hosted board has no database, serves with Flask's own server, and has
+# a self-hosted dashboard has no database, serves with Flask's own server, and has
 # no business rendering landing pages.
 #
 # App Platform installs this file with a build_command in `.do/app.yaml` — its

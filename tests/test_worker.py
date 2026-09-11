@@ -86,7 +86,7 @@ class TestWalkingTheFamilies:
         assert configs == [{"family_id": "a"}, {"family_id": "b"}]
 
     def test_lapsed_families_are_excluded_by_the_query(self):
-        """PLAN.md's freeze: the board keeps its last state, the ticking stops."""
+        """PLAN.md's freeze: the dashboard keeps its last state, the ticking stops."""
         pool = FakePool(["a"])
         tick_all(pool, store_factory=FakeStore, tick=lambda c, s: None)
         assert "status <> 'lapsed'" in " ".join(pool.sql)
@@ -266,7 +266,7 @@ class TestInterval:
         assert interval() == 30
 
     def test_nonsense_falls_back_rather_than_crashing(self, monkeypatch):
-        """A typo in an app spec must not stop every family's board updating."""
+        """A typo in an app spec must not stop every family's dashboard updating."""
         monkeypatch.setenv("DINKYDASH_WORKER_INTERVAL", "five minutes")
         assert interval() == DEFAULT_INTERVAL
 

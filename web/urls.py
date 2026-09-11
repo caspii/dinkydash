@@ -1,4 +1,4 @@
-"""App origins and board paths shared by routes and the login-link CLI."""
+"""App origins and dashboard paths shared by routes and the login-link CLI."""
 
 from flask import current_app, request, url_for
 
@@ -25,7 +25,7 @@ def absolute_url(path):
 
 
 def board_path():
-    """Return this family's board path in the current mode."""
+    """Return this family's dashboard path in the current mode."""
     if current_app.config["MODE"] != CLOUD:
         return url_for("board.index")
     return url_for("screen.board", token=current_screen_token())
