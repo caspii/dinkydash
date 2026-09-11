@@ -311,7 +311,8 @@ history are recorded in [doc/operations.md](doc/operations.md).
 There is no separate staging app. Tests and restores must use an explicit isolated
 database. The preview loads `.env` as defaults and preserves exported values, including
 an explicit scratch `DATABASE_URL`; missing/empty database configuration fails before
-Flask starts without printing the connection string ([DIN-48](https://linear.app/keepthescore/issue/DIN-48)).
+Flask starts without printing the connection string ([DIN-48](https://linear.app/keepthescore/issue/DIN-48)),
+and a database that is not on this machine is refused outright.
 
 #### Connection pooling
 

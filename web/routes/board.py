@@ -138,11 +138,10 @@ def healthz():
     question it should be able to answer wrongly.
 
     The SHA comes from the environment because a deployed checkout has no
-    `.git` to ask. **App Platform does not set one on its own** — this read
-    "unknown" in production from the first deploy until 8 September 2026,
-    because the two fallbacks that used to be here (`APP_PLATFORM_COMPONENT_
-    COMMIT`, `SOURCE_COMMIT`) were guesses at variable names that do not
-    exist. What does exist is `${_self.COMMIT_HASH}`, a *bindable* variable:
+    `.git` to ask. **App Platform does not set one on its own**, and the two
+    fallbacks that used to be here (`APP_PLATFORM_COMPONENT_COMMIT`,
+    `SOURCE_COMMIT`) were guesses at variable names that do not exist, so
+    this read "unknown". What does exist is `${_self.COMMIT_HASH}`, a *bindable* variable:
     it has to be assigned to a key in the component's own `envs` before
     anything can read it, and it is component-scoped, so it cannot live in the
     app-level block with the rest. `.do/app.yaml` binds it to `GIT_SHA`, which

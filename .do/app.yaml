@@ -8,9 +8,8 @@
 #
 # **This spec is the whole app, not a patch.** `doctl apps update` replaces what
 # is there, so anything missing from this file is deleted from the running app.
-# `domains` is written out for that reason — it was absent until 8 September
-# 2026, and applying the file as documented above would have taken dinkydash.co
-# off its own domain.
+# `domains` is written out for that reason: applying a file without it takes
+# dinkydash.co off its own domain.
 #
 # **Do not apply this file as it stands. It will break the app.**
 #
@@ -19,10 +18,8 @@
 # omits them looks like it works — `doctl apps spec get` still shows `EV[...]`
 # afterwards, so the secret appears to have been preserved — but **the container
 # receives an empty variable**, and the pre-deploy migration job dies with
-# `DATABASE_URL_DIRECT is not set`. That was learned by doing it: two deploys
-# failed that way on 8 September 2026, and the spec looked correct throughout.
-# A canary test that only checked `spec get` is what missed it; the display and
-# the runtime disagree.
+# `DATABASE_URL_DIRECT is not set`. The display and the runtime disagree, so a
+# check that only reads `spec get` cannot catch it.
 #
 # So this file is the **shape** of the app, reviewed like code, and the values
 # are merged in at apply time from outside the working tree:
@@ -204,22 +201,21 @@ services:
 
     # Component-scoped, because `_self` means nothing in the app-level block
     # above. `${_self.COMMIT_HASH}` is a *bindable* variable: App Platform
-    # sets nothing in the environment on its own, so `/healthz` reported
-    # `"commit": "unknown"` on every deploy until this was bound. It is how
-    # you tell which code is actually running when a fix appears not to have
-    # shipped — `deploy_on_push` and `doctl apps update` are separate events,
-    # and this repo has already been caught out by that twice.
+    # sets nothing in the environment on its own, so without this binding
+    # `/healthz` reports `"commit": "unknown"`. It is how you tell which code
+    # is actually running when a fix appears not to have shipped —
+    # `deploy_on_push` and `doctl apps update` are separate events.
     envs:
       - key: GIT_SHA
         scope: RUN_TIME
         value: ${_self.COMMIT_HASH}
 
-    # 1 GB, not 0.5. Two gunicorn workers each kept ~250 MB after parsing an
-    # 8 MB personal calendar, and on 10 September 2026 that took the container
-    # past 512 MB and killed it — the site down for a minute, nothing in the log
-    # but the exit. `calendars._trim` now keeps the parse to a fortnight, so the
-    # headroom is for the next feed shape nobody has measured. $10 a month
-    # rather than $5; still the basic tier, still no autoscaling.
+    # 1 GB, not 0.5. Two gunicorn workers each keep ~250 MB after parsing an
+    # 8 MB personal calendar, which is more than a 512 MB container and shows
+    # in the log as nothing but the exit. `calendars._trim` keeps the parse to
+    # a fortnight, so the headroom is for the next feed shape nobody has
+    # measured. $10 a month rather than $5; still the basic tier, still no
+    # autoscaling.
     instance_size_slug: apps-s-1vcpu-1gb-fixed
     instance_count: 1
     http_port: 8080

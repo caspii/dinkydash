@@ -428,7 +428,9 @@ generated files beside it.
 ```bash
 venv/bin/python dev.py              # also Conductor's default dev run action
 ```
-Requires a development `DATABASE_URL` with migrations applied and a
+Requires a development `DATABASE_URL` **on this machine** — loopback or a Unix socket; a remote
+database is refused before anything connects, because a workspace's `.env` can carry one — with
+migrations applied, and a
 `DINKYDASH_SECRET_KEY`. See [doc/development.md](doc/development.md) for setup,
 port overrides, sign-in and Conductor configuration pickup. Both processes stop
 together; the launcher always selects cloud mode and refuses invalid setup.
@@ -490,6 +492,12 @@ to tell you.
   a **dashboard** and the device showing it a **screen**. Keep the glossary in step with UI,
   email and website copy.
 
+- **Comments and docstrings state the rule and its reason, never the incident.** Say what a check
+  protects against, in general terms — not the date it went wrong, who pressed what, the Sentry
+  issue it opened, or what production did that day. That history goes in
+  [doc/operations.md](doc/operations.md), the log, or in Linear: the repo is public, and a war story
+  in code is operational detail published for ever. `tests/test_no_incident_notes.py` fails on a
+  dated narrative or a Sentry issue id in any comment, docstring, spec, workflow, migration or template.
 - **British English** throughout — UI copy, the model's system prompt, and `%-d %B` date formatting
   (`25 December`, not `December 25`).
 - **Times are 24-hour** on the dashboard (`08:20`).

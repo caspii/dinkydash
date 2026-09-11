@@ -657,3 +657,26 @@ issue.
 
 **Not done here.** Frontend error capture (DIN-35's third leg): the dashboard and the settings pages
 make no third-party request by design, and a first-party reporting path is separate work.
+
+## The worker went read-only for an hour, 11 September 2026
+
+**What happened.** At 11:19:41 UTC the `worker` logged `cannot execute UPDATE in a read-only
+transaction` from `lifecycle.expire_trials` and `cannot execute DELETE` from `accounts.sweep`, and
+again at 11:22:31 from the new container the PR #122 deploy had just started (Sentry DINKYDASH-2
+and DINKYDASH-3). Both handled: every pass completed and checked in, the families were ticked, and
+`site` logged no 5xx. No database maintenance or failover in the cluster's event log.
+
+**Why.** At 11:17 UTC a development launcher in a workspace was started with the `.env` copied from
+the main checkout, whose `DATABASE_URL` is the hosted pool on port 25061 (see *Secrets and `.env`*
+above). Its start-up check ran a session-level `SET default_transaction_read_only = on`.
+DigitalOcean's pooler runs in transaction mode, where PgBouncer never runs its reset query, so the
+pooled server connection kept the setting and handed it to its next client, the worker. Ten
+concurrent read-only transactions through the pool at 11:25 found exactly one such backend, born
+10:27:48; PgBouncer's 3600 s `server_lifetime` closed it at 11:27:48, the 11:27:31 pass was clean,
+and the launcher, still holding a socket to the pool, was killed at 11:41.
+
+**The fix,** in the same change as this note: `dev.py` refuses a `DATABASE_URL` that is not loopback
+or a Unix socket before anything connects, parsed by libpq so a host cannot hide in `?host=`, a
+comma list, `hostaddr` or `PGHOST`, with no override; its check is one transaction with `SET LOCAL`,
+asserted in `tests/test_dev.py` to leave the session as it found it; and the rule — never a
+session-level `SET` through `DATABASE_URL` — is written where the pool is built, in `dinkydash/db.py`.

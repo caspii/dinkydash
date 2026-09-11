@@ -209,6 +209,10 @@ under transaction-mode pooling the next execution can land on a different backen
 full reasoning, and why KeepTheScore's clean record on psycopg2 does not transfer, is in PLAN.md
 under [Connection pooling](../PLAN.md#connection-pooling).
 
+**And never a session-level `SET` through `DATABASE_URL`.** The pooler hands a server connection to
+its next client exactly as the last one left it, so the setting lands on the worker or on somebody's
+request. `SET LOCAL` inside a transaction is the safe form, because it ends with the transaction.
+
 **`db.ready(pool)` is what makes a wrong `DATABASE_URL` a failed deploy rather than a live one.**
 A pool opens in the background and a connection string that goes nowhere is only a warning in its
 log — the process came up, `/healthz` answered, and every request that needed the database then
@@ -336,8 +340,8 @@ VEVENT that cannot fall inside `[start, end]`, and keeps whatever the parser nee
 itself: recurring events and their exceptions, extra dates, VTIMEZONE blocks, and any event whose
 dates it cannot read. The reason is memory, not speed: `icalendar` builds an object for every
 property of every event, a decade-long personal calendar is 8 MB and 14,000 of them, and parsing one
-cost ~200 MB with ~250 MB kept by the process afterwards — which is how two gunicorn workers took the
-hosted site past its 512 MB on 10 September 2026. The rule is that over-keeping is always safe and
+cost ~200 MB with ~250 MB kept by the process afterwards — more than two gunicorn workers can hold in
+a 512 MB container. The rule is that over-keeping is always safe and
 under-keeping is a hidden appointment, so every doubt resolves to keep, and `tests/test_feed_trim.py`
 asserts that the trimmed parse gives exactly what the untrimmed one gave.
 
