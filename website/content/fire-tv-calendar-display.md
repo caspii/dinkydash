@@ -84,7 +84,7 @@ calendar display](/smart-tv-calendar-display/) for Samsung and LG.
   link, and each has its own page here with the steps.
 - **A chore chart that rotates**, moving on one person a day by itself.
 - **Countdowns** to birthdays, Christmas and the school holidays.
-- **A daily line written each morning** by Claude, around your family's actual day.
+- **A daily note written each morning** by Claude, around your family's actual day.
 
 The dashboard reloads itself every five minutes with a plain HTML refresh rather than JavaScript.
 That matters on a TV stick, where the browser is the least capable one in the house.

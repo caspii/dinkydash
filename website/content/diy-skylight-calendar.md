@@ -18,7 +18,7 @@ Your DIY calendar shows everything on one glanceable screen, refreshed automatic
 - **Today's events** from Google Calendar (or any calendar with an iCal link)
 - **A chore chart** that rotates between kids automatically every day
 - **Countdowns** to birthdays, holidays, and vacations
-- **A daily brief written by AI** — a fresh greeting and fun fact every single morning, personalized to your family
+- **A daily message written by AI** — a fresh greeting and fun fact every single morning, personalized to your family
 
 That last one is something even the $600 hardware doesn't do.
 
@@ -50,7 +50,7 @@ The [full getting-started guide](/getting-started/) has copy-paste commands for 
 
 1. **Install DinkyDash** — clone the repo, install Python dependencies (about 10 minutes).
 2. **Describe your family** — one config file with names, birthdays, chores, special dates, and your [Google Calendar's iCal link](/google-calendar-ical-link/) (or [iCloud's](/icloud-calendar-link/), or [Outlook's](/outlook-calendar-ics-link/)).
-3. **Add an Anthropic API key** — this powers the daily AI brief. A day's dashboard costs a few cents.
+3. **Add an Anthropic API key** — this powers the AI-written daily message. A day's dashboard costs a few cents.
 4. **Set the 6am schedule** — one cron line generates a fresh dashboard every morning before anyone wakes up.
 5. **Point your screen at it** — on a Pi, Chromium launches fullscreen at boot; on a tablet or TV, just open the dashboard URL in the browser.
 
@@ -78,7 +78,7 @@ A cheap tablet wall mount, a picture ledge, or a small easel stand all work. Non
 | Subscription | $79/yr for Plus features | None |
 | Three-year cost | ~$837 | ~$0–130 |
 | Your data | Their cloud | Your device |
-| AI daily brief | No | Yes |
+| AI daily message | No | Yes |
 | Fixable/customizable | No | It's your code |
 
 *Skylight prices checked 6 September 2026; the Raspberry Pi part prices above are approximate and were last checked August 2026.*
@@ -86,7 +86,7 @@ A cheap tablet wall mount, a picture ledge, or a small easel stand all work. Non
 ## Questions people ask
 
 **Is there a monthly fee for a DIY calendar?**
-No subscription. The only running cost is the Anthropic API key for the daily brief, which comes to a few cents a month — roughly $0.20–0.40 for a typical family. Skip the AI brief and it's free. (For what Skylight itself charges, see our [Skylight subscription breakdown](/skylight-calendar-subscription/).)
+No subscription. The only running cost is the Anthropic API key for the daily message, which comes to a few cents a month — roughly $0.20–0.40 for a typical family. Skip the AI daily message and it's free. (For what Skylight itself charges, see our [Skylight subscription breakdown](/skylight-calendar-subscription/).)
 
 **Do I need to know how to code?**
 No, but you need to be willing to copy commands into a terminal and read an error message without panicking. If you've ever followed a Raspberry Pi tutorial, you're comfortably over the bar. If the word "terminal" is a dealbreaker, buy the Skylight — that's a legitimate answer.
@@ -95,7 +95,7 @@ No, but you need to be willing to copy commands into a terminal and read an erro
 Two things, both fixable in a minute. Chromium sometimes starts before the server is ready and shows a connection error at boot — the startup script waits for the server to fix this. And emoji render as empty boxes until you install the emoji font package. Both are covered in the [troubleshooting section](/getting-started/).
 
 **What happens if the internet goes down?**
-The dashboard keeps showing yesterday's data. The AI brief is generated once each morning and saved to a file, so the screen never depends on a live connection to display something.
+The dashboard keeps showing yesterday's data. The AI daily message is generated once each morning and saved to a file, so the screen never depends on a live connection to display something.
 
 **Can the kids break it?**
 There's nothing to tap. It's a read-only display — events are edited in Google Calendar on your phone, so there's no way to delete next week from the wall.

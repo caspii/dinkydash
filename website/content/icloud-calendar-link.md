@@ -103,7 +103,7 @@ does not work on, and [the Echo Show page](/echo-show-calendar-display/) says wh
 
 [DinkyDash](/) is free, open-source software for exactly that: paste the link and today's
 events appear on a wall screen, next to a chore chart that rotates by itself, countdowns to
-birthdays and holidays, and a short daily line written each morning. There is no Apple sign-in
+birthdays and holidays, and a short daily note written each morning. There is no Apple sign-in
 anywhere in it — the link is the entire connection, and it can only read.
 
 To add it:

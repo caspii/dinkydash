@@ -44,6 +44,12 @@ bp = Blueprint("settings", __name__)
 # page then read "2009 years old". Nobody alive was born before 1900.
 EARLIEST_BIRTH_YEAR = 1900
 
+SCREEN_REPLACEMENT = {
+    "title": "Replace the screen link?",
+    "message": "Every connected screen will stop until you open the new link on it.",
+    "confirm": "Replace screen link", "cancel": "Keep current link",
+}
+
 
 @bp.before_request
 def _needs_a_session():
@@ -72,7 +78,7 @@ SECTIONS = {
             ("avatar_emoji", "Emoji", "emoji", False, ""),
             ("avatar_color", "Colour", "color", False, ""),
             ("interests", "Interests", "textarea", False,
-             "Feeds the daily line — try “dinosaurs, drawing, swimming”."),
+             "Informs the daily note — try “dinosaurs, drawing, swimming”."),
         ],
     },
     "pets": {
@@ -90,11 +96,11 @@ SECTIONS = {
     "recurring": {
         "key": "recurring",
         "title": "Chores",
-        "singular": "job",
-        "add_label": "Add a job",
-        "blurb": "Jobs hand over at midnight and keep to the order you set. Nobody ticks anything off.",
+        "singular": "chore",
+        "add_label": "Add a chore",
+        "blurb": "Chores hand over at midnight and keep to the order you set. Nobody ticks anything off.",
         "fields": [
-            ("title", "Job", "text", True, ""),
+            ("title", "Chore", "text", True, ""),
             ("emoji", "Emoji", "emoji", False, ""),
             ("choices", "Whose turn, in order", "people", True,
              "Rotates one person per day, by day of the year."),
@@ -390,7 +396,7 @@ def manifest():
 
 @bp.route("/generate", methods=["POST"])
 def generate_now():
-    """"Rewrite now" — a person asking for a dashboard, and paying for it.
+    """"Rewrite daily message" — a person asking for a dashboard, and paying for it.
 
     **Charged against the same budget as the worker**, because it is the same
     money out of the same account (DIN-43). Without that, a signed-in parent
@@ -410,7 +416,7 @@ def generate_now():
         log.exception("Generation failed")
         flash(f"Generation failed: {exc}", "error")
     else:
-        what = "Your first dashboard is written" if first else "Dashboard rewritten"
+        what = "Your first daily message is written" if first else "Daily message rewritten"
         flash(f"{what} — “{payload['headline']}”", "ok")
     return redirect(url_for("settings.home"))
 
@@ -460,6 +466,7 @@ def section_edit(section_name, item_id):
         if item is None:
             abort(404)
 
+    saved_item = dict(item)
     problems, checked = {}, None
 
     if request.method == "POST":
@@ -521,6 +528,9 @@ def section_edit(section_name, item_id):
         date_min=f"{EARLIEST_BIRTH_YEAR}-01-01", date_max=today.isoformat(),
         emoji=EMOJI_SUGGESTIONS.get(section_name, []),
         colors=config_module.AVATAR_COLORS, people=participants,
+        draft_changed=any((item.get(name) or None) != (saved_item.get(name) or None)
+                          for name, *_ in section["fields"]),
+        removal=removal_prompt(config, section, saved_item) if not is_new else None,
     )
 
 
@@ -622,6 +632,28 @@ def check_feed(item, config):
     return {"ok": True, "message": lead + tail}
 
 
+def removal_prompt(config, section, item):
+    """Name what will be removed, including the effects on chore assignments."""
+    name = item.get("name") or item.get("title") or item.get("label") or section["singular"]
+    message = "This cannot be undone."
+    if section["key"] == "people" and config_module.people_names(config).count(name) == 1:
+        message += f" {name} will also be removed from chore rotations."
+        unassigned = [c["title"] for c in config.get("recurring") or []
+                      if c.get("choices") and all(p == name for p in c["choices"])]
+        if unassigned:
+            message += " These chores will have nobody assigned: " + ", ".join(unassigned) + "."
+    elif section["key"] == "calendars":
+        message += " Stored events from this calendar will also be removed."
+    return {"title": f"Remove {name}?", "message": message,
+            "confirm": f"Remove {name}", "cancel": f"Keep {name}"}
+
+
+def confirm_action(prompt, cancel_url, fields=None):
+    """A normal confirmation page also works without JavaScript."""
+    return render_template("settings/confirm.html", prompt=prompt,
+                           cancel_url=cancel_url, fields=fields or {})
+
+
 @bp.route("/<section_name>/<item_id>/delete", methods=["POST"])
 def section_delete(section_name, item_id):
     section = section_or_404(section_name)
@@ -630,6 +662,10 @@ def section_delete(section_name, item_id):
     index, removed = config_module.find_item(items, item_id)
     if removed is None:
         abort(404)
+    if request.form.get("confirmed") != "yes":
+        return confirm_action(removal_prompt(config, section, removed),
+                              url_for("settings.section_edit", section_name=section_name,
+                                      item_id=item_id))
     items.pop(index)
     if section_name == "people":
         # Deleting Mia means Mia is gone from the dashboard, turns included — not
@@ -674,7 +710,8 @@ def screen():
     link = absolute_url(board_path()) if current_app.config["MODE"] == CLOUD else None
     return render_template("settings/screen.html", config=config,
                            themes=config_module.THEMES, screen_link=link,
-                           screen_qr=qr_svg(link) if link else None)
+                           screen_qr=qr_svg(link) if link else None,
+                           replacement=SCREEN_REPLACEMENT)
 
 
 def qr_svg(link):
@@ -701,6 +738,10 @@ def rotate_screen_token():
     screen already showing the dashboard goes blank until somebody opens the new
     URL on it.
     """
+    if current_app.config["MODE"] != CLOUD:
+        abort(404)
+    if request.form.get("confirmed") != "yes":
+        return confirm_action(SCREEN_REPLACEMENT, url_for("settings.screen"), {"action": "rotate"})
     token = screens.rotate(current_app.config["POOL"], current_family_id())
     if token is None:
         flash("That did not work. Try again.", "error")
@@ -739,11 +780,11 @@ def cadence_values(config):
 
 
 def cadence_summary(config):
-    """The one line the settings home shows: "Calendars every hour · brief at 06:00"."""
+    """The one line the settings home shows: "Calendars every hour · daily message at 06:00"."""
     values = cadence_values(config)
     cadence = describe_minutes(values["refresh_minutes"])
     return (f"Calendars {cadence[:1].lower()}{cadence[1:]} · "
-            f"brief at {values['brief_time']}")
+            f"daily message at {values['brief_time']}")
 
 
 @bp.route("/refresh", methods=["GET", "POST"])
@@ -772,7 +813,7 @@ def refresh():
             # <input type="time"> posts "HH:MM", but "HH:MM:SS" with a step set.
             brief = time.fromisoformat(values["brief_time"]).strftime("%H:%M")
         except ValueError:
-            problems.append("The time the brief is written should look like 06:00.")
+            problems.append("The time the daily message is written should look like 06:00.")
 
         if not problems:
             config["refresh_minutes"] = minutes
@@ -789,7 +830,7 @@ def refresh():
 
 @bp.route("/refresh-now", methods=["POST"])
 def refresh_now():
-    """Fetch the calendars and nothing else — the free half of "Rewrite now"."""
+    """Fetch the calendars and nothing else — the free half of "Rewrite daily message"."""
     config = current_config()
     try:
         payload = refresh_calendars(config, current_store(), budget=current_budget())
@@ -944,6 +985,7 @@ def delete_account():
 
     accounts.delete_family(pool, current_family_id())
     session_module.sign_out()
+    flash("Your account and dashboard data have been deleted. All screen links have stopped working.", "ok")
     return redirect(url_for("auth.login", deleted=1))
 
 

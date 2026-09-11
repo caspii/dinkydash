@@ -53,9 +53,10 @@
 
 <div>
     <div class="label">If the link gets out</div>
-    <form method="post" class="card pad" style="display:flex;flex-direction:column;gap:0.875rem;">
+    <form method="post" data-confirm='{{ replacement | tojson }}' class="card pad" style="display:flex;flex-direction:column;gap:0.875rem;">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <input type="hidden" name="action" value="rotate">
+        <input type="hidden" name="confirmed" value="">
         <div class="hint">
             Changing it is the only way to stop an old link working. Every screen showing this
             dashboard will go blank until you open the new link on it.

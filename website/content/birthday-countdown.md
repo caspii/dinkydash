@@ -95,6 +95,6 @@ Yes. **Open full screen** strips the page down to just the numbers, sized to fil
 
 A browser tab is a fine place for one countdown. It's a bad place for the eight your family actually cares about — nobody opens a tab to find out whose birthday is coming up.
 
-That's what [DinkyDash](/diy-skylight-calendar/) is for. It's a free, open-source family dashboard that turns any old tablet, spare monitor or [Raspberry Pi](/raspberry-pi-family-calendar/) into a screen on the kitchen wall showing today's calendar events, a chore chart that rotates between the kids, every birthday countdown, and a short daily brief written fresh each morning.
+That's what [DinkyDash](/diy-skylight-calendar/) is for. It's a free, open-source family dashboard that turns any old tablet, spare monitor or [Raspberry Pi](/raspberry-pi-family-calendar/) into a screen on the kitchen wall showing today's calendar events, a chore chart that rotates between the kids, every birthday countdown, and a short daily message written fresh each morning.
 
 It's the same countdowns you just made, somewhere the family will actually see them.

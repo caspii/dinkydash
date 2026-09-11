@@ -1,0 +1,14 @@
+<dialog class="action-dialog card" id="action-confirm" aria-labelledby="action-confirm-title" aria-describedby="action-confirm-message">
+    <h2 id="action-confirm-title"></h2>
+    <p id="action-confirm-message"></p>
+    <div class="confirmation-actions">
+        <button class="btn outline" type="button" id="action-cancel" autofocus>Cancel</button>
+        <button class="btn danger fill" type="button" id="action-accept">Confirm</button>
+    </div>
+</dialog>
+<dialog class="calendar-wait card" id="action-wait" aria-labelledby="action-wait-title" aria-describedby="action-wait-description">
+    <span class="calendar-wait-spinner" aria-hidden="true"></span>
+    <h2 id="action-wait-title" tabindex="-1" autofocus></h2>
+    <p id="action-wait-description">Keep this page open. Your result will appear here.</p>
+</dialog>
+<script src="{{ static_url('settings.js') }}" defer></script>

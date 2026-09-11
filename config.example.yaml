@@ -101,7 +101,7 @@ history_days: 30
 refresh_minutes: 60
 
 # When the daily brief is written, on your own clock. Quote it — an unquoted
-# 06:00 is a number in older YAML. One brief a day; "Rewrite now" covers the rest.
+# 06:00 is a number in older YAML. One brief a day; "Rewrite daily message" covers the rest.
 brief_time: "06:00"
 
 # Where the generated dashboard and the record of recent notes are kept. Relative

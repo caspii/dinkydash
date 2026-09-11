@@ -290,11 +290,11 @@ class TestRotation:
 
     def test_pressing_the_button_changes_the_link(self, parent, pg_pool, pg_family):
         before = screens.token_for(pg_pool, pg_family)
-        parent.post("/settings/screen", data={"action": "rotate"})
+        parent.post("/settings/screen", data={"action": "rotate", "confirmed": "yes"})
         assert screens.token_for(pg_pool, pg_family) != before
 
     def test_and_says_every_screen_needs_the_new_one(self, parent):
-        landed = parent.post("/settings/screen", data={"action": "rotate"},
+        landed = parent.post("/settings/screen", data={"action": "rotate", "confirmed": "yes"},
                              follow_redirects=True)
         assert "the old link has stopped working" in landed.get_data(as_text=True)
 
@@ -305,7 +305,7 @@ class TestRotation:
         with bare.session_transaction() as stored:
             stored["user_id"] = 1
             stored["family_id"] = str(pg_family)
-        assert bare.post("/settings/screen", data={"action": "rotate"}).status_code == 400
+        assert bare.post("/settings/screen", data={"action": "rotate", "confirmed": "yes"}).status_code == 400
 
     def test_the_new_token_is_the_shape_the_column_allows(self, pg_pool, pg_family):
         token = screens.rotate(pg_pool, pg_family)

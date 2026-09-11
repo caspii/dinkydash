@@ -308,8 +308,8 @@ class TestTheSettingsSayTheHouseholdIsInvented:
         page = client.get("/settings/").get_data(as_text=True)
         assert "Refresh calendars" not in page
         assert "View dashboard" not in page
-        assert "Rewrite now" not in page
-        assert "Write the first dashboard" not in page  # not until the steps are done
+        assert "Rewrite daily message" not in page
+        assert "Write first daily message" not in page  # not until the steps are done
 
     def test_the_screen_link_arrives_with_the_last_step(self, client, sent, pg_pool):
         from dinkydash.pgstore import PostgresStore
@@ -325,7 +325,7 @@ class TestTheSettingsSayTheHouseholdIsInvented:
         store.save_config(config)
         page = client.get("/settings/").get_data(as_text=True)
         assert f"/s/{family['screen_token']}" in page
-        assert "Write the first dashboard" in page
+        assert "Write first daily message" in page
         assert 'class="qr"' in page  # drawn locally, never fetched
 
     def test_the_worker_writes_nothing_for_them_yet(self, client, sent, pg_pool):

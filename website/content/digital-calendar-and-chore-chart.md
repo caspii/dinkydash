@@ -18,7 +18,7 @@ DinkyDash handles this with automatic rotation. You define each recurring chore 
 
 > 🍽️ Set table — **Jun** &nbsp;&nbsp; 🐕 Feed dog — **Mina**
 
-Nobody negotiates with a screen. The rotation is provably fair (it cycles through everyone in order), it never forgets, and it resets fresh every morning alongside the day's calendar events, birthday countdowns, and an AI-written daily brief.
+Nobody negotiates with a screen. The rotation is provably fair (it cycles through everyone in order), it never forgets, and it resets fresh every morning alongside the day's calendar events, birthday countdowns, and an AI-written daily message.
 
 ## Your options for a calendar + chore chart screen
 
