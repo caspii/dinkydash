@@ -40,6 +40,13 @@
 # **Never commit an `EV[...]` blob here either** — it is ciphertext of a
 # production credential, in a public repo.
 #
+# **The alert block below is applied by the same command**, and App Platform
+# keeps the alert's *destinations* outside the spec: an alert created this way
+# arrives addressed to the account owner (one email, as `doctl apps list-alerts
+# <APP_ID>` shows), and `doctl apps update-alert-destinations <APP_ID> <ALERT_ID>
+# --app-alert-destinations <file>` is how it gets more. See doc/operations.md,
+# Sentry and the deploy alert.
+#
 # No Dockerfile: App Platform's Python buildpack reads .python-version and
 # installs what `build_command` says (DIN-30, reversed).
 #
@@ -118,6 +125,17 @@ envs:
   - key: DINKYDASH_ADMIN_EMAILS
     scope: RUN_TIME
     type: SECRET
+  # Where error reports and the worker's check-ins go (DIN-35, DIN-54):
+  # `dinkydash/sentry.py`, in both the service and the worker. A DSN is not a
+  # password — its holder can only *send* events — but it is not published
+  # either, because a public DSN is an invitation to fill the project with
+  # junk. Merged in from `.env` like the secrets above; unset means nothing is
+  # initialised and nothing leaves the container. Reports are labelled with
+  # `SENTRY_ENVIRONMENT` if set, else "production" — a local drill sets it,
+  # so its check-ins never stand in for the real worker's.
+  - key: SENTRY_DSN
+    scope: RUN_TIME
+    type: SECRET
 
   # The spend breaker (DIN-43), in model calls a day. Written out at their
   # defaults rather than left implicit, because a ceiling nobody can see is a
@@ -136,6 +154,14 @@ envs:
   - key: DINKYDASH_GLOBAL_CALLS_PER_FAMILY
     scope: RUN_TIME
     value: "4"
+
+# A failed build or deploy is the platform's own alert (DIN-54): zero code, and
+# it fires exactly when `db.ready` refuses to start on a wrong DATABASE_URL, or
+# a migration fails in the pre-deploy job. The two things this cannot see — a
+# worker that has stopped, and a site that is up but broken — are Sentry's: the
+# worker's cron monitor and an uptime check on app.dinkydash.co/login.
+alerts:
+  - rule: DEPLOYMENT_FAILED
 
 services:
   # Named `site` rather than `web` because renaming a component destroys and
@@ -214,6 +240,13 @@ workers:
   # component rather than a thread in `site` because there is no lock on the
   # tick in cloud mode: two processes would both refresh and both pay Anthropic
   # for the same brief. One worker, however many web instances.
+  #
+  # After every completed pass the worker sends one check-in to Sentry's cron
+  # monitor (`dinkydash/sentry.py`, DIN-54): a slug, `ok` and a duration. The
+  # monitor expects the next one within DINKYDASH_WORKER_INTERVAL (300 s in
+  # code when unset) with twice that as grace, and a missed one is the alert.
+  # The interval is read from the environment each pass and rides along on
+  # the check-in, so setting it here retunes the monitor on the next pass.
   - name: worker
     github:
       repo: caspii/dinkydash

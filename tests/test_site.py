@@ -337,3 +337,21 @@ class TestCloudflareDoesNotEatShellCommands:
         page = client.get("/getting-started/").get_data(as_text=True)
         assert page.count("<!--email_off-->") == page.count("<!--email_on-->")
         assert page.count("<!--email_off-->") > 1, "one pair per code block"
+
+
+class TestThePrivacyPageNamesEverySubProcessor:
+    """A sub-processor list is a promise that nothing else is called (CLAUDE.md).
+
+    Every service the hosted app sends anything to is on it — including the
+    one that only ever sees an error report (DIN-35).
+    """
+
+    @pytest.mark.parametrize("who", ["Anthropic", "DigitalOcean", "SendGrid",
+                                     "Cloudflare", "Sentry"])
+    def test_it_names(self, client, who):
+        page = client.get("/privacy/").get_data(as_text=True)
+        assert who in page
+
+    def test_it_says_what_sentry_never_sees(self, client):
+        page = client.get("/privacy/").get_data(as_text=True)
+        assert "Sentry sees that something broke" in page

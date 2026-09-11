@@ -113,3 +113,21 @@ class TestRefusals:
         monkeypatch.delenv("DINKYDASH_MODE", raising=False)
         with pytest.raises(RuntimeError, match="app.py"):
             create_application()
+
+
+class TestReporting:
+    def test_the_cloud_entry_point_starts_reporting_before_building_either_app(self, monkeypatch):
+        """A container that cannot build its apps should say so somewhere other
+        than a log nobody is reading. No DSN in this test: `init` is replaced."""
+        calls = []
+        monkeypatch.setenv("DINKYDASH_MODE", "cloud")
+        monkeypatch.setenv("DINKYDASH_APP_HOST", "app.example.test")
+        monkeypatch.setattr("dinkydash.sentry.init",
+                            lambda component, **kw: calls.append(("init", component)) or True)
+        monkeypatch.setattr("web.create_app",
+                            lambda *a, **k: calls.append("app") or stub(BOARD))
+        monkeypatch.setattr("website.site.create_site_app",
+                            lambda *a, **k: calls.append("site") or stub(SITE))
+        create_application()
+        assert calls[0] == ("init", "web")
+        assert set(calls[1:]) == {"app", "site"}

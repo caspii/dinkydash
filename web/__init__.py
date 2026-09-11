@@ -36,6 +36,9 @@ def create_app(store=None, *, pool=None):
         if pool is None:
             from dinkydash import db
             pool = db.pool()
+            # Refuse to start rather than start and fail every request: a
+            # container that never comes up is a deploy that never goes live.
+            db.ready(pool)
     else:
         if pool is not None:
             raise ValueError("Single mode accepts a store, not a pool.")

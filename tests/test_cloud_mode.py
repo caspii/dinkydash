@@ -140,6 +140,70 @@ def client(pg_pool, pg_family, monkeypatch):
     return client
 
 
+class TestCloudModeWaitsForTheDatabase:
+    """A wrong `DATABASE_URL` used to start cleanly and fail every request.
+
+    The pool opens in the background and only warns, so the process came up,
+    `/healthz` answered, the deploy was declared healthy, and every board then
+    waited thirty seconds and 500'd. Now the process refuses to start, which
+    is a deploy that never goes live while the previous one carries on — and
+    App Platform's DEPLOYMENT_FAILED alert is what says so (DIN-54). Nothing
+    here needs a real database, except the last test, which needs a closed
+    port.
+    """
+
+    @pytest.fixture(autouse=True)
+    def cloud(self, monkeypatch):
+        pytest.importorskip("psycopg_pool")
+        monkeypatch.setenv("DINKYDASH_MODE", "cloud")
+        monkeypatch.setenv("DINKYDASH_SECRET_KEY", "a-real-one")
+        monkeypatch.setenv("DATABASE_URL", "postgresql://nobody:hunter2@127.0.0.1:1/nowhere")
+
+    def test_a_database_that_never_answers_is_a_refusal_to_start(self, monkeypatch):
+        from psycopg_pool import PoolTimeout
+
+        from dinkydash import db
+
+        class NeverReady:
+            def wait(self, timeout):
+                raise PoolTimeout("pool initialization incomplete")
+
+        monkeypatch.setattr(db, "pool", lambda *args, **kwargs: NeverReady())
+        with pytest.raises(RuntimeError, match="DATABASE_URL") as refused:
+            create_app()
+        # The variable's name, never its value: a connection string is a password.
+        assert "hunter2" not in str(refused.value)
+        assert "nowhere" not in str(refused.value)
+
+    def test_a_database_that_answers_lets_it_start(self, monkeypatch):
+        from dinkydash import db
+
+        class Ready:
+            waited = None
+
+            def wait(self, timeout):
+                self.waited = timeout
+
+        pool = Ready()
+        monkeypatch.setattr(db, "pool", lambda *args, **kwargs: pool)
+        app = create_app()
+        assert app.config["POOL"] is pool
+        assert pool.waited == db.STARTUP_TIMEOUT
+
+    def test_the_wait_is_bounded_and_shorter_than_the_probes_patience(self):
+        from dinkydash import db
+
+        assert 0 < db.STARTUP_TIMEOUT <= 15
+
+    def test_the_real_pool_really_does_refuse(self, monkeypatch):
+        """End to end: a real pool against a closed port, with the wait cut short."""
+        from dinkydash import db
+
+        monkeypatch.setattr(db, "STARTUP_TIMEOUT", 0.5)
+        with pytest.raises(RuntimeError, match="DATABASE_URL"):
+            create_app()
+
+
 class TestABoardOutOfPostgres:
     """DIN-31's "done when": a board renders in cloud mode, from rows."""
 
