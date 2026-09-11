@@ -203,7 +203,9 @@ def test_thirty_days_later_only_the_ended_message_is_rendered(hosted, pg_pool, p
     for content in ("Invented family", "Saved headline", "Saved appointment", "Saved note",
                     "Set the table", "A holiday"):
         assert content not in page
-    assert 'http-equiv="refresh"' in page  # An eventual reactivation reaches the wall.
+    # An eventual reactivation reaches the wall: the script's timer, and the
+    # <noscript> reload for a browser without one.
+    assert 'data-reload="300"' in page and 'http-equiv="refresh"' in page
     assert model.messages.calls == []
 
 

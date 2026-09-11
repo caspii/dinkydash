@@ -14,7 +14,11 @@
     <title>{{ view.family_name or "DinkyDash" }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex, nofollow">
-    <meta http-equiv="refresh" content="{{ view.reload_seconds }}">
+    {# The page refreshes itself from the script at the foot of the body, which
+       keeps the last good dashboard on screen when a copy cannot be fetched.
+       With scripting off, this tag does what that script does, minus the
+       keeping: a reload that fails shows the browser's error page. #}
+    <noscript><meta http-equiv="refresh" content="{{ view.reload_seconds }}"></noscript>
     <link rel="icon" href="{{ static_url('favicon.svg') }}" type="image/svg+xml">
     <!-- On a tablet used as the panel, saving this to the home screen gives a
          full-screen dashboard with no browser around it. -->
@@ -259,9 +263,40 @@
         .waiting-sub { font-size: 1.05rem; color: var(--text-mid); max-width: 32rem; line-height: 1.6; }
         .bar { width: 20rem; height: 0.4rem; border-radius: 999px; background: var(--box); overflow: hidden; }
         .bar span { display: block; width: 40%; height: 100%; border-radius: 999px; background: var(--accent); }
+
+        /* Shown by the script when a refresh fails; the last good dashboard
+           stays above it. In the flow rather than floating, so the fit
+           measurement makes room for it and it covers nothing — floated in a
+           corner it sat on the last countdown of a Pi panel. Amber, like the
+           stale banner: the same "something is off", at the other edge. */
+        .offline {
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+            background: var(--warn-bg);
+            color: var(--warn-fg);
+            padding: 0.55rem 2.8rem;
+            font-size: 0.88rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        .offline[hidden] { display: none; }
+        .offline::before {
+            content: "";
+            width: 0.55rem;
+            height: 0.55rem;
+            border-radius: 50%;
+            background: currentColor;
+            flex-shrink: 0;
+        }
     </style>
 </head>
-<body>
+{# What the refresh script reads. `data-version` is the page's own
+   (`assets.board_version`): a copy with a different one is a deploy, and gets
+   a real reload. `data-today` is only on a dashboard that is *for* a day — a
+   waiting screen has no date on it, and a frozen one says its dates are paused
+   — so only those escalate to "Showing Thursday's dashboard". #}
+<body data-reload="{{ view.reload_seconds }}" data-version="{{ board_version() }}"{% if view.state in ('ready', 'stale') %} data-today="{{ view.today }}"{% endif %} data-timezone="{{ view.timezone }}">
 
 {% if view.state == 'ended' %}
 <div class="waiting">
@@ -391,17 +426,32 @@
 
 {% endif %}
 
-<script>
-/* One root value still drives every size — it is just measured now instead of
-   guessed. The CSS clamp above stays as the no-JS fallback.
+{# Filled in and shown by the script below when a copy of the page could not
+   be fetched; hidden again by the next copy that arrives, which brings its
+   own. Text only, no way out: it sits on a wall. #}
+<div class="offline" role="status" hidden></div>
 
-   Body is height:100vh;overflow:hidden, so nothing ever reports an overflow.
-   To find the content's natural height we let it lay out freely for one
-   measurement, then put it back. */
+<script>
+/* Two jobs in one script, because the second has to call the first.
+
+   1. Fitting. One root value still drives every size — it is just measured now
+   instead of guessed. The CSS clamp above stays as the no-JS fallback. Body is
+   height:100vh;overflow:hidden, so nothing ever reports an overflow. To find
+   the content's natural height we let it lay out freely for one measurement,
+   then put it back.
+
+   2. Refreshing. The page fetches its next copy and swaps the body in, rather
+   than reloading. A reload that fails — the Wi-Fi dropped, the hosted app is
+   mid-deploy — replaces the dashboard with the browser's error page, and a
+   kiosk has nobody to press Back. A fetch that fails leaves the last good
+   dashboard where it is, with a badge saying when it was last updated, and
+   tries again in a minute. The <noscript> meta refresh in the head does what
+   this used to do for a browser with scripting off. */
 (function () {
-    var root = document.documentElement, body = document.body;
+    var root = document.documentElement;
 
     function naturalHeight() {
+        var body = document.body;   // read each time: a refresh replaces it
         var h = body.style.height, o = body.style.overflow;
         body.style.height = "auto";
         body.style.overflow = "visible";
@@ -433,6 +483,143 @@
        fallback, so a size measured before it lands can overflow once it swaps
        in — measured at 557px of content in a 480px panel. Re-fit when it does. */
     if (document.fonts && document.fonts.ready) { document.fonts.ready.then(fit); }
+
+    /* ---- the refresh ---------------------------------------------------- */
+
+    var RETRY_SECONDS = 60;      // after a failure: a router takes about that long to come back
+    var TIMEOUT_MS = 30000;      // a request that hangs is a request that failed
+    var fetchedAt = new Date();  // when what is on screen arrived
+    var timer = null;
+    var started = 0;             // when the attempt in flight began; 0 between attempts
+
+    function reloadSeconds() {
+        return parseInt(document.body.getAttribute("data-reload"), 10) || 300;
+    }
+
+    // A browser too old to fetch and swap gets the reload it always had, on
+    // the same timer. Everything below is written to parse in it regardless.
+    if (!window.fetch || !window.DOMParser || !window.Intl) {
+        setTimeout(function () { location.reload(); }, reloadSeconds() * 1000);
+        return;
+    }
+
+    function later(seconds) {
+        clearTimeout(timer);
+        timer = setTimeout(refresh, seconds * 1000);
+    }
+
+    function refresh() {
+        // One attempt at a time — but one that has outlived its deadline is
+        // abandoned, not waited for. On a browser whose fetch cannot be
+        // aborted it may never settle, and waiting on it would be the end of
+        // refreshing.
+        if (started && Date.now() - started < TIMEOUT_MS) { return; }
+        started = Date.now();
+        var controller = window.AbortController ? new AbortController() : null;
+        var expiry = null;
+        // The deadline is a promise of its own rather than the abort alone.
+        // Aborting stops the request where the browser supports it; where it
+        // does not (older WebKit), the rejection still counts the attempt as
+        // failed, so the badge shows and the retry is scheduled.
+        var deadline = new Promise(function (resolve, reject) {
+            expiry = setTimeout(function () {
+                if (controller) { controller.abort(); }
+                reject(new Error("timed out"));
+            }, TIMEOUT_MS);
+        });
+        var attempt = fetch(location.href, {
+            cache: "no-store",
+            credentials: "same-origin",
+            signal: controller ? controller.signal : undefined
+        }).then(function (response) {
+            if (response.status >= 500) { throw new Error("server error"); }
+            // A deliberate answer — the link was changed, a session ended —
+            // is the server's page to show, the way a reload would show it.
+            if (!response.ok || response.redirected) { return null; }
+            return response.text();
+        });
+        Promise.race([attempt, deadline])
+            .then(function (html) {
+                if (html === null) { location.reload(); return; }
+                var next = new DOMParser().parseFromString(html, "text/html");
+                // Not a dashboard — some box between here and the server
+                // answered instead — counts as no copy at all.
+                if (!next.body || !next.body.hasAttribute("data-reload")) { throw new Error("not a dashboard"); }
+                // A different version of the page is a deploy. The CSS and
+                // this script live in the head, which a swap keeps, so only a
+                // real reload brings them — safe now, and only now, because
+                // the copy has just arrived and the network is there to
+                // reload over.
+                if (next.body.getAttribute("data-version") !== document.body.getAttribute("data-version")) {
+                    location.reload();
+                    return;
+                }
+                swap(next);
+                fetchedAt = new Date();
+                later(reloadSeconds());
+            })
+            .catch(function () {
+                offline();
+                later(RETRY_SECONDS);
+            })
+            .then(function () {
+                clearTimeout(expiry);
+                started = 0;
+            });
+    }
+
+    function swap(next) {
+        root.setAttribute("data-theme", next.documentElement.getAttribute("data-theme") || "light");
+        document.title = next.title;
+        var colour = document.querySelector('meta[name="theme-color"]');
+        var nextColour = next.querySelector('meta[name="theme-color"]');
+        if (colour && nextColour) { colour.setAttribute("content", nextColour.getAttribute("content")); }
+        // A parsed document's scripts never run, and this one is already running.
+        var scripts = next.body.querySelectorAll("script");
+        for (var i = 0; i < scripts.length; i++) { scripts[i].parentNode.removeChild(scripts[i]); }
+        document.body.parentNode.replaceChild(next.body, document.body);
+        fit();
+    }
+
+    function offline() {
+        var badge = document.querySelector(".offline");
+        if (!badge) { return; }
+        var body = document.body;
+        var zone = body.getAttribute("data-timezone") || undefined;
+        var today = body.getAttribute("data-today");
+        var detail = (today && today !== dateIn(zone))
+            ? "Showing " + weekday(today) + "\u2019s dashboard"
+            : "Last updated " + clock(fetchedAt, zone);
+        badge.textContent = "Reconnecting \u00b7 " + detail;
+        badge.hidden = false;
+        fit();   // it takes a line, and the dashboard above it has to give one up
+    }
+
+    // Times in the family's zone, which is what every other time on the
+    // dashboard is in. A zone name this browser does not know throws, and the
+    // device's own clock is then close enough.
+    function formatter(options) {
+        try { return new Intl.DateTimeFormat("en-GB", options); }
+        catch (e) { delete options.timeZone; return new Intl.DateTimeFormat("en-GB", options); }
+    }
+    function clock(date, zone) {
+        return formatter({hour: "2-digit", minute: "2-digit", hourCycle: "h23", timeZone: zone}).format(date);
+    }
+    function dateIn(zone) {
+        var parts = formatter({year: "numeric", month: "2-digit", day: "2-digit", timeZone: zone}).formatToParts(new Date());
+        var part = function (type) {
+            for (var i = 0; i < parts.length; i++) { if (parts[i].type === type) { return parts[i].value; } }
+            return "";
+        };
+        return part("year") + "-" + part("month") + "-" + part("day");
+    }
+    function weekday(iso) {
+        return new Intl.DateTimeFormat("en-GB", {weekday: "long", timeZone: "UTC"}).format(new Date(iso + "T00:00:00Z"));
+    }
+
+    later(reloadSeconds());
+    // The network coming back is the one moment worth not waiting for.
+    window.addEventListener("online", function () { later(1); });
 })();
 </script>
 </body>

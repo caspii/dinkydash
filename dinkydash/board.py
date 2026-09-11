@@ -85,6 +85,12 @@ def build_view(config, payload, today):
         "state": "waiting",
         "set_up": set_up,
         "reload_seconds": WAITING_RELOAD_SECONDS,
+        # Read by the page's own refresh (board.html): which day the dashboard
+        # on screen is for, and the zone its times are in, so a screen that
+        # has lost its connection can say "Showing Thursday's dashboard" once
+        # Thursday is over rather than letting the date in the corner lie.
+        "today": today.isoformat(),
+        "timezone": config.get("timezone") or "UTC",
     }
 
     if not payload:
@@ -145,4 +151,5 @@ def build_lapsed_view(config, payload, show_last_board):
     return {
         "state": "ended", "family_name": "", "reload_seconds": MAX_RELOAD_SECONDS,
         "theme": "dark" if config.get("theme") == "dark" else "light",
+        "timezone": config.get("timezone") or "UTC",
     }

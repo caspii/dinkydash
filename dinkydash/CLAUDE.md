@@ -292,7 +292,10 @@ with either.
 ceiling; only a `refresh_minutes` shorter than that lowers it, because reloading faster than the
 calendars are fetched just redraws the same thing. A parent picks "how soon does a change show up",
 not a browser knob — so there is no separate setting for it and the template reads
-`view.reload_seconds` rather than deciding.
+`view.reload_seconds` rather than deciding. The page acts on it by fetching a fresh copy and
+swapping it in, not by reloading, so a copy that never arrives leaves the last dashboard on the
+wall; `view.today` and `view.timezone` are there for the same script to say which day that
+dashboard was for (`web/CLAUDE.md`, "The dashboard's layout").
 
 These rules hold this together:
 
