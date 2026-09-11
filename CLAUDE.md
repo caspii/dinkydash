@@ -12,7 +12,7 @@ Three components:
 
 1. **The engine** (`dinkydash/`) — pure functions plus the model call. No config file is read here,
    no clock consulted, nothing written to disk.
-2. **The web app** (`web/`) — the board at `/`, a settings UI at `/settings` that writes `config.yaml`.
+2. **The web app** (`web/`) — the dashboard at `/`, a settings UI at `/settings` that writes `config.yaml`.
 3. **The marketing site** (`website/`) — dinkydash.co, a second Flask app rendering Markdown
    through Jinja on request. No build step and no committed HTML.
 
@@ -25,7 +25,7 @@ Before making structural changes, read:
 - the strategy document — positioning, pricing, SEO. Not in the repo by policy: it is a Linear
   document on the Dinky Dash team. See [Strategy and marketing live in
   Linear](#strategy-and-marketing-live-in-linear).
-- [design/](design/) — mockups for the settings UI and the board, with the reasoning
+- [design/](design/) — mockups for the settings UI and the dashboard, with the reasoning
 
 ### The other instruction files
 
@@ -35,7 +35,7 @@ that matters in one place lives beside that place, and arrives when you open a f
 | File | Read it when |
 |---|---|
 | [`dinkydash/CLAUDE.md`](dinkydash/CLAUDE.md) | Touching the engine, the storage seam, the payload, the tick, or `migrations/` |
-| [`web/CLAUDE.md`](web/CLAUDE.md) | Changing the board's layout, the settings UI, or measuring either |
+| [`web/CLAUDE.md`](web/CLAUDE.md) | Changing the dashboard's layout, the settings UI, or measuring either |
 | [`website/CLAUDE.md`](website/CLAUDE.md) | Working on the marketing site or the image generators |
 | [`doc/operations.md`](doc/operations.md) | You need the state of the running system — secrets, the Pi, what has been rotated. A log, not guidance, and deliberately not loaded |
 
@@ -191,7 +191,7 @@ mode is a different product on the same code.
   keeps `?t=` out, and it is exactly what would write `/s/<token>` down thousands of times from one
   panel. `auth.NoTokens` scrubs both, on both request loggers, and `tests/test_screen.py` fails if
   it stops.
-- **Rate-limit the misses, not the requests.** A real screen asks for its board every few minutes
+- **Rate-limit the misses, not the requests.** A real screen asks for its dashboard every few minutes
   for years; counting that would put a rate limit on somebody's kitchen wall. Only wrong tokens are
   counted, which is also the only thing worth counting.
 - **The sign-in rate limits are ours, not an edge rule, so that a refusal is a line somebody can
@@ -276,7 +276,7 @@ must stay at 1.x or later, because `claude_client.py` calls `output_config` stru
 
 **`requirements.txt` is runtime only** — it is what `deploy_to_pi.sh` installs on the Pi. The site
 generator's dependencies (`jinja2`, `markdown`, `pyyaml`) and the favicon script's (`Pillow`) live
-in `requirements-dev.txt`, because `website/` never runs on the board. A new import in `website/`
+in `requirements-dev.txt`, because `website/` never runs on the dashboard. A new import in `website/`
 goes there, not in `requirements.txt`.
 
 ## Architecture
@@ -290,16 +290,16 @@ DINKYDASH_MODE=single   config.yaml · auth off · billing off · one family · 
 DINKYDASH_MODE=cloud    Postgres · magic links · Stripe · many families · worker + scheduler
 ```
 
-**Every change must work in both.** The engine, the board template, the CSS, the calendar handling
+**Every change must work in both.** The engine, the dashboard template, the CSS, the calendar handling
 and the settings UI are shared verbatim; mode gates four things and no others — authentication,
 billing, where the config is stored, and what drives the scheduler. A mode check anywhere else means
 the change is in the wrong layer.
 
-**Where the board is served is part of the authentication gate**, not a fifth thing. Single mode
+**Where the dashboard is served is part of the authentication gate**, not a fifth thing. Single mode
 puts it at `/`: one family, no session, the URL somebody types into a Pi's kiosk browser. Cloud mode
-cannot, because a wall panel has no way to sign in — so there the board is at `/s/<token>` and `/`
+cannot, because a wall panel has no way to sign in — so there the dashboard is at `/s/<token>` and `/`
 is the front door of the signed-in area. `board.render_board` is what the two routes share, so it is
-one board reached two ways rather than two that drift, and `tests/test_cloud_mode.py` asserts the
+one dashboard reached two ways rather than two that drift, and `tests/test_cloud_mode.py` asserts the
 two are byte-identical apart from the one link that has to differ.
 
 - **Self-hosted keeps working with no Postgres, no Stripe, no email provider**, and no network
@@ -340,7 +340,7 @@ dinkydash/
 ├── db.py              the connection pool and the migration runner (cloud only)
 ├── mail.py            one transactional email, over SendGrid (cloud only)
 ├── accounts.py        users, the links that sign them in, and sign-up (cloud only)
-├── screens.py         the token that puts a board on a wall (cloud only)
+├── screens.py         the token that puts a dashboard on a wall (cloud only)
 ├── budget.py          what a family may spend on the model, and what everybody may
 │                     (`accounts.delete_family` is the hard delete; see phase 5)
 ├── growth.py          signups and activations per day, with no family in the row (cloud only)
@@ -354,10 +354,10 @@ web/
 ├── setup.py           the set-up checklist: what a new family still has to do, from the config
 ├── assets.py          static URLs with the file's content version, and the year they are cached for
 ├── ratelimit.py       a per-key counter, in this process (the per-IP half)
-├── routes/board.py    the board and the preview harness
+├── routes/board.py    the dashboard and the preview harness
 ├── routes/settings.py the settings UI (one table drives every list section)
 ├── routes/auth.py     /login, /login/link, /logout — cloud mode only
-├── routes/screen.py   /s/<token> — the board with no session, cloud mode only
+├── routes/screen.py   /s/<token> — the dashboard with no session, cloud mode only
 ├── routes/admin.py    /admin — signups and activations by week, for DINKYDASH_ADMIN_EMAILS only
 └── templates/         board.html, preview.html, auth/*.html, settings/*.html, admin/growth.html
 ```
@@ -396,7 +396,7 @@ cp config.example.yaml config.yaml
 venv/bin/python -m pytest tests/ -q
 ```
 That is the suite a self-hoster runs: the Postgres tests skip, everything else passes. To run the
-other half — the store contract against a real database, and the cloud-mode board — point it at a
+other half — the store contract against a real database, and the cloud-mode dashboard — point it at a
 scratch database:
 ```bash
 pip install -r requirements-cloud.txt          # psycopg; not in requirements.txt
@@ -414,7 +414,7 @@ venv/bin/python migrate.py --database-url postgresql:///dinkydash_dev
 ```
 Without `--database-url` it reads `DATABASE_URL_DIRECT` — the cluster, not the pool.
 
-**Generate a board** (needs `ANTHROPIC_API_KEY` in `.env`)
+**Generate a dashboard** (needs `ANTHROPIC_API_KEY` in `.env`)
 ```bash
 python generate.py                  # today: fetch the calendars and write the brief
 python generate.py --tick           # only what is due now — what cron runs
@@ -437,7 +437,7 @@ together; the launcher always selects cloud mode and refuses invalid setup.
 ```bash
 python app.py                       # or: flask run --host=0.0.0.0
 ```
-Board at `/`, settings at `/settings`, all three screen sizes at once at `/preview`.
+Dashboard at `/`, settings at `/settings`, all three screen sizes at once at `/preview`.
 
 **Run the marketing site** (dinkydash.co)
 ```bash
@@ -459,7 +459,7 @@ rotation, staleness, and the config round-trip — the things that used to break
 in under a second, so there is no excuse for skipping them.
 
 **Testing without spending money.** `generate.py --date 2026-12-24` generates for any date, which is
-how to check a countdown or a quiet day. It still costs one API call. To exercise the board with no
+how to check a countdown or a quiet day. It still costs one API call. To exercise the dashboard with no
 call at all, run `python sample_board.py`, which writes a plausible payload for today and calls no
 API. It refuses to overwrite a real one, so delete `dashboard_data.json` first if that is what you
 want. Then edit the file by hand — change `generated_for_date` to an older date to see the stale
@@ -470,7 +470,7 @@ are gitignored, so a new Conductor workspace only receives them through Files to
 `.worktreeinclude` **from the main checkout on disk** — having it on the branch is not enough. If
 the main checkout is parked on an old commit that predates that file, Conductor falls back to its
 default `.env*` pattern: `.env` arrives, the rest does not. `.conductor/settings.toml` covers the
-gap by falling back to `config.example.yaml` and seeding a sample board, so a workspace always opens
+gap by falling back to `config.example.yaml` and seeding a sample dashboard, so a workspace always opens
 on something real. Copied data still wins over both.
 
 **Changing the payload shape.** Ask first whether the value can be recomputed from config + date.
@@ -479,17 +479,21 @@ honest. The payload is for things only the generator can know. Then ask which ha
 refresh writes goes in `runner.REFRESH_KEYS` so `write_brief` carries it forward, and a key the
 brief writes must be one a refresh never touches.
 
-**Changing the board, or the settings UI.** Read [`web/CLAUDE.md`](web/CLAUDE.md) first. The
-board is sized off one measured root value and every length is relative, so a change that looks
+**Changing the dashboard, or the settings UI.** Read [`web/CLAUDE.md`](web/CLAUDE.md) first. The
+dashboard is sized off one measured root value and every length is relative, so a change that looks
 right at one size is not evidence about the other two — and `--window-size` cannot be trusted
 to tell you.
 
 ## Conventions
 
+- **Product wording follows [doc/terminology.md](doc/terminology.md).** Call the complete display
+  a **dashboard** and the device showing it a **screen**. Keep the glossary in step with UI,
+  email and website copy.
+
 - **British English** throughout — UI copy, the model's system prompt, and `%-d %B` date formatting
   (`25 December`, not `December 25`).
-- **Times are 24-hour** on the board (`08:20`).
-- The board is sized in `rem` off one root `clamp(11px, 2.4vh, 26px)`, so the same layout reads on a
+- **Times are 24-hour** on the dashboard (`08:20`).
+- The dashboard is sized in `rem` off one root `clamp(11px, 2.4vh, 26px)`, so the same layout reads on a
   480px-tall Pi panel and a living-room TV. Two columns above a 3:2 aspect ratio, one below.
 - The settings UI does the same off one root `clamp(1rem, 0.75rem + 0.625vw, 1.25rem)`: the mockup's
   16px on a phone, up to 20px on a desktop browser, so the phone layout reads at desk distance
@@ -497,7 +501,7 @@ to tell you.
   or `em` — a new `px` value there stops scaling and drifts out of proportion. Borders, focus rings
   and shadows are the exception and stay in `px`; hairlines should not scale.
 - Light and dark are the same rules with a different set of CSS custom properties. Never hard-code a
-  colour in a board rule; add a token.
+  colour in a dashboard rule; add a token.
 - Icons are inline SVG, never emoji. Emoji in *content* (avatars, chore markers) are the brand.
 
 ## Known issues and gotchas
@@ -521,7 +525,7 @@ to tell you.
   is scrubbed for the same reason — a parser quotes the line it choked on, which is an appointment.
   `tests/test_secrets_and_headers.py` fails if any of that regresses.
 - `strftime("%-d")` is glibc-specific. Fine on a Pi and in CI; would need changing for Windows.
-- **Measuring the board in headless Chrome is full of traps** — a viewport that is not the size
+- **Measuring the dashboard in headless Chrome is full of traps** — a viewport that is not the size
   the flag asked for, a reused instance returning the previous run's numbers, and a `--screenshot`
   that writes its file and then hangs forever. All of them, and what to do instead, are in
   [`web/CLAUDE.md`](web/CLAUDE.md).

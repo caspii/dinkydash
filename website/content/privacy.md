@@ -13,7 +13,7 @@ data gets, and children's data at that. This page says exactly what happens to
 it.
 
 **If you run DinkyDash yourself**, most of this does not apply to us at all.
-Your config, your calendar links and your board stay on your machine, and the
+Your config, your calendar links and your dashboard stay on your machine, and the
 only thing that leaves it is the day's agenda, sent to Anthropic so Claude can
 write the daily line — with your own API key, under your own agreement with
 them. We hold nothing. This page describes the **hosted** version at
@@ -27,17 +27,17 @@ either something you typed or something the software produced.
 | What | Where it comes from | Why |
 |---|---|---|
 | **Your email address** | You type it to sign in | It is the whole of the account. There is no password |
-| **Your family's details** | You type them: names, dates of birth, emoji, chores, special dates | They are what the board shows |
-| **Your calendar links** | You paste them | To fetch the events the board shows |
-| **Your calendar events** | Fetched from those links | The agenda on the board |
-| **The written line** | Written by Claude each morning | The board's headline and note |
+| **Your family's details** | You type them: names, dates of birth, emoji, chores, special dates | They are what the dashboard shows |
+| **Your calendar links** | You paste them | To fetch the events the dashboard shows |
+| **Your calendar events** | Fetched from those links | The agenda on the dashboard |
+| **The written line** | Written by Claude each morning | The dashboard's headline and note |
 | **Sign-in links** | Generated when you ask for one | Hashed, never stored as a working link |
-| **Counts of model calls** | Recorded when the board is written | So one account cannot run up an unbounded bill |
+| **Counts of model calls** | Recorded when the dashboard is written | So one account cannot run up an unbounded bill |
 | **Counts of sign-ups and first calendar connections** | Recorded when a family is created, and the first time it saves a calendar link | So we can see whether the product is being used, without looking at anyone's account |
 
 **We do not use cookies for tracking.** The hosted app sets one cookie, and it
 is the session that keeps you signed in. There is no analytics on
-`app.dinkydash.co`, no advertising, and no third-party script on the board or
+`app.dinkydash.co`, no advertising, and no third-party script on the dashboard or
 the settings pages. The marketing site at `dinkydash.co` uses Ahrefs Web
 Analytics, which is cookieless and collects no personal data.
 
@@ -56,7 +56,7 @@ models.
 link, your email address and the link go to SendGrid to be delivered. SendGrid
 never sees a calendar, a name or a date of birth.
 
-**Sentry sees that something broke, and not whose board it was.** When the app
+**Sentry sees that something broke, and not whose dashboard it was.** When the app
 or the background worker hits an error, a report goes to Sentry: which line of
 our code failed, the kind of request it was in, and which version was running.
 Never the page's address, and never a name, a calendar link, an appointment, an
@@ -66,7 +66,7 @@ every few minutes that it is still running, which is how we find out when it is
 not, and Sentry checks from outside that the sign-in page answers. Neither
 carries anything about you.
 
-If you would rather Anthropic saw nothing, self-host: the board works with no
+If you would rather Anthropic saw nothing, self-host: the dashboard works with no
 API key at all, and simply goes without the written line.
 
 ### Sub-processors
@@ -85,7 +85,7 @@ United States, so transfers outside the EU are covered by standard contractual
 clauses.
 
 **Google Fonts is not on this list, and that is deliberate.** The typeface is
-served from our own servers, so no page of DinkyDash — not the board, not the
+served from our own servers, so no page of DinkyDash — not the dashboard, not the
 settings, not this site — asks Google for anything or tells them you were here.
 
 Payment processing will be added to this list when payment exists. It does not
@@ -105,7 +105,7 @@ We would rather hold less, so most of this expires on its own.
   recent history until it is trimmed.
 - **Sign-in links**: deleted once expired, which is fifteen minutes. A link that
   has been used is deleted on the same schedule.
-- **Your account, your family's details and the record of boards written**: kept
+- **Your account, your family's details and the record of dashboards written**: kept
   while the account exists, and deleted when you delete it.
 - **Daily totals of model calls across the service**: kept without an account
   identifier, including after account deletion, so deleting an account does not
@@ -114,7 +114,7 @@ We would rather hold less, so most of this expires on its own.
   kept without an account identifier, including after account deletion. Like the
   model-call totals, these hold a date and a count and nothing else.
 
-After your trial or subscription ends, the screen shows the last saved board
+After your trial or subscription ends, the screen shows the last saved dashboard
 with an ended-access message for 30 days, then only the message. This changes
 what the screen shows; it does not delete your stored account data. You can
 still sign in to export or delete it.
@@ -141,12 +141,12 @@ which is what the export is.
 
 DinkyDash is for parents to use, and holds children's names and dates of birth
 because that is what a family calendar is. **Accounts are for adults.** A child
-does not sign up, and nothing on the board asks a child for anything.
+does not sign up, and nothing on the dashboard asks a child for anything.
 
 ## Security
 
 Sign-in links are hashed before they are stored, work once, and expire in
-fifteen minutes. The board's own screen URL is unguessable and can be changed at
+fifteen minutes. The dashboard's own screen URL is unguessable and can be changed at
 any time from the settings page, which stops the old one working. Everything
 travels over HTTPS. Every form that changes anything carries a token that stops
 another site submitting it on your behalf.

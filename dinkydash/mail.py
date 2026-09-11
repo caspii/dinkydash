@@ -16,7 +16,7 @@ already a dependency because `calendars.py` fetches feeds with it. A new
 package in an app holding other families' calendars is a supply-chain decision,
 and fifteen saved lines do not pay for one.
 
-**Single mode never calls this.** A self-hosted board has no accounts, so it has
+**Single mode never calls this.** A self-hosted dashboard has no accounts, so it has
 no logins to mail and no dunning to send. Nothing here is imported unless cloud
 mode asks for it, and `send` refuses rather than guessing if it is reached
 without a key.

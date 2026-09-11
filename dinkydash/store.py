@@ -1,4 +1,4 @@
-"""The storage seam: where a family's config, board and history are kept.
+"""The storage seam: where a family's config, dashboard and history are kept.
 
 FileStore keeps config.yaml and two JSON files; PostgresStore keeps rows keyed
 on a family (PLAN.md decision 10). Both expose seven operations:
@@ -8,10 +8,10 @@ on a family (PLAN.md decision 10). Both expose seven operations:
                                  save_brief(config, brief)
     recent_notes(config, days)   record_note(config, entry, keep)
 
-The runner, the board route and the settings routes take a store and never
+The runner, the dashboard route and the settings routes take a store and never
 learn which one they were given.
 
-**The board is read whole and written in halves**, and that is the shape rather
+**The dashboard is read whole and written in halves**, and that is the shape rather
 than an accident. A refresh owns the agenda; the daily brief owns the words.
 They run on different clocks, and the brief's write is separated from its read
 by a slow model call — so a single `save_payload` meant a refresh that landed
@@ -94,11 +94,11 @@ class FileStore:
                 self._replace(previous, _is_agenda_key, agenda)
             config_module.save_config(config, self.config_path)
 
-    # -- the board ----------------------------------------------------------
+    # -- the dashboard ----------------------------------------------------------
 
     def load_payload(self, config):
-        """The last generated board, or None when there is not a usable one."""
-        payload = _read_json(self._data_path(config), "the stored board")
+        """The last generated dashboard, or None when there is not a usable one."""
+        payload = _read_json(self._data_path(config), "the stored dashboard")
         return payload if isinstance(payload, dict) else None
 
     def save_agenda(self, config, agenda):
@@ -124,7 +124,7 @@ class FileStore:
     def _replace(self, config, owns, updates):
         """Replace this half's fields. The caller holds the config-directory lock."""
         path = self._data_path(config)
-        stored = _read_json(path, "the stored board")
+        stored = _read_json(path, "the stored dashboard")
         if not isinstance(stored, dict):
             stored = {}
         payload = {k: v for k, v in stored.items() if not owns(k)}
@@ -141,7 +141,7 @@ class FileStore:
         """Add one entry to the history, keeping the most recent `keep`.
 
         Never raises. A history that cannot be written costs a repeated octopus
-        fact in a fortnight; it is not worth losing a written board over.
+        fact in a fortnight; it is not worth losing a written dashboard over.
         """
         try:
             _write_json(self._history_path(config),
@@ -219,7 +219,7 @@ def _locked(directory):
     `data_file` points elsewhere. No network call runs under this lock. Cloud
     mode coordinates config and agenda writes with a family-row lock instead.
     """
-    if fcntl is None:  # Windows; the board runs on Linux and macOS
+    if fcntl is None:  # Windows; the dashboard runs on Linux and macOS
         yield
         return
     try:
@@ -240,7 +240,7 @@ def _read_json(path, what):
     """Parsed JSON, or None when there is nothing usable there.
 
     Never raises. A missing file means this family has not got one yet, and an
-    unreadable one must not take the board down with it — the caller carries on
+    unreadable one must not take the dashboard down with it — the caller carries on
     as though it were absent, and the next write replaces it.
     """
     try:

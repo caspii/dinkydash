@@ -12,7 +12,7 @@ run_mode = "nonconcurrent"
 #
 # config.yaml and dashboard_data.json are only needed by single mode now, but
 # they stay: the suite exercises both modes and `sample_board.py` is still how
-# you look at the board without spending an API call.
+# you look at the dashboard without spending an API call.
 setup = """
 set -e
 python3 -m venv venv

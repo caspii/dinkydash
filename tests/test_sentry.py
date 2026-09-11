@@ -281,7 +281,7 @@ class TestTheCheckIn:
 
 
 class TestWithoutADsn:
-    """Every self-hosted board, and every test that is not this file."""
+    """Every self-hosted dashboard, and every test that is not this file."""
 
     @pytest.fixture(autouse=True)
     def no_dsn(self, monkeypatch):

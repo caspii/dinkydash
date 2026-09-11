@@ -1,13 +1,13 @@
-"""The board on a wall: one unguessable URL, no session. Cloud mode only.
+"""The dashboard on a wall: one unguessable URL, no session. Cloud mode only.
 
-    GET /s/<token>                        the board
+    GET /s/<token>                        the dashboard
     GET /s/<token>/manifest.webmanifest   so a tablet can save it to a home screen
 
 Registered only when `DINKYDASH_MODE=cloud`, like `auth.py` — a self-hosted
-board is at `/` and has no token, so here this is a 404 rather than a route
+dashboard is at `/` and has no token, so here this is a 404 rather than a route
 that exists and refuses.
 
-**Why the board is not simply behind the login.** A kitchen tablet, a television
+**Why the dashboard is not simply behind the login.** A kitchen tablet, a television
 and a Raspberry Pi in kiosk mode have no way to sign in and nobody to do it: the
 whole point of the product is a screen somebody stops thinking about. So the
 credential moves into the URL, where a browser can hold it for months without a
@@ -17,7 +17,7 @@ person (PLAN.md, Screen URLs).
 of a magic link's defences — no expiry, no single use — so the ones it does have
 have to be kept working:
 
-* **it reaches nothing but a board.** No settings, no email address, nothing
+* **it reaches nothing but a dashboard.** No settings, no email address, nothing
   that writes. Both routes here are GETs, and both read through a
   `PostgresStore` scoped to the one family the token named;
 * **rotation is the revocation**, on the settings page, and it is the whole of

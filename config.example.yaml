@@ -4,7 +4,7 @@
 # short `id` to each person, pet, chore, date and calendar the first time you
 # open it — leave those alone, they are how it tells one entry from another.
 
-# Shown in the corner of the board.
+# Shown in the corner of the dashboard.
 family_name: "Our family"
 
 # Decides when "today" rolls over and how calendar times are displayed.
@@ -25,7 +25,7 @@ theme: light
 #   Outlook  → Settings → Calendar → Shared calendars → Publish a calendar → the ICS link
 #
 # A personal calendar with work and private things in it can still go on the
-# board: add `shared_with` with the other parent's email address, and only the
+# dashboard: add `shared_with` with the other parent's email address, and only the
 # events with them on the guest list (or organised by them) get through. Use
 # the address on the invitation. Leave it out to show everything.
 calendars:
@@ -38,7 +38,7 @@ calendars:
 #
 # Mia, Theo and Biscuit are invented, and `invented: true` is how the app
 # knows: the settings page asks you to replace them, and the daily brief waits
-# until you have — a board about children who are not yours is not a board.
+# until you have — a dashboard about children who are not yours is not a dashboard.
 # Saving a person from the settings page clears the mark; so does deleting the
 # line. A family written by hand needs no marks at all.
 people:
@@ -79,12 +79,12 @@ special_dates:
     emoji: "☀️"
     date: "07/01"
 
-# claude-haiku-4-5 costs roughly $0.13/month at one board a day.
+# claude-haiku-4-5 costs roughly $0.13/month at one dashboard a day.
 # claude-sonnet-5 writes better for about three times that.
 claude_model: "claude-haiku-4-5"
 max_tokens: 1024
 
-# How far ahead to fetch calendar events. The board shows today; the extra days
+# How far ahead to fetch calendar events. The dashboard shows today; the extra days
 # give the model context, and keep the agenda right if a morning's run fails.
 calendar_days_ahead: 14
 
@@ -95,7 +95,7 @@ history_days: 30
 # `generate.py` ignores them and does both at once, as it always has.
 #
 # How often the calendars are re-fetched. This is what puts an appointment added
-# at 09:00 onto the board the same day. Fetching costs nothing, but Google's
+# at 09:00 onto the dashboard the same day. Fetching costs nothing, but Google's
 # secret .ics feed is cached at their end and can lag by hours, so asking more
 # often than every 15 minutes buys nothing.
 refresh_minutes: 60
@@ -104,7 +104,7 @@ refresh_minutes: 60
 # 06:00 is a number in older YAML. One brief a day; "Rewrite now" covers the rest.
 brief_time: "06:00"
 
-# Where the generated board and the record of recent notes are kept. Relative
+# Where the generated dashboard and the record of recent notes are kept. Relative
 # paths sit beside this file, so `generate.py --config` moves them with it.
 # These two are storage-layer keys: only the file store reads them, and the
 # hosted version keeps the same two things as rows instead.

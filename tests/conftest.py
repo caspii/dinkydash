@@ -146,11 +146,11 @@ class SigningClient(FlaskClient):
 
 
 def board_path(pg_pool, family_id):
-    """Where that family's board is served in cloud mode: `/s/<token>`.
+    """Where that family's dashboard is served in cloud mode: `/s/<token>`.
 
-    A wall panel cannot sign in, so the board moved off `/` (DIN-42) and `/`
+    A wall panel cannot sign in, so the dashboard moved off `/` (DIN-42) and `/`
     became the way in to the settings. Every test that used to GET `/` for a
-    board in cloud mode goes through here instead.
+    dashboard in cloud mode goes through here instead.
     """
     from dinkydash import screens
 

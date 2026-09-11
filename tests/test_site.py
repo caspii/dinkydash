@@ -69,7 +69,7 @@ class TestHostedSignup:
                 assert 'href="/getting-started/"' in body, page["url"]
 
     def test_the_app_address_is_configurable(self):
-        """A preview runs the board on a local port; its trial button must not
+        """A preview runs the dashboard on a local port; its trial button must not
         land on production. Only the app's origin moves — the privacy and terms
         pages name `app.dinkydash.co` as a fact about production and keep it."""
         local = create_site_app(site_url="https://dinkydash.co",
@@ -226,7 +226,7 @@ class TestLayoutStability:
 
 class TestItIsNotTheBoard:
     def test_the_site_app_serves_no_settings_ui(self, client):
-        """Two apps, one codebase. The marketing site has no way into the board."""
+        """Two apps, one codebase. The marketing site has no way into the dashboard."""
         assert client.get("/settings/").status_code == 404
 
     def test_it_promises_not_to_leak_the_referrer(self, client):

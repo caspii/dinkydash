@@ -1,6 +1,6 @@
 """The rolling record of what was written recently.
 
-Fed back into the prompt so the board doesn't tell you the same octopus fact
+Fed back into the prompt so the dashboard doesn't tell you the same octopus fact
 every fortnight.
 
 Pure: this decides what the history says, `dinkydash.store` decides where it

@@ -1,4 +1,4 @@
-"""Turning config + payload into what the board template renders.
+"""Turning config + payload into what the dashboard template renders.
 
 The split that matters: `headline` and `note` come from the payload (the model
 wrote them, they can go stale), while the agenda, whose-turn and countdowns are
@@ -23,13 +23,13 @@ MAX_EVENTS = 5
 MAX_TOMORROW = 3
 MAX_COUNTDOWNS = 3
 
-# Nothing pushes to the board, so it reloads itself on a timer. Five minutes is
+# Nothing pushes to the dashboard, so it reloads itself on a timer. Five minutes is
 # the ceiling — it is a panel on a wall, not a page anyone is watching — and
 # reloading faster than the calendars are fetched only shows the same thing
 # again, so a shorter `refresh_minutes` is the only thing that lowers it.
 MAX_RELOAD_SECONDS = 300
 # Before the first run there is nothing to show, so ask more often: the screen
-# then fills itself in a minute after the board is written rather than five.
+# then fills itself in a minute after the dashboard is written rather than five.
 WAITING_RELOAD_SECONDS = 60
 
 
@@ -46,7 +46,7 @@ def computed_headline(events):
 
 
 def reload_seconds(config):
-    """How long the board waits before rendering itself again.
+    """How long the dashboard waits before rendering itself again.
 
     Config-derived, so it is computed here rather than written into the
     template: a family that fetches every 15 minutes still reloads every 5, and
@@ -67,7 +67,7 @@ def build_view(config, payload, today):
     )
 
     # Whether there is a real family to write for yet. The waiting screen
-    # reads it to say "nearly there" rather than "writing your first board"
+    # reads it to say "nearly there" rather than "writing your first dashboard"
     # while nothing is being written — see `schedule.brief_due`.
     set_up = is_set_up(config)
 
@@ -137,7 +137,7 @@ def build_lapsed_view(config, payload, show_last_board):
         try:
             saved_day = date.fromisoformat((payload or {}).get("generated_for_date", ""))
         except (TypeError, ValueError):
-            pass  # No successful brief: there is no board to preserve.
+            pass  # No successful brief: there is no dashboard to preserve.
         else:
             view = build_view(config, payload, saved_day)
             view["state"] = "frozen"

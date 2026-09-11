@@ -1,8 +1,8 @@
-"""The board on a wall: `/s/<token>`, rotation, and the redirects (DIN-42).
+"""The dashboard on a wall: `/s/<token>`, rotation, and the redirects (DIN-42).
 
 Five claims, and the first is what the whole feature exists for:
 
-* **a screen needs no session.** A kitchen tablet cannot sign in, so the board
+* **a screen needs no session.** A kitchen tablet cannot sign in, so the dashboard
   is reached by an unguessable URL and nothing else;
 * **the token is a bearer credential and is treated like one** — never in a log,
   never in an index, never in a shared cache, and never echoed back on a miss;
@@ -13,7 +13,7 @@ Five claims, and the first is what the whole feature exists for:
 * **rotation is the only revocation there is**, so it has to work.
 
 Skips without `DINKYDASH_TEST_DATABASE_URL`. Cloud mode is where the screen
-exists at all: single mode serves the board at `/` and has no token, so the
+exists at all: single mode serves the dashboard at `/` and has no token, so the
 route is a 404 there, which is asserted below with no database at all.
 """
 
@@ -46,7 +46,7 @@ recurring:
 
 
 def a_board_for(today):
-    """A written board, so these tests read a real one rather than the waiting
+    """A written dashboard, so these tests read a real one rather than the waiting
     screen. Chores and countdowns are recomputed from config on every render,
     but nothing is rendered at all until a payload exists."""
     return {"generated_for_date": today.isoformat(),
@@ -120,7 +120,7 @@ class TestTheBoardNeedsNoSession:
         assert f'href="{path}/manifest.webmanifest"' in body
 
     def test_the_page_asks_nothing_of_anybody_else(self, anyone, path):
-        """A screen URL in a `Referer` is a screen URL given away. The board
+        """A screen URL in a `Referer` is a screen URL given away. The dashboard
         is already free of third-party requests (DIN-32); this is the assertion
         that keeps it that way on the one page a stranger can open."""
         body = anyone.get(path).get_data(as_text=True)
@@ -280,7 +280,7 @@ class TestRotation:
 
     def test_and_says_plainly_what_the_link_is(self, parent):
         page = parent.get("/settings/screen").get_data(as_text=True)
-        assert "Anyone with this link can see your board" in page
+        assert "Anyone with this link can see your dashboard" in page
 
     def test_the_qr_is_drawn_here_and_not_fetched(self, parent):
         """Handing this URL to a QR service would be publishing the credential."""
@@ -318,7 +318,7 @@ class TestRotation:
         assert screens.rotate(pg_pool, uuid.uuid4()) is None
 
 
-# -- where the board is, now that it moved ----------------------------------
+# -- where the dashboard is, now that it moved ----------------------------------
 
 class TestTheRootAndThePreview:
     def test_the_root_sends_a_signed_in_parent_to_the_settings(self, parent):
@@ -348,12 +348,12 @@ class TestTheRootAndThePreview:
         assert len(re.findall(re.escape(f'src="{path}"'), page)) == 3
 
     def test_view_board_opens_its_own_tab(self, parent, path):
-        """From the settings app saved to a phone, the board in the same tab
+        """From the settings app saved to a phone, the dashboard in the same tab
         is a dead end: no address bar, and on an iPhone no Back button. The
         reasoning is in `settings/home.html`; this is the assertion."""
         page = parent.get("/settings/").get_data(as_text=True)
         links = [a for a in re.findall(r"<a [^>]*>", page) if f'href="{path}"' in a]
-        assert len(links) == 2, links  # "Board" in the app bar, and "View board"
+        assert len(links) == 2, links  # "Dashboard" in the app bar, and "View dashboard"
         assert all('target="_blank"' in a and 'rel="noopener"' in a for a in links)
 
 
@@ -362,7 +362,7 @@ class TestTheRootAndThePreview:
 class TestGettingTheLinkOntoTheOtherDevice:
     def test_the_daily_card_offers_the_screen_link(self, parent, monkeypatch):
         """The link and the QR code are the finish line, and a parent looking
-        for them looked at the card with "View board" on it — not at the ninth
+        for them looked at the card with "View dashboard" on it — not at the ninth
         row down. The card links to the page; the code is still drawn only
         there."""
         from web.routes import settings
@@ -370,8 +370,8 @@ class TestGettingTheLinkOntoTheOtherDevice:
         monkeypatch.setattr(settings, "qr_svg", lambda link: pytest.fail(
             "The settings home should not generate a QR code"))
         page = parent.get("/settings/").get_data(as_text=True)
-        assert page.index("Screen link") < page.index("What's on the board")
-        assert page.index('href="/settings/screen"') < page.index("What's on the board")
+        assert page.index("Screen link") < page.index("What's on the dashboard")
+        assert page.index('href="/settings/screen"') < page.index("What's on the dashboard")
 
     def test_the_screen_page_offers_copy_and_share(self, parent):
         """Both the browser's own: nothing fetched, nothing sent by the page."""

@@ -2,7 +2,7 @@
 
     flask run --host=0.0.0.0        # or: python app.py
 
-Serves the board at / and the settings UI at /settings. Self-hosted mode has no
+Serves the dashboard at / and the settings UI at /settings. Self-hosted mode has no
 login: whoever can reach the port can edit the config.
 """
 

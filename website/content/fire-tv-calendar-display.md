@@ -2,10 +2,10 @@
 title: "A Family Calendar on Fire TV (No App to Install)"
 seo_title: "Fire TV Calendar Display: Put Your Family Calendar on a TV"
 template: page.html
-description: There is no good family calendar app for Fire TV, but there is a browser — and a web-based calendar board works in it. Here is the setup, and the honest limit of using a TV stick for this.
+description: There is no good family calendar app for Fire TV, but there is a browser — and a web-based calendar dashboard works in it. Here is the setup, and the honest limit of using a TV stick for this.
 faq:
   - q: "Is there a family calendar app for Fire TV?"
-    a: "Not a good one. The Fire TV app store is built around streaming, and the calendar apps in it are thin. The better route is Amazon's own Silk Browser, which is free in the same store — any web-based calendar board opens in it with nothing else to install."
+    a: "Not a good one. The Fire TV app store is built around streaming, and the calendar apps in it are thin. The better route is Amazon's own Silk Browser, which is free in the same store — any web-based calendar dashboard opens in it with nothing else to install."
   - q: "Does Fire TV have a web browser?"
     a: "Yes. Amazon Silk is a free download from the Fire TV app store and is still the maintained browser for the platform. Search for Silk from the home screen, download it, and it works with the standard remote."
   - q: "Can a Fire Stick show a calendar all day?"
@@ -17,7 +17,7 @@ faq:
 ---
 
 There is no good family calendar app for Fire TV. There is, however, a **browser** — Amazon's
-own Silk, free in the same app store — and a web-based calendar board opens in it with nothing
+own Silk, free in the same app store — and a web-based calendar dashboard opens in it with nothing
 else to install.
 
 So: **yes, you can put your family's day on the television**, and the only thing you install
@@ -31,9 +31,9 @@ DinkyDash is a **web page**, not an app. So there are two parts:
    licensed, and about an evening's work. Or [start a free 14-day hosted trial](https://app.dinkydash.co/login), no card required.
 2. **The Fire TV**, which is the screen. Silk opens that address.
 
-![The DinkyDash board on a wide screen: today's events on the left, whose turn each chore is and the countdowns on the right](/images/family-calendar-tv-board.webp)
+![The DinkyDash dashboard on a wide screen: today's events on the left, whose turn each chore is and the countdowns on the right](/images/family-calendar-tv-board.webp)
 
-On a 16:9 television the board splits into two columns by itself and sizes its own type to the
+On a 16:9 television the dashboard splits into two columns by itself and sizes its own type to the
 screen. Nothing needs configuring for a particular set.
 
 ## Set it up
@@ -49,7 +49,7 @@ Two ways round it:
 - **Hold the voice button** on the remote and dictate the address. Silk supports Alexa input.
 - **Use the Fire TV phone app**, which turns your phone into a remote with a real keyboard.
 
-**3. Bookmark it.** Silk opens on its bookmarks, so after this the board is two clicks from
+**3. Bookmark it.** Silk opens on its bookmarks, so after this the dashboard is two clicks from
 the home screen and you never type the address again.
 
 **4. Push the screensaver out.** Settings → **Display & Sounds** → **Screensaver** → set
@@ -86,14 +86,14 @@ calendar display](/smart-tv-calendar-display/) for Samsung and LG.
 - **Countdowns** to birthdays, Christmas and the school holidays.
 - **A daily line written each morning** by Claude, around your family's actual day.
 
-The board reloads itself every five minutes with a plain HTML refresh rather than JavaScript.
+The dashboard reloads itself every five minutes with a plain HTML refresh rather than JavaScript.
 That matters on a TV stick, where the browser is the least capable one in the house.
 
 ## What it costs
 
 Nothing beyond the Fire TV you already own. Silk is free, DinkyDash is free and MIT licensed
 with no subscription for the self-hosted version, and the only running cost is the daily
-line — a Claude API call once a day, roughly $0.13 a month, and the board works without it.
+line — a Claude API call once a day, roughly $0.13 a month, and the dashboard works without it.
 
 ## Other screens
 

@@ -30,8 +30,8 @@
        rendering one unasked safe; the data export is the one link that is not a
        page, and a hover must not download a family's data, so it is left out by
        name. A new link that downloads, charges or writes on GET goes in the same
-       `not` clause. The board and /preview are outside the pattern on purpose:
-       the board reloads itself, and the preview renders it three times over.
+       `not` clause. The dashboard and /preview are outside the pattern on purpose:
+       the dashboard reloads itself, and the preview renders it three times over.
 
        A block, so the operator's page can drop it: `/admin` carries no
        `<script>` of any kind, and `tests/test_admin.py` says so. #}
@@ -64,7 +64,7 @@
             --amber-dark: #b45309;
             --danger: #c0392b;
             --danger-dark: #a93226;
-            /* The wash a pointer puts behind a bare control — "Cancel", "Board",
+            /* The wash a pointer puts behind a bare control — "Cancel", "Dashboard",
                "Not now", a muted pill. Rows and outline buttons take --warm
                instead: on a white card that reads as warmth, this as dirt. */
             --tint: rgba(154, 134, 119, 0.12);
@@ -81,7 +81,7 @@
             ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
             *, *::before, *::after { transition: none !important; }
         }
-        /* Everything below is sized in rem off this one value, like the board. A phone gets the
+        /* Everything below is sized in rem off this one value, like the dashboard. A phone gets the
            mockup's 16px; a desktop browser gets up to 20px, so the same layout reads at arm's
            length instead of phone distance. Stated in rem, not px, so a raised browser default
            still wins. Borders and focus rings stay in px — hairlines should not scale. */
@@ -193,7 +193,7 @@
         .btn.danger.fill { background: var(--danger); color: #fff; box-shadow: 0 2px 8px rgba(192, 57, 43, 0.25); }
         .btn.quiet { background: transparent; color: var(--text-muted); box-shadow: none; }
         .btn.small { height: 2.5rem; font-size: 0.875rem; width: auto; padding: 0 1rem; }
-        /* On a lapsed board the two disabled buttons used to look exactly like live ones. */
+        /* On a lapsed dashboard the two disabled buttons used to look exactly like live ones. */
         .btn:disabled { opacity: 0.45; cursor: not-allowed; box-shadow: none; }
 
         .field { display: flex; flex-direction: column; gap: 0.375rem; }
@@ -279,7 +279,7 @@
 
         .inline-form { display: inline; }
 
-        /* Where the board is (settings/_screen_link.html). The QR plate is white
+        /* Where the dashboard is (settings/_screen_link.html). The QR plate is white
            in both themes on purpose: scanners expect dark on light, and an
            inverted code is read by some phones and not others. */
         .screen-link {

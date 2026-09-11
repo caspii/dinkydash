@@ -2,18 +2,18 @@
 
     Four reasons, in order of how much they matter:
 
-     1. The screen token. Cloud mode puts the board at /s/<token>, and that token
+     1. The screen token. Cloud mode puts the dashboard at /s/<token>, and that token
         is a bearer credential. A request to Google's font host from that page
         hands the whole URL to Google in the Referer header. Referrer-Policy
         covers it now; not making the request at all is what settles it.
      2. One fewer sub-processor. A Munich court ruled against dynamically loaded
         Google Fonts in 2022, and this is a product holding EU families' calendars.
-     3. A Pi with no internet renders the same board. It used to fall back to a
+     3. A Pi with no internet renders the same dashboard. It used to fall back to a
         system font, which changes every measurement the fitting script makes.
      4. One fewer third-party request on a screen that reloads every five minutes.
 
     One variable font per subset rather than four static weights: the file covers
-    200-1000, so every weight the board and the settings UI ask for (400, 600,
+    200-1000, so every weight the dashboard and the settings UI ask for (400, 600,
     700, 800) comes out of the same download. Italic is not included because
     nothing uses it. SIL Open Font Licence 1.1 — OFL.txt is beside the files.
 

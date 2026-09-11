@@ -7,8 +7,8 @@ Five claims:
 * **the per-family cap is exact**, because it is enforced against the locked row
   rather than a value read a moment earlier;
 * **the global cap scales with the number of families**, so it does not quietly
-  start starving real boards as the product grows;
-* **a refusal keeps the board that is on the wall.** It arrives as a
+  start starving real dashboards as the product grows;
+* **a refusal keeps the dashboard that is on the wall.** It arrives as a
   `GenerationError`, which every caller already handles that way, and nothing is
   written;
 * **single mode is untouched.** A self-hoster's key is their own bill.
@@ -164,7 +164,7 @@ class TestCountingCalls:
         assert spend_rows(pg_pool, pg_family) == (2, 300, 30)
 
     def test_recording_never_raises(self, pg_pool, pg_family, clean):
-        """Bookkeeping, not control. Losing a token count must not turn a board
+        """Bookkeeping, not control. Losing a token count must not turn a dashboard
         that was written into a failure that gets retried and paid for again."""
         budget = PostgresBudget(pg_pool, pg_family)
         budget.allow()
@@ -319,7 +319,7 @@ class TestTheGlobalCap:
 
     def test_it_scales_with_how_many_families_there_are(
             self, pg_pool, pg_family, clean):
-        """A fixed ceiling starts starving real boards on the day the product
+        """A fixed ceiling starts starving real dashboards on the day the product
         grows into it, and the failure looks like a quiet morning."""
         budget = PostgresBudget(pg_pool, pg_family, family_a_day=1000,
                                 global_floor=0, global_per_family=3)
@@ -337,7 +337,7 @@ class TestTheGlobalCap:
         assert GLOBAL_FLOOR >= FAMILY_CALLS_A_DAY
 
 
-# -- what a refusal does to the board ---------------------------------------
+# -- what a refusal does to the dashboard ---------------------------------------
 
 class TestARefusalKeepsTheBoard:
     class Broke(NoBudget):
@@ -384,7 +384,7 @@ class TestARefusalKeepsTheBoard:
         runner.refresh_calendars(config, store, today=date(2026, 9, 3))
         with caplog.at_level("ERROR"):
             assert tick(config, store, budget=self.Broke()) == 1
-        assert "Keeping the previous board" in caplog.text
+        assert "Keeping the previous dashboard" in caplog.text
 
     def test_the_refresh_still_happens(self, store, key):
         """Fetching calendars costs requests, not money. A family who cannot
@@ -447,7 +447,7 @@ class TestRewriteNowIsChargedToo:
         monkeypatch.setenv("DINKYDASH_FAMILY_CALLS_A_DAY", "0")
         landed = parent.post("/settings/generate", follow_redirects=True)
         assert landed.status_code == 200
-        assert "limit on rewriting the board" in landed.get_data(as_text=True)
+        assert "limit on rewriting the dashboard" in landed.get_data(as_text=True)
 
     def test_a_refused_press_leaves_the_written_board_alone(
             self, parent, pg_pool, pg_family, monkeypatch, clean):

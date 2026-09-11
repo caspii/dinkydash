@@ -20,9 +20,9 @@ DinkyDash is different because the content changes completely every day. The AI 
 
 Configure DinkyDash with your team members, shared calendar, and rotating responsibilities (who's buying coffee, who's cleaning the fridge, who's running standup). Every morning, the AI generates a fresh team dashboard with today's meetings, a fun icebreaker, and something to talk about at lunch.
 
-**2. Classroom daily board**
+**2. Classroom daily dashboard**
 
-Teachers can set up DinkyDash with student names, class events, and rotating classroom jobs. The AI writes a daily greeting, shows countdowns to field trips and holidays, rotates who's line leader or board eraser, and includes an age-appropriate fun fact.
+Teachers can set up DinkyDash with student names, class events, and rotating classroom jobs. The AI writes a daily greeting, shows countdowns to field trips and holidays, rotates who's line leader or dashboard eraser, and includes an age-appropriate fun fact.
 
 **3. Co-working space welcome screen**
 

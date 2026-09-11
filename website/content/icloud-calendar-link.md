@@ -113,7 +113,7 @@ To add it:
 3. Press **Test calendar link**. It reports how many events it found and what the next one is,
    so you know before you save.
 
-![Adding a calendar in DinkyDash's settings: a name, the iCal link, and a Check this link button](/images/settings-add-calendar.webp)
+![Adding a calendar in DinkyDash's settings: a name, the iCal link, and a Test calendar link button](/images/settings-add-calendar.webp)
 
 If the calendar you are pasting also holds work meetings, fill in **Only show events shared
 with** and give the other parent's email address. Only events they are invited to reach the
@@ -129,5 +129,5 @@ guide](/getting-started/#personal-calendar) covers that properly.
 - [Cozi](/cozi-calendar-display/) — Settings → Shared Cozi Calendars
 
 Mix providers freely; they all end up as one agenda. The [full setup
-guide](/getting-started/) is the next step — it starts the board on your own computer, then
+guide](/getting-started/) is the next step — it starts the dashboard on your own computer, then
 moves it onto a screen that lives on the wall.

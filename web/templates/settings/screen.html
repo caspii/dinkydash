@@ -30,15 +30,61 @@
 {% endblock %}
 
 {% block content %}
+{% if screen_link %}
+{# Cloud mode: the dashboard is not at `/`, because a wall panel cannot sign in.
+   This link is how it gets there, and it is a credential — see the warning
+   below it, which is not boilerplate. #}
+<div>
+    <div class="label">Where the dashboard is</div>
+    <div class="card pad" style="display:flex;flex-direction:column;gap:0.875rem;">
+        <div class="hint">
+            Open this on the TV, tablet or Pi and leave the page up. It redraws itself; how
+            often is under <a href="{{ url_for('settings.refresh') }}">How often it updates</a>.
+        </div>
+        {% include "settings/_screen_link.html" %}
+    </div>
+</div>
+
+<div class="note-box">
+    <strong>Anyone with this link can see your dashboard.</strong> There is no password on it — that is
+    what lets a screen on the wall show it without anybody signing in. Treat it like a key: do not
+    post it, and crop it out of screenshots.
+</div>
+
+<div>
+    <div class="label">If the link gets out</div>
+    <form method="post" class="card pad" style="display:flex;flex-direction:column;gap:0.875rem;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="action" value="rotate">
+        <div class="hint">
+            Changing it is the only way to stop an old link working. Every screen showing this
+            dashboard will go blank until you open the new link on it.
+        </div>
+        <button class="btn outline" type="submit">Change the link</button>
+    </form>
+</div>
+{% elif not cloud %}
+<div class="note-box">
+    The dashboard lives at <strong>{{ url_for('board.index', _external=True) }}</strong> — open that on the
+    TV, tablet or Pi and leave the page up. It redraws itself on its own; how often is under
+    <a href="{{ url_for('settings.refresh') }}">How often it updates</a>.
+</div>
+
+<div class="note-box">
+    There is no password on this. Anyone on your network can see the dashboard and change these settings,
+    so keep the port off the public internet.
+</div>
+{% endif %}
+
 <form method="post">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    <div class="label">Board colours</div>
+    <div class="label">Dashboard colours</div>
     <div style="display:flex;gap:0.625rem;">
         {% for theme in themes %}
         <label class="theme-choice">
             <input type="radio" name="theme" value="{{ theme }}" {{ 'checked' if config.theme == theme }} onchange="this.form.submit()">
             <div class="theme-card">
-                {# A miniature of the real board, in that theme's actual palette. #}
+                {# A miniature of the real dashboard, in that theme's actual palette. #}
                 <div style="height:4rem;border-radius:0.5625rem;padding:0.5625rem 0.625rem;display:flex;flex-direction:column;gap:0.3125rem;
                             {% if theme == 'dark' %}background:#17120f;{% else %}background:#ffffff;border:1px solid #f0e6da;{% endif %}">
                     <div style="width:2.125rem;height:0.25rem;border-radius:0.125rem;background:{{ '#ff7a45' if theme == 'dark' else '#e85d24' }};"></div>
@@ -52,54 +98,8 @@
         {% endfor %}
     </div>
     <div class="hint" style="padding:0.5625rem 0.25rem 0;">
-        Applies to every screen showing this board. Dark suits a kitchen that stays lit in the evening.
+        Applies to every screen showing this dashboard. Dark suits a kitchen that stays lit in the evening.
     </div>
     <noscript><button class="btn" type="submit" style="margin-top:0.75rem;">Save</button></noscript>
 </form>
-
-{% if screen_link %}
-{# Cloud mode: the board is not at `/`, because a wall panel cannot sign in.
-   This link is how it gets there, and it is a credential — see the warning
-   below it, which is not boilerplate. #}
-<div>
-    <div class="label">Where the board is</div>
-    <div class="card pad" style="display:flex;flex-direction:column;gap:0.875rem;">
-        <div class="hint">
-            Open this on the TV, tablet or Pi and leave the page up. It redraws itself; how
-            often is under <a href="{{ url_for('settings.refresh') }}">How often it updates</a>.
-        </div>
-        {% include "settings/_screen_link.html" %}
-    </div>
-</div>
-
-<div class="note-box">
-    <strong>Anyone with this link can see your board.</strong> There is no password on it — that is
-    what lets a screen on the wall show it without anybody signing in. Treat it like a key: do not
-    post it, and crop it out of screenshots.
-</div>
-
-<div>
-    <div class="label">If the link gets out</div>
-    <form method="post" class="card pad" style="display:flex;flex-direction:column;gap:0.875rem;">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <input type="hidden" name="action" value="rotate">
-        <div class="hint">
-            Changing it is the only way to stop an old link working. Every screen showing this
-            board will go blank until you open the new link on it.
-        </div>
-        <button class="btn outline" type="submit">Change the link</button>
-    </form>
-</div>
-{% elif not cloud %}
-<div class="note-box">
-    The board lives at <strong>{{ url_for('board.index', _external=True) }}</strong> — open that on the
-    TV, tablet or Pi and leave the page up. It redraws itself on its own; how often is under
-    <a href="{{ url_for('settings.refresh') }}">How often it updates</a>.
-</div>
-
-<div class="note-box">
-    There is no password on this. Anyone on your network can see the board and change these settings,
-    so keep the port off the public internet.
-</div>
-{% endif %}
 {% endblock %}

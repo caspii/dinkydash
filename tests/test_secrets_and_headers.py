@@ -152,7 +152,7 @@ class TestHealthz:
 
 
 class TestReferrerPolicy:
-    """Cloud mode puts the board at /s/<token>, and the token is the credential."""
+    """Cloud mode puts the dashboard at /s/<token>, and the token is the credential."""
 
     @pytest.mark.parametrize("path", ["/", "/settings/", "/healthz", "/preview",
                                       "/manifest.webmanifest", "/no-such-page"])
@@ -168,7 +168,7 @@ class TestReferrerPolicy:
 
 
 class TestNothingAsksGoogleForAFont:
-    """Self-hosted Nunito. The board reloads every five minutes; each request to
+    """Self-hosted Nunito. The dashboard reloads every five minutes; each request to
     fonts.gstatic.com from a tokenised URL would hand it to Google."""
 
     @pytest.mark.parametrize("directory", ["web/templates", "website/templates"])

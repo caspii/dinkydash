@@ -4,7 +4,7 @@ Guidance for `website/`. The root `CLAUDE.md` holds the rules that apply to ever
 `website/README.md` is the fuller guide to building the site and to what belongs in
 `images/` — read it before adding an image or a page.
 
-**`website/` never runs on the board**, and that is what settles most questions here.
+**`website/` never runs on the dashboard**, and that is what settles most questions here.
 
 - **Its dependencies go in `requirements-site.txt`, never `requirements.txt`.** The runtime
   list is what `deploy_to_pi.sh` installs on a Pi, and a Pi serves no marketing site. The
@@ -16,7 +16,7 @@ Guidance for `website/`. The root `CLAUDE.md` holds the rules that apply to ever
   `build.py` used to write `docs/` and GitHub Pages served it, so a template change was not
   finished until the site was rebuilt and the output committed. None of that is true now.
   `website/site.py` is a Flask app rendering `content/*.md` through `templates/` on request,
-  deployed on the same App Platform container as the board with `wsgi.py` routing on the
+  deployed on the same App Platform container as the dashboard with `wsgi.py` routing on the
   `Host` header. **Adding a page is writing a Markdown file, and nothing else.**
 - **GitHub Pages is switched off**, and it took until 8 September to notice. The setting outlived
   the directory: it kept failing on every push *and* kept serving the last good build, so a stale
@@ -27,13 +27,13 @@ Guidance for `website/`. The root `CLAUDE.md` holds the rules that apply to ever
   at request time.** `render.APP_URL` is the origin the content and the homepage name;
   `site.py` swaps it for `DINKYDASH_APP_URL` when that is set, or for `127.0.0.1` on
   `CONDUCTOR_PORT` when only that is — Conductor sets it for every run script and it is the
-  dashboard's port, so a preview's "Start your free trial" opens the board being worked on
+  dashboard's port, so a preview's "Start your free trial" opens the dashboard being worked on
   rather than production even though Conductor reads its scripts from the main checkout. Keep
   writing the real address in Markdown — the file is the document a reader sees — and never a
   bare local port. `tests/test_site.py` checks every direction.
 - **Nunito lives here twice on purpose.** `website/static/fonts/` and `web/static/fonts/`
   are separate deployables, so editing one means editing both. The site's copy carries the
-  italic pair as well; the board's does not, because the board never sets italic.
+  italic pair as well; the dashboard's does not, because the dashboard never sets italic.
 
 ## The per-provider calendar guides
 
@@ -87,9 +87,9 @@ layout needs. Hands-on verification is [DIN-58](https://linear.app/keepthescore/
 and it is what should correct these pages. Nothing on them says "we tested this", and nothing
 should until that is done.
 
-The two board screenshots — `family-calendar-tv-board.webp` (16:9) and
+The two dashboard screenshots — `family-calendar-tv-board.webp` (16:9) and
 `family-calendar-tablet-board.webp` (portrait, which is what shows the single-column layout) —
-are the real board against `config.example.yaml` with a hand-written payload, the way
+are the real dashboard against `config.example.yaml` with a hand-written payload, the way
 `README.md` describes. Regenerate them the same way rather than editing the images.
 
 ## The legal pages

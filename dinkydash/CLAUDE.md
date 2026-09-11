@@ -32,7 +32,7 @@ These rules keep the storage contract consistent:
   `config.example.yaml` for compatibility, and only `FileStore` reads them. They mean nothing hosted.
 - **The store is passed, never constructed, below the entry points.** `generate.py`, `app.py` and
   `sample_board.py` build one; everything else is handed it.
-- **The board is read whole and written in halves, and neither half can write the other's keys.**
+- **The dashboard is read whole and written in halves, and neither half can write the other's keys.**
   `save_agenda` drops anything that is not in `store.AGENDA_KEYS`; `save_brief` drops anything that
   is. Enforced by the store rather than by the caller, because the caller that would get it wrong is
   `write_brief` — it reads the payload, waits seconds on a model call, and writes, so the agenda in
@@ -159,7 +159,7 @@ Five things in it are load-bearing, and `tests/test_budget.py` asserts each:
   charges to `global_model_spend`, which has only a date and count and survives family deletion.
   Keep the trigger: older instances still write `model_spend` during pre-deploy migrations.
 - **A refusal is an `OverBudget`, a subclass of `GenerationError`.** That is what lets every caller
-  keep the board on the wall with no new branch — "a failure is not handled, it is simply due again"
+  keep the dashboard on the wall with no new branch — "a failure is not handled, it is simply due again"
   already covers it. A second kind of failure would mean a second keep-last-good path.
 
 The **calendar refresh is outside the call cap**. A fetch costs HTTP requests to somebody else's
@@ -240,7 +240,7 @@ fetched calendar window (14 days, not just today). Chores, countdowns and ages a
 config + date, so `board.build_view` recomputes them on every render.
 
 That split is deliberate and load-bearing: when a morning's generation fails, the times, turns and
-countdowns on the wall are still **today's** — only the written line is old, and the board says so.
+countdowns on the wall are still **today's** — only the written line is old, and the dashboard says so.
 Yesterday's fetch reached 14 days ahead, so today's agenda is still in it. The stale headline is
 replaced by a computed one (`"3 things on today, starting at 08:20."`) because a day-old AI headline
 can be actively wrong.
@@ -288,7 +288,7 @@ overrules the file. `brief_time` is written back through `config.quoted()`: bare
 to ruamel and a sexagesimal integer to a YAML 1.1 parser, and this file is meant to be hand-editable
 with either.
 
-**The board's own reload is derived, not stored** (`board.reload_seconds`). Five minutes is the
+**The dashboard's own reload is derived, not stored** (`board.reload_seconds`). Five minutes is the
 ceiling; only a `refresh_minutes` shorter than that lowers it, because reloading faster than the
 calendars are fetched just redraws the same thing. A parent picks "how soon does a change show up",
 not a browser knob — so there is no separate setting for it and the template reads
@@ -305,8 +305,8 @@ These rules hold this together:
   family** (`config.is_set_up`: no person or pet still marked `invented`, and a timezone other
   than the UTC default). The starter household and the untouched example file are not one, and a
   brief about them would be a paid call for invented children; the tick writes nothing until the
-  answers are real, and the board says "nearly there" rather than "writing". Calendar-only
-  payloads still qualify once set up. See [The first board](../PLAN.md#the-first-board) for retry
+  answers are real, and the dashboard says "nearly there" rather than "writing". Calendar-only
+  payloads still qualify once set up. See [The first dashboard](../PLAN.md#the-first-dashboard) for retry
   behaviour.
 - **A refresh must not touch `headline`, `note` or `generated_for_date`**, and it now cannot: it
   writes through `store.save_agenda`, which only accepts `store.AGENDA_KEYS`. A fresh agenda under
@@ -320,7 +320,7 @@ Two consequences worth knowing.
 
 **A feed that does not answer keeps its own last-known events**, because a missing event is
 invisible while a stale one is still on the right day. The keeping is per feed, not per fetch: the
-feeds that answered are always fresh, or one dead URL would freeze the whole board for as long as
+feeds that answered are always fresh, or one dead URL would freeze the whole dashboard for as long as
 nobody fixed it. `runner._with_last_known` does the merge, keyed on the `calendar` label each event
 carries, and only inside the current window — so a permanently broken feed empties out over a
 fortnight instead of growing a tail of appointments that already happened. A *paused* feed keeps
@@ -360,11 +360,11 @@ and private appointments then contributes the family things and nothing else:
   as a guest of their own event. The old filter looked at `ATTENDEE` alone and required every
   address, so it missed everything they had arranged.
 - **It runs before the event dict is built** (`calendars._events`), so a hidden event is never in
-  the payload, on the board or in the prompt — and the guest list itself is never stored. The
+  the payload, on the dashboard or in the prompt — and the guest list itself is never stored. The
   dict carries no addresses, and the log says how many addresses a feed has, never which.
 - **`describe_feed` counts before and after**, so **Check this link** can say a working link has
   24 events and none of them match. A list that matches nobody looks exactly like an empty
-  calendar from the board, and that silent zero was the old filter's failure mode.
+  calendar from the dashboard, and that silent zero was the old filter's failure mode.
 - **Saving or removing a calendar forgets what it last said**, through the store's config save.
   Its events, statuses and the fetch stamp go, so the next tick owes a refresh. Publication checks
   also reject a fetch still using the previous settings, including failed-fetch fallback data.

@@ -65,7 +65,7 @@ BAKER_ITEMS = {
 }
 
 
-# A board each, so the `generations` and `agendas` rows are scoped too and not
+# A dashboard each, so the `generations` and `agendas` rows are scoped too and not
 # only `families.config`.
 BOARDS = {
     "wilsons": {"headline": "Swimming, then football", "note": "An octopus fact."},
@@ -75,7 +75,7 @@ BOARDS = {
 
 @pytest.fixture
 def families(pg_pool):
-    """Two families, each with a parent and a written board, cleaned up afterwards.
+    """Two families, each with a parent and a written dashboard, cleaned up afterwards.
 
     Returns `{"wilsons": (family_id, user_id), "bakers": (...)}`.
     """
@@ -105,7 +105,7 @@ def families(pg_pool):
 
     for name, config in (("wilsons", WILSONS), ("bakers", BAKERS)):
         # Dated from the real clock: a payload from a fixed date would be stale
-        # by the time anybody ran this, and a stale board replaces the model's
+        # by the time anybody ran this, and a stale dashboard replaces the model's
         # headline with a computed one.
         today = config_module.today_for(config_module.with_defaults(dict(config)))
         store = PostgresStore(pg_pool, made[name][0])
@@ -141,7 +141,7 @@ def signed_in_as(app, family):
 
 @pytest.fixture
 def boards(pg_pool, families):
-    """Each family's screen URL — where the board lives in cloud mode."""
+    """Each family's screen URL — where the dashboard lives in cloud mode."""
     from tests.conftest import board_path
 
     return {name: board_path(pg_pool, family[0])
@@ -195,7 +195,7 @@ class TestTwoFamiliesSideBySide:
         from `families.config` — so this covers both tables at once.
 
         Read at each family's screen URL rather than at `/`, because that is
-        where a board lives in cloud mode now (DIN-42). **The clients are still
+        where a dashboard lives in cloud mode now (DIN-42). **The clients are still
         the signed-in ones** — a screen URL needs no session, and using them
         here checks the stronger thing: holding one family's cookie does not
         change what the other family's token shows.
@@ -211,7 +211,7 @@ class TestTwoFamiliesSideBySide:
 
     def test_a_screen_token_shows_its_own_family_and_no_session_changes_that(
             self, wilson, boards):
-        """The token decides which board, not the cookie that happens to be on
+        """The token decides which dashboard, not the cookie that happens to be on
         the request. A screen has no session at all, so if a signed-in one could
         steer this the anonymous case would be the odd one out."""
         theirs = wilson.get(boards["bakers"]).get_data(as_text=True)
@@ -379,7 +379,7 @@ class TestSingleModeIsUntouched:
         assert client.get("/").status_code == 200
 
     def test_the_settings_need_no_session(self, client):
-        # No board written yet, so this is the set-up checklist — which reads
+        # No dashboard written yet, so this is the set-up checklist — which reads
         # the same config: the calendar step names the Wilsons' feed.
         assert "Wilson school" in client.get("/settings/").get_data(as_text=True)
 

@@ -356,13 +356,13 @@ class TestAskingForALink:
         """This asserted `sent == []` until DIN-41, and the change is the point.
 
         The same form is now the sign-up form, so an address with no account
-        gets a link that starts a board rather than silence. What must not
+        gets a link that starts a dashboard rather than silence. What must not
         change is the page: `test_but_the_two_pages_are_identical` below is the
         assertion that actually guards against enumeration, and it still holds.
         """
         client.post("/login", data={"email": "stranger@example.com"})
         assert len(sent) == 1
-        assert "Start your DinkyDash board" in sent[0]["subject"]
+        assert "Start your DinkyDash dashboard" in sent[0]["subject"]
 
     def test_but_the_two_pages_are_identical(self, client, sent, pg_user):
         known = client.post("/login", data={"email": ADDRESS})

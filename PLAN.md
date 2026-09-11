@@ -41,7 +41,7 @@ open until their own completion criteria pass. Deployment alone is not beta read
 ## The goal
 
 A parent can sign up, configure a family and calendar, and get a usable kitchen screen
-within five minutes under normal operation. The same engine and board must continue to
+within five minutes under normal operation. The same engine and dashboard must continue to
 work for a self-hoster without Postgres, email or billing services.
 
 ## Decisions (settled)
@@ -52,7 +52,7 @@ work for a self-hoster without Postgres, email or billing services.
 | 2 | One public monorepo, two modes | Share the engine, settings and renderer; test both storage backends. |
 | 3 | Multiple iCal feeds, no calendar OAuth | Paste provider URLs; each feed can have its own `shared_with` filter. |
 | 4 | Screen access through a bearer URL | Current tokens are 12 random characters from an unambiguous alphabet; parents can rotate them. |
-| 5 | Render the real board shown on the site | Agenda, chore turns, countdowns, headline and one written line. Person cards are not a parity requirement. Emoji avatars; no photo uploads. |
+| 5 | Render the real dashboard shown on the site | Agenda, chore turns, countdowns, headline and one written line. Person cards are not a parity requirement. Emoji avatars; no photo uploads. |
 | 6 | A 14-day hosted trial, no card on signup | Store trial state in the app. Expiry enforcement is still [DIN-52](https://linear.app/keepthescore/issue/DIN-52). |
 | 7 | Stripe for paid subscriptions | Create a Stripe customer at conversion. Checkout, portal and webhook handling remain [DIN-53](https://linear.app/keepthescore/issue/DIN-53). |
 | 8 | Published privacy policy and terms based on the existing company documents | Disclosures must match implemented storage, deletion and outbound calls. Outstanding work is in Phase 5. |
@@ -70,7 +70,7 @@ work for a self-hoster without Postgres, email or billing services.
 |---|---|---|
 | Config and runtime storage | YAML and local JSON | Postgres, scoped to the family |
 | Settings access | Local network, no authentication | Magic-link session |
-| Board | `/` | `/s/<token>` |
+| Dashboard | `/` | `/s/<token>` |
 | Scheduler | `generate.py --tick` from cron | `worker/`, one pass every five minutes |
 | Model configuration | User's model, token limit and API key | Platform key, model and output-token ceiling ([DIN-51](https://linear.app/keepthescore/issue/DIN-51)) |
 | Billing | None | Planned; [DIN-52](https://linear.app/keepthescore/issue/DIN-52) and [DIN-53](https://linear.app/keepthescore/issue/DIN-53) |
@@ -122,11 +122,11 @@ Cloud settings require a session. Cookies are Secure in cloud mode, HttpOnly and
 SameSite=Lax. Every writing form carries a CSRF token in both modes. New families get
 fictional starter entries, each marked `invented: true`, and no calendar URL. The
 settings home shows a set-up checklist — who lives here, time zone, a calendar, the
-screen — until the marks are gone, the time zone is chosen and the first board is
+screen — until the marks are gone, the time zone is chosen and the first dashboard is
 written (`web/setup.py`); the daily controls are not offered before that. The time
 zone is offered as one tap from the phone's own clock setting.
 
-### The first board
+### The first dashboard
 
 Built in [DIN-45](https://linear.app/keepthescore/issue/DIN-45) / PR #85. `schedule.brief_due` owes a brief whenever
 `generated_for_date` is absent, including when a calendar-only payload exists —
@@ -138,19 +138,19 @@ next five-minute pass after set-up; a self-hoster's cron does the same. Signup
 itself does not call the model or enqueue another job.
 
 Failed first briefs remain due, subject to the hosted call cap. Later briefs follow
-`brief_time` in the family's timezone. The checklist's **Write the first board** is
+`brief_time` in the family's timezone. The checklist's **Write the first dashboard** is
 the shortcut; the running page offers **Rewrite now** once there is one, and
 **Refresh calendars** only when there is a calendar to refresh.
 
 ### The screen
 
-Built in [DIN-42](https://linear.app/keepthescore/issue/DIN-42). `/s/<token>` grants access to the board and its manifest, never to
+Built in [DIN-42](https://linear.app/keepthescore/issue/DIN-42). `/s/<token>` grants access to the dashboard and its manifest, never to
 settings. Rotation immediately invalidates the old URL for subsequent requests.
 Tokens are currently 12 random characters; [DIN-40](https://linear.app/keepthescore/issue/DIN-40)'s old 32-character requirement
 has been reconciled with this implemented TV-entry decision.
 
 Responses use `no-store`, `noindex` and `Referrer-Policy: no-referrer`. Fonts are
-self-hosted, and the board makes no third-party asset requests. QR codes are encoded
+self-hosted, and the dashboard makes no third-party asset requests. QR codes are encoded
 locally with lazily imported `segno`. `web/urls.py` builds hosted links from an HTTPS
 app origin; single mode retains its local HTTP URLs.
 
@@ -229,7 +229,7 @@ in `calendars.py`. Keep business calculations independent of clocks and files.
 
 | Path | Current responsibility |
 |---|---|
-| `dinkydash/context.py`, `board.py`, `history.py`, `schedule.py` | Date/board calculations, recent-copy selection and scheduling |
+| `dinkydash/context.py`, `board.py`, `history.py`, `schedule.py` | Date/dashboard calculations, recent-copy selection and scheduling |
 | `dinkydash/calendars.py`, `prompt.py`, `claude_client.py`, `generate.py` | Feed handling and model generation |
 | `dinkydash/config.py`, `store.py`, `pgstore.py` | Config migration and the two storage implementations |
 | `dinkydash/accounts.py`, `mail.py`, `budget.py`, `db.py` | Account lifecycle, email, hosted call caps, pools and migrations |
@@ -249,11 +249,11 @@ or duplicate self-hosted config loader.
 
 | Route | Single | Cloud |
 |---|---|---|
-| `/` | Board | Settings when signed in, otherwise login |
+| `/` | Dashboard | Settings when signed in, otherwise login |
 | `/login`, `/login/link?t=…`, `/logout` | No sign-in needed | Request/consume a link and end a session |
 | `/settings/…` | Local settings | Settings scoped to the session's family |
-| `/s/<token>` | Not used | Bearer-token board |
-| `/preview` | Three sizes of the local board | Authenticated preview of the tokenised board |
+| `/s/<token>` | Not used | Bearer-token dashboard |
+| `/preview` | Three sizes of the local dashboard | Authenticated preview of the tokenised dashboard |
 | `/admin` | Not used | Signups and activations by week and the newest accounts, for addresses in `DINKYDASH_ADMIN_EMAILS` only |
 | `/healthz` | Process health | Process health, not worker/database health |
 
@@ -327,7 +327,7 @@ Managed backups are documented in operations; the independent restore drill rema
 [DIN-56](https://linear.app/keepthescore/issue/DIN-56). Worker liveness is a Sentry cron check-in after each completed pass and
 an uptime monitor on the sign-in page ([DIN-54](https://linear.app/keepthescore/issue/DIN-54)); error reports for the web service and the
 worker go to the same project with a scrubber that strips URLs, tokens, addresses, ids and log
-arguments ([DIN-35](https://linear.app/keepthescore/issue/DIN-35)). Frontend error capture is not done: the board and the settings
+arguments ([DIN-35](https://linear.app/keepthescore/issue/DIN-35)). Frontend error capture is not done: the dashboard and the settings
 pages make no third-party request, and a first-party reporting path is separate work.
 Cloud startup validates the session key and database configuration; model/email failures
 have their own runtime handling. Stripe credentials are not required before billing exists.
@@ -367,7 +367,7 @@ another family's item ID returns 404. Onboarding validation remains open.
 
 ### Phase 2 — Generation pipeline
 
-- [x] Shared operations, five-minute worker, first-board scheduling and manual actions ([DIN-17](https://linear.app/keepthescore/issue/DIN-17), [DIN-28](https://linear.app/keepthescore/issue/DIN-28), [DIN-45](https://linear.app/keepthescore/issue/DIN-45)).
+- [x] Shared operations, five-minute worker, first-dashboard scheduling and manual actions ([DIN-17](https://linear.app/keepthescore/issue/DIN-17), [DIN-28](https://linear.app/keepthescore/issue/DIN-28), [DIN-45](https://linear.app/keepthescore/issue/DIN-45)).
 - [x] Separate agenda/brief persistence, one daily generation row, and reported token usage.
 - [x] Per-family and approximate global call caps, including manual rewrites ([DIN-43](https://linear.app/keepthescore/issue/DIN-43)).
 - [x] Keep-last-good rendering and retry on subsequent ticks.
@@ -376,20 +376,20 @@ another family's item ID returns 404. Onboarding validation remains open.
 - [ ] Failure tracking, backoff and parent notification ([DIN-55](https://linear.app/keepthescore/issue/DIN-55); Backlog).
 - [x] Remove the remaining implicit date fallback in feed description ([DIN-62](https://linear.app/keepthescore/issue/DIN-62)).
 
-**Done when:** families in different timezones get correct boards and calendar updates;
+**Done when:** families in different timezones get correct dashboards and calendar updates;
 failed providers preserve useful last-good output; retries and paid calls obey their bounds.
 
 ### Phase 3 — The screen
 
 - [x] Token route, rotation, QR display, privacy headers and app miss-rate limit ([DIN-42](https://linear.app/keepthescore/issue/DIN-42)).
 - [x] Hosted HTTPS links and shared URL policy (#86).
-- [x] Real-board parity with the homepage and staleness indicator. No new person-card feature is required.
+- [x] Real-dashboard parity with the homepage and staleness indicator. No new person-card feature is required.
 - [ ] Additional Cloudflare edge hardening ([DIN-40](https://linear.app/keepthescore/issue/DIN-40); Backlog).
 - [ ] Render the already-configured person colours ([DIN-8](https://linear.app/keepthescore/issue/DIN-8); feature backlog).
 - [ ] Verify TV, older iPad/tablet and Pi kiosk behaviour ([DIN-58](https://linear.app/keepthescore/issue/DIN-58)).
 - [ ] Define offline behaviour while preserving credential/cache controls ([DIN-60](https://linear.app/keepthescore/issue/DIN-60); deferred).
 
-**Done when:** the shared board works on the actual target devices, including the
+**Done when:** the shared dashboard works on the actual target devices, including the
 agreed failure behaviour. Device-specific guides are published ([DIN-13](https://linear.app/keepthescore/issue/DIN-13));
 the real-device checks remain [DIN-58](https://linear.app/keepthescore/issue/DIN-58).
 
@@ -419,7 +419,7 @@ alone does not close the phase.
 ### Phase 6 — Ops
 
 - [x] Transactional email wired into signup/login ([DIN-36](https://linear.app/keepthescore/issue/DIN-36), [DIN-38](https://linear.app/keepthescore/issue/DIN-38)).
-- [x] Sentry for web and worker errors, with sensitive-data filtering ([DIN-35](https://linear.app/keepthescore/issue/DIN-35)): `dinkydash/sentry.py`, on with `SENTRY_DSN` in cloud mode only, scrubbing asserted on real captured events in `tests/test_sentry.py`. Frontend errors are not captured — the board and settings pages make no third-party request — and remain open on that issue.
+- [x] Sentry for web and worker errors, with sensitive-data filtering ([DIN-35](https://linear.app/keepthescore/issue/DIN-35)): `dinkydash/sentry.py`, on with `SENTRY_DSN` in cloud mode only, scrubbing asserted on real captured events in `tests/test_sentry.py`. Frontend errors are not captured — the dashboard and settings pages make no third-party request — and remain open on that issue.
 - [x] Worker liveness and external health alerts, verified by a controlled failure ([DIN-54](https://linear.app/keepthescore/issue/DIN-54)): a Sentry cron check-in after each completed pass, a Sentry uptime monitor on the sign-in page, `db.ready` at start-up and App Platform's `DEPLOYMENT_FAILED` alert. The stop-and-recover drill was run against a local worker on 11 September 2026 ([doc/operations.md](doc/operations.md)).
 - [ ] Repeatable restore into an isolated database, with a successful drill recorded ([DIN-56](https://linear.app/keepthescore/issue/DIN-56)).
 - [x] Preserve explicit preview database overrides ([DIN-48](https://linear.app/keepthescore/issue/DIN-48)).

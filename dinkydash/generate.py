@@ -8,7 +8,7 @@ and (later) a multi-tenant scheduler share one code path.
 
 The payload deliberately holds only what cannot be recomputed — the model's
 words and the fetched calendar window. Ages, countdowns and whose turn it is
-are pure functions of the config and the date, so the board recomputes them at
+are pure functions of the config and the date, so the dashboard recomputes them at
 render time and stays correct on a day when generation failed.
 """
 

@@ -31,19 +31,19 @@ DinkyDash is a **web page**, not an app you install. So there are two parts:
 
 Nothing goes through the Play Store, and there is no Google account to sign in to.
 
-![The DinkyDash board on a tablet in portrait, stacked into one column: today's events, whose turn each chore is, countdowns and the daily note](/images/family-calendar-tablet-board.webp)
+![The DinkyDash dashboard on a tablet in portrait, stacked into one column: today's events, whose turn each chore is, countdowns and the daily note](/images/family-calendar-tablet-board.webp)
 
-The board reads the shape of the screen: one column on a tall display, two on a wide one. So a
+The dashboard reads the shape of the screen: one column on a tall display, two on a wide one. So a
 tablet standing upright looks like the picture above, and one lying on its side splits the
 agenda and the chores into two columns.
 
 ## Set it up
 
-**1. Open the board in Chrome.** On your own network the address looks like
+**1. Open the dashboard in Chrome.** On your own network the address looks like
 `http://192.168.1.50:5000` — the machine running DinkyDash.
 
 **2. Add it to the home screen.** Chrome menu → **Add to Home screen**. Launched from there
-the board runs **full screen**, with no address bar, and gets the DinkyDash icon and your
+the dashboard runs **full screen**, with no address bar, and gets the DinkyDash icon and your
 family's name.
 
 **3. Stop the screen sleeping.** Settings → **Display** → **Screen timeout** → the longest
@@ -77,7 +77,7 @@ That is the only extra piece of software in this whole build, and it is optional
 - **Countdowns** to birthdays, Christmas and the school holidays.
 - **A daily line written each morning** by Claude, around your family's actual day.
 
-The board reloads itself every five minutes with a plain HTML refresh, so it keeps itself
+The dashboard reloads itself every five minutes with a plain HTML refresh, so it keeps itself
 current even on a browser with JavaScript switched off. Nothing to tap, nothing to maintain —
 you keep editing events in your normal calendar app and the wall follows.
 
@@ -93,7 +93,7 @@ you keep editing events in your normal calendar app and the wall follows.
 A Skylight Calendar is $299.99 to $599.99 plus an optional $79 a year for the same wall. The
 [best digital family calendar page](/best-digital-family-calendar/) puts them side by side.
 
-**Buying a tablet for this?** Screen size matters more than speed. The board is a static page
+**Buying a tablet for this?** Screen size matters more than speed. The dashboard is a static page
 that redraws every five minutes, so a slow tablet is fine; a small or dim one is not. Ten
 inches or more, and check the screen is bright enough to read across a kitchen.
 

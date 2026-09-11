@@ -72,7 +72,7 @@ def config(store):
 
 
 def save_board(store, config, payload):
-    """Both halves, for tests that want a whole board on the wall."""
+    """Both halves, for tests that want a whole dashboard on the wall."""
     store.save_agenda(config, payload)
     store.save_brief(config, payload)
 
@@ -119,7 +119,7 @@ class TestTheBoard:
 
     def test_a_refresh_before_the_first_brief_stores_only_the_agenda(self, store, config):
         # What a first `--tick` writes before brief_time: times, no words. The
-        # board shows its waiting screen rather than claiming a date.
+        # dashboard shows its waiting screen rather than claiming a date.
         agenda_only = {"events": EVENTS, "calendar_statuses": STATUSES,
                        "calendars_fetched_at": "2026-09-03T03:50:00+00:00"}
         store.save_agenda(config, agenda_only)
@@ -139,7 +139,7 @@ class TestTheBoard:
         assert after["generated_at"] == "2026-09-03T04:00:00+00:00"
 
     def test_stamps_come_back_in_utc(self, store, config):
-        # The two stores must agree about what time a board was written, or the
+        # The two stores must agree about what time a dashboard was written, or the
         # settings page renders the wrong clock on one of them (PLAN.md bug 9).
         save_board(store, config, dict(PAYLOAD))
         written = store.load_payload(config)["generated_at"]

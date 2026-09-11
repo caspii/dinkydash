@@ -69,13 +69,13 @@ DinkyDash turns any TV, tablet, Raspberry Pi or spare monitor into a family cale
 
 It reads the calendars you already keep — **Google Calendar, Apple iCloud and Outlook** all publish a sharing link, and DinkyDash merges as many as you like into one agenda in time order. That is a link, not a login: it never signs in to your Google, Apple or Microsoft account, and it can only read. The [getting started guide](/getting-started/#find-your-calendar-link) has the steps for each of the three.
 
-![The DinkyDash board showing today's agenda, whose turn each chore is, countdowns to birthdays and holidays, and the AI-written daily note](/images/family-dashboard-board.webp)
+![The DinkyDash dashboard showing today's agenda, whose turn each chore is, countdowns to birthdays and holidays, and the AI-written daily note](/images/family-dashboard-board.webp)
 
 It is MIT-licensed and free forever if you run it yourself — no paid tier, no screen limit. Your config, the names and the birthdays stay on your own machine. To be precise about the one thing that leaves: the day's agenda is sent to Anthropic each morning to write the note, and that is the only outbound call besides fetching your calendars.
 
 The honest cost is time, not money. Setup is an afternoon and some copy-paste in a terminal — the [getting started guide](/getting-started/) has the commands. The only running cost is your own Anthropic key for the daily brief, about **$0.13 a month**.
 
-For the same board without the terminal, [start a free 14-day hosted trial](https://app.dinkydash.co/login), with no card required. Paid subscriptions are still in development; planned pricing is **$39/year or $6/month**.
+For the same dashboard without the terminal, [start a free 14-day hosted trial](https://app.dinkydash.co/login), with no card required. Paid subscriptions are still in development; planned pricing is **$39/year or $6/month**.
 
 ## What three years actually costs
 
@@ -109,7 +109,7 @@ Nobody puts this in a comparison table, and it is the difference that lasts long
 
 **DinkyDash.** You are the support queue. Self-hosting is community-supported — issues are welcome on GitHub, and nobody is on call. Against that, three things are true and are the reason some people choose it anyway:
 
-- **A failed morning does not blank the wall.** If the generation job fails, the board still shows *today's* times, chores and countdowns, because those are recalculated from your config every time the page renders. Only the written line is old, and the board labels itself stale rather than lying about it. Yesterday's calendar fetch reached 14 days ahead, so today's agenda is still in it.
+- **A failed morning does not blank the wall.** If the generation job fails, the dashboard still shows *today's* times, chores and countdowns, because those are recalculated from your config every time the page renders. Only the written line is old, and the dashboard labels itself stale rather than lying about it. Yesterday's calendar fetch reached 14 days ahead, so today's agenda is still in it.
 - **The company cannot take it away.** It is MIT-licensed and installed on your machine. A copy you already have keeps working regardless of what happens to us.
 - **The failure modes are yours to fix.** SD card, Wi-Fi, a Python version — annoying, but visible, and you own them.
 
@@ -138,7 +138,7 @@ A comparison that only flatters its own product is not worth reading, so:
 - **You already own a screen and enjoy configuring things:** DAKboard, and budget for Essential rather than the free tier if you want custom layouts.
 - **You want a touchscreen and no project:** Skylight — start with the 15″ and skip Plus until you know you want meal planning.
 - **You want $0, the source code, and a calendar that is family-shaped out of the box:** [DinkyDash, self-hosted](/getting-started/).
-- **You want the DinkyDash board without the terminal:** [start a free 14-day hosted trial](https://app.dinkydash.co/login) — no card required.
+- **You want the DinkyDash dashboard without the terminal:** [start a free 14-day hosted trial](https://app.dinkydash.co/login) — no card required.
 - **You want something on the wall today with no configuration:** Mango Display Pro — budget for Pro, not the free tier, which has no calendar.
 - **Mornings are the actual problem, not the calendar:** neither of these. See [Hearth vs Skylight](/hearth-vs-skylight/).
 

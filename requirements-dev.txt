@@ -1,7 +1,7 @@
 -r requirements.txt
 
 # Not installed on the Pi — deploy_to_pi.sh installs requirements.txt only, and
-# the board needs none of this to run. Pinned for the same reason.
+# the dashboard needs none of this to run. Pinned for the same reason.
 
 # The test suite.
 pytest==9.1.1
@@ -10,7 +10,7 @@ pytest==9.1.1
 # the two one-off image scripts, website/generate_favicon.py and
 # website/generate_social_preview.py (Pillow — the latter also wants Chrome,
 # which pip cannot install and which nothing else here needs). Build-time only,
-# never imported by the board or the engine.
+# never imported by the dashboard or the engine.
 jinja2==3.1.6
 markdown==3.10.3
 pyyaml==6.0.3

@@ -24,10 +24,10 @@ CONFIG = {
 }
 
 def payload_for_today():
-    """A board written this morning, on the family's clock.
+    """A dashboard written this morning, on the family's clock.
 
     Dated from the real clock rather than pinned, because a payload from a fixed
-    date would be *stale* by the time anybody ran this — and a stale board
+    date would be *stale* by the time anybody ran this — and a stale dashboard
     replaces the model's headline with a computed one, which is correct
     behaviour and would make this test look broken for the wrong reason.
     """
@@ -112,7 +112,7 @@ class TestTheSessionKey:
 
 @pytest.fixture
 def client(pg_pool, pg_family, monkeypatch):
-    """A signed-in cloud app with one family's board already written.
+    """A signed-in cloud app with one family's dashboard already written.
 
     Module level rather than nested, because more than one class below needs
     the same thing: a real cloud app, over a real pool, with a session on it.
@@ -144,7 +144,7 @@ class TestCloudModeWaitsForTheDatabase:
     """A wrong `DATABASE_URL` used to start cleanly and fail every request.
 
     The pool opens in the background and only warns, so the process came up,
-    `/healthz` answered, the deploy was declared healthy, and every board then
+    `/healthz` answered, the deploy was declared healthy, and every dashboard then
     waited thirty seconds and 500'd. Now the process refuses to start, which
     is a deploy that never goes live while the previous one carries on — and
     App Platform's DEPLOYMENT_FAILED alert is what says so (DIN-54). Nothing
@@ -205,7 +205,7 @@ class TestCloudModeWaitsForTheDatabase:
 
 
 class TestABoardOutOfPostgres:
-    """DIN-31's "done when": a board renders in cloud mode, from rows."""
+    """DIN-31's "done when": a dashboard renders in cloud mode, from rows."""
 
     def test_the_board_renders_the_stored_brief(self, client, pg_pool, pg_family):
         page = client.get(board_path(pg_pool, pg_family)).get_data(as_text=True)
@@ -221,8 +221,8 @@ class TestABoardOutOfPostgres:
         assert "Mia" in page
 
     def test_and_the_root_is_the_way_in_to_the_settings(self, client):
-        """In cloud mode `/` is not the board — a wall panel cannot sign in, so
-        the board is at the screen URL and `/` belongs to the signed-in area."""
+        """In cloud mode `/` is not the dashboard — a wall panel cannot sign in, so
+        the dashboard is at the screen URL and `/` belongs to the signed-in area."""
         landed = client.get("/")
         assert landed.status_code == 302
         assert landed.headers["Location"].endswith("/settings/")
@@ -244,7 +244,7 @@ class TestABoardOutOfPostgres:
             self, client, pg_pool, pg_family, tmp_path, monkeypatch):
         """The template, the CSS and build_view are shared verbatim.
 
-        If cloud mode ever rendered a different board, the mode check would have
+        If cloud mode ever rendered a different dashboard, the mode check would have
         leaked below the storage layer — which is the thing CLAUDE.md's "every
         change must work in both" exists to prevent.
 

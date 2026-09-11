@@ -47,10 +47,10 @@ def config(store):
 
 
 class TestAFileThatIsNotReadable:
-    """None of these may take the board down. The next write replaces the file."""
+    """None of these may take the dashboard down. The next write replaces the file."""
 
     def test_a_truncated_payload_reads_as_no_board_at_all(self, store, config, tmp_path):
-        # Cut off by a power cut mid-write. The board shows its first-run screen.
+        # Cut off by a power cut mid-write. The dashboard shows its first-run screen.
         (tmp_path / "dashboard_data.json").write_text("{not json")
         assert store.load_payload(config) is None
 
@@ -79,7 +79,7 @@ class TestAFileThatIsNotReadable:
 
 class TestWhereTheFilesGo:
     def test_generated_files_sit_beside_their_own_config(self, tmp_path):
-        # `generate.py --config /tmp/scratch.yaml` keeps its board with it,
+        # `generate.py --config /tmp/scratch.yaml` keeps its dashboard with it,
         # rather than in whatever directory it happened to be run from.
         elsewhere = tmp_path / "scratch"
         elsewhere.mkdir()
@@ -109,7 +109,7 @@ class TestWhereTheFilesGo:
 class TestWritingIsAtomic:
     def test_a_half_written_board_is_never_visible(self, store, config, tmp_path):
         # The write goes to a temporary file and is renamed, so a browser
-        # loading the board mid-write reads the old one or the new one.
+        # loading the dashboard mid-write reads the old one or the new one.
         store.save_agenda(config, PAYLOAD)
         store.save_brief(config, PAYLOAD)
         with pytest.raises(TypeError):

@@ -17,7 +17,7 @@ faq:
 ---
 
 **Yes, if your TV has a web browser — and Samsung's Tizen sets and LG's webOS sets both do.**
-Open the browser, type the address, and the board fills the screen. No app, no account, no
+Open the browser, type the address, and the dashboard fills the screen. No app, no account, no
 casting.
 
 But be told the limit up front: **a television is built to stop showing a still picture.**
@@ -32,9 +32,9 @@ DinkyDash is a **web page**, not an app you install. So there are two parts:
    licensed, and about an evening's work. Or [start a free 14-day hosted trial](https://app.dinkydash.co/login), no card required.
 2. **The TV**, which is the screen. It opens that address in the browser it already has.
 
-![The DinkyDash board on a wide screen: today's events on the left, whose turn each chore is and the countdowns on the right](/images/family-calendar-tv-board.webp)
+![The DinkyDash dashboard on a wide screen: today's events on the left, whose turn each chore is and the countdowns on the right](/images/family-calendar-tv-board.webp)
 
-On a 16:9 screen the board splits into two columns by itself, and sizes its own type to the
+On a 16:9 screen the dashboard splits into two columns by itself, and sizes its own type to the
 display. Nothing needs configuring for a particular television.
 
 ## Set it up
@@ -52,7 +52,7 @@ Typing that with a remote is the worst part of this whole page. Two ways to make
   gives you a phone keyboard instead of an on-screen grid.
 
 **3. Bookmark it.** Then you never type it again. Both browsers open on their bookmarks, so
-the board is two clicks from the home screen for good.
+the dashboard is two clicks from the home screen for good.
 
 ## The honest limit
 
@@ -85,7 +85,7 @@ a television.
 - **Countdowns** to birthdays, Christmas and the school holidays.
 - **A daily line written each morning** by Claude, around your family's actual day.
 
-The board reloads itself every five minutes with a plain HTML refresh rather than JavaScript,
+The dashboard reloads itself every five minutes with a plain HTML refresh rather than JavaScript,
 which matters here more than anywhere: TV browsers are the oldest browsers in the house, and
 this one keeps working in them.
 
@@ -93,7 +93,7 @@ this one keeps working in them.
 
 Nothing beyond the television you already own. DinkyDash is free and MIT licensed with no
 subscription for the self-hosted version, and the only running cost is the daily line — a
-Claude API call once a day, roughly $0.13 a month, and the board works without it.
+Claude API call once a day, roughly $0.13 a month, and the dashboard works without it.
 
 ## Other screens
 

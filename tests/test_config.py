@@ -7,7 +7,7 @@ import pytest
 from dinkydash import config as config_module
 
 EXAMPLE = """\
-# The family's name, shown on the board.
+# The family's name, shown on the dashboard.
 family_name: "The Wilsons"
 timezone: "Europe/Berlin"
 
@@ -105,7 +105,7 @@ class TestRoundTrip:
         config["family_name"] = "The Smiths"
         config_module.save_config(config, config_file)
         written = config_file.read_text()
-        assert "# The family's name, shown on the board." in written
+        assert "# The family's name, shown on the dashboard." in written
         assert "# One entry per feed." in written
         assert "# the eldest" in written
         assert "The Smiths" in written

@@ -1,6 +1,6 @@
 # Design mockups
 
-Visual mockups for the hosted MVP — the Phase 1 settings UI and the Phase 3 board.
+Visual mockups for the hosted MVP — the Phase 1 settings UI and the Phase 3 dashboard.
 These are **design artefacts, not application code**. Nothing here is imported or
 served by `app.py`; they exist so the layout and copy decisions can be reviewed
 before the templates get written.
@@ -8,7 +8,7 @@ before the templates get written.
 | Directory | What it covers | PLAN.md phase |
 |---|---|---|
 | [`settings-ui/`](settings-ui/) | The logged-in family settings UI, mobile (390×844) | Phase 1 |
-| [`board-ui/`](board-ui/) | The board itself, across TV / iPad / Pi, light and dark | Phase 3 |
+| [`board-ui/`](board-ui/) | The dashboard itself, across TV / iPad / Pi, light and dark | Phase 3 |
 
 ## Format
 
@@ -32,7 +32,7 @@ surfaces before you tap in. Chore rotation is an explicit ordered list plus a
 next-week preview, making the day-of-year modulo visible. Adding a calendar
 validates on paste and answers with a real event count.
 
-**Board** — no person cards; the agenda is the board, at a size that reads across
+**Dashboard** — no person cards; the agenda is the dashboard, at a size that reads across
 a room. One prose box carries whatever the generator wrote that day rather than
 three fixed slots. Wide-and-short screens (TV, Pi) get two columns, tall ones
 (iPad) one — a real breakpoint, not the `vmin` scaling the current template uses.

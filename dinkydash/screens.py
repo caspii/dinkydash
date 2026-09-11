@@ -1,4 +1,4 @@
-"""The token that puts a board on a wall. Cloud mode only.
+"""The token that puts a dashboard on a wall. Cloud mode only.
 
     looks_like_a_token(value)      -> is this worth a query at all
     family_for_token(pool, token)  -> the family id, or None
@@ -6,14 +6,14 @@
 
 A wall panel cannot sign in. There is no keyboard on a kitchen tablet left on a
 shelf, and a thirty-day session is the wrong shape for furniture anyway — so
-the board is reached by an unguessable URL instead (PLAN.md, Screen URLs), and
+the dashboard is reached by an unguessable URL instead (PLAN.md, Screen URLs), and
 this module is the only thing that turns one into a family.
 
 **The token is a bearer credential with none of a magic link's defences.** It
 does not expire, it is not single use, and it is meant to sit in a browser for
 months. Three things carry the weight instead:
 
-* **it is only ever a board.** No settings, no email address, no way to change
+* **it is only ever a dashboard.** No settings, no email address, no way to change
   anything. What leaks is one family's day, which is bad and is not an account;
 * **rotation is the revocation**, and it is the whole of it. `rotate` below is
   what a parent presses when a screenshot went somewhere it should not have,
@@ -70,7 +70,7 @@ def looks_like_a_token(value):
 
 
 def family_for_token(pool, token):
-    """Which family's board that URL shows, or None.
+    """Which family's dashboard that URL shows, or None.
 
     One answer for a token that is malformed, mistyped, rotated away or never
     issued, in the same way `accounts.consume_link` gives one answer for
@@ -106,7 +106,7 @@ def rotate(pool, family_id):
 
     **Scoped by its caller**, which passes the family on the session — this
     takes an id rather than finding one, so there is no way to rotate somebody
-    else's board without first holding their session.
+    else's dashboard without first holding their session.
 
     The new token is generated and checked in the same statement, so the UNIQUE
     index is the backstop rather than the error path. `screen_token_rotated_at`

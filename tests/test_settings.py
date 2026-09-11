@@ -211,7 +211,7 @@ class TestReordering:
 class TestHomeScreen:
     """Saving either page to a phone: the icon, the name, and the two manifests.
 
-    The board's manifest lives on the board blueprint, but it is tested here
+    The dashboard's manifest lives on the dashboard blueprint, but it is tested here
     because this is where the Flask client is.
     """
 
@@ -229,7 +229,7 @@ class TestHomeScreen:
         assert "The Wilsons" in manifest["description"]
 
     def test_the_board_is_a_second_app_not_the_same_one(self, client):
-        # Share an id and the phone treats them as one app: saving the board
+        # Share an id and the phone treats them as one app: saving the dashboard
         # would quietly replace the settings icon.
         board = client.get("/manifest.webmanifest").get_json(force=True)
         settings = client.get("/settings/manifest.webmanifest").get_json(force=True)
@@ -294,24 +294,24 @@ class TestTheClockOnTheStatusLine:
     def test_an_agenda_with_no_brief_yet_is_still_waiting(self, client, board, today):
         # Events, no words: the state between the two halves of a first tick,
         # or after a brief that failed. The family is set up, so this is the
-        # last step of the checklist — and the page must not claim a board it
+        # last step of the checklist — and the page must not claim a dashboard it
         # hasn't got.
         board({"calendars_fetched_at": f"{today}T05:00:00+00:00", "events": []})
         page = client.get("/settings/").get_data(as_text=True)
-        assert "board is up" not in page
+        assert "dashboard is up" not in page
         assert "Rewrite now" not in page
         assert "from None" not in page
 
     def test_the_button_offers_a_first_board_rather_than_a_rewrite(self, client, board, today):
         """The waiting screen points at this button by name, so they must agree.
 
-        "Rewrite now" is the wrong word for a board nobody has written, and
+        "Rewrite now" is the wrong word for a dashboard nobody has written, and
         `board.html` — which is byte-identical in both modes — tells a family
-        to press "Write the first board" (DIN-45).
+        to press "Write the first dashboard" (DIN-45).
         """
         board({"calendars_fetched_at": f"{today}T05:00:00+00:00", "events": []})
         page = client.get("/settings/").get_data(as_text=True)
-        assert "Write the first board" in page
+        assert "Write the first dashboard" in page
         assert "Rewrite now" not in page
 
     def test_and_goes_back_to_a_rewrite_once_there_is_one(self, client, board, today):
@@ -319,7 +319,7 @@ class TestTheClockOnTheStatusLine:
                "headline": "Hi", "note": "There", "events": []})
         page = client.get("/settings/").get_data(as_text=True)
         assert "Rewrite now" in page
-        assert "Write the first board" not in page
+        assert "Write the first dashboard" not in page
 
     def test_an_unreadable_stamp_does_not_break_the_page(self, client, board, today):
         board({"generated_for_date": today, "generated_at": "who knows",
@@ -370,15 +370,15 @@ recurring:
 
 
 class TestTheWayBackFromTheBoard:
-    """The board is the wall panel and has no link out. Opened in the same tab
+    """The dashboard is the wall panel and has no link out. Opened in the same tab
     from a settings page saved to a phone's home screen — no address bar, and
     on an iPhone no Back button — it was a dead end, and the way out was to
     force-quit the app. So it opens in its own tab, which every client knows
-    how to leave, and nothing has to be drawn on the board itself."""
+    how to leave, and nothing has to be drawn on the dashboard itself."""
 
     @pytest.fixture
     def written(self, tmp_path, config_path):
-        """A board for today, so the home page shows the daily card."""
+        """A dashboard for today, so the home page shows the daily card."""
         today = config_module.today_for(config_module.load_config(config_path))
         (tmp_path / "dashboard_data.json").write_text(json.dumps({
             "generated_for_date": today.isoformat(), "headline": "Hi",
@@ -387,7 +387,7 @@ class TestTheWayBackFromTheBoard:
     def test_both_links_to_the_board_open_their_own_tab(self, client, written):
         page = client.get("/settings/").get_data(as_text=True)
         links = [a for a in re.findall(r"<a [^>]*>", page) if 'href="/"' in a]
-        assert len(links) == 2, links  # "Board" in the app bar, and "View board"
+        assert len(links) == 2, links  # "Dashboard" in the app bar, and "View dashboard"
         for link in links:
             assert 'target="_blank"' in link and 'rel="noopener"' in link
 
@@ -398,18 +398,18 @@ class TestTheWayBackFromTheBoard:
         assert "/settings" not in board
 
     def test_a_self_hoster_gets_no_screen_link_button(self, client, written):
-        """Their board is at / on the host they are already on, and the
+        """Their dashboard is at / on the host they are already on, and the
         Colours page says so. The button is for the hosted address."""
         page = client.get("/settings/").get_data(as_text=True)
         assert "Screen link" not in page
 
 
 class TestTheSetUpChecklist:
-    """What the settings home is until the family is set up and its board written.
+    """What the settings home is until the family is set up and its dashboard written.
 
     The example file's household, in single mode — the same state a hosted
     family is created in (`tests/test_signup.py` covers that side). The daily
-    controls are not offered: nothing to refresh, no board worth viewing, and
+    controls are not offered: nothing to refresh, no dashboard worth viewing, and
     nothing worth writing until the answers are real.
     """
 
@@ -435,9 +435,9 @@ class TestTheSetUpChecklist:
 
     def test_it_replaces_the_daily_controls(self, client):
         page = self.home(client)
-        assert "Set up your board" in page
-        for button in ("Refresh calendars", "View board", "Rewrite now",
-                       "Write the first board", ">Board<"):
+        assert "Set up your dashboard" in page
+        for button in ("Refresh calendars", "View dashboard", "Rewrite now",
+                       "Write the first dashboard", ">Dashboard<"):
             assert button not in page
 
     def test_step_one_names_what_is_invented(self, client):
@@ -501,36 +501,36 @@ class TestTheSetUpChecklist:
     def test_a_made_up_zone_is_refused(self, client, config_path):
         landed = client.post("/settings/timezone", data={"timezone": "Mars/Olympus"},
                              follow_redirects=True).get_data(as_text=True)
-        assert "not a time zone this board knows" in landed
+        assert "not a time zone this dashboard knows" in landed
         assert self.loaded(config_path)["timezone"] == "UTC"
 
     def test_the_screen_step_waits_for_the_first_two(self, client):
         client.post("/settings/timezone", data={"timezone": "Europe/Berlin"})
         page = self.home(client)
         assert "Once the first two steps are done" in page
-        assert "Write the first board" not in page
+        assert "Write the first dashboard" not in page
 
     def test_then_the_link_and_the_button_arrive(self, client):
         self.make_it_theirs(client)
         page = self.home(client)
         assert "Open the link below" in page
-        assert "http://localhost/" in page  # single mode: the board is at /
+        assert "http://localhost/" in page  # single mode: the dashboard is at /
         assert "Copy link" in page  # and a button to get it onto the other device
-        assert "Write the first board" in page
+        assert "Write the first dashboard" in page
         assert "Anna" in page  # step one, done, names who is here
 
     def test_a_calendar_is_not_required_to_finish(self, client):
         self.make_it_theirs(client)
         page = self.home(client)
-        assert "None yet. The board works without one" in page
-        assert "Write the first board" in page
+        assert "None yet. The dashboard works without one" in page
+        assert "Write the first dashboard" in page
 
     def test_writing_the_first_board_says_so(self, client, monkeypatch):
         self.make_it_theirs(client)
         monkeypatch.setattr("web.routes.settings.run_generation",
                             lambda config, store, **kw: {"headline": "Hello, Anna"})
         landed = client.post("/settings/generate", follow_redirects=True).get_data(as_text=True)
-        assert "Your first board is written — “Hello, Anna”" in landed
+        assert "Your first dashboard is written — “Hello, Anna”" in landed
 
     def test_it_leaves_once_the_first_board_is_written(self, client, tmp_path):
         self.make_it_theirs(client)
@@ -538,17 +538,17 @@ class TestTheSetUpChecklist:
             "generated_for_date": "2026-09-03", "headline": "Hi", "note": "There",
             "events": []}))
         page = self.home(client)
-        assert "Set up your board" not in page
-        assert "Rewrite now" in page and "View board" in page
+        assert "Set up your dashboard" not in page
+        assert "Rewrite now" in page and "View dashboard" in page
         assert "Add a calendar" in page  # still no calendar, so not "Refresh"
 
     def test_a_written_board_alone_does_not_end_set_up(self, client, tmp_path):
-        # The family that signed up before the rule has a board about Mia and
+        # The family that signed up before the rule has a dashboard about Mia and
         # Theo. That is not set up; the checklist stays until they are gone.
         (tmp_path / "dashboard_data.json").write_text(json.dumps({
             "generated_for_date": "2026-09-03", "headline": "Hi", "note": "There",
             "events": []}))
-        assert "Set up your board" in self.home(client)
+        assert "Set up your dashboard" in self.home(client)
 
 
 class TestTheCadencePage:
@@ -748,7 +748,7 @@ class TestTheGuestList:
 
     def test_checking_warns_when_nothing_gets_through(self, client, described):
         # The failure the old global filter hid: a working link, a full
-        # calendar, and a board with nothing on it.
+        # calendar, and a dashboard with nothing on it.
         described(0, 24)
         page = self.check(client, "jess@example.com")
         assert ("has 24 events in the next 14 days, but none of them is shared with "
@@ -807,7 +807,7 @@ class TestCalendarLinkFeedback:
 
 
 class TestANewCalendarComesWithAName:
-    """The name is for the settings list, not the board, so it is filled in.
+    """The name is for the settings list, not the dashboard, so it is filled in.
 
     Somebody arriving with a link should be able to paste it and save. The
     suggestion is "Family" unless a calendar already has that name, and then a
@@ -860,7 +860,7 @@ class TestSavingACalendarForgetsWhatItFetched:
 
     So the stored events of that calendar go when it is saved, and the fetch
     stamp with them, which makes the next tick fetch afresh. Otherwise the
-    unfiltered events would stay on the board — and in the next brief — until
+    unfiltered events would stay on the dashboard — and in the next brief — until
     a refresh happened to succeed, and a failing feed would keep them for good.
     """
 
@@ -924,7 +924,7 @@ class TestRefreshingTheCalendarsByHand:
 
     @pytest.fixture
     def config_path(self, tmp_path):
-        # A family with calendars and a written board: the running page, where
+        # A family with calendars and a written dashboard: the running page, where
         # the button lives. With no calendar the slot offers "Add a calendar".
         path = tmp_path / "config.yaml"
         path.write_text(CALENDAR_CONFIG)
@@ -951,14 +951,14 @@ class TestRefreshingTheCalendarsByHand:
         assert "Refresh calendars" in page
 
     def test_with_nothing_to_refresh_the_slot_offers_a_calendar(self, tmp_path, config_path):
-        # Same written board, no calendars: "Refresh calendars" would fetch
+        # Same written dashboard, no calendars: "Refresh calendars" would fetch
         # nothing and say so, which is the button a new family was met with.
         config_path.write_text(CALENDAR_CONFIG.split("calendars:")[0])
         page = client_for(create_app(FileStore(config_path))).get("/settings/").get_data(as_text=True)
         assert "Refresh calendars" not in page
         assert "Add a calendar" in page
         assert 'href="/settings/calendars/new"' in page
-        assert "Rewrite now" in page and "View board" in page
+        assert "Rewrite now" in page and "View dashboard" in page
 
     def test_it_reports_what_it_found(self, client, refreshed):
         page = client.post("/settings/refresh-now", follow_redirects=True)

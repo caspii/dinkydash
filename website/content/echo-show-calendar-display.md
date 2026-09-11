@@ -75,9 +75,9 @@ Alexa already knows about.
 
 ## What you get on the tablet instead
 
-![The DinkyDash board on a tablet in portrait, stacked into one column: today's events, whose turn each chore is, countdowns and the daily note](/images/family-calendar-tablet-board.webp)
+![The DinkyDash dashboard on a tablet in portrait, stacked into one column: today's events, whose turn each chore is, countdowns and the daily note](/images/family-calendar-tablet-board.webp)
 
-[DinkyDash](/) is free, open-source software that turns that tablet into a family board:
+[DinkyDash](/) is free, open-source software that turns that tablet into a family dashboard:
 
 - **Today's events**, merged from every calendar you add:
   [Google](/google-calendar-ical-link/), [iCloud](/icloud-calendar-link/),
@@ -88,7 +88,7 @@ Alexa already knows about.
 - **A daily line written each morning** by Claude, around your family's actual day.
 
 It is MIT licensed with no subscription for the self-hosted version. The one running cost is
-the daily line — a Claude API call once a day, roughly $0.13 a month — and the board works
+the daily line — a Claude API call once a day, roughly $0.13 a month — and the dashboard works
 without it.
 
 ## Other screens

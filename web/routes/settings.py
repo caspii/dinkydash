@@ -80,7 +80,7 @@ SECTIONS = {
         "title": "Pets",
         "singular": "pet",
         "add_label": "Add a pet",
-        "blurb": "With a pet on file, some days the board's note is about them.",
+        "blurb": "With a pet on file, some days the dashboard's note is about them.",
         "fields": [
             ("name", "Name", "text", True, ""),
             ("type", "Kind of animal", "text", False, "Dog, cat, rabbit…"),
@@ -122,19 +122,19 @@ SECTIONS = {
         # what does not, in the same breath as the field that causes it.
         "blurb": "Every calendar you switch on is merged into one agenda. Titles and times are "
                  "sent to Anthropic each morning so Claude can write the day's line; an event "
-                 "kept off the board by a guest list is never stored and never sent.",
+                 "kept off the dashboard by a guest list is never stored and never sent.",
         "fields": [
             ("label", "Calendar name", "text", True,
              "A name to help you recognise this calendar in settings, such as “Family” or “School”. "
-             "It won't appear on the board."),
+             "It won't appear on the dashboard."),
             ("url", "Calendar link (iCal / ICS)", "url", True,
              "Paste the calendar's sharing link here. HTTPS and webcal:// links work."),
             ("shared_with", "Only show events shared with", "emails", False,
              "Email addresses, with commas between them. Only events with one of these people "
-             "on the guest list, or organised by them, go on the board — the rest of this "
+             "on the guest list, or organised by them, go on the dashboard — the rest of this "
              "calendar stays private. Use the address on the invitation. Leave it empty to "
              "show everything."),
-            ("enabled", "Show on the board", "checkbox", False, ""),
+            ("enabled", "Show on the dashboard", "checkbox", False, ""),
         ],
     },
 }
@@ -241,17 +241,17 @@ def home():
     tzinfo = config_module.tzinfo_for(config)
     # The first brief is due immediately; the next tick's timing depends on the host.
     status = {"state": "waiting",
-              "detail": "No board has been generated yet. The next run writes it."}
+              "detail": "No dashboard has been generated yet. The next run writes it."}
     if payload:
         generated_for = payload.get("generated_for_date")
         written = _clock(payload.get("generated_at"), tzinfo)
         if generated_for == today.isoformat():
             status = {"state": "ready",
-                      "detail": f"Today's board is up — written {written or 'earlier'}."}
+                      "detail": f"Today's dashboard is up — written {written or 'earlier'}."}
         elif generated_for:
-            status = {"state": "stale", "detail": f"Showing the board from {generated_for}."}
+            status = {"state": "stale", "detail": f"Showing the dashboard from {generated_for}."}
         # A refresh with no brief yet leaves a payload holding only the agenda,
-        # so an unwritten board stays "waiting" rather than claiming a date.
+        # so an unwritten dashboard stays "waiting" rather than claiming a date.
         fetched = _clock(payload.get("calendars_fetched_at"), tzinfo)
         if fetched:
             status["detail"] += f" Calendars refreshed {fetched}."
@@ -271,15 +271,15 @@ def home():
         "recurring": len(jobs),
         "special_dates": len(config.get("special_dates") or []),
         "calendars": len(calendars),
-        # A job with nobody in its rotation is skipped on the board. Say so on
+        # A job with nobody in its rotation is skipped on the dashboard. Say so on
         # the row rather than counting it as rotating.
         "jobs_unassigned": sum(1 for c in jobs if not c.get("choices")),
     }
 
-    # **Two personalities.** Until the family is set up and its first board
+    # **Two personalities.** Until the family is set up and its first dashboard
     # written, the top of the page is the checklist in `web/setup.py` and the
     # daily controls are not offered at all: "Refresh calendars" with no
-    # calendar and "View board" on somebody else's household are the two
+    # calendar and "View dashboard" on somebody else's household are the two
     # buttons a new parent was met with. A lapsed family gets the status card
     # whatever state its config is in — the one thing it needs is the "has
     # ended" line, and the buttons that line disables.
@@ -297,7 +297,7 @@ def home():
 
 
 def screen_for_setup():
-    """The board's address, for the last step of the checklist.
+    """The dashboard's address, for the last step of the checklist.
 
     Hosted, it is the same credential the screen page shows, drawn as a QR
     code the same way; self-hosted, the local URL and no code — a Pi's kiosk
@@ -329,7 +329,7 @@ def set_timezone():
         except Exception:  # ZoneInfoNotFoundError, or a key that is not a key
             known = False
     if not known:
-        flash("That is not a time zone this board knows. Pick one under Family & system.",
+        flash("That is not a time zone this dashboard knows. Pick one under Family & system.",
               "error")
         return redirect(url_for("settings.home"))
     config = current_config()
@@ -371,8 +371,8 @@ def manifest():
         name="DinkyDash settings",
         # What fits under the icon. Not "Settings" — that is already an app.
         short_name="DinkyDash",
-        description=f"Change what {family} sees on the board." if family
-                    else "Change what the board shows.",
+        description=f"Change what {family} sees on the dashboard." if family
+                    else "Change what the dashboard shows.",
         start_url=url_for("settings.home"),
         background_color="#fffaf5",
         theme_color="#fffaf5",
@@ -381,7 +381,7 @@ def manifest():
 
 @bp.route("/generate", methods=["POST"])
 def generate_now():
-    """"Rewrite now" — a person asking for a board, and paying for it.
+    """"Rewrite now" — a person asking for a dashboard, and paying for it.
 
     **Charged against the same budget as the worker**, because it is the same
     money out of the same account (DIN-43). Without that, a signed-in parent
@@ -401,7 +401,7 @@ def generate_now():
         log.exception("Generation failed")
         flash(f"Generation failed: {exc}", "error")
     else:
-        what = "Your first board is written" if first else "Board rewritten"
+        what = "Your first dashboard is written" if first else "Dashboard rewritten"
         flash(f"{what} — “{payload['headline']}”", "ok")
     return redirect(url_for("settings.home"))
 
@@ -476,7 +476,7 @@ def section_edit(section_name, item_id):
                 save(config, invalidate_calendars=(feed_label(submitted),)
                      if section_name == "calendars" else ())
                 if section_name == "calendars":
-                    flash(f"Saved {feed_label(submitted)}. The board picks up the change at "
+                    flash(f"Saved {feed_label(submitted)}. The dashboard picks up the change at "
                           f"the next refresh — press Refresh calendars if you don't want to wait.",
                           "ok")
                 else:
@@ -497,7 +497,7 @@ def section_edit(section_name, item_id):
 def suggested_calendar_label(config):
     """A name for a new calendar, filled in so it need not be typed.
 
-    The name never reaches the board — it is how the settings list and the
+    The name never reaches the dashboard — it is how the settings list and the
     feed status refer to the calendar — so making somebody invent one before
     they can paste the link they came with is friction for nothing. "Family"
     for the first; after that a numbered one, because two feeds with one name
@@ -521,7 +521,7 @@ def follow_a_rename(config, old, new):
     Chores hold names as plain text, so without this the natural way to
     replace the invented Mia — open her, type your own child's name, save —
     leaves "Set the table" rotating between Mia and Theo for ever, and the
-    board announcing the turn of somebody who is not there. Skipped when
+    dashboard announcing the turn of somebody who is not there. Skipped when
     another person still has the old name: then it was not a rename.
     """
     if not old or not new or old == new:
@@ -536,7 +536,7 @@ def check_feed(item, config):
 
     With a guest list on the form, the answer is "3 of the 24" — and a red
     "none of them" when the list matches nobody. That case is the failure the
-    old global filter hid: a working link, a full calendar, and a board with
+    old global filter hid: a working link, a full calendar, and a dashboard with
     nothing on it. Red, because that is exactly what saving would give.
     """
     url = (item.get("url") or "").strip()
@@ -602,7 +602,7 @@ def section_delete(section_name, item_id):
         abort(404)
     items.pop(index)
     if section_name == "people":
-        # Deleting Mia means Mia is gone from the board, turns included — not
+        # Deleting Mia means Mia is gone from the dashboard, turns included — not
         # a chore still announcing her day. Unless somebody else has the name.
         gone = removed.get("name")
         if gone and gone not in config_module.people_names(config):
@@ -639,7 +639,7 @@ def screen():
         if theme in config_module.THEMES:
             config["theme"] = theme
             save(config)
-            flash(f"Board set to {theme}.", "ok")
+            flash(f"Dashboard set to {theme}.", "ok")
         return redirect(url_for("settings.screen"))
     link = absolute_url(board_path()) if current_app.config["MODE"] == CLOUD else None
     return render_template("settings/screen.html", config=config,
@@ -663,19 +663,19 @@ def qr_svg(link):
 
 
 def rotate_screen_token():
-    """Give the board a new URL, and stop the old one working.
+    """Give the dashboard a new URL, and stop the old one working.
 
     **This is the only revocation a screen token has.** It does not expire and
     it is not single use, so a parent who has shared a screenshot too widely
     has exactly this button. It must therefore be honest about the cost: every
-    screen already showing the board goes blank until somebody opens the new
+    screen already showing the dashboard goes blank until somebody opens the new
     URL on it.
     """
     token = screens.rotate(current_app.config["POOL"], current_family_id())
     if token is None:
         flash("That did not work. Try again.", "error")
     else:
-        flash("New screen link. Open it on every screen showing this board — "
+        flash("New screen link. Open it on every screen showing this dashboard — "
               "the old link has stopped working.", "ok")
     return redirect(url_for("settings.screen"))
 
@@ -804,7 +804,7 @@ def account():
 
 @bp.route("/account/export")
 def export_account():
-    """The family's settings, board and retained generation history as JSON.
+    """The family's settings, dashboard and retained generation history as JSON.
 
     **The family's own data comes from the store**, which is the only thing that
     knows what it is. Two things it deliberately cannot answer are read directly
@@ -899,7 +899,7 @@ def delete_account():
 
     **The confirmation is the address on the account**, the way a repository
     host asks for the repository name. A button alone is one mis-tap from a
-    family losing a board they set up; typing an address they had to know is
+    family losing a dashboard they set up; typing an address they had to know is
     friction that only the right person can pass.
 
     The family comes from the session and from nowhere else, so there is no id

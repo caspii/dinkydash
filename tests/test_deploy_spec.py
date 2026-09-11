@@ -9,7 +9,7 @@ the alert, and the one variable Sentry needs.
 
 * **the probe arrives on the platform's own hostname**, which is in no
   `domains` block, so it is the *site* that has to answer it;
-* **the board app answers it too**, with no session and no database — the same
+* **the dashboard app answers it too**, with no session and no database — the same
   path on `app.dinkydash.co` must not redirect to `/login`;
 * **the container has time to wait for its database**: `db.ready` holds the
   process back, and the probe's patience has to outlast it;

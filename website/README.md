@@ -13,7 +13,7 @@ Markdown through Jinja **on request** — there is no build step and no committe
 - `render.py` - Markdown to HTML, and the page/sitemap metadata
 - `generate_favicon.py` - Redraws the favicons from `static/favicon.svg`; run only when that changes
 - `generate_social_preview.py` - Draws `images/social-preview.png`, the repository's social preview
-  card; run only when its wording, the palette or the board image changes
+  card; run only when its wording, the palette or the dashboard image changes
 
 It used to build to `../docs/` for GitHub Pages. That directory is gone (DIN-27): the pages were
 already Jinja templates, so rendering them when they are asked for removed 34 files of generated
@@ -25,12 +25,12 @@ shipped in, because the build ran before that commit existed.
 
 `images/` holds two kinds of file, and the difference matters.
 
-**Product screenshots** are the real board and the real settings page, captured from the app running
+**Product screenshots** are the real dashboard and the real settings page, captured from the app running
 against an *invented* family — `config.example.yaml`, or a copy of it, plus a payload from
 `sample_board.py` or a one-off `generate()` call. Never a real config. Names, birthdays and calendar
 URLs are the entire content of this app, and a screenshot published here is as public and as
 permanent as a commit. Capture them the way `/preview` does, with a wrapper page holding an iframe
-of exactly the target size: `--window-size` is not trustworthy for layout work, and the board's
+of exactly the target size: `--window-size` is not trustworthy for layout work, and the dashboard's
 `<meta http-equiv="refresh">` stops headless Chrome exiting, so wrap the call in `timeout`. Both
 gotchas are written up in the root `CLAUDE.md`.
 
@@ -125,8 +125,8 @@ Pushed to `main`, and DigitalOcean App Platform rebuilds from the commit — `de
 `.do/app.yaml`. There is no build step and nothing to commit but the source: `website/site.py`
 renders `content/*.md` through `templates/` on request.
 
-**It shares one container with the board.** `wsgi.py` routes on the `Host` header —
-`dinkydash.co` here, `app.dinkydash.co` to the board — so a change to either deploys both.
+**It shares one container with the dashboard.** `wsgi.py` routes on the `Host` header —
+`dinkydash.co` here, `app.dinkydash.co` to the dashboard — so a change to either deploys both.
 
 This section used to say GitHub Pages served `docs/`. That was true until DIN-27 and is not
 now; the directory is gone.

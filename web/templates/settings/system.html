@@ -11,7 +11,7 @@
 <form id="system-form" method="post" class="card pad" style="display:flex;flex-direction:column;gap:1rem;">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div class="field">
-        <label for="family_name">Name on the board</label>
+        <label for="family_name">Name on the dashboard</label>
         <input type="text" id="family_name" name="family_name" value="{{ config.family_name or '' }}">
     </div>
 
@@ -46,7 +46,7 @@
         <label for="claude_model">Model</label>
         <input type="text" id="claude_model" name="claude_model" value="{{ config.claude_model or '' }}">
         <div class="hint">
-            <strong>claude-haiku-4-5</strong> costs roughly $0.13 a month at one board a day.
+            <strong>claude-haiku-4-5</strong> costs roughly $0.13 a month at one dashboard a day.
             <strong>claude-sonnet-5</strong> writes better for about three times that.
         </div>
     </div>

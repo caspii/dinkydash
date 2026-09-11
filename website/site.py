@@ -15,8 +15,8 @@ Three things that were wrong with building are right by construction here:
 * **The forgotten rebuild.** Editing copy and not running the build shipped
   nothing at all.
 
-**This is a separate Flask app from the board**, not a blueprint on it, and
-deliberately so: the board owns `/` on a Pi, the site owns `/` here, and one
+**This is a separate Flask app from the dashboard**, not a blueprint on it, and
+deliberately so: the dashboard owns `/` on a Pi, the site owns `/` here, and one
 process trying to be both would need a host check in a codebase whose rule is
 that mode gates four things and no others. Two entry points, one codebase —
 the same arrangement `app.py` and `generate.py` already have.
@@ -127,7 +127,7 @@ def create_site_app(site_url=None, app_url=None):
 
     @app.route("/healthz")
     def healthz():
-        """Up, and which commit. Reads nothing, like the board's."""
+        """Up, and which commit. Reads nothing, like the dashboard's."""
         return {"status": "ok", "commit": os.environ.get("GIT_SHA", "unknown")}, 200, {
             "Cache-Control": "no-store", "X-Robots-Tag": "noindex"}
 
@@ -151,7 +151,7 @@ def create_site_app(site_url=None, app_url=None):
 
     @app.after_request
     def headers(response):
-        # Same promise the board makes: never tell a third party what URL the
+        # Same promise the dashboard makes: never tell a third party what URL the
         # reader was on.
         response.headers.setdefault("Referrer-Policy", "no-referrer")
 
@@ -171,7 +171,7 @@ def create_site_app(site_url=None, app_url=None):
 def _app_url(explicit=None):
     """Where "Start your free trial" goes.
 
-    Production leaves it alone. A local preview should open the board being
+    Production leaves it alone. A local preview should open the dashboard being
     worked on rather than the live one, and it is told where that is in one of
     two ways: `DINKYDASH_APP_URL`, or — because Conductor reads its run scripts
     from the main checkout, so a script edited on a branch may never run —

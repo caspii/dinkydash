@@ -1,4 +1,4 @@
-# The board and the settings UI
+# The dashboard and the settings UI
 
 Guidance for `web/`. The root `CLAUDE.md` holds the rules that apply to every change; this
 file holds the ones that only bite here. Sizing conventions are in the root under
@@ -58,7 +58,7 @@ hold a token. **Use Chrome or Firefox for the Conductor preview**, and drive `ap
 process for anything scripted — it has no cookie policy and exercises the same code. An hour went
 into the `requests` half of that.
 
-**A route that touches a store needs `session.guard`**, and the board blueprint's `before_request`
+**A route that touches a store needs `session.guard`**, and the dashboard blueprint's `before_request`
 is where that is decided. `board.healthz` is the one exemption and it is load-bearing: App
 Platform's health check arrives with no cookie, and a 302 there fails it three times and rolls the
 release back. It is also the only route that reads nothing, so it needs no family.
@@ -66,9 +66,9 @@ release back. It is also the only route that reads nothing, so it needs no famil
 **`web/routes/screen.py` is the other exemption, and it is a separate blueprint for that reason.**
 `/s/<token>` has no session by design — a wall panel cannot sign in — so it is not behind `guard()`
 and never should be. What replaces the session is the token, resolved by `family.store_for_token`;
-what replaces the guard is that the two routes there are GETs that reach a board and nothing else.
+what replaces the guard is that the two routes there are GETs that reach a dashboard and nothing else.
 Registered only in cloud mode, like `auth`. **In cloud mode `/` is a redirect**, so anything that
-used to link to `url_for('board.index')` for a board — the "View board" button, `/preview`'s
+used to link to `url_for('board.index')` for a dashboard — the "View dashboard" button, `/preview`'s
 iframes — uses `web.urls.board_path()`. Build absolute credential URLs with
 `web.urls.absolute_url(path)`: it uses HTTPS and the configured `DINKYDASH_APP_HOST`, with the
 request host as a development fallback. The login-link CLI shares the origin policy and accepts
@@ -107,10 +107,10 @@ deliberately no switch to turn the check off; the test client in `tests/conftest
 in the way a browser does.
 
 **The settings home has two personalities**, decided by `web/setup.py`. Until the family is set up
-and its first board written, the top of the page is a checklist — who lives here, time zone, a
-calendar, the screen — and the daily controls (Refresh calendars, View board, Rewrite now) are not
+and its first dashboard written, the top of the page is a checklist — who lives here, time zone, a
+calendar, the screen — and the daily controls (Refresh calendars, View dashboard, Rewrite now) are not
 offered at all; after that it is the day's status card. A hosted family is created with an invented
-household in it so the board has something to show (DIN-41), each person and pet marked
+household in it so the dashboard has something to show (DIN-41), each person and pet marked
 `invented: true`, and step one names what is still marked. Saving the item from the edit form
 clears the mark; renaming a person follows into the chores that name them, and removing one drops
 them from those rotations. **The signal is the config, not the mode** — a freshly cloned Pi running
@@ -131,14 +131,14 @@ separate `cloud` boolean — the Sign out button on the settings home is the fir
 
 Hosted refreshes and feed checks take the same account-access check as generation. Hiding a
 button is not enforcement. `current_access()` supplies the settings status; the token route
-resolves access for its own family and passes it to `render_board`. Lapsed boards hold the last
+resolves access for its own family and passes it to `render_board`. Lapsed dashboards hold the last
 brief's date for 30 days, then show only the ended message, with the same no-store headers and
 reload timer. Export, deletion and settings remain accessible. Exports include both all retained
 `generations` and the separate recent `content_history`; the latter alone omits older briefs.
 
-## The board's layout
+## The dashboard's layout
 
-**Changing the board layout.** Everything is sized in `rem` off one root value, so check all three
+**Changing the dashboard layout.** Everything is sized in `rem` off one root value, so check all three
 sizes at `/preview` rather than just the one you are looking at.
 
 That root value is now *measured*, not guessed. A short script at the foot of `board.html` binary-
@@ -148,19 +148,19 @@ searches the largest `html { font-size }` whose content still fits the viewport,
 out freely for one measurement (`height:auto`) and puts it straight back.
 
 **Nunito is served from `web/static/fonts/`, not from Google**, as one variable font per subset
-(`nunito-latin.woff2`, `nunito-latin-ext.woff2`, covering weights 200-1000 so every weight the board
+(`nunito-latin.woff2`, `nunito-latin-ext.woff2`, covering weights 200-1000 so every weight the dashboard
 asks for comes out of one download). `web/templates/_fonts.html` holds the `@font-face` rules and the
 reasoning, inline in every page's head with a preload of the Latin file — a stylesheet cost each page
 one more round trip before the font could start; `website/static/` has its own copy plus the italic
 pair the marketing site uses. Editing
 either means editing both — they are separate deployables on purpose, and `website/` never runs on
-the board. The files are byte-for-byte what Google was serving, so the metrics did not change; what
+the dashboard. The files are byte-for-byte what Google was serving, so the metrics did not change; what
 changed is that a screen at `/s/<token>` no longer tells Google that URL, and a Pi with no internet
-renders the same board rather than falling back to a system font.
+renders the same dashboard rather than falling back to a system font.
 
 It re-fits on `document.fonts.ready` as well as on resize, and that is not optional. Nunito arrives
 after the first paint and sets taller lines than the system fallback, so a size measured before it
-lands can overflow once it swaps in — measured at 557px of content in a 480px panel. The board only
+lands can overflow once it swaps in — measured at 557px of content in a 480px panel. The dashboard only
 looks right because it re-measures when the font arrives.
 
 **The agenda's row budget.** `MAX_EVENTS = 5` is the budget for the whole agenda, not today's cap.
@@ -180,9 +180,9 @@ full price, around 13-18%. Everything fits at all three sizes in every case. Rai
 constant spends more type size, so measure at `/preview` before you do.
 
 **The shared waiting screen must work in both modes.** Refer to the settings button, **Write the
-first board**, rather than a shell command. Keep that label in sync with `settings/home.html` and
-see [The first board](../PLAN.md#the-first-board) for scheduling behaviour. It has two wordings,
-chosen by `view.set_up`: "writing your first board" when one is on its way, and "nearly there"
+first dashboard**, rather than a shell command. Keep that label in sync with `settings/home.html` and
+see [The first dashboard](../PLAN.md#the-first-dashboard) for scheduling behaviour. It has two wordings,
+chosen by `view.set_up`: "writing your first dashboard" when one is on its way, and "nearly there"
 while the family is still setting up and nothing is being written.
 
 In two-column mode the body is a grid, and **the note sits under the agenda, not across the
@@ -194,9 +194,9 @@ columns instead: on a five-event day the left column measures 311px against the 
 
 **Saving a page to a home screen.** `/` and `/settings/` each serve their own web app manifest
 (`web/manifest.py` holds what they share), so a saved link gets the mark and a name instead of a
-URL — the board full screen for a tablet used as the panel, the settings UI standalone on a phone.
+URL — the dashboard full screen for a tablet used as the panel, the settings UI standalone on a phone.
 They must keep **different `id`s**: share one and the phone treats them as a single app, so saving
-the board would replace the settings icon. iOS reads none of the manifest; its icon and label come
+the dashboard would replace the settings icon. iOS reads none of the manifest; its icon and label come
 from the `apple-touch-icon` link and `apple-mobile-web-app-title` in the page head, which is why
 both are set on both pages. The PNGs in `web/static/` are drawn by `website/generate_favicon.py`,
 which renders the same mark as the favicon at every size the site and the app need — the outputs
@@ -207,16 +207,16 @@ remembers a "Not now" in `localStorage`; it hides itself when already running fr
 Note that Chrome's own install prompt needs https, so on a home network it never fires and the
 written steps are what people see.
 
-**"View board" opens the board in its own tab, and so does the "Board" link beside it.** The board
+**"View dashboard" opens the dashboard in its own tab, and so does the "Dashboard" link beside it.** The dashboard
 is the wall panel: full screen, no link out, and it reloads itself for years. Opened in the same tab
 from a settings page saved to a phone's home screen it was a dead end — a saved web app has no
 address bar and, on an iPhone, no Back button, so the way out was to force-quit the app; and in a
 Safari tab every self-reload adds a history entry, so Back needed one tap per reload spent looking.
-Its own tab is a way back the board never has to draw: a tab to close, an in-app sheet with Done on
-iOS, a custom tab with an X on Android. **Do not answer this with a Settings control on the board.**
+Its own tab is a way back the dashboard never has to draw: a tab to close, an in-app sheet with Done on
+iOS, a custom tab with an X on Android. **Do not answer this with a Settings control on the dashboard.**
 A tablet set up in the same tab would keep it on the wall, because the reload keeps the URL; and
 hosted, a tap on it from a panel with no session lands on `/login`, which has no reload timer, so
-the wall stays there. `tests/test_settings.py` asserts the tab and the board's lack of a way back.
+the wall stays there. `tests/test_settings.py` asserts the tab and the dashboard's lack of a way back.
 
 **Copy and Share beside the screen link are the browser's own** — `navigator.clipboard` and
 `navigator.share`, in `settings/_screen_link.html`. Nothing is fetched and nothing leaves the page
@@ -248,10 +248,10 @@ hovers or a finger touches down on, so the tap lands on a page that is already t
 under `/settings/` is a read on GET, and has to stay one**: a prerender runs the page. The data
 export is the one link that is not a page, and it is excluded by name — a new link that downloads,
 charges or writes on GET goes in the same `not` clause. Forms are not links and are never
-speculated. The board is outside the pattern on purpose: it reloads itself, and `/preview` renders
+speculated. The dashboard is outside the pattern on purpose: it reloads itself, and `/preview` renders
 it three times over.
 
-## Measuring the board
+## Measuring the dashboard
 
 Everything below is about *checking* a layout change, and every line of it was learned the
 hard way.
@@ -263,13 +263,13 @@ hard way.
   also reuses a running instance unless each run gets its own `--user-data-dir`, which silently
   makes every size in a loop return the first one's numbers.
 - **Do not trust `--window-size` for layout work at all.** Even with the +87 correction it has been
-  seen to ignore the flag and report a 756x469 viewport, which silently puts the board on the wrong
+  seen to ignore the flag and report a 756x469 viewport, which silently puts the dashboard on the wrong
   side of the `3/2` media query. Size the page with an **iframe of exactly the target dimensions**
   instead, the way `/preview` already does, and read the numbers out of `iframe.contentWindow`. That
   is deterministic; the flag is not.
-- **The board's `<meta http-equiv="refresh">` stops headless Chrome ever exiting.** `--screenshot`
+- **The dashboard's `<meta http-equiv="refresh">` stops headless Chrome ever exiting.** `--screenshot`
   and `--dump-dom` both hang until the timeout, though they do write their output first. Strip the
   tag when rendering a copy for measurement, and wrap the call in `timeout` regardless.
 - The honest check is `scrot` over SSH on the Pi itself: a real 800x480 panel, a real kiosk browser,
-  no capture artifacts. The board reloads itself every 5 minutes on a default config, so a change
+  no capture artifacts. The dashboard reloads itself every 5 minutes on a default config, so a change
   takes one reload to appear — check `refresh_minutes` before concluding it did not work.
