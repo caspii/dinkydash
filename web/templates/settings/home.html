@@ -24,11 +24,29 @@
     @media (max-width: 26rem) {
         .dashboard-actions { grid-template-columns: 1fr; }
     }
+    /* The bar's title block: the name, and under it who is signed in. Both
+       truncate rather than wrap, so a long address can neither push the
+       actions off the bar nor make it taller — the pair fits in its 3.5rem. */
+    .identity { flex-grow: 1; min-width: 0; }
+    .identity h1 { line-height: 1.25; }
+    .identity .who {
+        padding-left: 0.25rem; font-size: 0.75rem; font-weight: 700; line-height: 1.25;
+        color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
 </style>
 {% endblock %}
 
 {% block appbar %}
-<h1 style="padding-left:0.25rem;color:var(--accent);font-size:1.15rem;">DinkyDash</h1>
+{# Under the title, who is signed in — hosted only, since a self-hoster has no
+   account. A phone two parents share should say whose settings these are, and
+   the account page is three taps away. For an address on DINKYDASH_ADMIN_EMAILS
+   the bar also carries the one link there is to the operator's page;
+   `tests/test_admin.py` asserts nobody else is shown it. #}
+<div class="identity">
+    <h1 style="padding-left:0.25rem;color:var(--accent);font-size:1.15rem;">DinkyDash</h1>
+    {% if address %}<div class="who">{{ address }}</div>{% endif %}
+</div>
+{% if admin %}<a class="action muted" href="{{ url_for('admin.growth_page') }}">View admin</a>{% endif %}
 {# The dashboard link is "View dashboard" by another name, so it waits with it and
    opens its own tab for the same reason — see the button. #}
 {% if not setting_up %}<a class="action muted" href="{{ board_link }}" target="_blank" rel="noopener">Dashboard</a>{% endif %}

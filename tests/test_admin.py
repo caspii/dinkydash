@@ -236,6 +236,61 @@ def pg_pool_of(app):
     return app.config["POOL"]
 
 
+# -- the way in: the settings home says who is signed in ---------------------
+
+class TestTheSettingsHomeSaysWhoIsSignedIn:
+    """The app bar carries the signed-in address and, for the listed address
+    and nobody else, the one link there is to the operator's page."""
+
+    def home(self, client):
+        response = client.get("/settings/")
+        assert response.status_code == 200
+        return response.get_data(as_text=True)
+
+    def test_the_address_is_on_the_page(self, cloud, user):
+        assert ADDRESS in self.home(signed_in(cloud, user))
+
+    def test_with_no_list_there_is_no_link_to_the_admin_page(self, cloud, user):
+        html = self.home(signed_in(cloud, user))
+        assert "View admin" not in html
+        assert 'href="/admin"' not in html
+
+    def test_somebody_else_on_the_list_gets_no_link_either(self, cloud, user, monkeypatch):
+        monkeypatch.setenv("DINKYDASH_ADMIN_EMAILS", "somebody@example.com")
+        html = self.home(signed_in(cloud, user))
+        assert ADDRESS in html
+        assert "View admin" not in html
+        assert 'href="/admin"' not in html
+
+    def test_the_listed_address_gets_the_link_and_it_opens(self, admin_client):
+        html = self.home(admin_client)
+        assert ADDRESS in html
+        assert "View admin" in html
+        assert 'href="/admin"' in html
+        assert admin_client.get("/admin").status_code == 200
+
+    def test_a_session_naming_a_user_that_is_gone_still_gets_its_settings(
+            self, cloud, user, monkeypatch):
+        monkeypatch.setenv("DINKYDASH_ADMIN_EMAILS", ADDRESS)
+        client = signed_in(cloud, user)
+        with pg_pool_of(cloud).connection() as conn, conn.transaction(), conn.cursor() as cur:
+            cur.execute("DELETE FROM users WHERE id = %s", (user[1],))
+        html = self.home(client)
+        assert ADDRESS not in html
+        assert "View admin" not in html
+
+    def test_a_self_hoster_sees_neither(self, tmp_path, monkeypatch):
+        """Single mode has nobody signed in and no pool to ask. With the list
+        set, the page must render rather than reach for a database."""
+        monkeypatch.delenv("DINKYDASH_MODE", raising=False)
+        monkeypatch.setenv("DINKYDASH_ADMIN_EMAILS", ADDRESS)
+        (tmp_path / "config.yaml").write_text('family_name: "The Wilsons"\n')
+        html = self.home(client_for(create_app(FileStore(tmp_path / "config.yaml"))))
+        assert ADDRESS not in html
+        assert "View admin" not in html
+        assert "/admin" not in html
+
+
 # -- what it shows -----------------------------------------------------------
 
 @pytest.fixture
