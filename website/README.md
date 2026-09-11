@@ -68,6 +68,13 @@ pip install -r ../requirements-site.txt
 
 ### Running it
 
+For website and hosted dashboard development together, use Conductor's **dev**
+action or `venv/bin/python dev.py` from the repository root. It points all login
+and signup links at the local dashboard. See [local development](../doc/development.md)
+for database setup, port overrides and shutdown behavior.
+
+To serve only the marketing site:
+
 ```bash
 cd ..
 FLASK_APP=website.site flask run --port 5001

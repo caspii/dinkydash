@@ -1,7 +1,8 @@
 "$schema" = "https://conductor.build/schemas/settings.repo.schema.json"
 
 [scripts]
-run_mode = "concurrent"
+# Copied .env files may select the same database across workspaces.
+run_mode = "nonconcurrent"
 
 # requirements-cloud.txt is the superset — it pulls in requirements-site.txt,
 # which pulls in requirements.txt — so this one line installs psycopg, the
@@ -21,66 +22,12 @@ venv/bin/pip install -q -r requirements-cloud.txt
 venv/bin/python sample_board.py
 """
 
-# The preview URL, and the only web server Conductor starts. **Always cloud
-# mode**: development is on the hosted product, so the preview is the hosted
-# product. `DINKYDASH_MODE` is the whole difference — `create_app` reads it to
-# choose PostgresStore over FileStore — and it is set unconditionally here
-# rather than sniffed from the environment, because a preview that silently
-# falls back to config.yaml is how you end up debugging the wrong board.
-#
-# It refuses to start without a database, and says why. That is the right
-# failure: a fallback would be indistinguishable from success.
-#
-# **It opens on /login, because the board is one family's board and cloud mode
-# reads which family from the session.** `login_link.py` prints a working link
-# without waiting on email — the same token the email would carry, minted by
-# the same code. The script above prints the exact command with this
-# workspace's port already in it.
-#
-# **Chrome or Firefox, not Safari.** The session cookie is `Secure` in cloud
-# mode, and Safari has no loopback exception for that — it silently drops the
-# cookie over `http://localhost`, so signing in fails and looks like a broken
-# form rather than a cookie policy. `web/CLAUDE.md` has the table.
-#
-# Export DATABASE_URL to select a scratch database. Explicit environment values
-# take precedence over .env defaults; with no override, the file selects the
-# database, which may be production. The connection string is never printed.
-#
-# Single mode still matters and still has to work; it is just not what the
-# preview shows. To look at it:
-#     DINKYDASH_MODE=single FLASK_APP=app.py venv/bin/flask run --port 5050
-[scripts.run.dashboard]
-available_in = [ "local" ]
-command = """
-venv/bin/python - <<'PY'
-import os
-import sys
-from dotenv import load_dotenv
-
-load_dotenv('.env', override=False)
-if not os.environ.get('DATABASE_URL'):
-    sys.exit('Cloud mode needs DATABASE_URL in the environment or .env. '
-             'Use Files to copy for this gitignored file.')
-os.environ['DINKYDASH_MODE'] = 'cloud'
-os.environ['FLASK_APP'] = 'app.py'
-port = os.environ.get('CONDUCTOR_PORT') or '5000'
-print('The board is behind a sign-in. For a link without waiting on email:')
-print(f'  venv/bin/python login_link.py you@example.com --base-url http://127.0.0.1:{port}')
-print('Use Chrome or Firefox; Safari will not send a Secure cookie over http://localhost.', flush=True)
-os.execv('venv/bin/flask', ['flask', 'run', '--port', port, '--debug'])
-PY
-"""
+# Both Flask apps, supervised together. Configuration and database checks live
+# in dev.py so the same command works in a terminal outside Conductor.
+[scripts.run.dev]
+command = "venv/bin/python dev.py"
 default = true
-icon = "cloud"
-
-# The marketing site, on the second of the ten ports this workspace owns.
-# Hardcoding 5001 would collide the moment two workspaces ran at once.
-# DINKYDASH_APP_URL points its "Start your free trial" buttons at the
-# dashboard above rather than at production, which is where they go by default.
-[scripts.run.website]
-available_in = [ "local" ]
-command = "DINKYDASH_APP_URL=http://127.0.0.1:${CONDUCTOR_PORT:-5000} FLASK_APP=website.site venv/bin/flask run --port $((${CONDUCTOR_PORT:-5000} + 1))"
-icon = "book-open"
+icon = "play"
 
 [scripts.run.generate]
 command = "venv/bin/python generate.py"

@@ -1,18 +1,24 @@
-"""Run the configured preview command with invented environment values."""
+"""Conductor delegates to the same validated launcher used in a terminal."""
 
-import json
 import os
 from pathlib import Path
-import shlex
-import subprocess
-import sys
 import tomllib
 
 import pytest
 
+import dev
+
 ROOT = Path(__file__).resolve().parents[1]
 FILE_URL = 'postgresql:///invented_file_database'
 SCRATCH_URL = 'postgresql:///invented_scratch_database'
+
+
+def test_one_default_run_starts_both_apps():
+    settings = tomllib.loads((ROOT / '.conductor/settings.toml').read_text())
+    runs = settings['scripts']['run']
+    assert runs['dev']['command'] == 'venv/bin/python dev.py'
+    assert runs['dev']['default'] is True
+    assert 'dashboard' not in runs and 'website' not in runs
 
 
 @pytest.mark.parametrize('exported,file_value,expected', [
@@ -23,38 +29,40 @@ SCRATCH_URL = 'postgresql:///invented_scratch_database'
     ('', FILE_URL, None),
 ])
 def test_preview_preserves_explicit_environment_and_never_prints_the_database(
-        tmp_path, exported, file_value, expected):
+        tmp_path, monkeypatch, capsys, exported, file_value, expected):
     if file_value is not None:
         (tmp_path / '.env').write_text(f'DATABASE_URL="{file_value}"\nDINKYDASH_MODE=single\n')
-    executables = tmp_path / 'venv/bin'
-    executables.mkdir(parents=True)
-    python = executables / 'python'
-    python.write_text(f'#!/bin/sh\nexec {shlex.quote(sys.executable)} "$@"\n')
-    python.chmod(0o755)
-    flask = executables / 'flask'
-    flask.write_text(f'#!{sys.executable}\n' + '''import json, os, pathlib, sys
-pathlib.Path('captured.json').write_text(json.dumps({
-    'database': os.environ['DATABASE_URL'], 'mode': os.environ['DINKYDASH_MODE'],
-    'app': os.environ['FLASK_APP'], 'args': sys.argv[1:]}))
-''')
-    flask.chmod(0o755)
-    env = {key: value for key, value in os.environ.items()
-           if key not in {'DATABASE_URL', 'DATABASE_URL_DIRECT', 'DINKYDASH_MODE'}}
-    env['CONDUCTOR_PORT'] = '5123'
+    for key in ('DATABASE_URL', 'DINKYDASH_MODE', 'DINKYDASH_APP_URL', 'DINKYDASH_APP_HOST'):
+        # Record absent keys too, so configure's environment changes are undone.
+        monkeypatch.setenv(key, '')
+        monkeypatch.delenv(key)
+    monkeypatch.setenv('DINKYDASH_SECRET_KEY', 'development-test-key')
+    monkeypatch.setenv('CONDUCTOR_PORT', '5123')
     if exported is not None:
-        env['DATABASE_URL'] = exported
-    settings = tomllib.loads((ROOT / '.conductor/settings.toml').read_text())
-    command = settings['scripts']['run']['dashboard']['command']
-    result = subprocess.run(['sh', '-c', command], cwd=tmp_path, env=env,
-                            text=True, capture_output=True, timeout=10)
-    assert FILE_URL not in result.stdout + result.stderr
-    assert SCRATCH_URL not in result.stdout + result.stderr
+        monkeypatch.setenv('DATABASE_URL', exported)
+    monkeypatch.setattr(dev, 'ROOT', tmp_path)
+    captured = {}
+
+    def validate():
+        captured['database'] = os.environ['DATABASE_URL']
+
+    def supervise(ports):
+        captured.update(mode=os.environ['DINKYDASH_MODE'], ports=ports)
+        return 0
+
+    monkeypatch.setattr(dev, 'validate_database', validate)
+    monkeypatch.setattr(dev, 'supervise', supervise)
+    result = dev.main()
+    output = capsys.readouterr()
+    assert FILE_URL not in output.out + output.err
+    assert SCRATCH_URL not in output.out + output.err
     if expected is None:
-        assert result.returncode != 0
-        assert 'Cloud mode needs DATABASE_URL' in result.stderr
-        assert not (tmp_path / 'captured.json').exists()
+        assert result != 0
+        assert 'DATABASE_URL is required' in output.err
+        assert not captured
     else:
-        assert result.returncode == 0, result.stderr
-        assert json.loads((tmp_path / 'captured.json').read_text()) == {
-            'database': expected, 'mode': 'cloud', 'app': 'app.py',
-            'args': ['run', '--port', '5123', '--debug']}
+        assert result == 0, output.err
+        assert captured == {
+            'database': expected, 'mode': 'cloud',
+            'ports': {'Dashboard': 5123, 'Website': 5124},
+        }
