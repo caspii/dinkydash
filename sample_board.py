@@ -37,7 +37,7 @@ SAMPLE_EVENTS = [
 
 HEADLINE = "Swimming, then football — a full day."
 NOTE = ("Sample data, so the dashboard has something to show. Run generate.py, or "
-        "press “Rewrite now” in settings, for the real thing.")
+        "press “Rewrite daily message” in settings, for the real thing.")
 
 
 def is_usable(payload):

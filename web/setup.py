@@ -42,6 +42,8 @@ def status(config, payload):
 def household(config):
     """Step one: the invented people and pets, until they are gone."""
     invented = config_module.invented_names(config)
+    invented_people = config_module.invented_names({"people": config.get("people")})
+    invented_pets = config_module.invented_names({"pets": config.get("pets")})
     people = config_module.people_names(config)
     pets = [p["name"] for p in config.get("pets") or []
             if isinstance(p, dict) and p.get("name")]
@@ -56,7 +58,10 @@ def household(config):
     return {
         "key": "household", "title": "Who lives here", "done": not invented,
         "detail": detail,
-        "href": url_for("settings.section_list", section_name="people"),
+        "href": url_for("settings.section_list",
+                        section_name="pets" if invented_pets and not invented_people else "people"),
+        "other_href": (url_for("settings.section_list", section_name="pets")
+                       if invented_pets and invented_people else None),
     }
 
 

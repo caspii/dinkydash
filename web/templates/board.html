@@ -12,7 +12,7 @@
 <head>
     <meta charset="utf-8">
     <title>{{ view.family_name or "DinkyDash" }}</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex, nofollow">
     <meta http-equiv="refresh" content="{{ view.reload_seconds }}">
     <link rel="icon" href="{{ static_url('favicon.svg') }}" type="image/svg+xml">
@@ -279,7 +279,7 @@
     <div class="waiting-sub">
         The next run writes it, usually within a few minutes, and this page fills
         itself in. To have it now, open the settings page and press
-        &ldquo;Write the first dashboard&rdquo;.
+        &ldquo;Write first daily message&rdquo;.
     </div>
 </div>
 
@@ -306,7 +306,7 @@
 {% elif view.stale %}
 <div class="banner">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7.6v5"></path><path d="M12 16.2h.01"></path></svg>
-    This morning&rsquo;s brief didn&rsquo;t arrive. Times, turns and countdowns are today&rsquo;s &mdash; only the written line is older.
+    This morning&rsquo;s daily message didn&rsquo;t arrive. Times, turns and countdowns are today&rsquo;s &mdash; only the written line is older.
 </div>
 {% endif %}
 
@@ -412,6 +412,8 @@
     }
 
     function fit() {
+        // Let a phone viewer enlarge the dashboard without shrinking it back.
+        if (window.visualViewport && window.visualViewport.scale > 1) return;
         var room = window.innerHeight;
         var lo = 9, hi = Math.min(26, room / 24);   // same ceiling as the clamp
         root.style.fontSize = hi + "px";

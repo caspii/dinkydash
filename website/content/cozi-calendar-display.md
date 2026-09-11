@@ -94,7 +94,7 @@ show:
   whose turn it is.
 - **Countdowns.** Birthdays, Christmas, the school holidays. This is the feature children
   actually use, and it retires the "how many days until…" question.
-- **A daily line.** A greeting and one line of copy, written each morning around the family's
+- **A daily note.** A greeting and one line of copy, written each morning around the family's
   real day.
 
 More on that combination on the [digital calendar and chore chart

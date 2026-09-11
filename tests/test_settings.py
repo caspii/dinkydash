@@ -168,7 +168,7 @@ class TestDeleting:
     def test_delete_removes_the_named_person(self, client, config_path):
         client.get("/settings/people")
         theo = ids_for(config_path)[1]
-        client.post(f"/settings/people/{theo}/delete")
+        client.post(f"/settings/people/{theo}/delete", data={"confirmed": "yes"})
         assert [p["name"] for p in people(config_path)] == ["Mia", "Ines"]
 
     def test_a_deletion_does_not_move_anyone_elses_url(self, client, config_path):
@@ -176,13 +176,13 @@ class TestDeleting:
         # Mia turned Theo's open edit form into Ines's.
         client.get("/settings/people")
         mia, _theo, ines = ids_for(config_path)
-        client.post(f"/settings/people/{mia}/delete")
+        client.post(f"/settings/people/{mia}/delete", data={"confirmed": "yes"})
         page = client.get(f"/settings/people/{ines}").get_data(as_text=True)
         assert "Ines" in page
 
     def test_deleting_a_stranger_is_a_404(self, client, config_path):
         client.get("/settings/people")
-        assert client.post("/settings/people/nosuchid/delete").status_code == 404
+        assert client.post("/settings/people/nosuchid/delete", data={"confirmed": "yes"}).status_code == 404
 
 
 class TestReordering:
@@ -299,27 +299,27 @@ class TestTheClockOnTheStatusLine:
         board({"calendars_fetched_at": f"{today}T05:00:00+00:00", "events": []})
         page = client.get("/settings/").get_data(as_text=True)
         assert "dashboard is up" not in page
-        assert "Rewrite now" not in page
+        assert "Rewrite daily message" not in page
         assert "from None" not in page
 
     def test_the_button_offers_a_first_board_rather_than_a_rewrite(self, client, board, today):
         """The waiting screen points at this button by name, so they must agree.
 
-        "Rewrite now" is the wrong word for a dashboard nobody has written, and
+        "Rewrite daily message" is the wrong word for a dashboard nobody has written, and
         `board.html` — which is byte-identical in both modes — tells a family
-        to press "Write the first dashboard" (DIN-45).
+        to press "Write first daily message" (DIN-45).
         """
         board({"calendars_fetched_at": f"{today}T05:00:00+00:00", "events": []})
         page = client.get("/settings/").get_data(as_text=True)
-        assert "Write the first dashboard" in page
-        assert "Rewrite now" not in page
+        assert "Write first daily message" in page
+        assert "Rewrite daily message" not in page
 
     def test_and_goes_back_to_a_rewrite_once_there_is_one(self, client, board, today):
         board({"generated_for_date": today, "generated_at": f"{today}T04:00:00+00:00",
                "headline": "Hi", "note": "There", "events": []})
         page = client.get("/settings/").get_data(as_text=True)
-        assert "Rewrite now" in page
-        assert "Write the first dashboard" not in page
+        assert "Rewrite daily message" in page
+        assert "Write first daily message" not in page
 
     def test_an_unreadable_stamp_does_not_break_the_page(self, client, board, today):
         board({"generated_for_date": today, "generated_at": "who knows",
@@ -429,15 +429,15 @@ class TestTheSetUpChecklist:
         """Steps one and two, the way a person would do them."""
         client.post("/settings/people/mia12345",
                     data={"name": "Anna", "date_of_birth": "2018-05-02"})
-        client.post("/settings/people/theo1234/delete")
-        client.post("/settings/pets/dog12345/delete")
+        client.post("/settings/people/theo1234/delete", data={"confirmed": "yes"})
+        client.post("/settings/pets/dog12345/delete", data={"confirmed": "yes"})
         client.post("/settings/timezone", data={"timezone": "Europe/Berlin"})
 
     def test_it_replaces_the_daily_controls(self, client):
         page = self.home(client)
         assert "Set up your dashboard" in page
-        for button in ("Refresh calendars", "View dashboard", "Rewrite now",
-                       "Write the first dashboard", ">Dashboard<"):
+        for button in ("Refresh calendars", "View dashboard", "Rewrite daily message",
+                       "Write first daily message", ">Dashboard<"):
             assert button not in page
 
     def test_step_one_names_what_is_invented(self, client):
@@ -476,12 +476,12 @@ class TestTheSetUpChecklist:
         assert self.loaded(config_path)["recurring"][0]["choices"] == ["Anna", "Theo"]
 
     def test_removing_a_person_takes_them_out_of_the_rotation(self, client, config_path):
-        client.post("/settings/people/theo1234/delete")
+        client.post("/settings/people/theo1234/delete", data={"confirmed": "yes"})
         assert self.loaded(config_path)["recurring"][0]["choices"] == ["Mia"]
 
     def test_a_rotation_left_empty_is_said_on_the_chores_row(self, client, config_path):
-        client.post("/settings/people/mia12345/delete")
-        client.post("/settings/people/theo1234/delete")
+        client.post("/settings/people/mia12345/delete", data={"confirmed": "yes"})
+        client.post("/settings/people/theo1234/delete", data={"confirmed": "yes"})
         assert "1 with nobody assigned" in self.home(client)
         assert self.loaded(config_path)["recurring"][0]["choices"] == []
 
@@ -508,7 +508,7 @@ class TestTheSetUpChecklist:
         client.post("/settings/timezone", data={"timezone": "Europe/Berlin"})
         page = self.home(client)
         assert "Once the first two steps are done" in page
-        assert "Write the first dashboard" not in page
+        assert "Write first daily message" not in page
 
     def test_then_the_link_and_the_button_arrive(self, client):
         self.make_it_theirs(client)
@@ -516,21 +516,21 @@ class TestTheSetUpChecklist:
         assert "Open the link below" in page
         assert "http://localhost/" in page  # single mode: the dashboard is at /
         assert "Copy link" in page  # and a button to get it onto the other device
-        assert "Write the first dashboard" in page
+        assert "Write first daily message" in page
         assert "Anna" in page  # step one, done, names who is here
 
     def test_a_calendar_is_not_required_to_finish(self, client):
         self.make_it_theirs(client)
         page = self.home(client)
         assert "None yet. The dashboard works without one" in page
-        assert "Write the first dashboard" in page
+        assert "Write first daily message" in page
 
     def test_writing_the_first_board_says_so(self, client, monkeypatch):
         self.make_it_theirs(client)
         monkeypatch.setattr("web.routes.settings.run_generation",
                             lambda config, store, **kw: {"headline": "Hello, Anna"})
         landed = client.post("/settings/generate", follow_redirects=True).get_data(as_text=True)
-        assert "Your first dashboard is written — “Hello, Anna”" in landed
+        assert "Your first daily message is written — “Hello, Anna”" in landed
 
     def test_it_leaves_once_the_first_board_is_written(self, client, tmp_path):
         self.make_it_theirs(client)
@@ -539,7 +539,7 @@ class TestTheSetUpChecklist:
             "events": []}))
         page = self.home(client)
         assert "Set up your dashboard" not in page
-        assert "Rewrite now" in page and "View dashboard" in page
+        assert "Rewrite daily message" in page and "View dashboard" in page
         assert "Add a calendar" in page  # still no calendar, so not "Refresh"
 
     def test_a_written_board_alone_does_not_end_set_up(self, client, tmp_path):
@@ -647,13 +647,13 @@ class TestTheCadenceOnTheHomePage:
 
     def test_the_row_says_both_cadences(self, client):
         page = client.get("/settings/").get_data(as_text=True)
-        assert "Calendars every hour · brief at 06:00" in page
+        assert "Calendars every hour · daily message at 06:00" in page
         assert 'href="/settings/refresh"' in page
 
     def test_it_follows_what_was_saved(self, client):
         client.post("/settings/refresh", data={"refresh_minutes": "1440", "brief_time": "07:30"})
         page = client.get("/settings/").get_data(as_text=True)
-        assert "Calendars once a day · brief at 07:30" in page
+        assert "Calendars once a day · daily message at 07:30" in page
 
 
 CALENDAR_CONFIG = """\
@@ -901,7 +901,7 @@ class TestSavingACalendarForgetsWhatItFetched:
         assert [e["title"] for e in board()["events"]] == ["Sports day"]
 
     def test_removing_a_calendar_removes_its_events(self, client, board):
-        client.post("/settings/calendars/sams12345/delete")
+        client.post("/settings/calendars/sams12345/delete", data={"confirmed": "yes"})
         assert [e["title"] for e in board()["events"]] == ["Sports day"]
 
     def test_reordering_forgets_nothing(self, client, board):
@@ -920,7 +920,7 @@ class TestSavingACalendarForgetsWhatItFetched:
 
 
 class TestRefreshingTheCalendarsByHand:
-    """The cheap half of "Rewrite now": fetch the feeds, ask Claude nothing."""
+    """The cheap half of "Rewrite daily message": fetch the feeds, ask Claude nothing."""
 
     @pytest.fixture
     def config_path(self, tmp_path):
@@ -958,7 +958,7 @@ class TestRefreshingTheCalendarsByHand:
         assert "Refresh calendars" not in page
         assert "Add a calendar" in page
         assert 'href="/settings/calendars/new"' in page
-        assert "Rewrite now" in page and "View dashboard" in page
+        assert "Rewrite daily message" in page and "View dashboard" in page
 
     def test_it_reports_what_it_found(self, client, refreshed):
         page = client.post("/settings/refresh-now", follow_redirects=True)

@@ -280,6 +280,12 @@
         .flash.ok { background: rgba(22, 163, 74, 0.1); color: #15803d; }
         .flash.error { background: rgba(192, 57, 43, 0.09); color: var(--danger); }
         .problems { background: rgba(192, 57, 43, 0.07); border-radius: 0.875rem; padding: 0.8125rem 0.9375rem; color: var(--danger); font-size: 0.8125rem; }
+        .action-dialog { margin: auto; width: calc(100% - 2rem); max-width: 26rem; padding: 1.25rem; color: var(--text); }
+        .action-dialog::backdrop { background: rgba(45, 35, 25, 0.45); }
+        .action-dialog h2 { font-size: 1.25rem; }
+        .action-dialog p { margin: 0.75rem 0 1rem; overflow-wrap: anywhere; }
+        .confirmation-actions { display: flex; flex-direction: column; gap: 0.75rem; }
+        .confirmation-actions .btn { height: auto; min-height: 3rem; padding: 0.625rem; overflow-wrap: anywhere; }
         .problems h2 { font-size: 1rem; }
         .problems a { color: inherit; text-decoration: underline; }
         .problems, .field, .field input, .field select { scroll-margin-top: 4.5rem; }
@@ -391,11 +397,12 @@
     <div class="content">
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% for category, message in messages %}
-            <div class="flash {{ category }}">{{ message }}</div>
+            <div class="flash {{ category }}" role="{{ 'alert' if category == 'error' else 'status' }}">{{ message }}</div>
             {% endfor %}
         {% endwith %}
         {% block content %}{% endblock %}
     </div>
 </div>
+{% block interactions %}{% include "settings/_interactions.html" %}{% endblock %}
 </body>
 </html>

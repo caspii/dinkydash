@@ -8,7 +8,7 @@
 {% endblock %}
 
 {% block content %}
-<form id="system-form" method="post" class="card pad" style="display:flex;flex-direction:column;gap:1rem;">
+<form data-dirty-guard id="system-form" method="post" class="card pad" style="display:flex;flex-direction:column;gap:1rem;">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div class="field">
         <label for="family_name">Name on the dashboard</label>
@@ -31,7 +31,7 @@
     <div class="field">
         <label for="location">Where you live</label>
         <input type="text" id="location" name="location" value="{{ config.location or '' }}" placeholder="Berlin, Germany">
-        <div class="hint">Gives the daily line some local flavour. Optional.</div>
+        <div class="hint">Gives the daily note some local flavour. Optional.</div>
     </div>
 
     {# Self-hosted only, and it is the bill that decides that. On a Pi the key is

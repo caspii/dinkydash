@@ -71,6 +71,8 @@
         update();
         (button.disabled ? row.querySelector('input') : button).focus();
         announce(row);
+        // Reordering changes the submitted values without an input event.
+        group.dispatchEvent(new Event('change', {bubbles: true}));
     });
     update();
 })();

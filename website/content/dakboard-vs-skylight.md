@@ -38,7 +38,7 @@ Comparing the two best-known ways to put your family's calendar on a wall? Here 
 | **Runs on your own hardware** | The display does; the service does not | No | **Yes, entirely** |
 | **Chore chart** | Yes — on Essential and Plus, not free | Yes; rewards need Plus | Yes, free — rotates between kids automatically |
 | **Touchscreen** | Only if the screen you bring is one | Yes, built in | Only if the screen you bring is one |
-| **AI** | No | Magic Import on Plus — photograph a school newsletter, get events | A daily brief written fresh each morning |
+| **AI** | No | Magic Import on Plus — photograph a school newsletter, get events | A daily message written fresh each morning |
 | **Setup** | About ten minutes | Out of the box | An afternoon, and some comfort with a terminal |
 
 *Prices checked 6 September 2026. Always confirm current pricing before buying.*
@@ -65,7 +65,7 @@ What you are paying for is that a family can walk up and tap it. No other option
 
 ### DinkyDash — free, open source, family-shaped
 
-DinkyDash turns any TV, tablet, Raspberry Pi or spare monitor into a family calendar: today's events, a chore chart that rotates between kids automatically, countdowns to birthdays and holidays, and a daily brief written by AI each morning around the family's actual day.
+DinkyDash turns any TV, tablet, Raspberry Pi or spare monitor into a family calendar: today's events, a chore chart that rotates between kids automatically, countdowns to birthdays and holidays, and a daily message written by AI each morning around the family's actual day.
 
 It reads the calendars you already keep — **Google Calendar, Apple iCloud and Outlook** all publish a sharing link, and DinkyDash merges as many as you like into one agenda in time order. That is a link, not a login: it never signs in to your Google, Apple or Microsoft account, and it can only read. The [getting started guide](/getting-started/#find-your-calendar-link) has the steps for each of the three.
 
@@ -73,7 +73,7 @@ It reads the calendars you already keep — **Google Calendar, Apple iCloud and 
 
 It is MIT-licensed and free forever if you run it yourself — no paid tier, no screen limit. Your config, the names and the birthdays stay on your own machine. To be precise about the one thing that leaves: the day's agenda is sent to Anthropic each morning to write the note, and that is the only outbound call besides fetching your calendars.
 
-The honest cost is time, not money. Setup is an afternoon and some copy-paste in a terminal — the [getting started guide](/getting-started/) has the commands. The only running cost is your own Anthropic key for the daily brief, about **$0.13 a month**.
+The honest cost is time, not money. Setup is an afternoon and some copy-paste in a terminal — the [getting started guide](/getting-started/) has the commands. The only running cost is your own Anthropic key for the daily message, about **$0.13 a month**.
 
 For the same dashboard without the terminal, [start a free 14-day hosted trial](https://app.dinkydash.co/login), with no card required. Paid subscriptions are still in development; planned pricing is **$39/year or $6/month**.
 
@@ -131,7 +131,7 @@ A comparison that only flatters its own product is not worth reading, so:
 
 **Skylight wins on "it is finished".** A touchscreen your family taps, a solid companion app, a support line, and a setup measured in minutes. If the real goal is that everybody sees the calendar and nobody has to be the household IT department, buying the problem away is a legitimate answer — and without Plus it is not even expensive over three years.
 
-**DinkyDash wins on cost, ownership and the daily brief.** Free, MIT-licensed, running on hardware you own, with a written line each morning that neither of the others offers. It is the only one here you can read the source of, and the only one that cannot be discontinued out from under you.
+**DinkyDash wins on cost, ownership and the daily message.** Free, MIT-licensed, running on hardware you own, with a written line each morning that neither of the others offers. It is the only one here you can read the source of, and the only one that cannot be discontinued out from under you.
 
 ## Which should you pick?
 

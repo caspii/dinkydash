@@ -451,7 +451,7 @@ class TestRewriteNowIsChargedToo:
 
     def test_a_refused_press_leaves_the_written_board_alone(
             self, parent, pg_pool, pg_family, monkeypatch, clean):
-        """**The brief half, not the whole payload.** "Rewrite now" refreshes
+        """**The brief half, not the whole payload.** "Rewrite daily message" refreshes
         the calendars first and that is deliberately outside the budget — a
         fetch costs requests rather than money — so `calendars_fetched_at`
         moves and should. What must not change is the model's words, and this

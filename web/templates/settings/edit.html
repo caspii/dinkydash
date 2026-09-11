@@ -24,7 +24,7 @@
 <p class="calendar-intro">Bring events onto your dashboard. Name the calendar, then copy its sharing link from your calendar provider.</p>
 {% endif %}
 
-<form id="edit-form" method="post" class="card pad" style="display:flex;flex-direction:column;gap:1rem;">
+<form data-dirty-guard="{{ 'changed' if draft_changed else '' }}" id="edit-form" method="post" class="card pad" style="display:flex;flex-direction:column;gap:1rem;">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     {% if section_name in ('calendars', 'recurring') %}
     {# Enter saves even when calendar testing or rotation controls come before Save. #}
@@ -163,8 +163,9 @@
 
 {% if not is_new %}
 <form method="post" action="{{ url_for('settings.section_delete', section_name=section_name, item_id=item_id) }}"
-      onsubmit="return confirm('Remove this for good?');">
+      data-confirm='{{ removal | tojson }}'>
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="confirmed" value="">
     <button class="btn danger" type="submit">Remove this {{ section.singular }}</button>
 </form>
 {% endif %}

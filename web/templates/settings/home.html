@@ -19,6 +19,7 @@
     .step .row-sub { white-space: normal; }
     /* The one-tap offer sits under its row, indented to the text. */
     .step-offer { padding: 0 0.875rem 0.875rem 3.5625rem; }
+    .dashboard-actions .btn { height: auto; min-height: 3rem; padding: 0.625rem; }
     .dashboard-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.625rem; }
     @media (max-width: 26rem) {
         .dashboard-actions { grid-template-columns: 1fr; }
@@ -61,6 +62,9 @@
                 <div class="row-sub">{{ step.detail }}</div>
             </a>{{ icons.chevron() }}
         </div>
+        {% if step.other_href %}
+        <div class="step-offer"><a href="{{ step.other_href }}">Review example pets too</a></div>
+        {% endif %}
         {% if step.key == 'timezone' and not step.done %}
         {# Hidden until the script below has read the phone's own zone into it.
            Without JavaScript the row above still leads to the full list. #}
@@ -99,10 +103,10 @@
         is what lets a screen show it without signing in. You can change it later under The screen.
     </div>
     {% endif %}
-    <form class="inline-form" method="post" action="{{ url_for('settings.generate_now') }}">
+    <form class="inline-form" method="post" action="{{ url_for('settings.generate_now') }}" data-pending="Writing your daily message…">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         {# Keep this label in sync with the waiting screen in board.html. #}
-        <button class="btn" type="submit">Write the first dashboard</button>
+        <button class="btn" type="submit">Write first daily message</button>
     </form>
     <div class="hint">
         It writes itself within a few minutes anyway; this is the shortcut. Everything above can
@@ -124,7 +128,7 @@
         {# The cheap half first: fetching the calendars costs a few requests,
            while rewriting the line costs a call to Claude. #}
         {% if calendars_on %}
-        <form class="inline-form" method="post" action="{{ url_for('settings.refresh_now') }}">
+        <form class="inline-form" method="post" action="{{ url_for('settings.refresh_now') }}" data-pending="Refreshing your calendars…">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button class="btn" type="submit" {{ 'disabled' if status.state == 'lapsed' }}>{{ icons.refresh() }} Refresh calendars</button>
         </form>
@@ -144,9 +148,9 @@
                a custom tab with an X on Android. The panel never follows this
                link; it opens the screen URL itself. #}
             <a class="btn outline" href="{{ board_link }}" target="_blank" rel="noopener">{{ icons.screen() }} View dashboard</a>
-            <form class="inline-form" method="post" action="{{ url_for('settings.generate_now') }}">
+            <form class="inline-form" method="post" action="{{ url_for('settings.generate_now') }}" data-pending="Writing your daily message…">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <button class="btn outline" type="submit" {{ 'disabled' if status.state == 'lapsed' }}>Rewrite now</button>
+                <button class="btn outline" type="submit" {{ 'disabled' if status.state == 'lapsed' }}>Rewrite daily message</button>
             </form>
         </div>
         {% if cloud %}
@@ -188,7 +192,7 @@
                 <div class="row-sub">
                     {# The titles, not a count: a starter job left behind — "Feed
                        Biscuit" after Biscuit has gone — should be visible from here. #}
-                    {% if counts.recurring and counts.recurring <= 3 %}{{ config.recurring | map(attribute='title') | join(' · ') }}{% else %}{{ counts.recurring }} job{{ "s" if counts.recurring != 1 }}, rotating daily{% endif %}{% if counts.jobs_unassigned %}
+                    {% if counts.recurring and counts.recurring <= 3 %}{{ config.recurring | map(attribute='title') | join(' · ') }}{% else %}{{ counts.recurring }} chore{{ "s" if counts.recurring != 1 }}, rotating daily{% endif %}{% if counts.jobs_unassigned %}
                     &middot; <span style="color:var(--amber-dark);font-weight:700;">{{ counts.jobs_unassigned }} with nobody assigned</span>{% endif %}
                 </div>
             </div>{{ icons.chevron() }}
@@ -204,7 +208,7 @@
                 <div class="row-title">Calendars</div>
                 <div class="row-sub">
                     {% if broken %}<span style="color:var(--amber-dark);font-weight:700;">{{ broken|length }} of {{ counts.calendars }} needs attention</span>
-                    {% else %}{{ counts.calendars }} feed{{ "s" if counts.calendars != 1 }}{% endif %}
+                    {% else %}{{ counts.calendars }} calendar{{ "s" if counts.calendars != 1 }}{% endif %}
                 </div>
             </div>{{ icons.chevron() }}
         </a>
@@ -212,7 +216,7 @@
 </div>
 
 <div>
-    <div class="label">This screen</div>
+    <div class="label">Your dashboard</div>
     <div class="card">
         {# Hosted, this page is where the screen link lives, and the row has to
            say so — the wall link is the finish line of the whole product and

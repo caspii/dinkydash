@@ -6,7 +6,7 @@ description: Set up DinkyDash from scratch — first on your computer, then as a
 
 This guide takes you from nothing to a working family dashboard. You start on your own computer, see the dashboard, then move it onto a Raspberry Pi that shows it on the wall and refreshes itself every morning.
 
-You do not need an Anthropic API key to try it — there is a no-key preview in step 3. You only need a key for the AI-written daily line, which runs once a day.
+You do not need an Anthropic API key to try it — there is a no-key preview in step 3. You only need a key for the AI-written daily note, which runs once a day.
 
 ## What you need
 
@@ -111,7 +111,7 @@ cp config.example.yaml config.yaml
 ```yaml
 family_name: "The Wilsons"
 timezone: "Europe/Berlin"     # decides when "today" rolls over
-location: "Berlin, Germany"   # optional, flavours the daily line
+location: "Berlin, Germany"   # optional, flavours the daily note
 theme: light                  # or dark
 
 calendars:                    # as many as you like; merged into one agenda
@@ -173,7 +173,7 @@ Stop the server with `Ctrl+C` when you are done looking.
 
 ### Step 4: Add your Anthropic API key
 
-The daily line comes from the Claude API. Create a file called `.env` in the project folder:
+The daily note comes from the Claude API. Create a file called `.env` in the project folder:
 
 ```bash
 echo "ANTHROPIC_API_KEY=sk-ant-..." > .env
@@ -200,10 +200,10 @@ Now these three pages are live:
 |---|---|
 | `family_name` | Shown in the corner of the dashboard. |
 | `timezone` | An IANA name like `Europe/Berlin`. Decides when "today" rolls over and how event times read. Set it even on a Pi whose clock is already local — the engine works from this, not the machine clock. |
-| `location` | Your city and country. Optional; gives the daily line local flavour. |
+| `location` | Your city and country. Optional; gives the daily note local flavour. |
 | `theme` | `light` or `dark`. |
 | `calendars` | One entry per iCal feed: a `label`, a `url` (the secret iCal address) and `enabled`. Merged into one agenda. An optional `shared_with` list of email addresses shows only the events with one of those people as a guest or organiser. |
-| `people` | `name`, `date_of_birth` (YYYY-MM-DD), an `avatar_emoji`, an `avatar_color`, and `interests` that feed the daily line. |
+| `people` | `name`, `date_of_birth` (YYYY-MM-DD), an `avatar_emoji`, an `avatar_color`, and `interests` that feed the daily note. |
 | `pets` | `name`, `type` and an `avatar_emoji`. |
 | `recurring` | Chores that rotate one person per day, in the order you list under `choices`. |
 | `special_dates` | Countdowns to yearly events, as `MM/DD` with no year. |
@@ -218,7 +218,7 @@ The settings page adds a short `id` to each person, pet, chore, date and calenda
 
 Everything on the dashboard is editable at `/settings`. Two things worth knowing:
 
-- **A saved dashboard is from this morning.** Editing a chore or a person shows up on the next page load, but the headline and daily line are only rewritten each morning. Press **Rewrite now** on the settings home page to get fresh copy immediately. Each press is one API call.
+- **A saved dashboard is from this morning.** Editing a chore or a person shows up on the next page load, but the headline and daily note are only rewritten each morning. Press **Rewrite daily message** on the settings home page to get fresh copy immediately. Each press is one API call.
 - **Adding a calendar checks the link.** Paste an iCal address and press **Test calendar link**. It tells you how many events it found and what the next one is, so you are not left guessing whether the URL works.
 - **A personal calendar can keep its private side.** Fill in **Only show events shared with** on that calendar, and only the events the other parent is on reach the dashboard. See [a personal calendar with work in it](#personal-calendar) above.
 
@@ -313,7 +313,7 @@ sudo systemctl start dinkydash.service
 
 A cron job ticks every five minutes, and each tick does only what your settings say is owed —
 nothing at all, most of the time. Calendars are re-fetched every hour, so an appointment added at
-09:00 for 15:00 reaches the dashboard the same afternoon. The daily line is written once, at 6am. Both
+09:00 for 15:00 reaches the dashboard the same afternoon. The daily note is written once, at 6am. Both
 are yours to change under **Settings → How often it updates**.
 
 ```bash
@@ -330,7 +330,7 @@ Runs never pile up: if one is still going when the next is due, the next skips i
 fails, the previous dashboard stays up and labels itself stale — the screen never goes blank, and the
 next tick tries again.
 
-The old daily line still works, and does the fetch and the line together:
+The old once-a-day cron entry still works, and does the fetch and the line together:
 
 ```cron
 0 6 * * * cd /home/pi/dinkydash && venv/bin/python generate.py >> generate.log 2>&1
@@ -460,7 +460,7 @@ The old `lcd_rotate` and `display_rotate` lines in `config.txt` no longer apply 
 
 **"localhost refused to connect" at boot.** Chromium started before the dashboard was ready. The `run.sh` above waits up to 60 seconds; make sure your autostart calls it rather than launching Chromium directly.
 
-**The dashboard is a day behind.** A generation run failed. Look at `generate.log` in the project folder. The usual causes are an expired API key, no network at 6am, or a calendar link that stopped working. Fix it, then press **Rewrite now** on the settings page.
+**The dashboard is a day behind.** A generation run failed. Look at `generate.log` in the project folder. The usual causes are an expired API key, no network at 6am, or a calendar link that stopped working. Fix it, then press **Rewrite daily message** on the settings page.
 
 **Times are off by an hour.** The timezone under Settings → Family & system is what the engine uses, not the machine clock. Set it even if the clock is already local.
 

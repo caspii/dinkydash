@@ -39,6 +39,6 @@ Hearth is designed around *routines*, not just events: visual morning and evenin
 
 Both products are, at heart, a screen showing your family's day. If you have an old tablet, a TV, or $100 for a Raspberry Pi, free software gives you the same glanceable calendar — with chore rotations and countdowns — for no subscription at all.
 
-That's what [DinkyDash](/) does (free, open source, and with an AI-written daily brief neither Skylight nor Hearth offers). See [how to build one in an afternoon](/diy-skylight-calendar/), or compare [all eight Skylight alternatives](/skylight-calendar-alternatives/).
+That's what [DinkyDash](/) does (free, open source, and with an AI-written daily message neither Skylight nor Hearth offers). See [how to build one in an afternoon](/diy-skylight-calendar/), or compare [all eight Skylight alternatives](/skylight-calendar-alternatives/).
 
 If the bring-your-own-screen route is the one that interests you, [DAKboard vs Skylight vs DinkyDash](/dakboard-vs-skylight/) compares the three on hardware cost, subscription, setup effort, and what happens when it breaks.

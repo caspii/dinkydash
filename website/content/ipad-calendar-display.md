@@ -80,7 +80,7 @@ Nothing is hidden and nothing breaks.
   link, and each has its own page here with the steps.
 - **A chore chart that rotates**, moving on one person a day by itself.
 - **Countdowns** to birthdays, Christmas and the school holidays.
-- **A daily line written each morning** by Claude, around your family's actual day.
+- **A daily note written each morning** by Claude, around your family's actual day.
 
 The dashboard reloads itself every five minutes using a plain HTML refresh, so it stays current
 even in a browser with JavaScript switched off. There is nothing to tap and nothing to
@@ -89,7 +89,7 @@ maintain — you keep editing events in your normal calendar app, and the wall f
 ## What it costs
 
 **Nothing, if the iPad is already in a drawer.** DinkyDash is free and MIT licensed with no
-subscription for the self-hosted version. The one running cost is the daily line, which is a
+subscription for the self-hosted version. The one running cost is the daily note, which is a
 Claude API call once a day — roughly $0.13 a month — and the dashboard works without it.
 
 For comparison, a Skylight Calendar is $299.99 to $599.99 plus an optional $79 a year. The

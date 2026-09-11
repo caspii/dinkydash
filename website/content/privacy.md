@@ -15,7 +15,7 @@ it.
 **If you run DinkyDash yourself**, most of this does not apply to us at all.
 Your config, your calendar links and your dashboard stay on your machine, and the
 only thing that leaves it is the day's agenda, sent to Anthropic so Claude can
-write the daily line — with your own API key, under your own agreement with
+write the daily note — with your own API key, under your own agreement with
 them. We hold nothing. This page describes the **hosted** version at
 `app.dinkydash.co`.
 
@@ -73,7 +73,7 @@ API key at all, and simply goes without the written line.
 
 | Who | What they do | Where |
 |---|---|---|
-| **Anthropic** | Writes the daily line from the day's agenda | United States |
+| **Anthropic** | Writes the daily note from the day's agenda | United States |
 | **DigitalOcean** | Runs the app and the database | Frankfurt, Germany (US company) |
 | **SendGrid** (Twilio) | Delivers sign-in emails | United States |
 | **Cloudflare** | DNS, and TLS at the edge | Global (US company) |
@@ -98,10 +98,10 @@ We would rather hold less, so most of this expires on its own.
 - **Your calendar events**: one rolling fourteen-day window per family,
   overwritten every time the calendars are refreshed. Nothing accumulates — the
   most we ever hold about your calendar is that one window.
-- **The written lines**: daily briefs are kept while your account exists. A
+- **The written lines**: daily messages are kept while your account exists. A
   separate recent history helps the model avoid repetition; it keeps at least
   the last 30 entries and drops older ones as new ones arrive. Rewriting a day
-  replaces that day's saved brief, while an earlier version may remain in the
+  replaces that day's saved daily message, while an earlier version may remain in the
   recent history until it is trimmed.
 - **Sign-in links**: deleted once expired, which is fifteen minutes. A link that
   has been used is deleted on the same schedule.
@@ -128,7 +128,7 @@ for up to seven days before it ages out.
 Both are buttons, not requests, and both are on your settings page.
 
 - **Export** gives you your family's details, calendar links, stored agenda,
-  all retained daily briefs and recent rewrite history as one JSON file.
+  all retained daily messages and recent rewrite history as one JSON file.
 - **Delete** removes your family, your account, your calendar links, the stored
   agenda, every written line and every sign-in link. It cannot be undone and we
   cannot restore it for you.

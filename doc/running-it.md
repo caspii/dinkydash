@@ -38,9 +38,9 @@ so today's times are still there and still right.
 | What you see | What it means | What to do |
 |---|---|---|
 | The dashboard, no banner | Today's run succeeded | Nothing |
-| An amber banner across the top | Today's brief failed or hasn't happened yet. Times, turns and countdowns are still today's; only the written line is older, and it is labelled | Nothing — the next tick retries. Check `generate.log` if it stays. Press **Rewrite now** in settings to force it |
+| An amber banner across the top | Today's brief failed or hasn't happened yet. Times, turns and countdowns are still today's; only the written line is older, and it is labelled | Nothing — the next tick retries. Check `generate.log` if it stays. Press **Rewrite daily message** in settings to force it |
 | "Nearly there" | The people are still the example file's invented ones, or the timezone is still UTC | Finish the set-up steps on the settings home. The tick writes nothing until then |
-| "Writing … first dashboard" | Set up, but nothing has been generated yet | Nothing — the next tick writes it, whatever the hour. Press **Write the first dashboard** in settings if you'd rather not wait |
+| "Writing … first dashboard" | Set up, but nothing has been generated yet | Nothing — the next tick writes it, whatever the hour. Press **Write first daily message** in settings if you'd rather not wait |
 
 The dashboard never blanks itself. A failed run leaves the previous one up rather than clearing the
 screen, on the grounds that a stale kitchen dashboard beats an empty one.
@@ -59,10 +59,10 @@ Two buttons on the settings home force the point:
 
 - **Refresh calendars** re-fetches the feeds and nothing else. Free, and usually what you want
   after adding something to a calendar you don't want to wait for.
-- **Rewrite now** does that *and* asks Claude for a new headline and line. One API call per press.
+- **Rewrite daily message** does that *and* asks Claude for a new headline and line. One API call per press.
 
 **How often it updates** sets both cadences — how often the calendars are fetched, and what time
-the daily line is written, on your own clock. They are the `refresh_minutes` and `brief_time` keys,
+the daily message is written, on your own clock. They are the `refresh_minutes` and `brief_time` keys,
 so editing them by hand still works; the page is just the version you can reach from a phone. The
 dashboard's own reload follows: it redraws every five minutes, or every `refresh_minutes` if you set
 something shorter than that.
@@ -109,17 +109,17 @@ calendars**. In `config.yaml` the setting is `shared_with`, a list of addresses 
 
 One dashboard a day on `claude-haiku-4-5` is roughly **$0.13 a month** — about 2,500 tokens in and 350
 out. `claude-sonnet-5` is around three times that and writes better. Change it under
-Settings → Family & system. **Rewrite now** costs the same as a scheduled run, so don't sit on it.
+Settings → Family & system. **Rewrite daily message** costs the same as a scheduled run, so don't sit on it.
 
 ## When something looks wrong
 
 **The dashboard is a day behind.** Look at `generate.log`. The commonest causes are an expired API key
 or no network. With the `--tick` cron line a single failure fixes itself five minutes later, so a
-banner that is still there an hour on is a real fault. Fix it and press **Rewrite now**.
+banner that is still there an hour on is a real fault. Fix it and press **Rewrite daily message**.
 
 **An event I just added is not on the dashboard.** Give it up to `refresh_minutes` (an hour by
 default), plus your provider's own lag — Google's secret `.ics` link is cached at their end and can
-take hours to show a change. Press **Rewrite now** if you cannot wait.
+take hours to show a change. Press **Rewrite daily message** if you cannot wait.
 
 **One calendar is broken and its events are still showing.** That is deliberate. A feed that stops
 answering keeps whatever it last gave us, because an event that vanishes is one nobody notices,

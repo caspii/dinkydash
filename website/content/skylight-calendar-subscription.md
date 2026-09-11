@@ -45,7 +45,7 @@ You have three subscription-free routes:
 
 1. **Skylight without Plus** — keep the core calendar, skip the extras.
 2. **Cozyla** — dedicated hardware whose core calendar, chores and routines need no subscription. An optional Calendar Essential plan auto-renews at $79.99/yr and covers meal planning, custom screensavers and the AI voice agent.
-3. **Free software on a screen you already own** — [DinkyDash](/) is open source and turns any TV, tablet, or Raspberry Pi into a family calendar with chore rotations, countdowns, and an AI-written daily brief. Hardware cost: $0 if you own a spare screen, [about $100 for a tidy Raspberry Pi build](/diy-skylight-calendar/). Subscription: none, ever.
+3. **Free software on a screen you already own** — [DinkyDash](/) is open source and turns any TV, tablet, or Raspberry Pi into a family calendar with chore rotations, countdowns, and an AI-written daily message. Hardware cost: $0 if you own a spare screen, [about $100 for a tidy Raspberry Pi build](/diy-skylight-calendar/). Subscription: none, ever.
 
 For the full field, see our guide to [the 8 best Skylight Calendar alternatives](/skylight-calendar-alternatives/).
 

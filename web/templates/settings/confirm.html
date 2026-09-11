@@ -1,0 +1,17 @@
+{% extends "settings/base.html" %}
+{% import "settings/_icons.html" as icons %}
+{% block title %}{{ prompt.title }}{% endblock %}
+{% block appbar %}
+{{ icons.back_to(cancel_url, 'Cancel') }}
+<h1>{{ prompt.title }}</h1>
+{% endblock %}
+{% block content %}
+<div class="note-box">{{ prompt.message }}</div>
+<form method="post" class="confirmation-actions">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="confirmed" value="yes">
+    {% for name, value in fields.items() %}<input type="hidden" name="{{ name }}" value="{{ value }}">{% endfor %}
+    <a class="btn outline" href="{{ cancel_url }}">{{ prompt.cancel }}</a>
+    <button class="btn danger fill" type="submit">{{ prompt.confirm }}</button>
+</form>
+{% endblock %}

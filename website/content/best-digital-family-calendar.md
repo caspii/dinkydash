@@ -25,7 +25,7 @@ You're paying for plug-and-play: unbox, connect Wi-Fi, done. As of September 202
 
 A family calendar display is, mechanically, a screen showing a web page. If a spare tablet, a TV, or a $100 Raspberry Pi is available, software gets you there:
 
-**DinkyDash (free, open source)** — our project, and the reason this site exists. Any screen with a browser becomes a family calendar with automatic chore rotation, birthday countdowns, and an AI-written daily brief — a fresh greeting and fun fact every morning, written around your own family, which no hardware calendar offers. It reads [Google](/google-calendar-ical-link/), [Apple iCloud](/icloud-calendar-link/), [Outlook](/outlook-calendar-ics-link/) and [Cozi](/cozi-calendar-display/) calendars (paste each one's sharing link; there's no sign-in) and merges them into a single agenda. Setup takes an afternoon and a bit of terminal comfort ([guide](/getting-started/)); you can also [start a free 14-day hosted trial](https://app.dinkydash.co/login) with no card required.
+**DinkyDash (free, open source)** — our project, and the reason this site exists. Any screen with a browser becomes a family calendar with automatic chore rotation, birthday countdowns, and an AI-written daily message — a fresh greeting and fun fact every morning, written around your own family, which no hardware calendar offers. It reads [Google](/google-calendar-ical-link/), [Apple iCloud](/icloud-calendar-link/), [Outlook](/outlook-calendar-ics-link/) and [Cozi](/cozi-calendar-display/) calendars (paste each one's sharing link; there's no sign-in) and merges them into a single agenda. Setup takes an afternoon and a bit of terminal comfort ([guide](/getting-started/)); you can also [start a free 14-day hosted trial](https://app.dinkydash.co/login) with no card required.
 
 **Mango Display (free tier; Pro $5.99/mo or $59.99/yr)** — commercial BYO-screen software with polished apps for smart TVs and tablets. The no-DIY version of this path — but budget for Pro, because the free plan has no calendar.
 
@@ -45,7 +45,7 @@ A family calendar display is, mechanically, a screen showing a web page. If a sp
 | Skylight Cal 2 / Max | $299.99 / $599.99 | $0–79/yr | Best plug-and-play calendar |
 | Hearth | $699 | $86.40/yr | Visual routines for kids |
 | Cozyla | From $169.99 | $0, or $79.99/yr optional | Pay-once hardware |
-| DinkyDash | $0 (your screen) | $0 | AI daily brief, open source |
+| DinkyDash | $0 (your screen) | $0 | AI daily message, open source |
 | Mango Display | $0 (your screen) | $0–60/yr | Easiest BYO-screen |
 | DAKboard | $0 (your screen) | $0–120/yr | Deep customization |
 

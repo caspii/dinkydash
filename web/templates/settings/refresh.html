@@ -14,7 +14,7 @@
 </ul>
 {% endif %}
 
-<form id="refresh-form" method="post" class="card pad" style="display:flex;flex-direction:column;gap:1rem;">
+<form data-dirty-guard="{{ 'changed' if problems else '' }}" id="refresh-form" method="post" class="card pad" style="display:flex;flex-direction:column;gap:1rem;">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div class="field">
         <label for="refresh_minutes">Fetch the calendars</label>
@@ -30,11 +30,11 @@
     </div>
 
     <div class="field">
-        <label for="brief_time">Write the daily line at</label>
+        <label for="brief_time">Write the daily message at</label>
         <input type="time" id="brief_time" name="brief_time" value="{{ values.brief_time }}" required>
         <div class="hint">
             Written once a day, on your clock — {{ config.timezone }}. Press
-            <strong>Rewrite now</strong> if you want a fresh one sooner.
+            <strong>Rewrite daily message</strong> if you want a fresh one sooner.
         </div>
     </div>
 
@@ -43,7 +43,7 @@
 
 <div class="note-box">
     Fetching the calendars costs nothing but a few requests, so it can be as often as you like.
-    The daily line is the part that costs money: one call to Claude, once a day.
+    The daily message is the part that costs money: one call to Claude, once a day.
 </div>
 
 {# Self-hosted only, and not merely irrelevant hosted — false. What drives the

@@ -2,10 +2,10 @@
 title: About DinkyDash
 seo_title: "About DinkyDash — Free Open-Source Family Calendar"
 template: page.html
-description: DinkyDash is a free, open-source digital family calendar that runs on screens you already own — with an AI-written daily brief for your family.
+description: DinkyDash is a free, open-source digital family calendar that runs on screens you already own — with an AI-written daily message for your family.
 ---
 
-DinkyDash is a free, open-source **digital family calendar for screens you already own**. Point a TV, an old tablet, or a Raspberry Pi at it and your family gets one glanceable screen with today's calendar, a self-rotating chore chart, countdowns to the big days — and a daily brief written fresh every morning by AI.
+DinkyDash is a free, open-source **digital family calendar for screens you already own**. Point a TV, an old tablet, or a Raspberry Pi at it and your family gets one glanceable screen with today's calendar, a self-rotating chore chart, countdowns to the big days — and a daily message written fresh every morning by AI.
 
 It was built by [Caspar](https://casparwre.de), an indie developer in Berlin, for his own kids — and open-sourced because a family calendar shouldn't cost $600 plus a subscription.
 
@@ -28,7 +28,7 @@ The result is a screen that feels alive. It knows it's someone's birthday week. 
 - **Today's agenda** — what's happening today, in time order, merged from every calendar you add
 - **Chore rotation** — who does what today, rotated automatically and fairly
 - **Countdowns** — days until birthdays, holidays, vacations, and special events
-- **A daily line** — a fun fact, or something about the pet, different every morning
+- **A daily note** — a fun fact, or something about the pet, different every morning
 
 ## The principles
 

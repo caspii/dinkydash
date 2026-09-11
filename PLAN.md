@@ -138,8 +138,8 @@ next five-minute pass after set-up; a self-hoster's cron does the same. Signup
 itself does not call the model or enqueue another job.
 
 Failed first briefs remain due, subject to the hosted call cap. Later briefs follow
-`brief_time` in the family's timezone. The checklist's **Write the first dashboard** is
-the shortcut; the running page offers **Rewrite now** once there is one, and
+`brief_time` in the family's timezone. The checklist's **Write first daily message** is
+the shortcut; the running page offers **Rewrite daily message** once there is one, and
 **Refresh calendars** only when there is a calendar to refresh.
 
 ### The screen

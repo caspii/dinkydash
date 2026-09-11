@@ -248,7 +248,7 @@ class TestTheOtherFamilysIds:
 
     @pytest.mark.parametrize("section", SECTIONS)
     def test_deleting_their_item_is_a_404(self, wilson, section):
-        response = wilson.post(f"/settings/{section}/{BAKER_ITEMS[section]}/delete")
+        response = wilson.post(f"/settings/{section}/{BAKER_ITEMS[section]}/delete", data={"confirmed": "yes"})
         assert response.status_code == 404
 
     @pytest.mark.parametrize("section", SECTIONS)
@@ -264,7 +264,7 @@ class TestTheOtherFamilysIds:
             item = BAKER_ITEMS[section]
             wilson.get(f"/settings/{section}/{item}")
             wilson.post(f"/settings/{section}/{item}", data={"name": "Taken"})
-            wilson.post(f"/settings/{section}/{item}/delete")
+            wilson.post(f"/settings/{section}/{item}/delete", data={"confirmed": "yes"})
             wilson.post(f"/settings/{section}/{item}/move", data={"direction": "up"})
         assert config_of(pg_pool, families["bakers"][0]) == before
 
@@ -291,7 +291,7 @@ class TestWritesStayHome:
         assert len(config_of(pg_pool, families["bakers"][0])["people"]) == 1
 
     def test_deleting_your_own_still_works(self, wilson, families, pg_pool):
-        assert wilson.post("/settings/people/mia11111/delete").status_code == 302
+        assert wilson.post("/settings/people/mia11111/delete", data={"confirmed": "yes"}).status_code == 302
         assert config_of(pg_pool, families["wilsons"][0])["people"] == []
         assert len(config_of(pg_pool, families["bakers"][0])["people"]) == 1
 

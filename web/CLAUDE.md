@@ -34,6 +34,17 @@ field that is not a birthday needs a kind of its own rather than a looser bound 
 `web/templates/settings/home.html`. The list, edit, delete and reorder routes are generic and need
 no changes.
 
+**Edits stay protected until Save.** Mark editable forms with `data-dirty-guard` for the shared
+`settings.js` navigation warning. Set it to `changed` when redisplaying an unsaved draft after
+a calendar test or validation error. Only dirty forms attach `beforeunload`, so unchanged pages
+remain eligible for Firefox's history cache. Custom controls that change submitted values must
+emit a bubbling `input` or `change` event, including chore reordering.
+Destructive forms use a named `data-confirm` prompt and
+an empty `confirmed` field; the server must also require `confirmed=yes` and otherwise render
+`settings/confirm.html`, so confirmation works without JavaScript. Home actions use `data-pending`
+for the shared waiting dialog; keep their submit buttons unnamed so disabling them preserves the
+POST body. The operator page overrides the interactions block to remain script-free.
+
 **Every control has a hover, a press and a keyboard state, and a new one needs all three.** They
 live at the foot of the shared sheet in `settings/base.html`. Hover rules sit behind
 `@media (hover: hover)` — on a phone a hover is a tap that never ends, left glowing on the row
@@ -120,7 +131,7 @@ in the way a browser does.
 
 **The settings home has two personalities**, decided by `web/setup.py`. Until the family is set up
 and its first dashboard written, the top of the page is a checklist — who lives here, time zone, a
-calendar, the screen — and the daily controls (Refresh calendars, View dashboard, Rewrite now) are not
+calendar, the screen — and the daily controls (Refresh calendars, View dashboard, Rewrite daily message) are not
 offered at all; after that it is the day's status card. A hosted family is created with an invented
 household in it so the dashboard has something to show (DIN-41), each person and pet marked
 `invented: true`, and step one names what is still marked. Saving the item from the edit form

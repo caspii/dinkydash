@@ -67,7 +67,7 @@ Payment is not built yet. Until it is, nobody is charged anything and nothing
 is collected. When it arrives, this section will say who processes it and these
 terms will be updated before it takes effect.
 
-When your trial or subscription ends, calendar fetches and new written briefs
+When your trial or subscription ends, calendar fetches and new daily messages
 stop. The screen keeps the last saved dashboard with an ended-access message for
 30 days, then shows only the message. You can still sign in to manage, export
 or delete your data.

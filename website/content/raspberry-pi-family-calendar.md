@@ -2,7 +2,7 @@
 title: "Raspberry Pi Family Calendar: Build a Wall Dashboard That Updates Itself"
 seo_title: "Raspberry Pi Family Calendar: Build a Wall Dashboard"
 template: page.html
-description: How to turn a Raspberry Pi into a wall-mounted family calendar and dashboard — today's events, rotating chores, birthday countdowns and an AI daily brief, for about $100 in parts and no subscription.
+description: How to turn a Raspberry Pi into a wall-mounted family calendar and dashboard — today's events, rotating chores, birthday countdowns and an AI daily message, for about $100 in parts and no subscription.
 ---
 
 A Raspberry Pi, a small touchscreen and some open-source software make a genuinely good family calendar: it hangs on the kitchen wall, shows today's schedule at a glance, updates itself every morning, and costs about **$100 in parts with nothing monthly**.
@@ -20,7 +20,7 @@ This page covers the hardware side — which Pi, which screen, what it draws, wh
   [Outlook](/outlook-calendar-ics-link/) and [Cozi](/cozi-calendar-display/) each have one
 - **A chore chart** that rotates between family members automatically each day
 - **Countdowns** to birthdays, holidays and vacations
-- **A daily brief written by Claude** — a fresh greeting and fun fact every morning, written around your actual family
+- **A daily message written by Claude** — a fresh greeting and fun fact every morning, written around your actual family
 
 No touch interaction is required. It's a display, not an app — which is the point, and also why a modest Pi is plenty.
 
@@ -104,7 +104,7 @@ Both are covered, with fixes, in the [troubleshooting section](/getting-started/
 
 A Skylight Calendar Max is $599.99, plus $79 a year for the Plus features. A Hearth Display is $699 plus $9 a month. They're nicely made, and if you want something that works out of the box with a support line, they're reasonable purchases.
 
-But a digital family calendar is fundamentally a screen showing a web page. If you're comfortable with a terminal, the Pi version costs about a sixth as much, has no subscription, keeps your family's data on your own device, and does one thing the $600 hardware doesn't: writes you a fresh daily brief every morning.
+But a digital family calendar is fundamentally a screen showing a web page. If you're comfortable with a terminal, the Pi version costs about a sixth as much, has no subscription, keeps your family's data on your own device, and does one thing the $600 hardware doesn't: writes you a fresh daily message every morning.
 
 The full cost comparison is on the [DIY Skylight calendar page](/diy-skylight-calendar/).
 

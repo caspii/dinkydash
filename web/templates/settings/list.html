@@ -23,7 +23,7 @@
             <div class="row-sub">
                 {% if section_name == 'people' %}
                     {% set b = extras.birthdays[loop.index0] %}
-                    {{ b.current_age }} years old &middot; {{ b.birthday_date }}
+                    {{ b.current_age }} {{ "year" if b.current_age == 1 else "years" }} old &middot; {{ b.birthday_date }}
                 {% elif section_name == 'pets' %}
                     {{ item.type or "Pet" }}
                 {% elif section_name == 'recurring' %}

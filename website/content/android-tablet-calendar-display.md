@@ -13,7 +13,7 @@ faq:
   - q: "Do I need to install an app?"
     a: "No. DinkyDash is a web page, so Chrome is enough — add it to the home screen and it opens full screen. A kiosk browser is optional, and only worth it if you want the tablet locked down properly."
   - q: "How much does a tablet family calendar cost?"
-    a: "Nothing if the tablet is already in a drawer. A used Android tablet good enough for this costs about $50 to $80. The software is free and open source, and the only running cost is the AI daily line at roughly $0.13 a month."
+    a: "Nothing if the tablet is already in a drawer. A used Android tablet good enough for this costs about $50 to $80. The software is free and open source, and the only running cost is the AI daily note at roughly $0.13 a month."
 ---
 
 **Yes — and it is the cheapest good wall calendar you can build.** An Android tablet already
@@ -75,7 +75,7 @@ That is the only extra piece of software in this whole build, and it is optional
   link, and each has its own page here with the steps.
 - **A chore chart that rotates**, moving on one person a day by itself.
 - **Countdowns** to birthdays, Christmas and the school holidays.
-- **A daily line written each morning** by Claude, around your family's actual day.
+- **A daily note written each morning** by Claude, around your family's actual day.
 
 The dashboard reloads itself every five minutes with a plain HTML refresh, so it keeps itself
 current even on a browser with JavaScript switched off. Nothing to tap, nothing to maintain —
@@ -88,7 +88,7 @@ you keep editing events in your normal calendar app and the wall follows.
 | A tablet already in a drawer | **$0** |
 | A used Android tablet | ~$50–80 |
 | DinkyDash | Free, MIT licensed, no subscription |
-| The AI daily line | ~$0.13/month, and optional |
+| The AI daily note | ~$0.13/month, and optional |
 
 A Skylight Calendar is $299.99 to $599.99 plus an optional $79 a year for the same wall. The
 [best digital family calendar page](/best-digital-family-calendar/) puts them side by side.

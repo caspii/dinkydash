@@ -277,7 +277,7 @@ clocks, chosen by the family (PLAN.md decision 11, single-mode half):
 `refresh_minutes` (default 60) and `brief_time` (default `"06:00"`, on the family's clock) are
 ordinary config keys, so they migrate through `with_defaults` and will survive as a `jsonb` column.
 `runner.run` is still both halves in order, which is what a plain `python generate.py` and the
-settings page's **Rewrite now** do — the old `0 6 * * *` line keeps working, it just never sees a
+settings page's **Rewrite daily message** do — the old `0 6 * * *` line keeps working, it just never sees a
 same-day change. **Refresh calendars**, beside it, is `refresh_calendars` alone: no key needed, no
 money spent, and the thing most people pressing the other button actually wanted.
 
@@ -345,7 +345,7 @@ one is already writing. A tick can outlive its five-minute slot — several feed
 a slow model call — and the next one would find the brief still unwritten, pay for it a second time,
 write a second history entry, and race the first over the payload. The overlapping tick exits 0
 instead: whatever is owed is still owed five minutes later. It is deliberately only around the tick.
-**Rewrite now** is a person asking for something, and should do it.
+**Rewrite daily message** is a person asking for something, and should do it.
 
 ## The guest list on a calendar
 

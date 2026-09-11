@@ -325,7 +325,7 @@ class TestTheWaitingScreen:
         assert "generate.py" not in page
 
     def test_it_names_the_button_the_settings_page_actually_has(self, page):
-        assert "Write the first dashboard" in page
+        assert "Write first daily message" in page
 
     def test_a_family_still_setting_up_is_told_that_instead(self, tmp_path):
         # The example file's household is invented, so nothing is being
