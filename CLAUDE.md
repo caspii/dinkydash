@@ -395,7 +395,16 @@ python generate.py --date 2026-12-24  # any date, for testing
 decides where `dashboard_data.json` and `content_history.json` live, so a scratch config keeps its
 generated files beside it.
 
-**Run the app**
+**Run the hosted dashboard and marketing site together**
+```bash
+venv/bin/python dev.py              # also Conductor's default dev run action
+```
+Requires a development `DATABASE_URL` with migrations applied and a
+`DINKYDASH_SECRET_KEY`. See [doc/development.md](doc/development.md) for setup,
+port overrides, sign-in and Conductor configuration pickup. Both processes stop
+together; the launcher always selects cloud mode and refuses invalid setup.
+
+**Run the self-hosted app**
 ```bash
 python app.py                       # or: flask run --host=0.0.0.0
 ```

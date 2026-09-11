@@ -108,6 +108,14 @@ the whole Raspberry Pi build with systemd, kiosk mode and the screen schedule.
 The install and Pi guides live on the website rather than here, so there is one copy of each
 to keep right.
 
+## Local hosted development
+
+Conductor's **dev** run action starts the hosted dashboard and marketing website
+together. The same command outside Conductor is `venv/bin/python dev.py`.
+See [local development](doc/development.md) for the required development database
+and session key, ports, sign-in, and how Conductor picks up the run configuration.
+The self-hosted quickstart above is unchanged.
+
 ## Running the tests
 
 ```bash
