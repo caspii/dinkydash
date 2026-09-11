@@ -1,11 +1,8 @@
 {% extends "settings/base.html" %}
 {% import "settings/_icons.html" as icons %}
 {% block title %}{{ ("New " ~ section.singular) if is_new else (item.name or item.title or item.label or section.singular) }}{% endblock %}
-
-{% block appbar %}
-{{ icons.back_to(url_for('settings.section_list', section_name=section_name), section.title) }}
-<h1>{{ ("New " ~ section.singular) if is_new else (item.name or item.title or item.label or section.singular) }}</h1>
-{% endblock %}
+{% set back_href = url_for('settings.section_list', section_name=section_name) %}
+{% set back_label = section.title %}
 
 {% macro field_access(name, help) -%}
     {% if help or problems.get(name) %}aria-describedby="{{ ('hint-' ~ name ~ ' ') if help }}{{ ('error-' ~ name) if problems.get(name) }}"{% endif %}

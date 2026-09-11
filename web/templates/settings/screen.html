@@ -1,6 +1,10 @@
 {% extends "settings/base.html" %}
-{% import "settings/_icons.html" as icons %}
-{% block title %}The screen{% endblock %}
+{# Hosted, the page is about the screen and its link; on a Pi there is no link
+   to show and it is only the colours. The title says which, and the bar's
+   heading follows it. #}
+{% block title %}{{ "The screen" if screen_link else "Colours" }}{% endblock %}
+{% set back_href = url_for('settings.home') %}
+{% set back_label = 'Settings' %}
 
 {% block head %}
 <style>
@@ -22,11 +26,6 @@
         .theme-choice input:not(:checked) + .theme-card:hover { background: var(--warm); border-color: var(--border-strong); }
     }
 </style>
-{% endblock %}
-
-{% block appbar %}
-{{ icons.back_to(url_for('settings.home'), 'Settings') }}
-<h1>{{ "The screen" if screen_link else "Colours" }}</h1>
 {% endblock %}
 
 {% block content %}

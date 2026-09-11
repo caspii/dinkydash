@@ -1,10 +1,7 @@
 {% extends "settings/base.html" %}
-{% import "settings/_icons.html" as icons %}
 {% block title %}{{ prompt.title }}{% endblock %}
-{% block appbar %}
-{{ icons.back_to(cancel_url, 'Cancel') }}
-<h1>{{ prompt.title }}</h1>
-{% endblock %}
+{% set back_href = cancel_url %}
+{% set back_label = 'Cancel' %}
 {% block content %}
 <div class="note-box">{{ prompt.message }}</div>
 <form method="post" class="confirmation-actions">
