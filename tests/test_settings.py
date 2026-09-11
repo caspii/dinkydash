@@ -6,6 +6,8 @@ above shifted everybody below onto somebody else's edit form.
 """
 
 import json
+import pathlib
+import re
 from datetime import date, timedelta
 
 import pytest
@@ -948,3 +950,45 @@ class TestRefreshingTheCalendarsByHand:
         page = client.post("/settings/refresh-now", follow_redirects=True)
         assert page.status_code == 200
         assert "Could not refresh the calendars: the disk is full" in page.get_data(as_text=True)
+
+
+class TestTheControlsUnderAPointer:
+    """The settings UI is used from a desk as well as a phone. Every control has a hover, a
+    press and a keyboard state in `settings/base.html`; the three things below are the ones a
+    stylesheet cannot enforce on its own."""
+
+    TEMPLATES = pathlib.Path(__file__).resolve().parent.parent / "web" / "templates"
+
+    def test_a_persons_name_toggles_their_box(self, client):
+        # The name beside a chore's checkbox was a span, so clicking it did nothing.
+        page = client.get("/settings/recurring/new").get_data(as_text=True)
+        assert '<label for="p-1">Mia</label>' in page
+
+    def test_every_back_link_names_where_it_goes(self):
+        # The way back is `icons.back_to(href, label)`: the chevron and the name of the page
+        # it goes to. A bare `<a class="back">` in a page is a chevron with no name again.
+        bare, seen = [], 0
+        for path in self.TEMPLATES.rglob("*.html"):
+            if path.name == "_icons.html":
+                continue
+            text = path.read_text()
+            if re.search(r'<a\b[^>]*class="back"', text):
+                bare.append(str(path.relative_to(self.TEMPLATES)))
+            seen += len(re.findall(r"icons\.back_to\(", text))
+        assert bare == []
+        assert seen >= 6
+        assert "<span>{{ label }}</span>" in (self.TEMPLATES / "settings" / "_icons.html").read_text()
+
+    def test_no_button_carries_its_look_inline(self):
+        # An inline style beats every hover, press and disabled rule in the sheet, which is how
+        # "Not now" and "Delete my account" came to have none. A look is a `.btn` variant;
+        # layout (`flex`, `align-self`, a margin) may stay inline.
+        offenders, seen = [], 0
+        for path in self.TEMPLATES.rglob("*.html"):
+            for tag in re.findall(r'<(?:a|button)\b[^>]*\bclass="[^"]*\bbtn\b[^"]*"[^>]*>', path.read_text()):
+                seen += 1
+                style = re.search(r'style="([^"]*)"', tag)
+                if style and re.search(r"background|color|box-shadow|border", style.group(1)):
+                    offenders.append((str(path.relative_to(self.TEMPLATES)), tag))
+        assert offenders == []
+        assert seen >= 12

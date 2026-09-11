@@ -51,6 +51,7 @@
     .numbers tbody tr { border-top: 1px solid var(--border); }
     .numbers td + td { font-variant-numeric: tabular-nums; font-weight: 700; }
     .numbers td.zero { color: var(--faint); font-weight: 600; }
+    @media (hover: hover) { .numbers tbody tr:hover { background: var(--warm); } }
 
     /* The roster. An address can be long and has no spaces to break at. */
     .account .row-title { word-break: break-all; }

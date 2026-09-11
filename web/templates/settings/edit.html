@@ -100,7 +100,7 @@
                 {% for person in people %}
                 <div class="checkline">
                     <input type="checkbox" id="p-{{ loop.index }}" name="{{ name }}" value="{{ person }}" {{ 'checked' if person in (item.get(name) or []) }}>
-                    <span>{{ person }}</span>
+                    <label for="p-{{ loop.index }}">{{ person }}</label>
                 </div>
                 {% endfor %}
             </div>
