@@ -76,13 +76,22 @@ API key at all, and simply goes without the written line.
 | **Anthropic** | Writes the daily note from the day's agenda | United States |
 | **DigitalOcean** | Runs the app and the database | Frankfurt, Germany (US company) |
 | **SendGrid** (Twilio) | Delivers sign-in emails | United States |
-| **Cloudflare** | DNS, and TLS at the edge | Global (US company) |
+| **Cloudflare** | DNS; website and app delivery through DigitalOcean's App Platform | Global (US company) |
 | **Sentry** (Functional Software) | Error reports, and the checks that the app and the worker are running | United States |
 
-The app and the database are in **Frankfurt**. DigitalOcean and Cloudflare are
-United States companies operating them, and SendGrid and Sentry are in the
-United States, so transfers outside the EU are covered by standard contractual
-clauses.
+The app and the database run on DigitalOcean in **Frankfurt**. Cloudflare
+provides our DNS and, as one of
+[DigitalOcean's sub-processors](https://www.digitalocean.com/trust/subprocessors),
+delivers website and app traffic through its global network. Hosting in
+Frankfurt does not mean all processing stays in Germany: requests pass through
+that network, and Anthropic, SendGrid and Sentry process data in the United
+States as listed above.
+
+DigitalOcean and Cloudflare are United States companies. Their published
+[data processing agreement](https://www.digitalocean.com/legal/data-processing-agreement)
+and [data processing addendum](https://www.cloudflare.com/cloudflare-customer-dpa/)
+set out safeguards for international transfers, including the EU–US Data
+Privacy Framework and standard contractual clauses where applicable.
 
 **Google Fonts is not on this list, and that is deliberate.** The typeface is
 served from our own servers, so no page of DinkyDash — not the dashboard, not the
