@@ -36,7 +36,10 @@ no changes.
 
 **Edits stay protected until Save.** Mark editable forms with `data-dirty-guard` for the shared
 `settings.js` navigation warning. Set it to `changed` when redisplaying an unsaved draft after
-a calendar test or validation error. Destructive forms use a named `data-confirm` prompt and
+a calendar test or validation error. Only dirty forms attach `beforeunload`, so unchanged pages
+remain eligible for Firefox's history cache. Custom controls that change submitted values must
+emit a bubbling `input` or `change` event, including chore reordering.
+Destructive forms use a named `data-confirm` prompt and
 an empty `confirmed` field; the server must also require `confirmed=yes` and otherwise render
 `settings/confirm.html`, so confirmation works without JavaScript. Home actions use `data-pending`
 for the shared waiting dialog; keep their submit buttons unnamed so disabling them preserves the

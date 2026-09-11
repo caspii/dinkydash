@@ -11,6 +11,25 @@
     const dirty = () => guarded.some(form => form.dataset.dirtyGuard === 'changed'
         || values(form) !== originals.get(form));
 
+    function beforeUnload(event) {
+        if (!leaving && dirty()) {
+            event.preventDefault();
+            event.returnValue = '';
+        }
+    }
+    function syncBeforeUnload() {
+        // Even an idle listener prevents Firefox from caching the page for Back.
+        if (!leaving && dirty()) window.addEventListener('beforeunload', beforeUnload);
+        else window.removeEventListener('beforeunload', beforeUnload);
+    }
+    guarded.forEach(form => {
+        form.addEventListener('input', syncBeforeUnload);
+        form.addEventListener('change', syncBeforeUnload);
+        // Reset's default action restores values after the event dispatch.
+        form.addEventListener('reset', () => setTimeout(syncBeforeUnload, 0));
+    });
+    syncBeforeUnload();
+
     function ask(prompt) {
         if (typeof confirmation.showModal !== 'function') {
             return Promise.resolve(window.confirm(`${prompt.title}\n\n${prompt.message}`));
@@ -46,14 +65,8 @@
             message: 'Your edits have not been saved. Leaving this page will discard them.',
             cancel: 'Keep editing', confirm: 'Discard changes'})) {
             leaving = true;
+            syncBeforeUnload();
             location.assign(link.href);
-        }
-    });
-
-    window.addEventListener('beforeunload', event => {
-        if (!leaving && dirty()) {
-            event.preventDefault();
-            event.returnValue = '';
         }
     });
 
@@ -78,6 +91,7 @@
             originals.set(form, values(form));
             form.dataset.dirtyGuard = '';
         }
+        syncBeforeUnload();
         if (form.dataset.pending) {
             busy = true;
             document.getElementById('action-wait-title').textContent = form.dataset.pending;
@@ -100,5 +114,6 @@
         disabled.clear();
         document.querySelectorAll('form[aria-busy]').forEach(form => form.removeAttribute('aria-busy'));
         document.querySelectorAll('form[data-confirm]').forEach(form => { form.elements.confirmed.value = ''; });
+        syncBeforeUnload();
     });
 })();
