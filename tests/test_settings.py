@@ -369,6 +369,41 @@ recurring:
 """
 
 
+class TestTheWayBackFromTheBoard:
+    """The board is the wall panel and has no link out. Opened in the same tab
+    from a settings page saved to a phone's home screen — no address bar, and
+    on an iPhone no Back button — it was a dead end, and the way out was to
+    force-quit the app. So it opens in its own tab, which every client knows
+    how to leave, and nothing has to be drawn on the board itself."""
+
+    @pytest.fixture
+    def written(self, tmp_path, config_path):
+        """A board for today, so the home page shows the daily card."""
+        today = config_module.today_for(config_module.load_config(config_path))
+        (tmp_path / "dashboard_data.json").write_text(json.dumps({
+            "generated_for_date": today.isoformat(), "headline": "Hi",
+            "note": "There", "events": []}))
+
+    def test_both_links_to_the_board_open_their_own_tab(self, client, written):
+        page = client.get("/settings/").get_data(as_text=True)
+        links = [a for a in re.findall(r"<a [^>]*>", page) if 'href="/"' in a]
+        assert len(links) == 2, links  # "Board" in the app bar, and "View board"
+        for link in links:
+            assert 'target="_blank"' in link and 'rel="noopener"' in link
+
+    def test_the_board_itself_has_no_way_back_to_draw(self, client, written):
+        """The panel is the same page. A link out on it would sit on the wall,
+        and hosted it would land a panel with no session on the login page."""
+        board = client.get("/").get_data(as_text=True)
+        assert "/settings" not in board
+
+    def test_a_self_hoster_gets_no_screen_link_button(self, client, written):
+        """Their board is at / on the host they are already on, and the
+        Colours page says so. The button is for the hosted address."""
+        page = client.get("/settings/").get_data(as_text=True)
+        assert "Screen link" not in page
+
+
 class TestTheSetUpChecklist:
     """What the settings home is until the family is set up and its board written.
 
@@ -480,6 +515,7 @@ class TestTheSetUpChecklist:
         page = self.home(client)
         assert "Open the link below" in page
         assert "http://localhost/" in page  # single mode: the board is at /
+        assert "Copy link" in page  # and a button to get it onto the other device
         assert "Write the first board" in page
         assert "Anna" in page  # step one, done, names who is here
 

@@ -5,6 +5,14 @@
    `word-break` because the URL must wrap on a phone rather than push the card
    sideways, and `user-select:all` so one tap selects the whole thing.
 
+   **Copy and Share are the browser's own.** Getting the address onto the other
+   device is the whole job, and the code below needs a camera that a TV or a Pi
+   does not have. `navigator.clipboard` and `navigator.share` fetch nothing and
+   send nothing: the address leaves this page only by the person's own hand, to
+   a clipboard or to a share sheet they chose. Share needs https, so a Pi on
+   plain http gets Copy alone; without JavaScript neither is drawn, and the
+   text is still one tap to select.
+
    **The one `|safe` in `web/`, and it is on machine-generated markup.**
    `segno` emits the SVG from a URL this app built out of its own alphabet and
    its own configured hostname — no feed, no form field and no calendar text
@@ -12,7 +20,13 @@
    anything a person or a calendar wrote would be the bug this note exists to
    keep visible. Drawn here rather than fetched: handing this URL to a QR
    service would be publishing the credential. #}
-<div class="screen-link">{{ screen_link }}</div>
+<div class="screen-address">
+    <div class="screen-link">{{ screen_link }}</div>
+    <div class="screen-actions" hidden>
+        <button class="btn outline small" type="button" data-copy>Copy link</button>
+        <button class="btn outline small" type="button" data-share hidden>Share&hellip;</button>
+    </div>
+</div>
 {% if screen_qr %}
 <div style="display:flex;flex-direction:column;align-items:center;gap:0.5rem;">
     {# **A white plate, in both themes.** The one place in this UI that ignores
@@ -22,3 +36,56 @@
     <div class="hint" style="text-align:center;">Scan it with the tablet's camera.</div>
 </div>
 {% endif %}
+<script>
+    // Wires every address on the page, once each. The link's own text is what
+    // is copied or shared: it is what the person is looking at.
+    (function () {
+        var boxes = document.querySelectorAll('.screen-address:not([data-wired])');
+        Array.prototype.forEach.call(boxes, function (box) {
+            box.setAttribute('data-wired', '');
+            var link = box.querySelector('.screen-link');
+            var copy = box.querySelector('[data-copy]');
+            var share = box.querySelector('[data-share]');
+            var address = link.textContent.trim();
+            var label = copy.textContent;
+
+            function say(words) {
+                copy.textContent = words;
+                setTimeout(function () { copy.textContent = label; }, 2000);
+            }
+            // The clipboard API wants https or localhost. A Pi on plain http
+            // has none, so the fallback selects the text and copies the
+            // selection — and leaves it selected if even that is refused, so
+            // a long press finishes the job.
+            function copyTheSelection() {
+                var range = document.createRange();
+                range.selectNodeContents(link);
+                var selection = window.getSelection();
+                selection.removeAllRanges();
+                selection.addRange(range);
+                var done = false;
+                try { done = document.execCommand('copy'); } catch (e) {}
+                if (done) { selection.removeAllRanges(); }
+                return done;
+            }
+            copy.addEventListener('click', function () {
+                var attempt = (navigator.clipboard && window.isSecureContext)
+                    ? navigator.clipboard.writeText(address)
+                    : Promise.reject(new Error('no clipboard API'));
+                attempt.then(function () { say('Copied'); }, function () {
+                    say(copyTheSelection() ? 'Copied' : 'Select it and copy');
+                });
+            });
+
+            // Only where the browser has a share sheet to offer: phones, and
+            // desktops over https. A cancelled sheet rejects, and that is fine.
+            if (navigator.share && (!navigator.canShare || navigator.canShare({url: address}))) {
+                share.hidden = false;
+                share.addEventListener('click', function () {
+                    navigator.share({title: 'DinkyDash board', url: address}).catch(function () {});
+                });
+            }
+            box.querySelector('.screen-actions').hidden = false;
+        });
+    })();
+</script>

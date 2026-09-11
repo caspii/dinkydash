@@ -347,6 +347,40 @@ class TestTheRootAndThePreview:
         assert f'src="{path}"' in page
         assert len(re.findall(re.escape(f'src="{path}"'), page)) == 3
 
+    def test_view_board_opens_its_own_tab(self, parent, path):
+        """From the settings app saved to a phone, the board in the same tab
+        is a dead end: no address bar, and on an iPhone no Back button. The
+        reasoning is in `settings/home.html`; this is the assertion."""
+        page = parent.get("/settings/").get_data(as_text=True)
+        links = [a for a in re.findall(r"<a [^>]*>", page) if f'href="{path}"' in a]
+        assert len(links) == 2, links  # "Board" in the app bar, and "View board"
+        assert all('target="_blank"' in a and 'rel="noopener"' in a for a in links)
+
+
+# -- getting the link onto the other device ---------------------------------
+
+class TestGettingTheLinkOntoTheOtherDevice:
+    def test_the_daily_card_offers_the_screen_link(self, parent, monkeypatch):
+        """The link and the QR code are the finish line, and a parent looking
+        for them looked at the card with "View board" on it — not at the ninth
+        row down. The card links to the page; the code is still drawn only
+        there."""
+        from web.routes import settings
+
+        monkeypatch.setattr(settings, "qr_svg", lambda link: pytest.fail(
+            "The settings home should not generate a QR code"))
+        page = parent.get("/settings/").get_data(as_text=True)
+        assert page.index("Screen link") < page.index("What's on the board")
+        assert page.index('href="/settings/screen"') < page.index("What's on the board")
+
+    def test_the_screen_page_offers_copy_and_share(self, parent):
+        """Both the browser's own: nothing fetched, nothing sent by the page."""
+        page = parent.get("/settings/screen").get_data(as_text=True)
+        assert "Copy link" in page and "Share&hellip;" in page
+        assert "navigator.clipboard" in page and "navigator.share" in page
+        for external in ("http://", "https://"):
+            assert external not in page.split("<script>", 1)[1].split("</script>", 1)[0]
+
 
 # -- and none of it reaches a self-hoster -----------------------------------
 

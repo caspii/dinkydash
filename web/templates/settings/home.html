@@ -24,8 +24,9 @@
 
 {% block appbar %}
 <h1 style="padding-left:0.25rem;color:var(--accent);font-size:1.15rem;">DinkyDash</h1>
-{# The board link is "View board" by another name, so it waits with it. #}
-{% if not setting_up %}<a class="action muted" href="{{ board_link }}">Board</a>{% endif %}
+{# The board link is "View board" by another name, so it waits with it and
+   opens its own tab for the same reason — see the button. #}
+{% if not setting_up %}<a class="action muted" href="{{ board_link }}" target="_blank" rel="noopener">Board</a>{% endif %}
 {% endblock %}
 
 {% block content %}
@@ -129,12 +130,29 @@
         <a class="btn" href="{{ url_for('settings.section_edit', section_name='calendars', item_id='new') }}">{{ icons.plus() }} Add a calendar</a>
         {% endif %}
         <div style="display:flex;gap:0.625rem;">
-            <a class="btn outline" style="flex:1;" href="{{ board_link }}">{{ icons.screen() }} View board</a>
+            {# **The board opens in its own tab, on purpose.** It is the wall
+               panel: full screen, no link out, reloading itself for years.
+               Opened in this tab from a settings page saved to a phone's home
+               screen it was a dead end — a saved web app has no address bar
+               and, on an iPhone, no Back button, so the way out was to
+               force-quit the app. Its own tab is a way back the board never
+               has to draw: a tab to close, an in-app sheet with Done on iOS,
+               a custom tab with an X on Android. The panel never follows this
+               link; it opens the screen URL itself. #}
+            <a class="btn outline" style="flex:1;" href="{{ board_link }}" target="_blank" rel="noopener">{{ icons.screen() }} View board</a>
             <form class="inline-form" method="post" action="{{ url_for('settings.generate_now') }}" style="flex:1;">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <button class="btn outline" type="submit" {{ 'disabled' if status.state == 'lapsed' }}>Rewrite now</button>
             </form>
         </div>
+        {% if cloud %}
+        {# The link and the QR code, from the card a parent looks at for them.
+           They were the ninth row down, under a title that reads like "Preview
+           the screens" two rows later, and were not found there. Hosted only:
+           a self-hoster's board is at `/` on the host they are already on, and
+           the Colours page says so. #}
+        <a class="btn outline" href="{{ url_for('settings.screen') }}">{{ icons.link() }} Screen link &amp; QR code</a>
+        {% endif %}
     </div>
 </div>
 {% endif %}
