@@ -207,6 +207,24 @@ remembers a "Not now" in `localStorage`; it hides itself when already running fr
 Note that Chrome's own install prompt needs https, so on a home network it never fires and the
 written steps are what people see.
 
+**"View board" opens the board in its own tab, and so does the "Board" link beside it.** The board
+is the wall panel: full screen, no link out, and it reloads itself for years. Opened in the same tab
+from a settings page saved to a phone's home screen it was a dead end — a saved web app has no
+address bar and, on an iPhone, no Back button, so the way out was to force-quit the app; and in a
+Safari tab every self-reload adds a history entry, so Back needed one tap per reload spent looking.
+Its own tab is a way back the board never has to draw: a tab to close, an in-app sheet with Done on
+iOS, a custom tab with an X on Android. **Do not answer this with a Settings control on the board.**
+A tablet set up in the same tab would keep it on the wall, because the reload keeps the URL; and
+hosted, a tap on it from a panel with no session lands on `/login`, which has no reload timer, so
+the wall stays there. `tests/test_settings.py` asserts the tab and the board's lack of a way back.
+
+**Copy and Share beside the screen link are the browser's own** — `navigator.clipboard` and
+`navigator.share`, in `settings/_screen_link.html`. Nothing is fetched and nothing leaves the page
+except by the person's hand. Share needs https, so a Pi on plain http gets Copy alone, by way of
+the selection; without JavaScript neither button is drawn and the text is still one tap to select.
+Hosted, the daily card also carries a **Screen link & QR code** button to `/settings/screen`: the
+link is the finish line of the product, and as the ninth row down it was not found.
+
 ## Static files, and moving between pages
 
 **Every static URL goes through `static_url()`, never `url_for('static', ...)`**, and

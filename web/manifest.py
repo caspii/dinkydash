@@ -5,8 +5,12 @@ screen on a wall panel, the settings UI opens like an app on a phone. So there
 are two manifests over one set of icons, each with its own `id` — share an id
 and the phone treats them as one app, and whichever was saved second wins.
 
-Both keep `scope` at "/", so following the link between board and settings stays
-inside the saved app instead of throwing the browser back open.
+Both keep `scope` at "/", so a page of the saved app's own opens inside it rather
+than throwing the browser open: the settings pages in one, the board in the
+other. The one link that leaves on purpose is "View board" on the settings home,
+which opens the board in its own tab — inside the standalone settings app the
+board is a dead end with no Back button, and `settings/home.html` says so where
+the link is.
 """
 
 from flask import jsonify
