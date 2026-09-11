@@ -19,11 +19,9 @@
     .step .row-sub { white-space: normal; }
     /* The one-tap offer sits under its row, indented to the text. */
     .step-offer { padding: 0 0.875rem 0.875rem 3.5625rem; }
-    .dashboard-actions { display: flex; gap: 0.625rem; }
-    .dashboard-actions > * { flex: 1; }
+    .dashboard-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.625rem; }
     @media (max-width: 26rem) {
-        .dashboard-actions { flex-direction: column; }
-        .dashboard-actions > * { flex: none; }
+        .dashboard-actions { grid-template-columns: 1fr; }
     }
 </style>
 {% endblock %}
