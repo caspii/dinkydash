@@ -28,7 +28,8 @@ from dinkydash.runner import run as run_generation
 from web import CLOUD
 from web import manifest as manifest_module
 from web import setup as setup_module
-from web.family import current_access, current_budget, current_family_id, current_store
+from web.family import (current_access, current_address, current_budget,
+                        current_family_id, current_store, is_admin)
 from web import session as session_module
 from web.session import guard
 from web.urls import absolute_url, board_path
@@ -308,6 +309,9 @@ def home():
         setup=setup, setting_up=setting_up, screen=screen,
         calendars_on=any(c.get("enabled") for c in calendars if isinstance(c, dict)),
         board_link=board_path(),
+        # Who is signed in, for the app bar. None self-hosted, where nobody is;
+        # `admin` is the one place the operator's page is linked from.
+        address=current_address(), admin=is_admin(),
     )
 
 

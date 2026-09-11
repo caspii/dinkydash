@@ -60,6 +60,30 @@ def current_screen_token():
     return screens.token_for(_the_pool(), _family_on_the_session())
 
 
+def current_address():
+    """The address on the signed-in account, or None.
+
+    The session carries ids and never the address (`web/session.py`), so this
+    is one read of the account's row. Read at most once per request and kept
+    on `g`: the settings home shows it and `is_admin` compares it, and one
+    page should not ask the database the same question twice.
+
+    None in single mode, which has nobody signed in, and None for a session
+    naming a user that is gone. Cloud mode only otherwise.
+    """
+    from . import CLOUD
+
+    if "_address" in g:
+        return g._address
+    user_id = session.get(USER_ID)
+    if current_app.config["MODE"] != CLOUD or not user_id:
+        g._address = None
+    else:
+        from dinkydash import accounts
+        g._address = accounts.address_for(_the_pool(), user_id)
+    return g._address
+
+
 def is_admin():
     """Is the person on the session on the `DINKYDASH_ADMIN_EMAILS` list?
 
@@ -71,17 +95,20 @@ def is_admin():
     missing list means nobody may, which is the safe way for a new deployment
     to be wrong.
 
+    Takes no argument on purpose. An address handed in by a caller is an
+    address that could have come from a request, and this is the one
+    comparison that must only ever see the session's.
+
     Cloud mode only. Callers answer `False` with a 404 and never a 403 —
     "forbidden" would say the page exists (`web/routes/admin.py`).
     """
     from dinkydash import accounts
 
     allowed = admin_addresses()
-    user_id = session.get(USER_ID)
-    if not allowed or not user_id:
+    if not allowed:
         return False
-    address = accounts.address_for(_the_pool(), user_id)
-    return accounts.normalise(address) in allowed
+    address = current_address()
+    return bool(address) and accounts.normalise(address) in allowed
 
 
 def admin_addresses():

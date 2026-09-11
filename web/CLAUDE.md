@@ -113,6 +113,15 @@ white with the dataviz palette validator (CVD ΔE 24.7, both above 3:1); a third
 running it again, not picking a colour. `tests/test_admin.py` covers the gate, the bounds on
 `?weeks=` and the drawing.
 
+**The settings home's app bar says who is signed in, and is the one place `/admin` is linked
+from.** Under the title sits the account's address — hosted only, there is nobody signed in on a
+Pi — and for an address on `DINKYDASH_ADMIN_EMAILS` a "View admin" action beside "Dashboard".
+Both come from `family.current_address()`, which reads the account's row at most once per
+request and answers None in single mode without touching a pool, so a self-hoster with the
+variable set still gets a page. `is_admin()` compares that address and takes no argument, so
+nothing a request carries can reach the comparison; `tests/test_admin.py` asserts the link is
+shown to the listed address and to nobody else, in either mode.
+
 **The app bar holds the way back and the title, and never a Save.** A page that saves ends its
 form with a full-width `.btn` Save, where the fields are, and the bar's left-hand button is
 `icons.back_to(href, label)` — the chevron plus the *name of the page it goes to* ("Settings",
