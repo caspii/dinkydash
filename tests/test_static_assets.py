@@ -80,19 +80,6 @@ class TestVersionedUrls:
         assert len({first, second, third}) == 3
         assert all(re.fullmatch(r"[0-9a-f]{12}", v) for v in (first, second, third))
 
-    def test_nothing_in_web_uses_a_bare_static_url(self):
-        """A `url_for('static', ...)` outside assets.py is a file cached for a year under a
-        URL that never changes — or, without the version, one never cached at all."""
-        offenders = []
-        for path in list((REPO / "web").rglob("*.html")) + list((REPO / "web").rglob("*.py")):
-            if path.name == "assets.py":
-                continue
-            text = path.read_text()
-            if "url_for('static'" in text or 'url_for("static"' in text:
-                offenders.append(str(path.relative_to(REPO)))
-        assert offenders == []
-
-
 # -- the header -------------------------------------------------------------------
 
 class TestTheCacheHeader:

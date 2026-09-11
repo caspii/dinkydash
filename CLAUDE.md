@@ -496,8 +496,7 @@ to tell you.
   protects against, in general terms — not the date it went wrong, who pressed what, the Sentry
   issue it opened, or what production did that day. That history goes in
   [doc/operations.md](doc/operations.md), the log, or in Linear: the repo is public, and a war story
-  in code is operational detail published for ever. `tests/test_no_incident_notes.py` fails on a
-  dated narrative or a Sentry issue id in any comment, docstring, spec, workflow, migration or template.
+  in code is operational detail published for ever.
 - **British English** throughout — UI copy, the model's system prompt, and `%-d %B` date formatting
   (`25 December`, not `December 25`).
 - **Times are 24-hour** on the dashboard (`08:20`).

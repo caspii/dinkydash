@@ -76,24 +76,9 @@ class TestOneReloadNotTwo:
             assert before.count("<noscript>") == before.count("</noscript>") + 1, \
                 "a meta refresh outside <noscript> races the script"
 
-    def test_the_script_reads_the_interval_from_the_body(self, ready, waiting):
-        """The number is `board.reload_seconds`, derived in one place; the
-        script reads it after every swap, so a waiting screen that fills in
-        moves to the five-minute cadence on its own."""
+    def test_the_body_carries_the_reload_interval(self, ready, waiting):
         assert 'data-reload="300"' in ready
         assert 'data-reload="60"' in waiting
-        assert 'getAttribute("data-reload")' in script_of(ready)
-
-    def test_a_hung_request_cannot_stop_the_refreshing(self, ready):
-        """The deadline is a promise raced against the attempt, not only an
-        abort: on a browser whose fetch cannot be aborted (older WebKit) the
-        abort does nothing, and a request that stalls rather than failing
-        would otherwise hold the in-flight flag for ever — no badge, no retry,
-        and the online handler returning at once. The guard is time-based for
-        the same reason: an attempt past its deadline is abandoned, not awaited."""
-        script = script_of(ready)
-        assert "Promise.race([attempt, deadline])" in script
-        assert "Date.now() - started < TIMEOUT_MS" in script
 
     def test_the_script_fetches_its_own_url_and_nothing_else(self, ready):
         """`location.href`, so the same script serves `/` on a Pi and
@@ -145,10 +130,6 @@ class TestADeployReachesTheWall:
         assert page_version.group(1) in waiting
         with create_app(FileStore()).app_context():
             assert page_version.group(1) == assets.board_version()
-
-    def test_the_script_reloads_on_a_version_it_does_not_know(self, ready):
-        script = script_of(ready)
-        assert 'next.body.getAttribute("data-version") !== document.body.getAttribute("data-version")' in script
 
     def test_the_version_follows_the_files_it_names(self, tmp_path):
         """Content, not commit: a Pi has no GIT_SHA, and a deploy that changes

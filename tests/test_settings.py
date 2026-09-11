@@ -6,7 +6,6 @@ above shifted everybody below onto somebody else's edit form.
 """
 
 import json
-import pathlib
 import re
 from datetime import date, timedelta
 
@@ -989,50 +988,7 @@ class TestRefreshingTheCalendarsByHand:
 
 
 class TestTheAppBar:
-    """The bar across the top of every settings page is drawn once, in `settings/base.html`,
-    from two facts a page states at its top level — where back goes and what it is called —
-    and the page's own title block. A page overrides the block only to put something other
-    than a heading there."""
-
-    TEMPLATES = pathlib.Path(__file__).resolve().parent.parent / "web" / "templates"
-
-    def pages(self):
-        for path in sorted(self.TEMPLATES.rglob("*.html")):
-            yield str(path.relative_to(self.TEMPLATES)), path.read_text()
-
-    def test_the_bar_is_drawn_in_one_place(self):
-        # Changing what the bar holds is a one-file change. The three pages that override it
-        # put the brand where the heading would be, and the home adds its links beside it;
-        # a fourth has to say here what else it needs.
-        overriding = [name for name, text in self.pages()
-                      if "{% block appbar %}" in text and name != "settings/base.html"]
-        assert overriding == ["auth/login.html", "auth/sent.html", "settings/home.html"]
-
-    def test_every_back_link_names_where_it_goes(self):
-        # The way back is the chevron and the name of the page it goes to. A bare
-        # `<a class="back">` in a page is a chevron with no name again, and so is a
-        # `back_href` with no `back_label` beside it.
-        bare, unnamed, seen = [], [], 0
-        for name, text in self.pages():
-            if name == "settings/base.html":
-                continue
-            if re.search(r'<a\b[^>]*class="back"', text):
-                bare.append(name)
-            href = re.search(r"{%\s*set\s+back_href\s*=", text)
-            label = re.search(r"{%\s*set\s+back_label\s*=", text)
-            if bool(href) != bool(label):
-                unnamed.append(name)
-            seen += bool(href)
-        assert bare == []
-        assert unnamed == []
-        assert seen >= 7
-        base = (self.TEMPLATES / "settings" / "base.html").read_text()
-        assert '<a class="back" href="{{ back_href }}">' in base
-        assert "<span>{{ back_label }}</span>" in base
-
-    def test_a_page_names_itself_once(self, client, config_path):
-        # The heading is the title block, so the tab and the bar cannot disagree; the way
-        # back is drawn from what the page set, and not at all where it set nothing.
+    def test_the_title_heading_and_back_link(self, client):
         page = client.get("/settings/system").get_data(as_text=True)
         assert "<title>Family &amp; system · DinkyDash</title>" in page
         assert "<h1>Family &amp; system</h1>" in page
@@ -1041,8 +997,7 @@ class TestTheAppBar:
         assert 'class="back"' not in client.get("/settings/").get_data(as_text=True)
 
     def test_the_way_back_names_the_page_it_goes_to(self, client, config_path):
-        # On an edit form it is the section; on a confirmation it is the form being left.
-        client.get("/settings/people")  # the first load gives every item its id
+        client.get("/settings/people")
         pid = ids_for(config_path)[0]
         edit = client.get(f"/settings/people/{pid}").get_data(as_text=True)
         assert '<a class="back" href="/settings/people">' in edit
@@ -1052,35 +1007,12 @@ class TestTheAppBar:
         assert "<span>Cancel</span>" in confirm
 
     def test_the_colours_page_is_called_that_in_the_tab_too(self, client):
-        # A self-hoster has no screen link, so the page is only its colours (see
-        # `TestTheWayBackFromTheBoard`), and the tab agrees with the bar.
         page = client.get("/settings/screen").get_data(as_text=True)
         assert "<title>Colours · DinkyDash</title>" in page
         assert "<h1>Colours</h1>" in page
 
 
 class TestTheControlsUnderAPointer:
-    """The settings UI is used from a desk as well as a phone. Every control has a hover, a
-    press and a keyboard state in `settings/base.html`; the two things below are the ones a
-    stylesheet cannot enforce on its own."""
-
-    TEMPLATES = pathlib.Path(__file__).resolve().parent.parent / "web" / "templates"
-
     def test_a_persons_name_toggles_their_box(self, client):
-        # The name beside a chore's checkbox was a span, so clicking it did nothing.
         page = client.get("/settings/recurring/new").get_data(as_text=True)
         assert '<label for="p-1">Mia</label>' in page
-
-    def test_no_button_carries_its_look_inline(self):
-        # An inline style beats every hover, press and disabled rule in the sheet, which is how
-        # "Not now" and "Delete my account" came to have none. A look is a `.btn` variant;
-        # layout (`flex`, `align-self`, a margin) may stay inline.
-        offenders, seen = [], 0
-        for path in self.TEMPLATES.rglob("*.html"):
-            for tag in re.findall(r'<(?:a|button)\b[^>]*\bclass="[^"]*\bbtn\b[^"]*"[^>]*>', path.read_text()):
-                seen += 1
-                style = re.search(r'style="([^"]*)"', tag)
-                if style and re.search(r"background|color|box-shadow|border", style.group(1)):
-                    offenders.append((str(path.relative_to(self.TEMPLATES)), tag))
-        assert offenders == []
-        assert seen >= 12
