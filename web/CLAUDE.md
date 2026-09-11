@@ -173,11 +173,31 @@ reload timer. Export, deletion and settings remain accessible. Exports include b
 **Changing the dashboard layout.** Everything is sized in `rem` off one root value, so check all three
 sizes at `/preview` rather than just the one you are looking at.
 
-That root value is now *measured*, not guessed. A short script at the foot of `board.html` binary-
+That root value is now *measured*, not guessed. The script at the foot of `board.html` binary-
 searches the largest `html { font-size }` whose content still fits the viewport, capped at
 `min(26px, vh/24)`. The CSS `clamp()` stays as the no-JS fallback. Because `body` is
 `height:100vh;overflow:hidden`, nothing ever reports an overflow — so the script lets the page lay
 out freely for one measurement (`height:auto`) and puts it straight back.
+
+**The same script is what refreshes the dashboard, and it never reloads the page** (DIN-60). Every
+`view.reload_seconds` it fetches `location.href`, parses the copy, and swaps the `<body>` in — then
+re-fits, because the content changed. A copy that does not arrive (the fetch fails, times out at
+30 s, comes back 5xx, or is not a dashboard at all) leaves the last good one on the wall, shows the
+`.offline` badge — "Reconnecting · Last updated 08:20", or "Showing Thursday's dashboard" once the
+day in `data-today` is over in the family's `data-timezone` — and tries again in a minute. A 4xx or
+a redirect is a deliberate answer (the link was rotated, a session ended) and gets a real reload, so
+the server's own page shows the way it always did. **A swap keeps the `<head>`**, and with it the CSS,
+the fonts and the script itself, so the body carries `assets.board_version()` — a hash of the
+dashboard's templates and font files — and a copy whose version differs is a deploy and gets a real
+reload too, at the one moment that is safe: a copy has just arrived. The 30 s deadline is a promise
+raced against the attempt, not only an abort, because older WebKit cannot abort a fetch and a
+request that stalls would otherwise hold the in-flight guard for ever; the guard is time-based for
+the same reason. The `<meta http-equiv="refresh">` survives only
+inside `<noscript>`: a browser running the script must never see it, or the two race and the tag's
+reload lands the error page the script exists to avoid. `tests/test_board_refresh.py` pins that
+contract; the swap and the badge themselves are checked in a browser, below. What this does *not*
+cover is a reboot while offline — the browser then has nothing to show, and only a service worker
+would change that, which DIN-60 keeps open.
 
 **Nunito is served from `web/static/fonts/`, not from Google**, as one variable font per subset
 (`nunito-latin.woff2`, `nunito-latin-ext.woff2`, covering weights 200-1000 so every weight the dashboard
@@ -299,9 +319,16 @@ hard way.
   side of the `3/2` media query. Size the page with an **iframe of exactly the target dimensions**
   instead, the way `/preview` already does, and read the numbers out of `iframe.contentWindow`. That
   is deterministic; the flag is not.
-- **The dashboard's `<meta http-equiv="refresh">` stops headless Chrome ever exiting.** `--screenshot`
-  and `--dump-dom` both hang until the timeout, though they do write their output first. Strip the
-  tag when rendering a copy for measurement, and wrap the call in `timeout` regardless.
+- **Headless Chrome's `--screenshot` and `--dump-dom` hang until the timeout**, though they do
+  write their output first. This used to be blamed on the dashboard's `<meta http-equiv="refresh">`;
+  that tag now sits inside `<noscript>`, and on 11 September 2026 the Playwright-cached Chromium
+  build hung just the same on `/healthz`, a page with no script and no tag. So it is the tool, not
+  the page: always wrap the call in `timeout`, and prefer a driven browser (below) for anything that
+  has to wait for something.
+- **Checking the refresh needs a browser and a clock you control.** The script's timer is five
+  minutes; Playwright's `page.clock.install()` and `fastForward()` fire it on demand, and
+  `page.route()` can refuse, 503 or 404 the fetch to walk every branch — the memory note on
+  scripted Playwright checks has the cached Chromium and the `NODE_PATH` to use.
 - The honest check is `scrot` over SSH on the Pi itself: a real 800x480 panel, a real kiosk browser,
-  no capture artifacts. The dashboard reloads itself every 5 minutes on a default config, so a change
-  takes one reload to appear — check `refresh_minutes` before concluding it did not work.
+  no capture artifacts. The dashboard refreshes itself every 5 minutes on a default config, so a
+  change takes one refresh to appear — check `refresh_minutes` before concluding it did not work.

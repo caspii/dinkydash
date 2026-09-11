@@ -156,8 +156,11 @@ app origin; single mode retains its local HTTP URLs.
 
 The app rate-limits invalid-token attempts. Additional Cloudflare edge hardening is Backlog ([DIN-40](https://linear.app/keepthescore/issue/DIN-40));
 this document does not claim an edge rule is deployed. Access-log redaction covers
-invalid, mistyped and encoded screen-token variants ([DIN-47](https://linear.app/keepthescore/issue/DIN-47)). Offline behaviour is deferred
-under [DIN-60](https://linear.app/keepthescore/issue/DIN-60); weakening shared-cache headers is not the implementation plan.
+invalid, mistyped and encoded screen-token variants ([DIN-47](https://linear.app/keepthescore/issue/DIN-47)). Offline behaviour: the page
+fetches its next copy and swaps it in rather than reloading, so a lost connection keeps the last
+dashboard on the wall with a "Reconnecting" badge and retries every minute (`board.html`). What
+stays open under [DIN-60](https://linear.app/keepthescore/issue/DIN-60) is a reboot during an outage, which only a service worker could
+cover; weakening shared-cache headers is not the implementation plan.
 
 ### The spend breaker
 
@@ -179,7 +182,7 @@ the model budget. Call counts and an output ceiling are not a currency-denominat
 
 | Clock | Current behaviour |
 |---|---|
-| Screen reload | Every five minutes or the configured refresh interval, whichever is shorter; waiting screens retry every minute. |
+| Screen refresh | Every five minutes or the configured refresh interval, whichever is shorter; waiting screens retry every minute. A refresh that fails keeps the last dashboard on screen and retries every minute. |
 | Calendar refresh | Due after `refresh_minutes`, default 60 minutes; chosen in settings. Provider-side caching can delay source changes. |
 | Daily brief | First brief immediately due; subsequent briefs after `brief_time`, default 06:00, on the family's local day. Manual rewrites are separate attempts. |
 
@@ -387,7 +390,8 @@ failed providers preserve useful last-good output; retries and paid calls obey t
 - [ ] Additional Cloudflare edge hardening ([DIN-40](https://linear.app/keepthescore/issue/DIN-40); Backlog).
 - [ ] Render the already-configured person colours ([DIN-8](https://linear.app/keepthescore/issue/DIN-8); feature backlog).
 - [ ] Verify TV, older iPad/tablet and Pi kiosk behaviour ([DIN-58](https://linear.app/keepthescore/issue/DIN-58)).
-- [ ] Define offline behaviour while preserving credential/cache controls ([DIN-60](https://linear.app/keepthescore/issue/DIN-60); deferred).
+- [x] Keep the last good dashboard on screen through a lost connection: fetch-and-swap with a "Reconnecting" badge, no cache and no change to `no-store`.
+- [ ] Decide whether a reboot while offline merits a service worker ([DIN-60](https://linear.app/keepthescore/issue/DIN-60); deferred).
 
 **Done when:** the shared dashboard works on the actual target devices, including the
 agreed failure behaviour. Device-specific guides are published ([DIN-13](https://linear.app/keepthescore/issue/DIN-13));

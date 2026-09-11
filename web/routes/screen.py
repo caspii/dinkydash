@@ -68,9 +68,11 @@ SCREEN_HEADERS = {
     # on it.
     "X-Robots-Tag": "noindex, nofollow",
     # A shared cache holding a family's day under a URL anyone downstream can
-    # replay is not a cache, it is a leak. Offline tolerance for a panel on
-    # flaky wifi is a real want and its own job (PLAN.md phase 3): it needs a
-    # service worker, not a weaker header here.
+    # replay is not a cache, it is a leak. A panel on flaky wifi keeps its last
+    # dashboard in memory instead — the page fetches its next copy and only
+    # swaps it in when one arrives (board.html) — so nothing about that needs
+    # a weaker header. Surviving a reboot while offline would need a service
+    # worker, and is still open (DIN-60).
     "Cache-Control": "no-store, private",
 }
 

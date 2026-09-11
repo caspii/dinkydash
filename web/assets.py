@@ -50,10 +50,17 @@ VERSION_LENGTH = 12
 
 _versions = {}  # absolute path -> (mtime_ns, size, version)
 
+# What `board_version()` hashes: the templates that draw the dashboard, and the
+# fonts its head names. Nothing a family controls is in it, so every family on
+# one deploy shares one version.
+BOARD_TEMPLATES = ("board.html", "_fonts.html")
+BOARD_STATIC = ("fonts/nunito-latin.woff2", "fonts/nunito-latin-ext.woff2")
+
 
 def configure(app):
     """`static_url()` for the templates, and the cache header for what it emits."""
     app.jinja_env.globals["static_url"] = static_url
+    app.jinja_env.globals["board_version"] = board_version
     app.after_request(_cache_versioned)
 
 
@@ -69,7 +76,31 @@ def static_url(filename):
 def version_of(filename):
     """The current version of a static file, or None if there is no such file."""
     path = safe_join(current_app.static_folder, filename)
-    if path is None or not os.path.isfile(path):
+    return _version_at(path) if path else None
+
+
+def board_version():
+    """The version of the dashboard page, as opposed to any one file in it.
+
+    The dashboard refreshes itself by fetching a copy and swapping the <body>
+    in; the <head> — the CSS, the fonts, the script doing the swapping — stays
+    as it was when the page loaded, which on a wall panel is months ago. A
+    deploy that changes any of that would never reach the panel, and could
+    hand old styles new markup. So the body carries this, the script compares
+    each copy's against its own, and a difference is the one thing that earns
+    a real reload (`board.html`). Content rather than commit, for the reasons
+    `static_url` gives: a Pi has no `GIT_SHA`, and a deploy that changes none
+    of these files should not reload a wall.
+    """
+    folder = Path(current_app.root_path) / current_app.template_folder
+    parts = [_version_at(str(folder / name)) or "" for name in BOARD_TEMPLATES]
+    parts += [version_of(name) or "" for name in BOARD_STATIC]
+    return hashlib.sha256("|".join(parts).encode()).hexdigest()[:VERSION_LENGTH]
+
+
+def _version_at(path):
+    """The content version of the file at that absolute path, or None without one."""
+    if not os.path.isfile(path):
         return None
     stat = os.stat(path)
     known = _versions.get(path)

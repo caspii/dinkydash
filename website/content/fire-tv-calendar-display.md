@@ -86,8 +86,11 @@ calendar display](/smart-tv-calendar-display/) for Samsung and LG.
 - **Countdowns** to birthdays, Christmas and the school holidays.
 - **A daily note written each morning** by Claude, around your family's actual day.
 
-The dashboard reloads itself every five minutes with a plain HTML refresh rather than JavaScript.
-That matters on a TV stick, where the browser is the least capable one in the house.
+The dashboard refreshes itself every five minutes, and if the Wi-Fi drops it keeps the last
+dashboard on screen with a small "Reconnecting" note rather than an error page. The script that
+does it is written for old browsers, and one too old for it, or with JavaScript switched off,
+falls back to a plain HTML refresh. That matters on a TV stick, where the browser is the least
+capable one in the house.
 
 ## What it costs
 

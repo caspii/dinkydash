@@ -77,9 +77,11 @@ That is the only extra piece of software in this whole build, and it is optional
 - **Countdowns** to birthdays, Christmas and the school holidays.
 - **A daily note written each morning** by Claude, around your family's actual day.
 
-The dashboard reloads itself every five minutes with a plain HTML refresh, so it keeps itself
-current even on a browser with JavaScript switched off. Nothing to tap, nothing to maintain —
-you keep editing events in your normal calendar app and the wall follows.
+The dashboard refreshes itself every five minutes. If the Wi-Fi drops, it keeps the last
+dashboard on screen with a small "Reconnecting" note rather than an error page, and catches up
+when the connection returns; with JavaScript switched off it falls back to a plain HTML refresh.
+Nothing to tap, nothing to maintain — you keep editing events in your normal calendar app and
+the wall follows.
 
 ## What it costs
 
