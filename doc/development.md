@@ -20,6 +20,13 @@ does not change Conductor's environment. Explicit environment values override
 `.env`; inspect which database you selected before migrating or signing in.
 The launcher never applies migrations or creates sample accounts.
 
+**The launcher only accepts a database on this machine**: a loopback address or a
+Unix socket, with no override. A workspace's `.env` can carry a remote
+`DATABASE_URL`, and a launcher that connected to it would be a local preview of
+a real service, with its start-up check running through that service's pooler.
+A remote URL fails startup before anything connects; export a scratch database
+URL instead.
+
 The single **dev** run action starts both existing Flask apps:
 
 | App | In Conductor | Outside Conductor |

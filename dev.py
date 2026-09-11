@@ -3,8 +3,14 @@
 Uses two spawned processes in the launcher's process group. No reloader or
 debugger subprocesses: restart the run action after changing Python/content.
 Production uses wsgi.py; a self-hosted Pi continues to use app.py.
+
+**Only a database on this machine.** A workspace's `.env` can carry a remote
+`DATABASE_URL`, and a launcher that connects to whatever it finds is a local
+preview of somebody's production. `require_local_database` refuses anything
+that is not loopback or a Unix socket, before a connection is opened.
 """
 
+import ipaddress
 import logging
 import multiprocessing
 import os
@@ -26,6 +32,7 @@ def configure():
     for name in ("DATABASE_URL", "DINKYDASH_SECRET_KEY"):
         if not os.environ.get(name, "").strip():
             raise RuntimeError(f"{name} is required; set it in the environment or .env.")
+    require_local_database(os.environ["DATABASE_URL"])
     from web import SELF_HOSTED_KEY
 
     if os.environ["DINKYDASH_SECRET_KEY"] == SELF_HOSTED_KEY:
@@ -58,17 +65,64 @@ def configure():
     return {"Dashboard": dashboard, "Website": website}
 
 
+def require_local_database(url):
+    """Refuse a database that is not on this machine.
+
+    A workspace's `.env` may hold a remote `DATABASE_URL`, and this launcher
+    connects to whatever it is given. Without this check the default run
+    action can be a production database: the dashboard it then serves on
+    127.0.0.1 is that database, and its start-up check runs through a pooler
+    shared with the real service.
+
+    Only a loopback address or a Unix socket is accepted, with no override:
+    an escape hatch would end up in `.env` as well.
+    libpq's own parser is used because a host can hide in the query string
+    (`postgresql:///x?host=...`), in a comma-separated list or in `hostaddr`,
+    and an absent host falls back to `PGHOST`. The message names the variable
+    and never the value: a connection string carries a password.
+    """
+    from psycopg.conninfo import conninfo_to_dict
+
+    try:
+        params = conninfo_to_dict(url)
+    except Exception:
+        raise RuntimeError("DATABASE_URL is not a valid connection string.") from None
+    hosts = []
+    for key in ("host", "hostaddr"):
+        value = params.get(key) or os.environ.get("PG" + key.upper(), "")
+        hosts.extend(str(value).split(","))
+    if not all(_on_this_machine(host) for host in hosts):
+        raise RuntimeError(
+            "DATABASE_URL is not a database on this machine. The launcher only runs "
+            "against a local development database such as postgresql:///dinkydash_dev; "
+            "a copied .env may be pointing it at the hosted pool.")
+
+
+def _on_this_machine(host):
+    """Loopback, a Unix socket directory, or libpq's default socket."""
+    host = host.strip()
+    if not host or host.startswith("/") or host == "localhost":
+        return True
+    try:
+        return ipaddress.ip_address(host).is_loopback
+    except ValueError:
+        return False
+
+
 def validate_database():
-    """Read-only check: reachable database with all repository migrations applied."""
+    """Reachable database with every repository migration applied, and nothing else.
+
+    `require_local_database` has already refused a remote one. This is what runs
+    when the check goes ahead, so it has to be safe through a transaction-mode
+    pooler as well: see `applied_migrations`.
+    """
     from dinkydash import db
     from psycopg.conninfo import make_conninfo
 
     try:
         conninfo = make_conninfo(os.environ["DATABASE_URL"], connect_timeout=5)
         with db.connect(conninfo) as conn:
-            conn.execute("SET statement_timeout = '5s'")
-            conn.execute("SET default_transaction_read_only = on")
-            applied = {row[0] for row in conn.execute("SELECT name FROM schema_migrations")}
+            applied = applied_migrations(conn)
     except Exception as exc:
         # Driver exceptions can contain credentials or connection details.
         raise RuntimeError(
@@ -77,6 +131,20 @@ def validate_database():
         ) from None
     if any(path.name not in applied for path in db.migrations()):
         raise RuntimeError("Database migrations are missing; run migrate.py on your development database.")
+
+
+def applied_migrations(conn):
+    """The migration names the database records, read in one short read-only transaction.
+
+    `SET LOCAL`, never `SET`. A session-level setting outlives this connection
+    on a transaction-mode pooler and lands on whichever client is handed the
+    server connection next. Both settings end with the transaction, and
+    `tests/test_dev.py` asserts the session is left exactly as it was found.
+    """
+    with conn.transaction():
+        conn.execute("SET LOCAL transaction_read_only = on")
+        conn.execute("SET LOCAL statement_timeout = '5s'")
+        return {row[0] for row in conn.execute("SELECT name FROM schema_migrations")}
 
 
 def serve(name, port, ready):

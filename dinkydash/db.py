@@ -13,6 +13,11 @@ pooling):
                          CREATE INDEX CONCURRENTLY cannot run inside a
                          transaction block, and pg_dump errors against a
                          transaction-mode pool.
+
+Never send a session-level `SET` through DATABASE_URL. A transaction-mode
+pooler hands a server connection to its next client exactly as the last one
+left it, so the setting lands on the worker or on somebody's request.
+`SET LOCAL` inside a transaction is fine, because it ends with the transaction.
 """
 
 import logging
@@ -74,9 +79,9 @@ def ready(pool, timeout=None):
     A pool opens in the background, and a wrong connection string is only a
     warning in its log: the process comes up, `/healthz` answers, the deploy is
     declared healthy, and every request that needs the database then waits
-    thirty seconds and fails. This was demonstrated, not guessed — the cloud
-    entry point built in half a second against a closed port and answered
-    200 on both hostnames. Waiting here turns that into a process that never
+    thirty seconds and fails; an entry point built against a closed port
+    still comes up in half a second and answers 200 on both hostnames.
+    Waiting here turns that into a process that never
     starts, which under gunicorn is a container that never becomes healthy,
     which is a deploy that never goes live while the previous one carries on —
     and App Platform's own DEPLOYMENT_FAILED alert says so (DIN-54).

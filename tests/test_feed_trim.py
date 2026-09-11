@@ -1,9 +1,9 @@
 """A decade-long feed is parsed a fortnight at a time.
 
 `icalendar` builds an object for every property of every event, and a personal
-Google calendar is ten years of them: the owner's is 8 MB and 14,000 events,
-measured at ~200 MB to parse and ~250 MB kept afterwards, which is how two
-gunicorn workers took the hosted site past 512 MB on 10 September 2026.
+Google calendar is ten years of them: 8 MB and 14,000 events is an ordinary one,
+measured at ~200 MB to parse and ~250 MB kept afterwards, which is more than two
+gunicorn workers can hold in a 512 MB container.
 `calendars._trim` drops, as text, every VEVENT that cannot touch the window
 before the parser sees it. These tests pin what must survive the trim: the
 trimmed parse has to give exactly what the untrimmed one gave.

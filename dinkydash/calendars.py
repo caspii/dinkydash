@@ -171,14 +171,14 @@ def _occurrences(ical_text, start, end):
     return list(recurring_events_of(cal).between(start, end + timedelta(days=1)))
 
 
-# A personal Google calendar is a decade of appointments in one file — the
-# owner's is 8 MB and 14,000 events — and `icalendar` builds an object for every
-# property of every one of them. Measured on that feed: ~200 MB to parse and
+# A personal Google calendar is a decade of appointments in one file — 8 MB and
+# 14,000 events is an ordinary one — and `icalendar` builds an object for every
+# property of every one of them. Measured on such a feed: ~200 MB to parse and
 # ~250 MB kept by the process afterwards, because Python does not hand arenas
-# back. Two gunicorn workers each holding that is how the hosted site went past
-# its 512 MB and was killed on 10 September 2026, with nothing in the log but
-# the exit. The dashboard only ever wants a fortnight, so `_trim` drops, as text and
-# before the parser sees them, the events that cannot fall in the window.
+# back. Two gunicorn workers each holding that is more than a 512 MB container,
+# and the container's log shows nothing but the exit. The dashboard only ever
+# wants a fortnight, so `_trim` drops, as text and before the parser sees them,
+# the events that cannot fall in the window.
 #
 # Whatever the parser needs to get the window right is kept regardless of its
 # date: recurring events (their EXDATEs ride on them), extra dates, the

@@ -28,6 +28,9 @@ def isolated_config(monkeypatch, tmp_path):
     monkeypatch.setenv("DINKYDASH_APP_HOST", "app.example.test")
     monkeypatch.setenv("SENDGRID_API_KEY", "")
     monkeypatch.setenv("ANTHROPIC_API_KEY", "")
+    # libpq reads these when a URL names no host; a developer's shell must not decide the tests.
+    for name in ("PGHOST", "PGHOSTADDR"):
+        monkeypatch.delenv(name, raising=False)
 
 
 def test_dotenv_defaults_and_environment_precedence(monkeypatch, tmp_path):
@@ -55,6 +58,7 @@ def test_ports(monkeypatch, values, expected):
 
 @pytest.mark.parametrize("values, error", [
     ({"DATABASE_URL": " "}, "DATABASE_URL"),
+    ({"DATABASE_URL": "postgresql://nobody:hunter2@db.example.com/dinkydash"}, "on this machine"),
     ({"DINKYDASH_SECRET_KEY": ""}, "DINKYDASH_SECRET_KEY"),
     ({"DINKYDASH_SECRET_KEY": "dinkydash-self-hosted"}, "private development key"),
     ({"CONDUCTOR_PORT": ""}, "CONDUCTOR_PORT"),
@@ -71,6 +75,49 @@ def test_invalid_configuration(monkeypatch, values, error):
         monkeypatch.setenv(name, value)
     with pytest.raises(RuntimeError, match=error):
         dev.configure()
+
+
+@pytest.mark.parametrize("url", [
+    "postgresql:///dinkydash_dev",
+    "postgresql://localhost/dinkydash_dev",
+    "postgresql://dinkydash@127.0.0.1:54321/dinkydash_dev",
+    "postgresql://[::1]/dinkydash_dev",
+    "postgresql://%2Ftmp%2Fpg/dinkydash_dev",
+    "host=/tmp dbname=dinkydash_dev",
+    "dbname=dinkydash_dev",
+])
+def test_local_database_accepted(url):
+    dev.require_local_database(url)
+
+
+@pytest.mark.parametrize("url", [
+    "postgresql://nobody:hunter2@db.example.com:25061/pool?sslmode=require",
+    "postgresql://nobody@203.0.113.9/dinkydash_dev",
+    "postgresql://localhost,db.example.com/dinkydash_dev",
+    "postgresql:///dinkydash_dev?host=db.example.com",
+    "host=db.example.com dbname=dinkydash_dev",
+    "hostaddr=203.0.113.9 dbname=dinkydash_dev",
+])
+def test_remote_database_refused(url):
+    """A workspace's `.env` can hold a remote database, and the launcher must never reach it.
+
+    The refusal names the variable and nothing from the value: a connection
+    string carries a password, and this message is printed.
+    """
+    with pytest.raises(RuntimeError, match="on this machine") as refused:
+        dev.require_local_database(url)
+    message = str(refused.value)
+    assert "hunter2" not in message
+    assert "example.com" not in message
+    assert "203.0.113.9" not in message
+
+
+def test_pghost_counts_when_the_url_names_no_host(monkeypatch):
+    monkeypatch.setenv("PGHOST", "db.example.com")
+    with pytest.raises(RuntimeError, match="on this machine"):
+        dev.require_local_database("postgresql:///dinkydash_dev")
+    monkeypatch.setenv("PGHOST", "/tmp")
+    dev.require_local_database("postgresql:///dinkydash_dev")
 
 
 @pytest.fixture
@@ -216,6 +263,25 @@ def test_unmigrated_database_starts_neither(pg_pool, launch):
     assert process.wait(timeout=10) == 1
     assert "Database validation failed" in log.read_text()
     assert "Starting " not in log.read_text()
+
+
+def test_validation_leaves_the_session_as_it_found_it(pg_pool):
+    """What the check sets must end with its transaction.
+
+    Through a transaction-mode pooler a session-level SET outlives the
+    connection and lands on the next client. So the session is checked
+    before and after, and then written to.
+    """
+    from dinkydash import db
+
+    settings = ("transaction_read_only", "default_transaction_read_only", "statement_timeout")
+    with db.connect(os.environ["DINKYDASH_TEST_DATABASE_URL"]) as conn:
+        before = [conn.execute(f"SHOW {name}").fetchone()[0] for name in settings]
+        applied = dev.applied_migrations(conn)
+        after = [conn.execute(f"SHOW {name}").fetchone()[0] for name in settings]
+        conn.execute("CREATE TEMP TABLE still_writable (x int)")  # refused in a read-only session
+    assert after == before
+    assert {path.name for path in db.migrations()} <= applied
 
 
 def lifecycle_worker(name, port, ready):
