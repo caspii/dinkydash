@@ -54,10 +54,10 @@
             --border-strong: #e2d7c9;
             --text: #2d2319;
             --text-mid: #5c4a3a;
-            --text-muted: #9a8677;
+            --text-muted: #786658;
             --faint: #c4b3a3;
-            --accent: #e85d24;
-            --accent-dark: #c44d1a;
+            --accent: #b44314;
+            --accent-dark: #94360f;
             --purple: #7c5cbf;
             --green: #16a34a;
             --amber: #d97706;
@@ -197,7 +197,7 @@
         .btn:disabled { opacity: 0.45; cursor: not-allowed; box-shadow: none; }
 
         .field { display: flex; flex-direction: column; gap: 0.375rem; }
-        .field > label { font-size: 0.6875rem; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; color: var(--text-muted); }
+        .field > label, .field > legend { font-size: 0.6875rem; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; color: var(--text-muted); }
         .field input[type=text], .field input[type=url], .field input[type=date],
         .field input[type=time], .field input[type=email],
         .field select, .field textarea {
@@ -206,6 +206,20 @@
             background: var(--surface); color: var(--text);
             font-family: inherit; font-size: 0.9375rem; font-weight: 600;
         }
+        fieldset.field { border: 0; min-width: 0; }
+        .field > legend { margin-bottom: 0.375rem; }
+        .field-error { color: var(--danger); font-size: 0.8125rem; }
+        .field [aria-invalid="true"] { border-color: var(--danger); }
+        .date-parts { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); gap: 0.625rem; }
+        .date-parts select { padding: 0.75rem 0.375rem; }
+        .sr-only { position: absolute; width: 0.0625rem; height: 0.0625rem; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+        .rotation-person { display: flex; align-items: center; gap: 0.5rem; }
+        .rotation-person .checkline { flex: 1; min-width: 0; }
+        .rotation-person label { overflow-wrap: anywhere; }
+        .rotation-person input { flex-shrink: 0; }
+        .rotation-person .move { flex-direction: row; }
+        .rotation-position { font-size: 0.8125rem; color: var(--text-muted); }
+        .rotation-list { display: flex; flex-direction: column; gap: 0.5rem; }
         .field textarea { min-height: 4.75rem; resize: vertical; }
         .field select { cursor: pointer; }
         .field input:not([type=checkbox]):focus, .field select:focus, .field textarea:focus {
@@ -266,6 +280,9 @@
         .flash.ok { background: rgba(22, 163, 74, 0.1); color: #15803d; }
         .flash.error { background: rgba(192, 57, 43, 0.09); color: var(--danger); }
         .problems { background: rgba(192, 57, 43, 0.07); border-radius: 0.875rem; padding: 0.8125rem 0.9375rem; color: var(--danger); font-size: 0.8125rem; }
+        .problems h2 { font-size: 1rem; }
+        .problems a { color: inherit; text-decoration: underline; }
+        .problems, .field, .field input, .field select { scroll-margin-top: 4.5rem; }
         .problems li { margin-left: 1.125rem; }
 
         .dot { width: 0.5rem; height: 0.5rem; border-radius: 50%; flex-shrink: 0; display: inline-block; }
@@ -292,11 +309,13 @@
         .screen-actions .btn { flex: 1; }
         .qr-code { background: #ffffff; border-radius: 0.875rem; padding: 0.75rem; }
         .qr-code svg { display: block; width: 100%; height: auto; }
-        .move { display: flex; flex-direction: column; gap: 0.125rem; position: relative; z-index: 1; }
+        .move { display: flex; flex-direction: column; flex-shrink: 0; gap: 0.375rem; position: relative; z-index: 1; }
         .move button {
-            width: 1.875rem; height: 1.5rem; border: 1px solid var(--border); background: var(--surface);
+            width: 2.75rem; height: 2.75rem; border: 1px solid var(--border); background: var(--surface);
             border-radius: 0.4375rem; cursor: pointer; color: var(--text-muted); font-size: 0.7rem; line-height: 1;
         }
+
+        .move button:disabled { opacity: 0.4; cursor: default; }
 
         /* ---- A pointer, a press, and a keyboard ----
            Hover is for a mouse. On a phone a "hover" is a tap that never ends,
@@ -331,7 +350,7 @@
             .row:has(> a.row-main:hover) { background: var(--warm); }
             .row:has(> a.row-main:hover) .chev { color: var(--text-muted); transform: translateX(0.125rem); }
 
-            .move button:hover { background: var(--warm); border-color: var(--border-strong); color: var(--text); }
+            .move button:not(:disabled):hover { background: var(--warm); border-color: var(--border-strong); color: var(--text); }
             .picker input:not(:checked) + label:hover { background: var(--warm); border-color: var(--border-strong); }
             .picker.colors input:not(:checked) + label:hover { background: transparent; box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--border-strong); }
             .checkline label:hover, .calendar-help summary:hover { color: var(--accent-dark); }
@@ -351,7 +370,7 @@
         .appbar .action:active { background: rgba(232, 93, 36, 0.14); }
         a.row:active { background: var(--border); }
         .row:has(> a.row-main:active) { background: var(--border); }
-        .move button:active { background: var(--border); }
+        .move button:not(:disabled):active { background: var(--border); }
         /* Keyboard focus: one ring throughout, and only from the keyboard —
            :focus-visible never draws for a click. Text inputs keep their own
            cue (the border goes accent, above). The invisible radio behind a

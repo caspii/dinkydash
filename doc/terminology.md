@@ -28,7 +28,7 @@ A **calendar** is one source of events, not the whole dashboard.
 | Person / People | A household member | “People”, “Add a person”, “New person”, “Remove this person”. Birth date supplies the age and birthday countdown; names can participate in chores. |
 | Pet / Pets | A household animal | “Pets”, “Add a pet”, “New pet”, “Kind of animal”. A pet can be mentioned in the generated daily note. |
 | Chore / Chores | A household task assigned on a daily rotation | The section is “Chores”. Existing add/edit/remove copy still uses “job”; see the outstanding differences below. There is no completion checkbox. |
-| Rotation order | The sequence of people who take a chore | The editor currently labels participants “Whose turn, in order”; lists use arrows between names. Do not describe these checkboxes as functioning ordering controls: that editor has an open rotation-order defect. |
+| Rotation order | The sequence of people who take a chore | “Whose turn, in order” shows the saved sequence. Checkboxes select people; arrows move them earlier or later. Newly selected people join at the end, and Save keeps the changes. This is separate from reordering People or the chore list. |
 | Whose turn | The current chore assignments | The dashboard section heading. Turns change daily; this is not task completion or an on-demand swap feature. |
 | Calendar / Calendars | A connected source of events | “Calendars”, “Calendar name”, “Add a calendar”, “Save calendar”. Multiple enabled calendars merge into the agenda. The name is for recognising the source in settings. |
 | Calendar link | The calendar provider's iCal/ICS subscription address | Field label: “Calendar link (iCal / ICS)”. HTTPS and `webcal://` are accepted; a provider's ordinary webpage or sharing page is not necessarily a calendar feed. |
@@ -37,7 +37,7 @@ A **calendar** is one source of events, not the whole dashboard.
 | Agenda | The combined event list | The dashboard labels it “Today” and, when there is room, “Tomorrow”. It is assembled from calendars; it is not AI-generated. |
 | Headline | The large heading on the dashboard | Normally generated with the daily note. A stale dashboard can use a computed headline instead. |
 | Daily note | The short generated text accompanying the agenda | Also called the “daily line” or “day's line” in current copy. Interests, pets and the agenda inform it. “Brief” is used internally for the generated headline and note together. |
-| Special date / Special dates | A named annual occasion | “Special dates”, “Add a date”, “What is it”, “Date”. Day and month repeat every year; this is not a one-off calendar event. |
+| Special date / Special dates | A named annual occasion | “Special dates”, “Add a date”, “What is it”, with “Day” and “Month” under “Date”. Lists use named months, such as “1 July”. Invalid stored dates are flagged for repair and omitted from countdowns; 29 February is allowed. |
 | Countdown | Days remaining until a birthday or special date | Appears under “Coming up”. Birthday countdowns come from People and need no duplicate special-date entry. |
 | Refresh calendars | Fetch the latest events from enabled calendars | Updates the agenda; it does not rewrite the daily note. “Fetch the calendars” sets this interval under “How often it updates”. |
 | Rewrite now | Generate a fresh headline and daily note | Also fetches calendars first. Before the first generation the action is “Write the first dashboard”. “Write the daily line at” sets the daily generation time. |

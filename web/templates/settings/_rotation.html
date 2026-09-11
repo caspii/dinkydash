@@ -1,0 +1,80 @@
+{% set selected = item.get(name) or [] %}
+{% if people %}
+<div class="rotation-list">
+    {% for person in people %}
+    <div class="rotation-person" data-person="{{ person }}">
+        <span class="rotation-position" aria-hidden="true">{{ (loop.index ~ '.') if person in selected else '—' }}</span>
+        <div class="checkline">
+            <input type="checkbox" id="p-{{ loop.index }}" name="{{ name }}" value="{{ person }}" {{ 'checked' if person in selected }} {{ field_access(name, help) }}>
+            <label for="p-{{ loop.index }}">{{ person }}</label>
+        </div>
+        <div class="move">
+            <button type="submit" name="move_choice" value="up:{{ person }}" formnovalidate
+                    aria-label="Move {{ person }} earlier in the rotation" {{ 'disabled' if person not in selected or loop.first }}>&#9650;</button>
+            <button type="submit" name="move_choice" value="down:{{ person }}" formnovalidate
+                    aria-label="Move {{ person }} later in the rotation" {{ 'disabled' if person not in selected or loop.index == selected | length }}>&#9660;</button>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+<p class="hint">Choose people, then use the arrows to set their turn order. Newly selected people join at the end. Save to keep your changes.</p>
+<div class="sr-only rotation-status" role="status"></div>
+<noscript>
+    <button class="btn outline" type="submit" name="action" value="update_choices" formnovalidate>Update selected people</button>
+    <p class="hint">After changing the selection, update it to enable the ordering arrows. Your changes are kept only when you press Save.</p>
+</noscript>
+<script>
+(() => {
+    const group = document.currentScript.closest('fieldset');
+    const list = group.querySelector('.rotation-list');
+    const rows = () => Array.from(list.children);
+    const chosen = row => row.querySelector('input').checked;
+    const update = () => {
+        const selected = rows().filter(chosen);
+        rows().forEach(row => {
+            const position = selected.indexOf(row);
+            row.querySelector('.rotation-position').textContent = position < 0 ? '—' : `${position + 1}.`;
+            const buttons = row.querySelectorAll('button');
+            buttons[0].disabled = position <= 0;
+            buttons[1].disabled = position < 0 || position === selected.length - 1;
+        });
+    };
+    const announce = row => {
+        const selected = rows().filter(chosen);
+        group.querySelector('.rotation-status').textContent = chosen(row)
+            ? `${row.dataset.person} is position ${selected.indexOf(row) + 1} of ${selected.length}.`
+            : `${row.dataset.person} is no longer in the rotation.`;
+    };
+    list.addEventListener('change', event => {
+        const row = event.target.closest('.rotation-person');
+        if (chosen(row)) {
+            list.insertBefore(row, rows().find(other => !chosen(other)) || null);
+        } else {
+            list.appendChild(row);
+        }
+        update();
+        event.target.focus();
+        announce(row);
+    });
+    list.addEventListener('click', event => {
+        const button = event.target.closest('button');
+        if (!button) return;
+        event.preventDefault();
+        const row = button.closest('.rotation-person');
+        const selected = rows().filter(chosen);
+        const position = selected.indexOf(row);
+        if (button.value.startsWith('up:') && position > 0) {
+            list.insertBefore(row, selected[position - 1]);
+        } else if (position < selected.length - 1) {
+            list.insertBefore(selected[position + 1], row);
+        }
+        update();
+        (button.disabled ? row.querySelector('input') : button).focus();
+        announce(row);
+    });
+    update();
+})();
+</script>
+{% else %}
+<div class="hint">Add someone under People first.</div>
+{% endif %}

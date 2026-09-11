@@ -65,9 +65,18 @@ def compute_birthday_info(person, today):
     }
 
 
+def parse_monthday(value):
+    """Validate an annual MM/DD date, using a leap year to allow 29 February."""
+    month, day = (int(part) for part in str(value).split("/"))
+    if not (1 <= month <= 12 and 1 <= day <= 31):
+        raise ValueError("Month or day is out of range")
+    return date(2000, month, day)
+
+
 def compute_special_date_info(special_date, today):
     """Return countdown info for one recurring special date (MM/DD)."""
-    month, day = [int(part) for part in str(special_date["date"]).split("/")]
+    annual = parse_monthday(special_date["date"])
+    month, day = annual.month, annual.day
     target = anniversary(today.year, month, day)
     if target < today:
         # Recompute from month/day rather than bumping the year: a Feb 28 that
@@ -127,7 +136,12 @@ def build_countdowns(people, special_dates, today, limit=None):
             "days": info["days_until_birthday"],
         })
     for special_date in special_dates or []:
-        info = compute_special_date_info(special_date, today)
+        try:
+            info = compute_special_date_info(special_date, today)
+        except (ValueError, KeyError):
+            # Old or hand-edited dates stay available for repair in settings;
+            # one invalid entry must not stop every countdown or the daily run.
+            continue
         countdowns.append({
             "emoji": info["emoji"] or "📅",
             "title": info["title"],
