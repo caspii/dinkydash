@@ -68,7 +68,7 @@ def _fetch(monkeypatch, exc):
 
 
 class TestTheCalendarUrlNeverEscapes:
-    """PLAN.md bug 8. `requests` puts the whole URL in every error message.
+    """`requests` puts the whole URL in every error message.
 
     An iCal secret address is a password: whoever holds it reads that family's
     calendar indefinitely, and there is no way to see who has. This text reaches

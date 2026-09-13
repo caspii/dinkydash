@@ -1,14 +1,14 @@
 # Design mockups
 
-Visual mockups for the hosted MVP — the Phase 1 settings UI and the Phase 3 dashboard.
+Visual mockups for the hosted MVP — the settings UI and the dashboard.
 These are **design artefacts, not application code**. Nothing here is imported or
 served by `app.py`; they exist so the layout and copy decisions can be reviewed
 before the templates get written.
 
-| Directory | What it covers | PLAN.md phase |
-|---|---|---|
-| [`settings-ui/`](settings-ui/) | The logged-in family settings UI, mobile (390×844) | Phase 1 |
-| [`board-ui/`](board-ui/) | The dashboard itself, across TV / iPad / Pi, light and dark | Phase 3 |
+| Directory | What it covers |
+|---|---|
+| [`settings-ui/`](settings-ui/) | The logged-in family settings UI, mobile (390×844) |
+| [`board-ui/`](board-ui/) | The dashboard itself, across TV / iPad / Pi, light and dark |
 
 ## Format
 
@@ -51,7 +51,8 @@ raised to stay visible.
 - Drag-to-reorder is not drawn; the "Reorder" affordance is a placeholder.
 - The artboards put Cancel and Save in the app bar. The built UI does not (September 2026):
   the bar holds a labelled back button and the title, and Save ends the form.
-- Post-trial lapse behaviour is unresolved — an open question in [PLAN.md](../PLAN.md).
+- Post-trial lapse behaviour is not drawn. The built UI keeps the last dashboard on the wall for
+  30 days after access ends, then shows only an ended-access message (DIN-52).
 - The QR code is an illustrative pattern, not a scannable code.
 - An Auto colour mode (dark after sunset, using the family timezone) is proposed
   in the annotations but not designed.

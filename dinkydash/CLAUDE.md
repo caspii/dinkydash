@@ -120,7 +120,7 @@ starter config in the transaction that spent it. Five things about that are deli
 - **The family is created on the click, never on the submit.** A `families` row starts a 14-day
   trial and the worker calls Anthropic daily for it, so a POST that created one would be a way to
   spend our money without a card. Verifying first makes an unverified sign-up cost one row and one
-  email. The reasoning in full is in [PLAN.md](../PLAN.md#sign-up).
+  email.
 - **One table, not two.** `login_tokens.user_id` is nullable with an `email` beside it and a CHECK
   that exactly one is set. A `signup_tokens` table would have meant a second single-use `UPDATE`,
   and that statement is the thing the whole design rests on — written twice, one copy drifts.
@@ -205,9 +205,10 @@ Connections go through `dinkydash/db.py`. `pool()` is a small bounded `psycopg_p
 latency knob, not a safety one, because DigitalOcean's own pool is what stops the cluster's 22
 connections running out. **`prepare_threshold` is set to `None` on every connection**, everywhere,
 including local development and CI: psycopg 3 prepares a statement server-side once it repeats, and
-under transaction-mode pooling the next execution can land on a different backend connection. The
-full reasoning, and why KeepTheScore's clean record on psycopg2 does not transfer, is in PLAN.md
-under [Connection pooling](../PLAN.md#connection-pooling).
+under transaction-mode pooling the next execution can land on a different backend connection and
+fail with `prepared statement "..." does not exist` — intermittently, under load, after everything
+looked fine in testing. psycopg2 never auto-prepares, so a clean record on it elsewhere says nothing
+about psycopg 3 here.
 
 **And never a session-level `SET` through `DATABASE_URL`.** The pooler hands a server connection to
 its next client exactly as the last one left it, so the setting lands on the worker or on somebody's
@@ -256,13 +257,13 @@ The payload carries two stamps, **both in UTC**: `generated_at` (when the brief 
 because the server is routinely not on the family's clock — a Pi is often left on UTC, and hosted
 the server is nowhere near them. They are rendered in the family's timezone at the point of display,
 which on the settings home is `_clock(stamp, tzinfo)`. It used to slice the characters out of the
-ISO string, which showed the server's hour (PLAN.md bug 9).
+ISO string, which showed the server's hour.
 
 ## Two cadences, one tick
 
 The fetch and the model call ran together only because history put them there, and it meant an
 appointment added at 09:00 was not on the wall until the next morning. They now run on their own
-clocks, chosen by the family (PLAN.md decision 11, single-mode half):
+clocks, chosen by the family:
 
 ```
 [cron */5m] -> generate.py --tick -> schedule.due(config, payload, now)
@@ -313,8 +314,7 @@ These rules hold this together:
   than the UTC default). The starter household and the untouched example file are not one, and a
   brief about them would be a paid call for invented children; the tick writes nothing until the
   answers are real, and the dashboard says "nearly there" rather than "writing". Calendar-only
-  payloads still qualify once set up. See [The first dashboard](../PLAN.md#the-first-dashboard) for retry
-  behaviour.
+  payloads still qualify once set up.
 - **A refresh must not touch `headline`, `note` or `generated_for_date`**, and it now cannot: it
   writes through `store.save_agenda`, which only accepts `store.AGENDA_KEYS`. A fresh agenda under
   yesterday's brief is exactly the amber-banner state `board.build_view` already handles, and the
@@ -401,5 +401,5 @@ part of `load_config` — loading must not rewrite the file, and the engine neve
 `_add_id` puts the id *first* in the mapping: ruamel hangs the comment introducing the next section
 off the last item of the previous one, so an appended key lands under the wrong heading.
 
-Ids are also what lets one settings UI serve both modes later. `PLAN.md` decision 10: the config
-dict is the storage contract, a file in self-hosted mode and a `jsonb` column when hosted.
+Ids are also what lets one settings UI serve both modes later: the config dict is the storage
+contract, a file in self-hosted mode and a `jsonb` column when hosted.

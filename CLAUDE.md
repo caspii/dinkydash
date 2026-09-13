@@ -21,7 +21,10 @@ it, with self-hosting as the second mode of one codebase. Both facts constrain e
 [This is a public repo](#this-is-a-public-repo) and [Two modes, always](#two-modes-always) below.
 Before making structural changes, read:
 
-- [PLAN.md](PLAN.md) — hosted MVP architecture, phases, settled decisions, open questions
+- the hosted MVP plan — settled decisions, phases and what is still open. A Linear document on the
+  Dinky Dash team ([DinkyDash Hosted MVP — Plan](https://linear.app/keepthescore/document/dinkydash-hosted-mvp-plan-3ddbb8cf36a5)),
+  because it tracks Linear issues; the engineering rules it rested on are in this file and the
+  ones it points to.
 - the strategy document — positioning, pricing, SEO. Not in the repo by policy: it is a Linear
   document on the Dinky Dash team. See [Strategy and marketing live in
   Linear](#strategy-and-marketing-live-in-linear).
@@ -41,8 +44,8 @@ that matters in one place lives beside that place, and arrives when you open a f
 
 ## This is a public repo
 
-DinkyDash is open source, and the hosted product is being built in the same public repo (PLAN.md
-decision 2). Everything pushed is world-readable the moment it lands, and the repo is itself the
+DinkyDash is open source, and the hosted product is being built in the same public repo.
+Everything pushed is world-readable the moment it lands, and the repo is itself the
 funnel — the Show HN and r/selfhosted launch point straight at it. The code is read by strangers,
 so a careless commit is an incident rather than a tidy-up.
 
@@ -87,7 +90,8 @@ The line to hold:
   marketing site's own source in `website/`. Shipped public artefacts, and the engineering behind
   them.
 - **In Linear** — prices and the argument for them, keyword volumes and competitor tables, revenue
-  targets, cost-per-family models, and anything framing this repo as top of a funnel.
+  targets, cost-per-family models, the hosted MVP plan with its phase tracking, and anything
+  framing this repo as top of a funnel.
 
 The shop window is the exception, and only the window. The README may state the hosted price and
 link the waitlist, and `website/` is a marketing site by definition. What must not appear is the
@@ -100,7 +104,7 @@ working tree where a stray `git add` can catch them:
 linear document create --team DIN --title "..." --content-file /tmp/note.md
 ```
 
-Relative links like `[PLAN.md](PLAN.md)` break once a document is in Linear. Rewrite them to full
+Relative links like `[CLAUDE.md](CLAUDE.md)` break once a document is in Linear. Rewrite them to full
 `https://github.com/caspii/dinkydash/blob/main/...` URLs before uploading.
 
 ### Handling other people's data
@@ -224,8 +228,6 @@ mode is a different product on the same code.
 
 ### The safety net, and what it does not cover
 
-Phase 0 of PLAN.md is mostly this. Three of the four pieces are now in place.
-
 `.github/workflows/test.yml` runs on every push and pull request, as two independent jobs so a
 secret and a broken test are separate red X's: **pytest** on Python 3.11, and **gitleaks** over the
 full history — `fetch-depth: 0`, because gitleaks scans commits rather than the working tree.
@@ -283,7 +285,7 @@ goes there, not in `requirements.txt`.
 
 ### Two modes, always
 
-One codebase, two products (PLAN.md decision 2):
+One codebase, two products:
 
 ```
 DINKYDASH_MODE=single   config.yaml · auth off · billing off · one family · local cron
@@ -342,7 +344,7 @@ dinkydash/
 ├── accounts.py        users, the links that sign them in, and sign-up (cloud only)
 ├── screens.py         the token that puts a dashboard on a wall (cloud only)
 ├── budget.py          what a family may spend on the model, and what everybody may
-│                     (`accounts.delete_family` is the hard delete; see phase 5)
+│                     (`accounts.delete_family` is the hard delete)
 ├── growth.py          signups and activations per day, with no family in the row (cloud only)
 ├── sentry.py          error reports and the worker's check-in, and what neither may carry (cloud only)
 └── runner.py          the two halves of the day, reading and writing through a store

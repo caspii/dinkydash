@@ -11,7 +11,7 @@ both apps, before either sees the request.
 **Why one container.** `qrpage.co` and `abc-league` already run this way in the
 same DigitalOcean account — one App Platform service, one gunicorn, marketing
 and application together. A second service would be $5 a month to buy isolation
-that has no revenue behind it yet. See PLAN.md, Hosting and deployment.
+that has no revenue behind it yet.
 
 **This is routing, not a mode gate.** The rule that mode gates four things and
 no others still holds: neither app below knows this file exists, neither one

@@ -86,7 +86,7 @@ class TestWalkingTheFamilies:
         assert configs == [{"family_id": "a"}, {"family_id": "b"}]
 
     def test_lapsed_families_are_excluded_by_the_query(self):
-        """PLAN.md's freeze: the dashboard keeps its last state, the ticking stops."""
+        """Access ending is a freeze: the dashboard keeps its last state, the ticking stops."""
         pool = FakePool(["a"])
         tick_all(pool, store_factory=FakeStore, tick=lambda c, s: None)
         assert "status <> 'lapsed'" in " ".join(pool.sql)

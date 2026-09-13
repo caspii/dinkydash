@@ -254,7 +254,7 @@ class TestHomeScreen:
 
 
 class TestTheClockOnTheStatusLine:
-    """Stamps are stored in UTC; the family reads their own clock (PLAN bug 9)."""
+    """Stamps are stored in UTC; the family reads their own clock."""
 
     @pytest.fixture
     def config_path(self, tmp_path):
@@ -551,7 +551,7 @@ class TestTheSetUpChecklist:
 
 
 class TestTheCadencePage:
-    """The two keys decision 11 added, edited from a phone rather than in YAML."""
+    """`refresh_minutes` and `brief_time`, edited from a phone rather than in YAML."""
 
     @pytest.fixture
     def config_path(self, tmp_path):
