@@ -1,6 +1,6 @@
 """Two families, one process, and no way from one to the other.
 
-PLAN.md's "done when" for phase 1:
+The bar this file holds:
 
 > two different families can be configured independently through the UI, and a
 > request carrying the wrong family's id in a URL gets a 404, never a row.
@@ -407,7 +407,7 @@ class TestTheHardcodedFamilyIsGone:
     def test_nothing_mentions_it_anywhere(self):
         """Prose included, deliberately.
 
-        The dated notes in PLAN.md and doc/operations.md were rewritten rather
+        The dated notes in doc/operations.md were rewritten rather
         than left, because "cloud mode serves one family from an environment
         variable" stopped being true — a log that records a fact is worth
         keeping, and one that records a stale fact is worth correcting. This

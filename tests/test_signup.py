@@ -194,7 +194,7 @@ class TestClickingTheLinkStartsTheFamily:
         assert days == 14
 
     def test_no_stripe_customer_is_created(self, client, sent, pg_pool):
-        """The trial lives in the app; Stripe enters at conversion (phase 4)."""
+        """The trial lives in the app; Stripe enters at conversion."""
         client.post("/login", data={"email": NEWCOMER})
         client.get(link_in(sent[0]))
         [(customer,)] = rows(pg_pool,
@@ -254,9 +254,9 @@ class TestTheStartingConfig:
 
         **The seeded config is what the tick then has to work with**, which is
         the reason for seeding it — a family with no people would get a dashboard
-        with nothing on it but a date. PLAN.md's "Generate now on signup" is
-        what closes the gap between the click and the first dashboard, and it is a
-        phase 2 worker item: a web request must not call Anthropic.
+        with nothing on it but a date. The first brief being owed as soon as the family is set up is
+        what closes the gap between the click and the first dashboard, and it is
+        the worker's job: a web request must not call Anthropic.
 
         Read at the screen URL, which sign-up gave the family a token for
         before anybody asked. That is the point of writing it at creation

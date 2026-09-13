@@ -12,7 +12,7 @@
 -- an unverified sign-up cost one row here and one email — no trial, no API call,
 -- and nothing to sweep up afterwards that the existing sweep does not already
 -- take. It also makes "signing in through the link *is* email verification"
--- (PLAN.md phase 1) true of sign-up as well: without it a family exists for an
+-- true of sign-up as well: without it a family exists for an
 -- address nobody has proved they can read.
 --
 -- **Why this is one table and not two.** A `signup_tokens` table beside this one

@@ -95,28 +95,28 @@
       "x": 0,
       "y": -190,
       "w": 860,
-      "text": "DinkyDash \u2014 ongoing settings, mobile (390\u00d7844)\n\nThe hub at top-left is the whole map: every row is one Phase 1 section, and each row's subtitle carries live state so problems surface before you tap in. Static mockups; nothing is clickable."
+      "text": "DinkyDash \u2014 ongoing settings, mobile (390\u00d7844)\n\nThe hub at top-left is the whole map: every row is one settings section, and each row's subtitle carries live state so problems surface before you tap in. Static mockups; nothing is clickable."
     },
     {
       "id": "rotation-note",
       "x": 470,
       "y": 1852,
       "w": 390,
-      "text": "Chore rotation was undefined in PLAN.md. Proposal: an explicit ordered list plus a next-week preview, so the day-of-year modulo is visible rather than mysterious. Reordering takes effect tomorrow \u2014 today's dashboard is already written."
+      "text": "Chore rotation was undefined in the hosted plan. Proposal: an explicit ordered list plus a next-week preview, so the day-of-year modulo is visible rather than mysterious. Reordering takes effect tomorrow \u2014 today's dashboard is already written."
     },
     {
       "id": "calendar-note",
       "x": 1410,
       "y": 1852,
       "w": 390,
-      "text": "The three states PLAN.md's calendars table implies: healthy, consecutive_failures > 0, and enabled = false. The failure card explains the likely cause and offers exactly one fix."
+      "text": "The three states the hosted plan's calendars table implies: healthy, consecutive_failures > 0, and enabled = false. The failure card explains the likely cause and offers exactly one fix."
     },
     {
       "id": "open-note",
       "x": 1410,
       "y": 2820,
       "w": 390,
-      "text": "Still open: no drag-reorder interaction is drawn (the Reorder affordance is a placeholder), and lapse behaviour after trial isn't shown \u2014 it's an open question in PLAN.md."
+      "text": "Still open: no drag-reorder interaction is drawn (the Reorder affordance is a placeholder), and lapse behaviour after trial isn't shown \u2014 it was an open question when these were drawn."
     },
     {
       "id": "theme-note",

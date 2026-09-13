@@ -10,7 +10,7 @@ the code that needs it.
 
 It connects with `DATABASE_URL_DIRECT` — the cluster, not the pool. CREATE INDEX
 CONCURRENTLY cannot run inside a transaction block, and a transaction-mode
-PgBouncer is the wrong end for schema work (PLAN.md, Connection pooling).
+PgBouncer is the wrong end for schema work (see dinkydash/db.py).
 """
 
 import argparse

@@ -111,7 +111,7 @@ from `main` and the code was still on a branch.
 **The worker has been running since 8 September 2026, 10:58 UTC.** Its first pass refreshed the
 seeded family's (empty) calendars, called Claude, and wrote a dashboard — `Tuesday with no plans means
 extra time together`, visible on app.dinkydash.co within seconds. A pass every 300 seconds after
-that. There is no dead-man's switch yet (PLAN.md Phase 6), so a worker that stops looks exactly
+that. There is no dead-man's switch yet, so a worker that stops looks exactly
 like a quiet day: `doctl apps logs <id> worker --type run --follow` is the only check there is.
 
 
@@ -217,8 +217,8 @@ row starts the 14-day trial and the worker calls Anthropic daily for it, so an u
 costs one `login_tokens` row and one email instead. `login_tokens.user_id` is nullable as of
 `migrations/002_signup_tokens.sql`, with an `email` column beside it.
 
-**What to watch, now that a stranger can make rows.** There is still no global spend breaker (PLAN.md
-phase 2), so the ceiling on a scripted sign-up run is the two rate limits and nothing else: twenty
+**What to watch, now that a stranger can make rows.** There is still no global spend breaker (DIN-43),
+so the ceiling on a scripted sign-up run is the two rate limits and nothing else: twenty
 requests per caller address per hour **per web process** (`--workers 2`, so forty, and a redeploy
 resets it), and three live links per address in Postgres. Neither bounds a distributed run. Until the
 breaker lands, the check is the family count against the Anthropic bill:
@@ -274,8 +274,8 @@ calls and tokens per family per UTC day; `budget.PostgresBudget.allow()` charges
 is made and refuses when either cap is reached.
 
 **The numbers, and what they cost.** The caps are in **model calls**, not money — a price table in
-code goes stale silently and the wrong way. The multiplication lives here instead, from the cost
-model in PLAN.md: roughly **2,500 input and 350 output tokens a call**, which on `claude-haiku-4-5`
+code goes stale silently and the wrong way. The multiplication lives here instead: roughly
+**2,500 input and 350 output tokens a call**, which on `claude-haiku-4-5`
 is about **$0.0043 a call**, or about $0.13 per family per month at the one-a-day the product
 actually makes.
 
@@ -351,7 +351,7 @@ to those pages in the same commit.
 
 **Two things are deliberately *not* promised**, and it matters that they stay unpromised until they
 are built: dropping `generations.brief` after 90 days, and deleting a lapsed family after 90 days.
-Both are in PLAN.md phase 5. Neither sweep is written, so neither is in the policy.
+Both are DIN-57. Neither sweep is written, so neither is in the policy.
 
 **`dinkydash.co` has no MX records.** It is an authenticated *sending* domain and nothing receives
 on it, so every sign-in email had a reply address that reached nobody and a bounce that went

@@ -50,8 +50,7 @@
 # One service serves both hostnames. `wsgi.py` routes on the `Host` header —
 # dinkydash.co to the marketing site, app.dinkydash.co to the dashboard — because
 # qrpage.co and abc-league already run one container each in this account and a
-# second service is $5/month for isolation with no revenue behind it yet. See
-# PLAN.md, Hosting and deployment.
+# second service is $5/month for isolation with no revenue behind it yet.
 #
 # **The `worker` component and `worker/` land in the same commit.** Applying
 # this file from a checkout that predates the package gives a component whose

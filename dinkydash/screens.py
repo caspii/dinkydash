@@ -6,7 +6,7 @@
 
 A wall panel cannot sign in. There is no keyboard on a kitchen tablet left on a
 shelf, and a thirty-day session is the wrong shape for furniture anyway — so
-the dashboard is reached by an unguessable URL instead (PLAN.md, Screen URLs), and
+the dashboard is reached by an unguessable URL instead, and
 this module is the only thing that turns one into a family.
 
 **The token is a bearer credential with none of a magic link's defences.** It
