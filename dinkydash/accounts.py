@@ -3,7 +3,7 @@
 Only SHA-256 hashes of random tokens are stored. Consuming a link verifies the
 mailbox; a signup creates its family in that same transaction. Unexpired
 tokens count toward the email limit even after use. See dinkydash/CLAUDE.md
-for the authentication invariants and PLAN.md for the design rationale.
+for the authentication invariants and the design rationale.
 """
 
 import hashlib

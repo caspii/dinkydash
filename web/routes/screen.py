@@ -11,7 +11,7 @@ that exists and refuses.
 and a Raspberry Pi in kiosk mode have no way to sign in and nobody to do it: the
 whole point of the product is a screen somebody stops thinking about. So the
 credential moves into the URL, where a browser can hold it for months without a
-person (PLAN.md, Screen URLs).
+person.
 
 **That makes the token a bearer credential, and a long-lived one.** It has none
 of a magic link's defences — no expiry, no single use — so the ones it does have

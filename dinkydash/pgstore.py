@@ -2,7 +2,7 @@
 
 Same seven operations as `FileStore`, same dicts in and out, so the runner, the
 dashboard route and the settings routes cannot tell which one they were handed
-(PLAN.md decision 10, and the seam named in DIN-19).
+(the config dict is the contract; the seam is DIN-19).
 
 Kept in its own module rather than beside `FileStore` for one reason: single
 mode must never import psycopg. A Raspberry Pi has no database and should not
@@ -223,7 +223,7 @@ class PostgresStore:
                          entry.get("headline"), entry.get("note"), entry.get("note_kind")),
                     )
                     # Trimmed here rather than by a nightly job, so the table
-                    # cannot grow between sweeps and Phase 5's retention answer
+                    # cannot grow between sweeps and the retention answer
                     # stays "the last thirty, always".
                     cur.execute(
                         """DELETE FROM content_history

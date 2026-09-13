@@ -4,8 +4,7 @@ Cloud mode only. Single mode never imports this, which is what keeps a
 Raspberry Pi from installing a Postgres driver it will never open — psycopg
 lives in `requirements-cloud.txt`, not `requirements.txt`.
 
-Two connection strings, and the difference matters (PLAN.md, Connection
-pooling):
+Two connection strings, and the difference matters:
 
     DATABASE_URL         DigitalOcean's connection pool, transaction mode.
                          What `web` and `worker` use, through `pool()` below.

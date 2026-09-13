@@ -40,7 +40,7 @@ from collections import namedtuple
 
 log = logging.getLogger("dinkydash.worker")
 
-DEFAULT_INTERVAL = 300  # five minutes, as PLAN.md's "three clocks" section says
+DEFAULT_INTERVAL = 300  # five minutes between passes; schedule.due decides what each owes
 
 # What a pass did: how many families were ticked without raising, and how many
 # raised. Both are counts of families, never of anything inside one.
@@ -77,7 +77,7 @@ def family_ids(pool):
     request and no user: the worker's whole job is to walk all of them, so the
     query lives outside the store rather than weakening it.
 
-    Lapsed families are skipped. PLAN.md's freeze behaviour is that fetches and
+    Lapsed families are skipped. Access ending is a freeze: fetches and
     briefs stop while the dashboard keeps its last good state, and that is exactly
     "the worker does not tick them".
     """

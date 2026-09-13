@@ -1,7 +1,7 @@
 """The storage seam: where a family's config, dashboard and history are kept.
 
 FileStore keeps config.yaml and two JSON files; PostgresStore keeps rows keyed
-on a family (PLAN.md decision 10). Both expose seven operations:
+on a family. The config dict is the contract, and both expose seven operations:
 
     load_config()                save_config(config, invalidate_calendars=())
     load_payload(config)         save_agenda(config, agenda)

@@ -140,7 +140,7 @@ class TestTheBoard:
 
     def test_stamps_come_back_in_utc(self, store, config):
         # The two stores must agree about what time a dashboard was written, or the
-        # settings page renders the wrong clock on one of them (PLAN.md bug 9).
+        # settings page renders the wrong clock on one of them.
         save_board(store, config, dict(PAYLOAD))
         written = store.load_payload(config)["generated_at"]
         assert datetime.fromisoformat(written) == datetime(

@@ -3,8 +3,8 @@
 Run with:  python3 -m unittest discover tests   (pytest collects them too)
 
 Stdlib unittest rather than pytest so this adds no dependency to the Pi
-deploy. The functions moved from generate.py into dinkydash.context during the
-Phase 0 extraction; the cases are unchanged.
+deploy. The functions moved from generate.py into dinkydash.context when the
+engine was extracted; the cases are unchanged.
 """
 
 import sys

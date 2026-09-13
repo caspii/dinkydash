@@ -16,7 +16,7 @@ Every morning, DinkyDash merges your calendars into one agenda, works out whose 
 
 > Self-hosting is **community-supported**. Issues and pull requests are welcome, but there is no support commitment — if you need it to just work, use the hosted version.
 
-**Hosted.** [Start a free 14-day trial.](https://app.dinkydash.co/login) No card required. Paid subscriptions are still in development; planned pricing is $39/year or $6/month. Built from this same repo — see [PLAN.md](PLAN.md).
+**Hosted.** [Start a free 14-day trial.](https://app.dinkydash.co/login) No card required. Paid subscriptions are still in development; planned pricing is $39/year or $6/month. Built from this same repo, in cloud mode — see [Two modes, always](CLAUDE.md#two-modes-always).
 
 ## What the dashboard shows
 
@@ -90,7 +90,7 @@ the whole Raspberry Pi build with systemd, kiosk mode and the screen schedule.
 > [WireGuard](https://www.wireguard.com), or put a reverse proxy with basic auth in front of it.
 >
 > Hosted mode is a different matter — it authenticates every request and is scoped per family. See
-> [PLAN.md](PLAN.md).
+> [Hosted mode raises the stakes](CLAUDE.md#hosted-mode-raises-the-stakes).
 
 ---
 
@@ -102,8 +102,7 @@ the whole Raspberry Pi build with systemd, kiosk mode and the screen schedule.
 | Every config key, with comments | [`config.example.yaml`](config.example.yaml) |
 | Living with it: the daily cycle, the two buttons, what to check when something looks wrong | [`doc/running-it.md`](doc/running-it.md) |
 | Coming from an older version | [`doc/upgrading.md`](doc/upgrading.md) |
-| The hosted build: architecture, phases, decisions | [`PLAN.md`](PLAN.md) |
-| Working on the code | [`CLAUDE.md`](CLAUDE.md) |
+| Working on the code, and how the hosted build shares it | [`CLAUDE.md`](CLAUDE.md) |
 | Product terms and UI wording | [`doc/terminology.md`](doc/terminology.md) |
 
 The install and Pi guides live on the website rather than here, so there is one copy of each
@@ -160,11 +159,10 @@ versions CI passed on. A pull request that fails either check shows a red X.
 | `.gitleaks.toml` | Secret-scanning rules, including one for iCal secret addresses |
 | `dashboard_data.json` | The generated payload (not in git) |
 | `content_history.json` | Recent notes, so the model doesn't repeat itself (not in git) |
-| `PLAN.md` | Hosted MVP architecture and build phases |
 
 ## Contributing
 
-Pull requests are welcome. The codebase is one monorepo serving both the self-hosted and the hosted build, so a change has to work in both modes — check [PLAN.md](PLAN.md) before starting anything structural, and open an issue first for larger changes.
+Pull requests are welcome. The codebase is one monorepo serving both the self-hosted and the hosted build, so a change has to work in both modes — read [CLAUDE.md](CLAUDE.md) before starting anything structural, and open an issue first for larger changes.
 
 Known rough edges are listed under "Known issues" in [CLAUDE.md](CLAUDE.md).
 

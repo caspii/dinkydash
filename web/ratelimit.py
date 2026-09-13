@@ -16,8 +16,8 @@ and a bounce there costs a sender reputation that is not only ours.
 **It counts per process.** The app runs `gunicorn --workers 2`, so the real
 ceiling is twice what is written below, and a redeploy resets it. That is
 accepted rather than overlooked: the number is chosen to be a bound on abuse,
-not a precise quota, and PLAN.md phase 2's global spend breaker is what
-actually stops a bill running away.
+not a precise quota, and the global spend breaker in `dinkydash/budget.py` is
+what actually stops a bill running away.
 """
 
 import ipaddress

@@ -253,7 +253,7 @@ constant spends more type size, so measure at `/preview` before you do.
 
 **The shared waiting screen must work in both modes.** Refer to the settings button, **Write the
 first dashboard**, rather than a shell command. Keep that label in sync with `settings/home.html` and
-see [The first dashboard](../PLAN.md#the-first-dashboard) for scheduling behaviour. It has two wordings,
+see [Two cadences, one tick](../dinkydash/CLAUDE.md#two-cadences-one-tick) for when it is written. It has two wordings,
 chosen by `view.set_up`: "writing your first dashboard" when one is on its way, and "nearly there"
 while the family is still setting up and nothing is being written.
 

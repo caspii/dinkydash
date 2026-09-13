@@ -1,11 +1,11 @@
 -- The hosted schema: one row per family, and the platform's own bookkeeping.
 --
--- Config is one jsonb document rather than five tables (PLAN.md decision 10 and
--- the data model sketch). Nothing in the product ever asks which families have a
--- child born in March, so a table each for people, pets, chores, dates and
--- calendars would buy five sets of CRUD code and no answers. Real columns are
--- for what the *platform* queries or writes; the parent's own settings stay in
--- the dict the engine already takes.
+-- Config is one jsonb document rather than five tables: the config dict is the
+-- storage contract in both modes. Nothing in the product ever asks which
+-- families have a child born in March, so a table each for people, pets, chores,
+-- dates and calendars would buy five sets of CRUD code and no answers. Real
+-- columns are for what the *platform* queries or writes; the parent's own
+-- settings stay in the dict the engine already takes.
 --
 -- Conventions, matching the ones used across these projects: TEXT with a CHECK
 -- rather than VARCHAR(n), GENERATED ALWAYS AS IDENTITY rather than SERIAL, and
@@ -25,12 +25,12 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto;   -- gen_random_uuid()
 CREATE TABLE families (
     id                      UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
-    -- One plan at MVP (PLAN.md decision 6). A column rather than a constant
+    -- One plan at MVP. A column rather than a constant
     -- because the first thing a second plan needs is somewhere to be recorded.
     plan                    TEXT NOT NULL DEFAULT 'standard'
                             CHECK (plan IN ('standard')),
 
-    -- The trial lives here, not in Stripe (PLAN.md phase 4): a family that never
+    -- The trial lives here, not in Stripe: a family that never
     -- converts never becomes a Stripe customer.
     status                  TEXT NOT NULL DEFAULT 'trialing'
                             CHECK (status IN ('trialing', 'active', 'past_due',
@@ -40,7 +40,7 @@ CREATE TABLE families (
 
     -- A bearer credential: whoever holds it sees the board. 12 characters of
     -- dinkydash.config.ID_ALPHABET is ~59 bits and still readable off a TV
-    -- screen (PLAN.md, Screen URLs). Rotatable, so the column is not immutable.
+    -- screen. Rotatable, so the column is not immutable.
     screen_token            TEXT NOT NULL UNIQUE
                             CHECK (length(screen_token) BETWEEN 10 AND 32),
     screen_token_rotated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -58,7 +58,7 @@ CREATE TABLE families (
 -- no second copy of the timezone to drift out of step with the config.
 CREATE INDEX families_timezone_idx ON families ((config ->> 'timezone'));
 
--- Phase 6's admin view and the lapse sweep both walk this.
+-- The admin view and the lapse sweep both walk this.
 CREATE INDEX families_status_idx ON families (status);
 
 
@@ -81,7 +81,7 @@ CREATE INDEX users_family_idx ON users (family_id);
 
 -- Login tokens --------------------------------------------------------------
 --
--- Hashed at rest, single use, short lived (PLAN.md phase 1). Only the hash is
+-- Hashed at rest, single use, short lived. Only the hash is
 -- stored, so a database leak does not hand anybody a working login link; the
 -- plaintext exists for the length of one email.
 
@@ -103,7 +103,7 @@ CREATE INDEX login_tokens_user_idx ON login_tokens (user_id);
 --
 -- The fetched calendar window: one row per family, overwritten on every
 -- refresh. Calendar contents therefore never accumulate — the most we ever hold
--- about a family is one fourteen-day window, which is what makes Phase 5's
+-- about a family is one fourteen-day window, which is what keeps the
 -- retention answer short.
 
 CREATE TABLE agendas (
@@ -160,8 +160,9 @@ CREATE TABLE generations (
     status             TEXT NOT NULL DEFAULT 'ok' CHECK (status IN ('ok', 'error')),
 
     -- headline, note, note_kind — the only part of the payload that cannot be
-    -- recomputed from config + date. Dropped after 90 days (PLAN.md phase 5);
-    -- the token counts below stay, because they are the cost record.
+    -- recomputed from config + date. To be dropped after 90 days by a sweep that
+    -- is still to be written (DIN-57); the token counts below stay, because they
+    -- are the cost record.
     brief              JSONB,
 
     input_tokens       INTEGER,

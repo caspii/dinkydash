@@ -63,8 +63,8 @@ ID_ALPHABET = "23456789abcdefghjkmnpqrstuvwxyz"
 ID_LENGTH = 8
 
 # A screen URL is read off a television and typed on a remote, so it uses the
-# same unambiguous alphabet — 12 characters of it is about 59 bits, which is
-# what PLAN.md's "Screen URLs" section settled on. The column allows 10 to 32.
+# same unambiguous alphabet — 12 characters of it is about 59 bits, and the
+# route rate-limits misses. The column allows 10 to 32.
 SCREEN_TOKEN_LENGTH = 12
 
 
