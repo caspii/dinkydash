@@ -414,11 +414,13 @@ expiry is implemented; checkout, payment and cancellation still need that verifi
 - [x] Account export/download and hard-delete actions, scoped to the signed-in family ([DIN-44](https://linear.app/keepthescore/issue/DIN-44)).
 - [x] Include every retained historical generation in the export ([DIN-50](https://linear.app/keepthescore/issue/DIN-50)).
 - [x] Keep generated family text and bearer credentials out of service logs ([DIN-47](https://linear.app/keepthescore/issue/DIN-47)).
-- [ ] Verify DigitalOcean/Cloudflare agreement status and record private evidence ([DIN-59](https://linear.app/keepthescore/issue/DIN-59)).
-  Live hosting regions and DNS routing checked on 11 September 2026; the privacy
-  policy distinguishes DigitalOcean hosting from Cloudflare's global delivery
-  network. Published terms incorporate the providers' DPAs; confirmation of the
-  accounts' governing agreements remains in DIN-59, with private evidence there.
+- [x] Verify DigitalOcean/Cloudflare agreement status and record private evidence ([DIN-59](https://linear.app/keepthescore/issue/DIN-59)).
+  Both accounts run on the providers' standard self-service terms, which
+  incorporate their published DPAs; neither has a separately negotiated
+  agreement, confirmed by the account owner on 14 September 2026. The privacy
+  policy distinguishes DigitalOcean's Frankfurt hosting from Cloudflare's global
+  delivery. Account identifiers and the evidence behind this stay private, in
+  DIN-59.
 - [ ] Implement and then disclose old-brief and lapsed-family retention sweeps ([DIN-57](https://linear.app/keepthescore/issue/DIN-57)).
 
 **Done when:** disclosures match actual collection, retention, export and deletion,
