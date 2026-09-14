@@ -2,14 +2,14 @@
 
     send(to, subject, text) -> None
 
-Magic links are what this exists for; dunning and the support
-inbox are later callers of the same function. Named `mail` rather than `email`
-because the standard library owns that name.
+Magic links are what this exists for; dunning and the support inbox are later
+callers of the same function. Named `mail` rather than `email` because the
+standard library owns that name.
 
-**SendGrid, on the account KeepTheScore already sends from.** The
-shared sender reputation is the whole point: a login link that lands in spam is
-a login that fails. `dinkydash.co` is an authenticated sending domain on that
-account, so DKIM signs whatever leaves here.
+**SendGrid, on the account KeepTheScore already sends from.** The shared
+sender reputation is the whole point: a login link that lands in spam is a login
+that fails. `dinkydash.co` is an authenticated sending domain on that account,
+so DKIM signs whatever leaves here.
 
 **No SendGrid SDK.** Sending is one `POST` with a JSON body, and `requests` is
 already a dependency because `calendars.py` fetches feeds with it. A new

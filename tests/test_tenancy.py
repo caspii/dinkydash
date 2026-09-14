@@ -407,8 +407,8 @@ class TestTheHardcodedFamilyIsGone:
     def test_nothing_mentions_it_anywhere(self):
         """Prose included, deliberately.
 
-        The dated notes in doc/operations.md were rewritten rather
-        than left, because "cloud mode serves one family from an environment
+        The dated notes in doc/operations.md were rewritten rather than
+        left, because "cloud mode serves one family from an environment
         variable" stopped being true — a log that records a fact is worth
         keeping, and one that records a stale fact is worth correcting. This
         file is excluded because a test asserting a name is gone has to say it.

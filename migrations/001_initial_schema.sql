@@ -25,13 +25,13 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto;   -- gen_random_uuid()
 CREATE TABLE families (
     id                      UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
-    -- One plan at MVP. A column rather than a constant
-    -- because the first thing a second plan needs is somewhere to be recorded.
+    -- One plan at MVP. A column rather than a constant because the first
+    -- thing a second plan needs is somewhere to be recorded.
     plan                    TEXT NOT NULL DEFAULT 'standard'
                             CHECK (plan IN ('standard')),
 
-    -- The trial lives here, not in Stripe: a family that never
-    -- converts never becomes a Stripe customer.
+    -- The trial lives here, not in Stripe: a family that never converts
+    -- never becomes a Stripe customer.
     status                  TEXT NOT NULL DEFAULT 'trialing'
                             CHECK (status IN ('trialing', 'active', 'past_due',
                                               'canceled', 'lapsed')),
@@ -81,9 +81,9 @@ CREATE INDEX users_family_idx ON users (family_id);
 
 -- Login tokens --------------------------------------------------------------
 --
--- Hashed at rest, single use, short lived. Only the hash is
--- stored, so a database leak does not hand anybody a working login link; the
--- plaintext exists for the length of one email.
+-- Hashed at rest, single use, short lived. Only the hash is stored, so a
+-- database leak does not hand anybody a working login link; the plaintext
+-- exists for the length of one email.
 
 CREATE TABLE login_tokens (
     id         BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
@@ -103,8 +103,8 @@ CREATE INDEX login_tokens_user_idx ON login_tokens (user_id);
 --
 -- The fetched calendar window: one row per family, overwritten on every
 -- refresh. Calendar contents therefore never accumulate — the most we ever hold
--- about a family is one fourteen-day window, which is what keeps the
--- retention answer short.
+-- about a family is one fourteen-day window, which is what keeps the retention
+-- answer short.
 
 CREATE TABLE agendas (
     family_id  UUID PRIMARY KEY REFERENCES families (id) ON DELETE CASCADE,

@@ -102,14 +102,14 @@
       "x": 470,
       "y": 1852,
       "w": 390,
-      "text": "Chore rotation was undefined in the hosted plan. Proposal: an explicit ordered list plus a next-week preview, so the day-of-year modulo is visible rather than mysterious. Reordering takes effect tomorrow \u2014 today's dashboard is already written."
+      "text": "Chore rotation was undefined when these were drawn. Proposal: an explicit ordered list plus a next-week preview, so the day-of-year modulo is visible rather than mysterious. Reordering takes effect tomorrow \u2014 today's dashboard is already written."
     },
     {
       "id": "calendar-note",
       "x": 1410,
       "y": 1852,
       "w": 390,
-      "text": "The three states the hosted plan's calendars table implies: healthy, consecutive_failures > 0, and enabled = false. The failure card explains the likely cause and offers exactly one fix."
+      "text": "The three states the calendars table implies: healthy, consecutive_failures > 0, and enabled = false. The failure card explains the likely cause and offers exactly one fix."
     },
     {
       "id": "open-note",

@@ -119,8 +119,8 @@ starter config in the transaction that spent it. Five things about that are deli
 
 - **The family is created on the click, never on the submit.** A `families` row starts a 14-day
   trial and the worker calls Anthropic daily for it, so a POST that created one would be a way to
-  spend our money without a card. Verifying first makes an unverified sign-up cost one row and one
-  email.
+  spend our money without a card. Verifying first makes an unverified sign-up cost one row and
+  one email.
 - **One table, not two.** `login_tokens.user_id` is nullable with an `email` beside it and a CHECK
   that exactly one is set. A `signup_tokens` table would have meant a second single-use `UPDATE`,
   and that statement is the thing the whole design rests on — written twice, one copy drifts.
