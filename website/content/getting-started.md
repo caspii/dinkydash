@@ -1,5 +1,6 @@
 ---
-title: Getting Started with DinkyDash
+title: Self-Hosting DinkyDash
+seo_title: "Self-Hosting DinkyDash: Run the Family Dashboard Yourself"
 template: page.html
 description: Set up DinkyDash from scratch — first on your computer, then as a permanent wall dashboard on a Raspberry Pi running the current Raspberry Pi OS.
 ---
