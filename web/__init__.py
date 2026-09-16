@@ -52,6 +52,14 @@ def create_app(store=None, *, pool=None):
     # Settings templates use `config` for the family's settings, not Flask's.
     app.jinja_env.globals["cloud"] = app.config["MODE"] == CLOUD
 
+    # Whether the feedback pill is drawn at all. A callable rather than a
+    # boolean, for the reason `turnstile_site_key` is one: it is read at render
+    # time, so pulling the mail key takes the form away without a rebuild — and
+    # it is the same function the route is gated behind, so a button that could
+    # not work is never shown.
+    from . import feedback
+    app.jinja_env.globals["feedback_enabled"] = feedback.enabled
+
     from .session import configure as configure_session
     configure_session(app)
 

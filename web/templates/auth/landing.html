@@ -16,6 +16,9 @@
 {% extends "settings/base.html" %}
 {% block title %}Sign in to DinkyDash{% endblock %}
 {% block manifest %}{% endblock %}
+{# No pill: there is no session behind these pages, so the page it leads
+   to would only ever be a redirect back to here. #}
+{% block feedback %}{% endblock %}
 {# No prefetch or prerender here: both are a GET made without being asked, and
    the button below is a POST that spends a credential. #}
 {% block speculation %}{% endblock %}

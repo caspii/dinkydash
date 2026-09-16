@@ -378,6 +378,7 @@ web/
 ├── setup.py           the set-up checklist: what a new family still has to do, from the config
 ├── assets.py          static URLs with the file's content version, and the year they are cached for
 ├── ratelimit.py       a per-key counter, in this process (the per-IP half)
+├── feedback.py        what somebody can tell us: one form, one email, nothing kept
 ├── routes/board.py    the dashboard and the preview harness
 ├── routes/settings.py the settings UI (one table drives every list section)
 ├── routes/auth.py     /login, /login/link, /logout — cloud mode only

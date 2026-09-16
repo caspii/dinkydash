@@ -5,7 +5,7 @@ template: page.html
 description: What DinkyDash stores, who it is sent to, how long it is kept, and how to get it back or delete it.
 ---
 
-*Last updated: 11 September 2026.*
+*Last updated: 16 September 2026.*
 
 DinkyDash puts a family's day on a screen. That means the things it holds are a
 household's names, dates of birth and movements — which is about as personal as
@@ -34,6 +34,7 @@ either something you typed or something the software produced.
 | **Sign-in links** | Generated when you ask for one | Hashed, never stored as a working link |
 | **Counts of model calls** | Recorded when the dashboard is written | So one account cannot run up an unbounded bill |
 | **Counts of sign-ups and first calendar connections** | Recorded when a family is created, and the first time it saves a calendar link | So we can see whether the product is being used, without looking at anyone's account |
+| **Anything you send us** | You write it in the feedback form, or email us | So we can answer it and fix what you told us about. It is not stored in the app — it arrives as an email |
 
 **We do not use cookies for tracking.** The hosted app sets one cookie, and it
 is the session that keeps you signed in. There is no analytics on
@@ -43,7 +44,7 @@ Analytics, which is cookieless and collects no personal data.
 
 ## Where it goes
 
-Four things leave our servers, they are different in kind, and it matters
+Five things leave our servers, they are different in kind, and it matters
 which is which.
 
 **Anthropic sees your family's day.** Once each morning the day's agenda — the
@@ -52,9 +53,19 @@ Anthropic so Claude can write the headline and the one written line. That is
 the feature. Nothing else about you is sent, and it is not used to train
 models.
 
-**SendGrid sees who is signing in, and nothing else.** When you ask for a sign-in
-link, your email address and the link go to SendGrid to be delivered. SendGrid
-never sees a calendar, a name or a date of birth.
+**SendGrid delivers our email, which is sign-in links and feedback.** When you
+ask for a sign-in link, your email address and the link go to SendGrid to be
+delivered. When you use the feedback form, what you wrote and your address go
+the same way. SendGrid never sees a calendar, a name or a date of birth.
+
+**Feedback goes to a mailbox, not to a database.** What you write in the form is
+sent to `hi@keepthescore.com` with your account's address and your family's
+internal reference on it, so we can reply and find the dashboard you are asking
+about. Nothing from the dashboard goes with it — no names, no calendar links and
+no appointments — unless you write them yourself. That mailbox is on Google
+Workspace, the same one you reach by writing to us directly, and it is where
+your message stays: there is no feedback table in the app, so nothing about it
+appears in your export and there is nothing in the app to delete.
 
 **Sentry sees that something broke, and not whose dashboard it was.** When the app
 or the background worker hits an error, a report goes to Sentry: which line of
@@ -83,7 +94,8 @@ API key at all, and simply goes without the written line.
 |---|---|---|
 | **Anthropic** | Writes the daily note from the day's agenda | United States |
 | **DigitalOcean** | Runs the app and the database | Frankfurt, Germany (US company) |
-| **SendGrid** (Twilio) | Delivers sign-in emails | United States |
+| **SendGrid** (Twilio) | Delivers sign-in and feedback emails | United States |
+| **Google** (Workspace) | The mailbox our support and feedback email arrives in | United States |
 | **Cloudflare** | DNS; website and app delivery through DigitalOcean's App Platform; the bot check on the sign-in page | Global (US company) |
 | **Sentry** (Functional Software) | Error reports, and the checks that the app and the worker are running | United States |
 
@@ -92,8 +104,8 @@ provides our DNS and, as one of
 [DigitalOcean's sub-processors](https://www.digitalocean.com/trust/subprocessors),
 delivers website and app traffic through its global network. Hosting in
 Frankfurt does not mean all processing stays in Germany: requests pass through
-that network, and Anthropic, SendGrid and Sentry process data in the United
-States as listed above.
+that network, and Anthropic, SendGrid, Google and Sentry process data in the
+United States as listed above.
 
 DigitalOcean and Cloudflare are United States companies. Their published
 [data processing agreement](https://www.digitalocean.com/legal/data-processing-agreement)
@@ -101,9 +113,10 @@ and [data processing addendum](https://www.cloudflare.com/cloudflare-customer-dp
 set out safeguards for international transfers, including the EU–US Data
 Privacy Framework and standard contractual clauses where applicable.
 
-**Google Fonts is not on this list, and that is deliberate.** The typeface is
-served from our own servers, so no page of DinkyDash — not the dashboard, not the
-settings, not this site — asks Google for anything or tells them you were here.
+**Google Fonts is not on that list, and that is deliberate.** The only Google
+service here is the mailbox above. The typeface is served from our own servers,
+so no page of DinkyDash — not the dashboard, not the settings, not this site —
+asks Google for anything or tells them you were here.
 
 Payment processing will be added to this list when payment exists. It does not
 yet.
@@ -122,6 +135,8 @@ We would rather hold less, so most of this expires on its own.
   recent history until it is trimmed.
 - **Sign-in links**: deleted once expired, which is fifteen minutes. A link that
   has been used is deleted on the same schedule.
+- **Anything you send us**: kept in our mailbox as long as any other
+  correspondence, because that is what it is. Ask us to delete it and we will.
 - **Your account, your family's details and the record of dashboards written**: kept
   while the account exists, and deleted when you delete it.
 - **Daily totals of model calls across the service**: kept without an account
