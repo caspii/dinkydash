@@ -369,7 +369,10 @@
     .screen-tile h3 { font-size: 0.95rem; font-weight: 800; margin-bottom: 4px; }
     .screen-tile p { font-size: 0.82rem; color: var(--text-mid); line-height: 1.55; }
 
-    /* WHAT IT COSTS — the price comparison and the two modes, one section */
+    /* WHAT IT COSTS — the price comparison and the two modes, one section.
+       The nav's Pricing link lands here, so the heading has to clear the sticky
+       bar rather than sit behind it. */
+    .costs { scroll-margin-top: 60px; }
     .math-grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
@@ -772,7 +775,7 @@
 </section>
 
 <!-- WHAT IT COSTS -->
-<section class="section costs" id="two-ways">
+<section class="section costs" id="pricing">
     <div class="container">
         <div class="section-head">
             <h2>What it costs</h2>

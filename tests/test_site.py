@@ -172,6 +172,106 @@ class TestHostedSignup:
             r'<script type="application/ld\+json">(.*?)</script>', body, re.S)]
 
 
+class TestTheNavigation:
+    """What the nav is for, asserted rather than assumed.
+
+    It is the short list of pages somebody already on the site would open, plus
+    the two doors into the app. The competitor comparisons are not on it: they
+    are written to be arrived at from a search, and in the nav they pointed a
+    reader half-way through our own pitch at pages about the competition. They
+    stay linked site-wide from the footer, which is where an entry page belongs,
+    so nothing is lost to a crawler either.
+    """
+
+    LOGIN = "https://app.dinkydash.co/login"
+    # Entry pages, not destinations. Named here so that adding a fourth
+    # comparison and quietly putting it in the nav fails.
+    COMPARISONS = (
+        "/diy-skylight-calendar/",
+        "/skylight-calendar-alternatives/",
+        "/dakboard-alternatives/",
+        "/dakboard-vs-skylight/",
+        "/hearth-vs-skylight/",
+    )
+
+    def _chrome(self, client, url):
+        """The nav and the footer of a page, or None where there is neither."""
+        body = client.get(url).get_data(as_text=True)
+        if "<nav>" not in body:
+            return None      # the full-screen countdown has no site chrome
+        return (body.split("<nav>")[1].split("</nav>")[0],
+                body.split("<footer>")[1].split("</footer>")[0])
+
+    def test_every_page_offers_the_way_back_in(self, client):
+        """A family whose dashboard is already running arrives on a guide as
+        often as anybody else, and "Start free" is not a door they would try.
+        Both links go to /login, which signs in and signs up alike, so the
+        labels are the only thing telling the two readers apart."""
+        checked = 0
+        for page in render.pages():
+            chrome = self._chrome(client, page["url"])
+            if chrome is None:
+                continue
+            nav, _ = chrome
+            assert f'class="nav-signin" href="{self.LOGIN}"' in nav, page["url"]
+            checked += 1
+        assert checked >= 20
+
+    def test_the_sign_in_link_moves_with_the_app_address(self):
+        """Same reason as the trial button: a preview must not send anybody to
+        production."""
+        local = create_site_app(site_url="https://dinkydash.co",
+                               app_url="http://127.0.0.1:5000/").test_client()
+        body = local.get("/").get_data(as_text=True)
+        assert 'class="nav-signin" href="http://127.0.0.1:5000/login"' in body
+        assert self.LOGIN not in body
+
+    def test_price_is_one_click_from_every_page(self, client):
+        """Price is the answer to the question the rest of the home page argues
+        about, and it used to be reachable only by scrolling. An anchor rather
+        than a page, so there is only ever one copy of the number to keep true —
+        which is what this asserts: the link lands on a section that exists."""
+        home = client.get("/").get_data(as_text=True)
+        assert 'id="pricing"' in home
+        for page in render.pages():
+            chrome = self._chrome(client, page["url"])
+            if chrome is None:
+                continue
+            assert 'href="/#pricing"' in chrome[0], page["url"]
+
+    def test_the_comparisons_are_in_the_footer_and_not_the_nav(self, client):
+        for page in render.pages():
+            chrome = self._chrome(client, page["url"])
+            if chrome is None:
+                continue
+            nav, footer = chrome
+            for url in self.COMPARISONS:
+                assert f'href="{url}"' not in nav, f"{page['url']} -> {url}"
+                assert f'href="{url}"' in footer, f"{page['url']} -> {url}"
+
+    def test_the_menu_button_says_whether_the_menu_is_open(self, client):
+        """It was an inline toggle, which left the button claiming
+        aria-expanded="false" over an open menu and gave a reader no way out of
+        it but the button. The script that fixes that is also what opens the
+        menu at all, so a page cannot ship one without the other."""
+        body = client.get("/").get_data(as_text=True)
+        nav = body.split("<nav>")[1].split("</nav>")[0]
+        assert 'aria-expanded="false"' in nav
+        assert 'aria-controls="nav-links"' in nav
+        assert 'id="nav-links"' in nav
+        assert "onclick" not in nav
+        assert "aria-expanded" in body.split("</nav>")[1], "nothing keeps it in step"
+
+    def test_the_page_you_are_on_is_marked(self, client):
+        """`aria-current` on the entry, which is also what colours it."""
+        for url, label in (("/about/", "About"), ("/getting-started/", "Self-hosting")):
+            nav = self._chrome(client, url)[0]
+            assert f'href="{url}" aria-current="page">{label}<' in nav
+        # Not on a page the nav does not list, and never on the anchor.
+        nav = self._chrome(client, "/dakboard-alternatives/")[0]
+        assert "aria-current" not in nav
+
+
 class TestUrls:
     def test_the_home_page_is_the_root(self, client):
         assert client.get("/").status_code == 200

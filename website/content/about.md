@@ -39,7 +39,7 @@ The result is a screen that feels alive. It knows it's someone's birthday week. 
 
 ## Where to start
 
-- [Getting started guide](/getting-started/) — from zero to a dashboard on your wall
+- [Self-hosting guide](/getting-started/) — from zero to a dashboard on your wall
 - [The ~$100 DIY build](/diy-skylight-calendar/) — the Raspberry Pi + touchscreen route
 - [How it compares to Skylight, Hearth & co.](/skylight-calendar-alternatives/)
 - [The code, on GitHub](https://github.com/caspii/dinkydash)

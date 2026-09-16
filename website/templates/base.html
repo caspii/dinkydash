@@ -96,12 +96,30 @@
             transition: color 0.15s;
         }
         .nav-links a:hover { color: var(--accent); text-decoration: none; }
-        /* The trial button sits outside .nav-links on purpose: the links
-           collapse into the hamburger below 950px, and a call to action inside
-           a closed menu is a call to action nobody sees. Most visitors arrive
-           on a guide rather than the home page, so this is the only button
-           they are offered. */
+        /* The page you are on, marked in the nav rather than only in the title
+           bar. Anchor links carry no aria-current, because an anchor is a place
+           on a page rather than a page. */
+        .nav-links a[aria-current="page"] { color: var(--accent); }
+        /* Both ways in sit outside .nav-links on purpose: the links collapse
+           into the hamburger below the breakpoint, and neither a call to action
+           nor the way back to your own dashboard can live inside a closed menu.
+           Most visitors arrive on a guide rather than the home page, so this bar
+           is the only one they are offered.
+
+           Two links, one destination: /login is the sign-up form as well, so the
+           labels are what tell a new parent and a returning one apart. The quiet
+           one is first because the loud one should be the last thing read. */
         .nav-actions { display: flex; align-items: center; gap: 10px; }
+        .nav-signin {
+            color: var(--text-mid);
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-decoration: none;
+            white-space: nowrap;
+            padding: 8px 4px;
+            transition: color 0.15s;
+        }
+        .nav-signin:hover { color: var(--accent); text-decoration: none; }
         /* .btn.btn-nav (not .btn-nav alone) so this always wins over .btn's
            padding/font-size/border-radius/box-shadow regardless of where each
            rule sits in the file — two classes of equal specificity would
@@ -300,11 +318,11 @@
             cursor: pointer;
             padding: 4px;
         }
-        /* The links collapse well before a phone. Six of them plus the brand
-           and the button need about 950px; below that they wrap into the brand
-           and then under the button, so the menu takes over while there is
-           still room for it to look deliberate. */
-        @media (max-width: 950px) {
+        /* The links collapse well before a phone. Four of them plus the brand,
+           the sign-in link and the button need about 700px; below that they wrap
+           into the brand and then under the button, so the menu takes over at
+           800px while there is still room for it to look deliberate. */
+        @media (max-width: 800px) {
             .mobile-toggle { display: block; }
             .nav-links {
                 display: none;
@@ -319,6 +337,14 @@
                 gap: 16px;
             }
             .nav-links.open { display: flex; }
+        }
+        /* The bar carries four things on a phone now, so the gutters and the
+           button's padding give way before anything wraps onto a second line. */
+        @media (max-width: 400px) {
+            nav .container { padding: 0 14px; }
+            .nav-actions { gap: 4px; }
+            .nav-signin { font-size: 0.8rem; padding: 8px 2px; }
+            .btn-nav { padding: 8px 11px; font-size: 0.8rem; }
         }
         @media (max-width: 640px) {
             .footer-row { flex-direction: column; gap: 8px; text-align: center; }
@@ -409,23 +435,43 @@
     {% block extra_head %}{% endblock %}
 </head>
 <body>
+{# A nav entry marks itself as the current page. The comparison is against the
+   path alone, so it holds whichever host the site is served from. #}
+{% macro nav_link(href, label, path=None) -%}
+<li><a href="{{ href }}"{% if path and request.path == path %} aria-current="page"{% endif %}>{{ label }}</a></li>
+{%- endmacro %}
 <nav>
     <div class="container">
         <a class="nav-brand" href="/">DinkyDash</a>
-        <ul class="nav-links">
-            <li><a href="/diy-skylight-calendar/">DIY calendar</a></li>
-            <li><a href="/skylight-calendar-alternatives/">Alternatives</a></li>
-            <li><a href="/dakboard-alternatives/">DAKboard</a></li>
-            <li><a href="/birthday-countdown/">Countdown</a></li>
+        {# **What the nav is for.** These are the pages a visitor who is already
+           here would choose to open. The competitor comparisons are not: they are
+           written to be arrived at from a search, and every one of them is still
+           linked site-wide from the footer, which is where an entry page belongs.
+           In the nav they pointed a reader half-way through our own pitch at
+           pages about Skylight and DAKboard, and "Alternatives" on our own site
+           reads as alternatives to us.
+
+           Price leads, because it is the answer to the question the rest of the
+           home page is arguing about. It is an anchor rather than a page: the
+           costs section already exists and a second copy of a price is a second
+           thing to keep true. #}
+        <ul class="nav-links" id="nav-links">
+            {{ nav_link('/#pricing', 'Pricing') }}
             {# "Get started" read as the way in and led to an afternoon in a
                terminal. Named for what it is, it releases the reader who wants
                it without competing with the button beside it. #}
-            <li><a href="/getting-started/">Self-hosting</a></li>
-            <li><a href="/about/">About</a></li>
+            {{ nav_link('/getting-started/', 'Self-hosting', '/getting-started/') }}
+            {# The free tool, under the name somebody would search for. #}
+            {{ nav_link('/birthday-countdown/', 'Birthday countdown', '/birthday-countdown/') }}
+            {{ nav_link('/about/', 'About', '/about/') }}
         </ul>
         <div class="nav-actions">
+            {# A family whose dashboard is already running arrives on a guide as
+               often as anybody else, and "Start free" is not a door they would
+               try. Both go to /login, which signs in and signs up alike. #}
+            <a class="nav-signin" href="{{ app_url }}/login">Sign in</a>
             <a class="btn btn-nav" href="{{ app_url }}/login">Start free</a>
-            <button class="mobile-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">&#9776;</button>
+            <button class="mobile-toggle" type="button" aria-label="Menu" aria-expanded="false" aria-controls="nav-links">&#9776;</button>
         </div>
     </div>
 </nav>
@@ -482,6 +528,42 @@
     </div>
 </footer>
 
+<script>
+    // The hamburger. A control that says whether it is open has to keep
+    // saying it: an inline toggle flips the class and leaves aria-expanded
+    // reading "false" over an open menu, which is what a screen reader
+    // announces. So one function moves both.
+    //
+    // An overlay menu also needs more ways out than the button that opened
+    // it: Escape closes it and hands focus back, a tap anywhere outside
+    // closes it, and following a link closes it on the way.
+    (function () {
+        var toggle = document.querySelector('.mobile-toggle');
+        var links = document.getElementById('nav-links');
+        if (!toggle || !links) return;
+
+        function open(yes) {
+            links.classList.toggle('open', yes);
+            toggle.setAttribute('aria-expanded', yes ? 'true' : 'false');
+        }
+
+        toggle.addEventListener('click', function (event) {
+            event.stopPropagation();
+            open(!links.classList.contains('open'));
+        });
+        links.addEventListener('click', function (event) {
+            if (event.target.closest('a')) open(false);
+        });
+        document.addEventListener('click', function (event) {
+            if (!links.contains(event.target)) open(false);
+        });
+        document.addEventListener('keydown', function (event) {
+            if (event.key !== 'Escape' || !links.classList.contains('open')) return;
+            open(false);
+            toggle.focus();
+        });
+    })();
+</script>
 <!-- Fathom - beautiful, simple analytics -->
 <script src="https://cdn.usefathom.com/script.js" data-site="HLVHPKAZ" defer></script>
 <!-- / Fathom -->
