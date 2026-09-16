@@ -87,7 +87,7 @@
             text-decoration: none;
             letter-spacing: -0.02em;
         }
-        .nav-links { display: flex; gap: 24px; list-style: none; }
+        .nav-links { display: flex; gap: 18px; list-style: none; }
         .nav-links a {
             color: var(--text-mid);
             font-size: 0.9rem;
@@ -96,6 +96,20 @@
             transition: color 0.15s;
         }
         .nav-links a:hover { color: var(--accent); text-decoration: none; }
+        /* The trial button sits outside .nav-links on purpose: the links
+           collapse into the hamburger below 950px, and a call to action inside
+           a closed menu is a call to action nobody sees. Most visitors arrive
+           on a guide rather than the home page, so this is the only button
+           they are offered. */
+        .nav-actions { display: flex; align-items: center; gap: 10px; }
+        .btn-nav {
+            padding: 8px 16px;
+            font-size: 0.85rem;
+            border-radius: 10px;
+            box-shadow: none;
+            white-space: nowrap;
+        }
+        .btn-nav:hover { box-shadow: 0 3px 12px rgba(232, 93, 36, 0.28); }
 
         /* FOOTER */
         footer {
@@ -281,7 +295,11 @@
             cursor: pointer;
             padding: 4px;
         }
-        @media (max-width: 640px) {
+        /* The links collapse well before a phone. Six of them plus the brand
+           and the button need about 950px; below that they wrap into the brand
+           and then under the button, so the menu takes over while there is
+           still room for it to look deliberate. */
+        @media (max-width: 950px) {
             .mobile-toggle { display: block; }
             .nav-links {
                 display: none;
@@ -296,6 +314,8 @@
                 gap: 16px;
             }
             .nav-links.open { display: flex; }
+        }
+        @media (max-width: 640px) {
             .footer-row { flex-direction: column; gap: 8px; text-align: center; }
             .footer-guides { justify-content: center; }
             /* Comparison tables are three to five columns of prose and cannot
@@ -309,6 +329,10 @@
             }
         }
     </style>
+    {# The hosted offer is `PreOrder` rather than `InStock` on purpose: the
+       trial is live and the price is published, but there is no way to pay
+       yet, and `InStock` is a claim that there is. It becomes `InStock` in the
+       commit that ships checkout, and not before. #}
     <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -327,6 +351,51 @@
       "name": "DinkyDash",
       "url": "https://dinkydash.co/",
       "publisher": { "@id": "https://dinkydash.co/#org" }
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://dinkydash.co/#app",
+      "name": "DinkyDash",
+      "url": "https://dinkydash.co/",
+      "applicationCategory": "LifestyleApplication",
+      "applicationSubCategory": "Family calendar display",
+      "operatingSystem": "Web",
+      "license": "https://opensource.org/licenses/MIT",
+      "publisher": { "@id": "https://dinkydash.co/#org" },
+      "featureList": [
+        "Merges Google, Apple iCloud, Outlook and Cozi calendars into one agenda",
+        "Rotates chores between people on the date, with nothing to tick",
+        "Counts down to birthdays and special dates",
+        "Writes a fresh headline and one line each morning",
+        "Runs in any browser: tablet, TV, Raspberry Pi or spare monitor",
+        "Light and dark, sized to be read from across the room"
+      ],
+      "offers": [
+        {
+          "@type": "Offer",
+          "name": "Self-hosted",
+          "price": "0",
+          "priceCurrency": "USD",
+          "availability": "https://schema.org/InStock",
+          "description": "Run it on your own machine. MIT-licensed and free for ever."
+        },
+        {
+          "@type": "Offer",
+          "name": "Hosted",
+          "price": "39",
+          "priceCurrency": "USD",
+          "availability": "https://schema.org/PreOrder",
+          "description": "We run it for you. Free for fourteen days, no card required.",
+          "priceSpecification": {
+            "@type": "UnitPriceSpecification",
+            "price": "39",
+            "priceCurrency": "USD",
+            "billingDuration": 1,
+            "billingIncrement": 1,
+            "unitCode": "ANN"
+          }
+        }
+      ]
     }
   ]
 }
@@ -338,16 +407,21 @@
 <nav>
     <div class="container">
         <a class="nav-brand" href="/">DinkyDash</a>
-        <button class="mobile-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">&#9776;</button>
         <ul class="nav-links">
-            <li><a href="/getting-started/">Get started</a></li>
             <li><a href="/diy-skylight-calendar/">DIY calendar</a></li>
             <li><a href="/skylight-calendar-alternatives/">Alternatives</a></li>
             <li><a href="/dakboard-alternatives/">DAKboard</a></li>
             <li><a href="/birthday-countdown/">Countdown</a></li>
+            {# "Get started" read as the way in and led to an afternoon in a
+               terminal. Named for what it is, it releases the reader who wants
+               it without competing with the button beside it. #}
+            <li><a href="/getting-started/">Self-hosting</a></li>
             <li><a href="/about/">About</a></li>
-            <li><a href="https://github.com/caspii/dinkydash">GitHub</a></li>
         </ul>
+        <div class="nav-actions">
+            <a class="btn btn-nav" href="{{ app_url }}/login">Start free</a>
+            <button class="mobile-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">&#9776;</button>
+        </div>
     </div>
 </nav>
 
@@ -392,6 +466,8 @@
                 <a href="/privacy/">Privacy</a>
                 <span class="footer-sep">&middot;</span>
                 <a href="/terms/">Terms</a>
+                <span class="footer-sep">&middot;</span>
+                <a href="https://github.com/caspii/dinkydash">GitHub</a>
                 <span class="footer-sep">&middot;</span>
                 <a href="https://github.com/caspii/dinkydash/issues/new">Feedback</a>
                 <span class="footer-sep">&middot;</span>
