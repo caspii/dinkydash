@@ -110,7 +110,6 @@
            labels are what tell a new parent and a returning one apart. The quiet
            one is first because the loud one should be the last thing read. */
         .nav-actions { display: flex; align-items: center; gap: 10px; }
-<<<<<<< HEAD
         .nav-signin {
             color: var(--text-mid);
             font-size: 0.85rem;
@@ -121,15 +120,12 @@
             transition: color 0.15s;
         }
         .nav-signin:hover { color: var(--accent); text-decoration: none; }
-        .btn-nav {
-=======
         /* .btn.btn-nav (not .btn-nav alone) so this always wins over .btn's
            padding/font-size/border-radius/box-shadow regardless of where each
            rule sits in the file — two classes of equal specificity would
            otherwise let source order decide, and did: the nav button was
            rendering at the hero button's full size on every screen width. */
         .btn.btn-nav {
->>>>>>> origin/main
             padding: 8px 16px;
             font-size: 0.85rem;
             border-radius: 10px;
