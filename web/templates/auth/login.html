@@ -7,6 +7,15 @@
 {% block title %}Sign in or start a dashboard{% endblock %}
 {% block manifest %}{% endblock %}
 
+{# Loaded only when Turnstile has keys, so a self-hoster, a developer and the
+   test suite fetch nothing from anybody. `defer` because the widget replaces a
+   placeholder that is further down the page than this tag. #}
+{% block head %}
+{% set turnstile_key = turnstile_site_key() %}{% if turnstile_key %}
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" defer></script>
+{% endif %}
+{% endblock %}
+
 {% block appbar %}
 <h1 style="padding-left:0.25rem;color:var(--accent);font-size:1.15rem;">DinkyDash</h1>
 {% endblock %}
@@ -37,6 +46,14 @@
                    autocomplete="email" autocapitalize="off" autocorrect="off"
                    spellcheck="false" inputmode="email" required>
         </div>
+        {# The bot check, and only when there are keys for it — see
+           `web/turnstile.py`. This is the one third-party request any page in
+           the signed-out area makes, and it is here because everything past
+           this button costs money: an email, and then a family and a trial. #}
+        {% set turnstile_key = turnstile_site_key() %}{% if turnstile_key %}
+        <div class="cf-turnstile" data-sitekey="{{ turnstile_key }}"
+             data-theme="auto" data-appearance="interaction-only"></div>
+        {% endif %}
         <button class="btn" type="submit">Email me a link</button>
         <div class="hint">
             New here? The first fourteen days are free and we do not ask for a card.

@@ -23,7 +23,7 @@ import pytest
 import yaml
 
 from dinkydash import accounts, config as config_module, mail
-from tests.conftest import client_for
+from tests.conftest import client_for, open_the_link
 from web import create_app
 
 NEWCOMER = "newcomer@example.com"
@@ -160,14 +160,14 @@ class TestSubmittingAnAddressCreatesNothing:
 class TestClickingTheLinkStartsTheFamily:
     def test_a_family_and_a_parent_appear(self, client, sent, pg_pool):
         client.post("/login", data={"email": NEWCOMER})
-        client.get(link_in(sent[0]))
+        open_the_link(client, link_in(sent[0]))
         family = family_of(pg_pool, NEWCOMER)
         assert family is not None
         assert family["plan"] == "standard"
 
     def test_and_the_session_is_theirs(self, client, sent, pg_pool):
         client.post("/login", data={"email": NEWCOMER})
-        landed = client.get(link_in(sent[0]))
+        landed = open_the_link(client, link_in(sent[0]))
         assert landed.status_code == 302
         assert landed.headers["Location"].endswith("/settings/")
         with client.session_transaction() as stored:
@@ -177,7 +177,7 @@ class TestClickingTheLinkStartsTheFamily:
             self, client, sent, pg_pool):
         """Never null: the dashboard's URL is not something to add later."""
         client.post("/login", data={"email": NEWCOMER})
-        client.get(link_in(sent[0]))
+        open_the_link(client, link_in(sent[0]))
         token = family_of(pg_pool, NEWCOMER)["screen_token"]
         assert 10 <= len(token) <= 32
         assert set(token) <= set(config_module.ID_ALPHABET)
@@ -185,7 +185,7 @@ class TestClickingTheLinkStartsTheFamily:
     def test_the_trial_is_fourteen_days_and_the_family_is_trialing(
             self, client, sent, pg_pool):
         client.post("/login", data={"email": NEWCOMER})
-        client.get(link_in(sent[0]))
+        open_the_link(client, link_in(sent[0]))
         family = family_of(pg_pool, NEWCOMER)
         assert family["status"] == "trialing"
         [(days,)] = rows(pg_pool,
@@ -196,7 +196,7 @@ class TestClickingTheLinkStartsTheFamily:
     def test_no_stripe_customer_is_created(self, client, sent, pg_pool):
         """The trial lives in the app; Stripe enters at conversion."""
         client.post("/login", data={"email": NEWCOMER})
-        client.get(link_in(sent[0]))
+        open_the_link(client, link_in(sent[0]))
         [(customer,)] = rows(pg_pool,
                              "SELECT stripe_customer_id FROM families WHERE id = %s",
                              (family_of(pg_pool, NEWCOMER)["id"],))
@@ -209,7 +209,7 @@ class TestClickingTheLinkStartsTheFamily:
             with conn.cursor() as cur:
                 cur.execute("UPDATE login_tokens SET expires_at = now() - "
                             "interval '1 minute' WHERE email = %s", (NEWCOMER,))
-        client.get(link)
+        open_the_link(client, link)
         assert family_of(pg_pool, NEWCOMER) is None
 
 
@@ -220,7 +220,7 @@ class TestTheStartingConfig:
             self, client, sent, pg_pool):
         """An empty dashboard looks broken; the invented family is there to replace."""
         client.post("/login", data={"email": NEWCOMER})
-        client.get(link_in(sent[0]))
+        open_the_link(client, link_in(sent[0]))
         config = family_of(pg_pool, NEWCOMER)["config"]
         assert [person["name"] for person in config["people"]] == ["Mia", "Theo"]
         assert config["recurring"] and config["special_dates"] and config["pets"]
@@ -229,7 +229,7 @@ class TestTheStartingConfig:
         """An iCal address is a password in a URL. A working example would put
         somebody else's appointments on a stranger's wall."""
         client.post("/login", data={"email": NEWCOMER})
-        client.get(link_in(sent[0]))
+        open_the_link(client, link_in(sent[0]))
         assert family_of(pg_pool, NEWCOMER)["config"]["calendars"] == []
 
     def test_every_item_can_be_addressed_before_anybody_opens_the_settings(self):
@@ -266,7 +266,7 @@ class TestTheStartingConfig:
         from tests.conftest import board_path
 
         client.post("/login", data={"email": NEWCOMER})
-        client.get(link_in(sent[0]))
+        open_the_link(client, link_in(sent[0]))
         page = client.get(board_path(pg_pool, family_of(pg_pool, NEWCOMER)["id"]))
         assert page.status_code == 200
         assert "Our family" in page.get_data(as_text=True)
@@ -274,7 +274,7 @@ class TestTheStartingConfig:
     def test_but_the_settings_show_the_people_straight_away(self, client, sent):
         """Which is where a new parent is sent, and where they replace them."""
         client.post("/login", data={"email": NEWCOMER})
-        client.get(link_in(sent[0]))
+        open_the_link(client, link_in(sent[0]))
         assert client.get("/settings/").status_code == 200
         listed = client.get("/settings/people").get_data(as_text=True)
         assert "Mia" in listed and "Theo" in listed
@@ -291,21 +291,21 @@ class TestTheSettingsSayTheHouseholdIsInvented:
 
     def test_a_brand_new_family_is_told(self, client, sent):
         client.post("/login", data={"email": NEWCOMER})
-        client.get(link_in(sent[0]))
+        open_the_link(client, link_in(sent[0]))
         page = client.get("/settings/").get_data(as_text=True)
         assert "Set up your dashboard" in page
         assert "Mia, Theo and Biscuit are invented" in page
 
     def test_and_walked_through_the_steps_in_order(self, client, sent):
         client.post("/login", data={"email": NEWCOMER})
-        client.get(link_in(sent[0]))
+        open_the_link(client, link_in(sent[0]))
         page = client.get("/settings/").get_data(as_text=True)
         assert page.index("Who lives here") < page.index("Time zone") \
             < page.index("A calendar") < page.index("Put it on the screen")
 
     def test_the_daily_controls_are_not_offered_yet(self, client, sent):
         client.post("/login", data={"email": NEWCOMER})
-        client.get(link_in(sent[0]))
+        open_the_link(client, link_in(sent[0]))
         page = client.get("/settings/").get_data(as_text=True)
         assert "Refresh calendars" not in page
         assert "View dashboard" not in page
@@ -316,7 +316,7 @@ class TestTheSettingsSayTheHouseholdIsInvented:
         from dinkydash.pgstore import PostgresStore
 
         client.post("/login", data={"email": NEWCOMER})
-        client.get(link_in(sent[0]))
+        open_the_link(client, link_in(sent[0]))
         family = family_of(pg_pool, NEWCOMER)
         store = PostgresStore(pg_pool, family["id"])
         config = store.load_config()
@@ -336,7 +336,7 @@ class TestTheSettingsSayTheHouseholdIsInvented:
         from dinkydash.schedule import due
 
         client.post("/login", data={"email": NEWCOMER})
-        client.get(link_in(sent[0]))
+        open_the_link(client, link_in(sent[0]))
         config = family_of(pg_pool, NEWCOMER)["config"]
         assert due(config, None, datetime.now(tz.utc))["brief"] is False
 
@@ -356,8 +356,8 @@ class TestOnlyEverOneFamilyPerAddress:
             self, client, sent, pg_pool):
         client.post("/login", data={"email": NEWCOMER})
         link = link_in(sent[0])
-        client.get(link)
-        client.get(link)  # single use: the second is a dead link
+        open_the_link(client, link)
+        open_the_link(client, link)  # single use: the second is a dead link
         assert len(rows(pg_pool, "SELECT id FROM users WHERE email = %s",
                         (NEWCOMER,))) == 1
 
@@ -379,8 +379,8 @@ class TestOnlyEverOneFamilyPerAddress:
         client.post("/login", data={"email": NEWCOMER})
         client.post("/login", data={"email": NEWCOMER})
         before = rows(pg_pool, "SELECT count(*) FROM families")[0][0]
-        client.get(link_in(sent[0]))
-        client.get(link_in(sent[1]))
+        open_the_link(client, link_in(sent[0]))
+        open_the_link(client, link_in(sent[1]))
         after = rows(pg_pool, "SELECT count(*) FROM families")[0][0]
         assert after == before + 1
 
@@ -389,14 +389,14 @@ class TestOnlyEverOneFamilyPerAddress:
         """A token minted for an address that gained an account meanwhile signs
         them in rather than giving them a second dashboard."""
         client.post("/login", data={"email": NEWCOMER})
-        client.get(link_in(sent[0]))
+        open_the_link(client, link_in(sent[0]))
         family = family_of(pg_pool, NEWCOMER)["id"]
 
         # Signed in, and `/login` redirects somebody who already is — so this
         # is what asking for a second link actually looks like.
         client.post("/logout")
         client.post("/login", data={"email": NEWCOMER})   # now a sign-in link
-        client.get(link_in(sent[1]))
+        open_the_link(client, link_in(sent[1]))
         assert family_of(pg_pool, NEWCOMER)["id"] == family
 
     def test_an_absurdly_long_address_is_refused_before_it_reaches_a_row(
@@ -420,7 +420,7 @@ class TestOnlyEverOneFamilyPerAddress:
 
 
 def family_after(client, message, pg_pool):
-    client.get(link_in(message))
+    open_the_link(client, link_in(message))
     return family_of(pg_pool, NEWCOMER)["id"]
 
 
@@ -432,7 +432,7 @@ class TestTheAnswerIsStillTheSame:
         """The assertion that actually prevents enumeration. It mattered before
         DIN-41 and it matters more now that one of the two creates something."""
         client.post("/login", data={"email": NEWCOMER})
-        client.get(link_in(sent[0]))          # NEWCOMER now has an account
+        open_the_link(client, link_in(sent[0]))          # NEWCOMER now has an account
 
         returning = client.post("/login", data={"email": NEWCOMER})
         stranger = client.post("/login", data={"email": "nobody@example.com"})
@@ -457,7 +457,7 @@ class TestTheAnswerIsStillTheSame:
         """Safe, because whoever opens that mailbox already knows which they are.
         Telling a new parent the link starts a dashboard is what gets it finished."""
         client.post("/login", data={"email": NEWCOMER})
-        client.get(link_in(sent[0]))
+        open_the_link(client, link_in(sent[0]))
         client.post("/logout")
         client.post("/login", data={"email": NEWCOMER})
         assert "Start your DinkyDash dashboard" in sent[0]["subject"]

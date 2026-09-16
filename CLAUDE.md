@@ -183,8 +183,30 @@ mode is a different product on the same code.
   are families. **`/login` is the sign-up form too** (DIN-41), which is why there is no "create an
   account" route: a second page, or a second button, would say which addresses already have one.
 - **Nothing a stranger can POST creates a row that costs money.** A sign-up creates the family when
-  the emailed link is *clicked*, so an unverified one costs a token row and an email rather than a
+  the emailed link is *spent*, so an unverified one costs a token row and an email rather than a
   trial and a daily Anthropic call. That is the rate limit; the cap is the spend breaker below.
+- **Opening the emailed link must not spend it — pressing the button on it does.** A link in a
+  mailbox is fetched by more than its recipient: mail security gateways at businesses, schools and
+  government departments follow every URL in every message first. So `GET /login/link` renders a
+  page with a button and reads nothing, and only its `POST` calls `consume_link`. Scanners follow
+  links; they do not fill in forms. `consume_link` is unchanged by this and stays that way — single
+  use is still one `UPDATE ... WHERE used_at IS NULL RETURNING` — and the landing page carries no
+  script, no meta refresh and nothing else that could press the button for a caller, because
+  automating the press restores the bug in a form that is harder to see. `tests/test_auth.py`
+  asserts a bare `GET` spends nothing, signs nobody in, creates no family and leaves the link
+  working.
+- **The sign-in form has a bot check in front of it, and it is off unless both keys are set.**
+  `web/turnstile.py`, over Cloudflare Turnstile, because everything past that button costs
+  money — an email on a shared SendGrid reputation, then a family and a trial — and neither rate
+  limit can tell a person from a script working slowly through a list of harvested addresses, one
+  address at a time, under both. `TURNSTILE_SITE_KEY` and `TURNSTILE_SECRET_KEY` together switch
+  it on; either alone is treated as off, because a widget nobody verifies looks like a control and
+  is not one. A refusal is answered before the address is looked up and says the same thing
+  whatever was typed, or it enumerates accounts like anything else here. A Cloudflare that
+  *refused* is refused; a Cloudflare we could not *reach* is allowed through, the trade
+  `ratelimit.client_ip` already makes — a bot check that stops every family signing in is an
+  outage wearing a control's clothes. It is also the one third-party request the signed-out area
+  makes, which is why the privacy page and `/settings/account` name it.
 - **Every form that writes carries a CSRF token**, in *both* modes — `web/session.py`, with no
   switch to turn it off. A test walks the templates and fails on a form without one.
 - **Screen tokens are bearer credentials**, and unlike a magic link they never expire — a wall panel

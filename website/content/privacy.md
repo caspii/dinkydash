@@ -43,7 +43,7 @@ Analytics, which is cookieless and collects no personal data.
 
 ## Where it goes
 
-Three things leave our servers, they are different in kind, and it matters
+Four things leave our servers, they are different in kind, and it matters
 which is which.
 
 **Anthropic sees your family's day.** Once each morning the day's agenda — the
@@ -66,6 +66,14 @@ every few minutes that it is still running, which is how we find out when it is
 not, and Sentry checks from outside that the sign-in page answers. Neither
 carries anything about you.
 
+**Cloudflare checks that a person is asking for the sign-in link.** The sign-in
+page carries a Cloudflare Turnstile box, so your browser talks to Cloudflare
+when you ask us to email you a link. It is there to stop scripts having us send
+sign-in emails to addresses that never asked for one. Turnstile sees your IP
+address and what your browser gives it to tell a person from a script; it does
+not see the address you typed, and it is on no other page. It sets no
+advertising cookie and we do not use it to track you.
+
 If you would rather Anthropic saw nothing, self-host: the dashboard works with no
 API key at all, and simply goes without the written line.
 
@@ -76,7 +84,7 @@ API key at all, and simply goes without the written line.
 | **Anthropic** | Writes the daily note from the day's agenda | United States |
 | **DigitalOcean** | Runs the app and the database | Frankfurt, Germany (US company) |
 | **SendGrid** (Twilio) | Delivers sign-in emails | United States |
-| **Cloudflare** | DNS; website and app delivery through DigitalOcean's App Platform | Global (US company) |
+| **Cloudflare** | DNS; website and app delivery through DigitalOcean's App Platform; the bot check on the sign-in page | Global (US company) |
 | **Sentry** (Functional Software) | Error reports, and the checks that the app and the worker are running | United States |
 
 The app and the database run on DigitalOcean in **Frankfurt**. Cloudflare

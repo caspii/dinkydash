@@ -65,6 +65,15 @@ def create_app(store=None, *, pool=None):
     app.register_blueprint(settings_bp, url_prefix="/settings")
 
     if app.config["MODE"] == CLOUD:
+        from . import turnstile
+
+        # A global rather than something a route passes, for the reason
+        # `session.csrf_token` is one: the sign-in form is rendered from more
+        # than one place, and a form that quietly lost its bot check would look
+        # exactly like one that never had it. Called at render time, so setting
+        # the keys takes effect without rebuilding the app.
+        app.jinja_env.globals["turnstile_site_key"] = turnstile.site_key
+
         from .routes.auth import bp as auth_bp
         app.register_blueprint(auth_bp)
 
