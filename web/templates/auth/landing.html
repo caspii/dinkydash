@@ -1,0 +1,51 @@
+{# The page at the end of the emailed link, and the reason it exists.
+
+   A mail security gateway fetches every URL in a message before the recipient
+   sees it. When opening the link spent it, the scanner spent it: the person it
+   was sent to clicked a dead link, asked for another, and the scanner ate that
+   one too — so at every domain that scans its mail, which is most businesses,
+   schools and government departments, signing in was impossible. Spending the
+   token behind a button fixes that, because a scanner follows a link and does
+   not fill in a form.
+
+   So the one thing this page must not do is submit itself. No script, no meta
+   refresh, no `autofocus` and a JavaScript `click()` — the press is the whole
+   proof, and automating it away restores the bug in a form that is harder to
+   see. It is also why the button says what it does rather than "continue": a
+   person who did not ask for this should be able to close the tab instead. #}
+{% extends "settings/base.html" %}
+{% block title %}Sign in to DinkyDash{% endblock %}
+{% block manifest %}{% endblock %}
+{# No prefetch or prerender here: both are a GET made without being asked, and
+   the button below is a POST that spends a credential. #}
+{% block speculation %}{% endblock %}
+{# And no script, the way `/admin` carries none: this page has one button and
+   nothing to enhance, and "the page runs nothing" is the property worth being
+   able to assert about it. #}
+{% block interactions %}{% endblock %}
+
+{% block appbar %}
+<h1 style="padding-left:0.25rem;color:var(--accent);font-size:1.15rem;">DinkyDash</h1>
+{% endblock %}
+
+{% block content %}
+<div class="card pad" style="display:flex;flex-direction:column;gap:0.875rem;">
+    <div>
+        <div style="font-size:1.125rem;font-weight:800;">Sign in to DinkyDash</div>
+        <div class="hint" style="margin-top:0.1875rem;">
+            You asked us for a link and here it is. Press the button and we will sign
+            you in — or start your dashboard, if this is your first time.
+        </div>
+    </div>
+    <form method="post" action="{{ url_for('auth.landing') }}"
+          style="display:flex;flex-direction:column;gap:0.875rem;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="t" value="{{ token }}">
+        <button class="btn" type="submit">Sign me in</button>
+    </form>
+    <div class="hint">
+        Did not ask for this? Close this page and nothing happens — the link goes
+        stale on its own in fifteen minutes.
+    </div>
+</div>
+{% endblock %}

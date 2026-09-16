@@ -66,6 +66,15 @@ venv/bin/python login_link.py you@example.com \
   --database-url "$DATABASE_URL" --base-url http://127.0.0.1:5000
 ```
 
+Opening that URL shows a page with a **Sign me in** button and signs nobody in
+by itself; pressing the button is what spends the token. That is deliberate —
+mail scanners follow links and would otherwise spend it before the recipient —
+so a script driving a sign-in has to POST the token to `/login/link` rather than
+just fetch the URL. `tests/conftest.py::open_the_link` is the one-line version.
+
+Turnstile is off unless `TURNSTILE_SITE_KEY` and `TURNSTILE_SECRET_KEY` are
+both set, so the sign-in form reaches Cloudflare for nothing locally.
+
 Neither an email key nor an Anthropic key is required to start the servers.
 Generation still requires an Anthropic key when you request it.
 

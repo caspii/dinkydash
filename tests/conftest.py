@@ -162,3 +162,22 @@ def client_for(app):
     app.test_client_class = SigningClient
     app.config["TESTING"] = True
     return app.test_client()
+
+
+def open_the_link(client, url):
+    """Do with a sign-in link what a person does: open it, then press the button.
+
+    Opening it spends nothing — a mail scanner following the link must not be
+    able to sign anybody in, or start a family, or leave the recipient holding a
+    dead link — so the token is spent by the POST the button makes, and a test
+    that wants a session has to make it too. Returns that POST's response, which
+    is what the GET used to return.
+
+    The token is taken from the URL rather than parsed out of the rendered page,
+    so a template that stopped carrying it forward would fail the tests that
+    assert on the page rather than silently passing every one of these.
+    """
+    _, _, query = url.partition("?")
+    token = dict(part.split("=", 1) for part in query.split("&") if "=" in part).get("t", "")
+    client.get(url)
+    return client.post("/login/link", data={"t": token})

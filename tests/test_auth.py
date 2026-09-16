@@ -24,7 +24,7 @@ import yaml
 
 from dinkydash import accounts, mail
 from dinkydash.store import FileStore
-from tests.conftest import client_for
+from tests.conftest import client_for, open_the_link
 from web import create_app
 from web.ratelimit import Limiter, client_ip
 
@@ -476,6 +476,88 @@ class TestWhereTheLinkPoints:
         assert link_in(sent[0]).startswith("https://localhost/login/link?t=")
 
 
+# -- what a mail scanner gets ------------------------------------------------
+
+class TestOpeningTheLinkSpendsNothing:
+    """The whole point of the landing page.
+
+    A business, school or government mail gateway fetches every URL in every
+    message before the recipient sees it. While opening the link spent it, that
+    fetch signed nobody in but used the token up — so at any domain that scans
+    its mail, the person it was sent to got a dead link, and a sign-up link
+    spent this way created a family and a trial for somebody who never arrived.
+
+    Every test here is one GET. A scanner does no more than that.
+    """
+
+    def _link(self, client, sent):
+        client.post("/login", data={"email": ADDRESS})
+        return link_in(sent[0]).replace("https://localhost", "")
+
+    def test_a_get_does_not_spend_the_token(self, client, sent, pg_user, pg_pool):
+        link = self._link(client, sent)
+        client.get(link)
+        with pg_pool.connection() as conn, conn.cursor() as cur:
+            cur.execute("SELECT used_at FROM login_tokens WHERE user_id = %s", (pg_user,))
+            assert cur.fetchone()[0] is None
+
+    def test_a_get_does_not_sign_anybody_in(self, client, sent, pg_user):
+        assert client.get(self._link(client, sent)).status_code == 200
+        with client.session_transaction() as stored:
+            assert "user_id" not in stored
+
+    def test_and_the_link_still_works_afterwards(self, client, sent, pg_user):
+        """The one that matters: the recipient arrives after the scanner."""
+        link = self._link(client, sent)
+        client.get(link)
+        client.get(link)
+        assert open_the_link(client, link).status_code == 302
+
+    def test_a_get_creates_no_family(self, client, sent, pg_pool):
+        """A scanner following a *sign-up* link must not start a trial."""
+        newcomer = "nobody-asked@example.com"
+        client.post("/login", data={"email": newcomer})
+        client.get(link_in(sent[-1]).replace("https://localhost", ""))
+        with pg_pool.connection() as conn, conn.cursor() as cur:
+            cur.execute("SELECT count(*) FROM users WHERE lower(email) = %s", (newcomer,))
+            assert cur.fetchone()[0] == 0
+
+    def test_the_page_says_nothing_about_whether_the_token_is_good(
+            self, client, sent, pg_user):
+        """A GET reads nothing, so it cannot become an oracle for live tokens.
+
+        The page carries the token forward in a hidden field, so it differs by
+        exactly that and must differ by nothing else — compared with the value
+        taken out, a live token, an invented one and none at all are one page.
+        """
+        def without_the_token(response):
+            return re.sub(r'name="t" value="[^"]*"', 'name="t"',
+                          response.get_data(as_text=True))
+
+        live = without_the_token(client.get(self._link(client, sent)))
+        invented = without_the_token(
+            client.get("/login/link?t=" + accounts.new_token()))
+        nothing = without_the_token(client.get("/login/link"))
+        assert live == invented == nothing
+
+    def test_the_page_submits_itself_to_nobody(self, client, sent, pg_user):
+        """No script and no meta refresh, or a scanner that runs them is back
+        where we started."""
+        page = client.get(self._link(client, sent)).get_data(as_text=True)
+        assert "<script" not in page
+        assert "http-equiv" not in page.lower()
+
+    def test_the_page_is_not_cached_or_indexed(self, client, sent, pg_user):
+        page = client.get(self._link(client, sent))
+        assert "no-store" in page.headers["Cache-Control"]
+        assert "noindex" in page.headers["X-Robots-Tag"]
+
+    def test_the_token_is_not_in_the_url_the_post_goes_to(self, client, sent, pg_user):
+        """It rides in the body, which no access log writes down."""
+        page = client.get(self._link(client, sent)).get_data(as_text=True)
+        assert 'action="/login/link"' in page
+
+
 # -- spending it ------------------------------------------------------------
 
 class TestSigningIn:
@@ -484,32 +566,32 @@ class TestSigningIn:
         return link_in(sent[0]).replace("https://localhost", "")
 
     def test_the_link_signs_you_in(self, client, sent, pg_user):
-        response = client.get(self._link(client, sent))
+        response = open_the_link(client, self._link(client, sent))
         assert response.status_code == 302
         assert response.headers["Location"].endswith("/settings/")
 
     def test_and_the_session_carries_the_family(self, client, sent, pg_user, pg_family):
-        client.get(self._link(client, sent))
+        open_the_link(client, self._link(client, sent))
         with client.session_transaction() as stored:
             assert stored["user_id"] == pg_user
             assert stored["family_id"] == str(pg_family)
 
     def test_the_session_never_carries_the_address(self, client, sent, pg_user):
         """Flask signs the cookie, it does not encrypt it."""
-        client.get(self._link(client, sent))
+        open_the_link(client, self._link(client, sent))
         with client.session_transaction() as stored:
             assert ADDRESS not in str(dict(stored))
 
     def test_it_records_when(self, client, sent, pg_user, pg_pool):
-        client.get(self._link(client, sent))
+        open_the_link(client, self._link(client, sent))
         with pg_pool.connection() as conn, conn.cursor() as cur:
             cur.execute("SELECT last_login_at FROM users WHERE id = %s", (pg_user,))
             assert cur.fetchone()[0] is not None
 
-    def test_a_second_click_does_not_sign_anybody_in(self, client, sent, pg_user):
+    def test_a_second_press_does_not_sign_anybody_in(self, client, sent, pg_user):
         link = self._link(client, sent)
-        assert client.get(link).status_code == 302
-        second = client.get(link)
+        assert open_the_link(client, link).status_code == 302
+        second = open_the_link(client, link)
         assert second.status_code == 200
         assert "no longer works" in second.get_data(as_text=True)
 
@@ -538,23 +620,23 @@ class TestALinkThatDoesNotWork:
         return token
 
     def test_an_expired_one_is_refused(self, client, pg_pool, pg_user):
-        page = client.get(f"/login/link?t={self._dead(pg_pool, pg_user)}")
+        page = open_the_link(client, f"/login/link?t={self._dead(pg_pool, pg_user)}")
         assert "no longer works" in page.get_data(as_text=True)
 
     def test_an_invented_one_gets_the_same_page(self, client, pg_pool, pg_user):
-        expired = client.get(f"/login/link?t={self._dead(pg_pool, pg_user)}")
-        invented = client.get("/login/link?t=" + accounts.new_token())
+        expired = open_the_link(client, f"/login/link?t={self._dead(pg_pool, pg_user)}")
+        invented = open_the_link(client, "/login/link?t=" + accounts.new_token())
         assert expired.get_data() == invented.get_data()
 
     def test_no_token_at_all_gets_it_too(self, client, pg_pool, pg_user):
-        expired = client.get(f"/login/link?t={self._dead(pg_pool, pg_user)}")
-        assert client.get("/login/link").get_data() == expired.get_data()
+        expired = open_the_link(client, f"/login/link?t={self._dead(pg_pool, pg_user)}")
+        assert open_the_link(client, "/login/link").get_data() == expired.get_data()
 
     def test_an_absurdly_long_one_is_refused_without_being_hashed(self, pg_pool):
         assert accounts.consume_link(pg_pool, "x" * 100_000) is None
 
     def test_none_of_them_leaves_a_session(self, client, pg_pool, pg_user):
-        client.get(f"/login/link?t={self._dead(pg_pool, pg_user)}")
+        open_the_link(client, f"/login/link?t={self._dead(pg_pool, pg_user)}")
         with client.session_transaction() as stored:
             assert "user_id" not in stored
 
@@ -610,7 +692,7 @@ class TestTheLimitPerAddress:
         for _ in range(5):
             client.post("/login", data={"email": ADDRESS})
         first = link_in(sent[0]).replace("https://localhost", "")
-        assert client.get(first).status_code == 302
+        assert open_the_link(client, first).status_code == 302
 
 
 class TestTheLimitPerAddressOfTheCaller:
@@ -743,7 +825,7 @@ class TestTheSettingsAreBehindIt:
 
     def test_signing_in_opens_it(self, client, sent, pg_user):
         client.post("/login", data={"email": ADDRESS})
-        client.get(link_in(sent[0]).replace("https://localhost", ""))
+        open_the_link(client, link_in(sent[0]).replace("https://localhost", ""))
         assert client.get("/settings/").status_code == 200
 
     def test_the_login_page_itself_is_open(self, client):
@@ -751,7 +833,7 @@ class TestTheSettingsAreBehindIt:
 
     def test_somebody_signed_in_is_not_asked_again(self, client, sent, pg_user):
         client.post("/login", data={"email": ADDRESS})
-        client.get(link_in(sent[0]).replace("https://localhost", ""))
+        open_the_link(client, link_in(sent[0]).replace("https://localhost", ""))
         response = client.get("/login")
         assert response.status_code == 302
         assert response.headers["Location"].endswith("/settings/")
@@ -760,14 +842,14 @@ class TestTheSettingsAreBehindIt:
 class TestSigningOut:
     def test_it_empties_the_session(self, client, sent, pg_user):
         client.post("/login", data={"email": ADDRESS})
-        client.get(link_in(sent[0]).replace("https://localhost", ""))
+        open_the_link(client, link_in(sent[0]).replace("https://localhost", ""))
         client.post("/logout")
         with client.session_transaction() as stored:
             assert "user_id" not in stored
 
     def test_and_the_settings_are_shut_again(self, client, sent, pg_user):
         client.post("/login", data={"email": ADDRESS})
-        client.get(link_in(sent[0]).replace("https://localhost", ""))
+        open_the_link(client, link_in(sent[0]).replace("https://localhost", ""))
         client.post("/logout")
         assert client.get("/settings/").status_code == 302
 

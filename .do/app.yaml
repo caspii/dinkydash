@@ -132,6 +132,19 @@ envs:
   - key: SENTRY_DSN
     scope: RUN_TIME
     type: SECRET
+  # The bot check on the sign-in form (`web/turnstile.py`). **Both or neither**:
+  # a site key with no secret renders a challenge nobody verifies, which is
+  # worse than no challenge because it looks like a control. Unset on both
+  # means the form works exactly as it did, which is what a self-hoster and a
+  # development machine get. The site key is public — it is rendered into the
+  # page — and is a SECRET here only so it can be merged in from `.env` beside
+  # its other half rather than sitting in the committed spec.
+  - key: TURNSTILE_SITE_KEY
+    scope: RUN_TIME
+    type: SECRET
+  - key: TURNSTILE_SECRET_KEY
+    scope: RUN_TIME
+    type: SECRET
 
   # The spend breaker (DIN-43), in model calls a day. Written out at their
   # defaults rather than left implicit, because a ceiling nobody can see is a
