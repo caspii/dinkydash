@@ -11,6 +11,7 @@ with it. Parity was verified once, page by page — all 17 byte-identical — an
 these assert the properties that mattered rather than the artefact.
 """
 
+import html
 import json
 from pathlib import Path
 import re
@@ -112,16 +113,63 @@ class TestHostedSignup:
         assert f"]({self.URL})" in readme
         assert not re.search(r"typeform\.com|waitlist|waiting list", readme, re.I)
 
-    def test_hosted_faq_schema_matches_the_visible_answers(self, client):
-        body = client.get("/").get_data(as_text=True)
-        schemas = [json.loads(raw) for raw in re.findall(
-            r'<script type="application/ld\+json">(.*?)</script>', body, re.S)]
-        faq = next(schema for schema in schemas if schema.get("@type") == "FAQPage")
+    def test_every_faq_answer_in_the_schema_is_on_the_page(self, client):
+        """Google requires FAQPage markup to describe content the visitor can
+        see. Both copies render from one `faqs` list in the template, and this
+        is what fails if somebody splits them again. Unescaped because Jinja
+        writes an apostrophe as an entity and `tojson` does not."""
+        body = html.unescape(client.get("/").get_data(as_text=True))
+        faq = next(schema for schema in self._schemas(client)
+                   if schema.get("@type") == "FAQPage")
+        assert len(faq["mainEntity"]) >= 6
         for question in faq["mainEntity"]:
-            if "hosted version" in question["name"]:
-                answer = question["acceptedAnswer"]["text"]
-                assert f"<p>{answer}</p>" in body
-                assert "no card required" in answer
+            assert f"<p>{question['acceptedAnswer']['text']}</p>" in body, question["name"]
+            assert f"<summary>{question['name']}</summary>" in body, question["name"]
+
+    def test_the_faq_answers_what_a_trial_visitor_asks_first(self, client):
+        """The two questions somebody about to sign up actually has. Both were
+        missing while the page was selling the repository rather than the
+        trial, and the answers are claims about `accounts.py` and Stripe."""
+        faq = next(schema for schema in self._schemas(client)
+                   if schema.get("@type") == "FAQPage")
+        answers = {q["name"]: q["acceptedAnswer"]["text"] for q in faq["mainEntity"]}
+        after = next(a for name, a in answers.items() if "14 days" in name)
+        assert "still being built" in after and "$39 a year" in after
+        card = next(a for name, a in answers.items() if name == "Do I need a card?")
+        assert "No, and there is nowhere to put one." in card
+
+    def test_the_hosted_price_is_offered_but_not_yet_purchasable(self, client):
+        """`InStock` on the hosted offer would tell a rich result the
+        subscription can be bought. It cannot be, until checkout ships."""
+        graph = next(schema["@graph"] for schema in self._schemas(client)
+                     if "@graph" in schema)
+        app = next(node for node in graph
+                   if node["@type"] == "SoftwareApplication")
+        offers = {offer["name"]: offer for offer in app["offers"]}
+        assert offers["Self-hosted"]["price"] == "0"
+        assert offers["Self-hosted"]["availability"].endswith("/InStock")
+        assert offers["Hosted"]["price"] == "39"
+        assert offers["Hosted"]["availability"].endswith("/PreOrder")
+
+    def test_every_page_offers_the_trial_in_the_navigation(self, client):
+        """Most visitors arrive on a guide, not the home page, so the button in
+        `base.html` is the only one they are shown. It sits outside `.nav-links`
+        because those collapse into the hamburger on a phone."""
+        checked = 0
+        for page in render.pages():
+            body = client.get(page["url"]).get_data(as_text=True)
+            if "<nav>" not in body:
+                continue     # the full-screen countdown has no site chrome
+            nav = body.split("<body>")[1].split("</nav>")[0]
+            assert f'class="btn btn-nav" href="{self.URL}"' in nav, page["url"]
+            assert nav.index("</ul>") < nav.index('class="nav-actions"'), page["url"]
+            checked += 1
+        assert checked >= 20
+
+    def _schemas(self, client):
+        body = client.get("/").get_data(as_text=True)
+        return [json.loads(raw) for raw in re.findall(
+            r'<script type="application/ld\+json">(.*?)</script>', body, re.S)]
 
 
 class TestUrls:
