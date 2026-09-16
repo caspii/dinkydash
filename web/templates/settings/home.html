@@ -282,6 +282,22 @@
 </div>
 {% endif %}
 
+{# The permanent way in. The pill at the foot of every page can be waved away
+   for good, so the offer has to exist somewhere it cannot be lost. #}
+{% if feedback_enabled() %}
+<div>
+    <div class="label">Tell us how it's going</div>
+    <div class="card">
+        <a class="row" href="{{ url_for('settings.feedback') }}">
+            <div class="row-main">
+                <div class="row-title">Send feedback</div>
+                <div class="row-sub">Broken, missing or irritating — it reaches a person</div>
+            </div>{{ icons.chevron() }}
+        </a>
+    </div>
+</div>
+{% endif %}
+
 {# Only hosted. Self-hosted has no accounts, so there is nothing to sign out of. #}
 {% if cloud %}
 <form method="post" action="{{ url_for('auth.logout') }}">

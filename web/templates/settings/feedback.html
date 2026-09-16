@@ -1,0 +1,48 @@
+{# One box and a Send button (DIN-34). Nothing is asked for that we already
+   know: the address comes from the account and the family from the session, so
+   there is no name field, no "type of enquiry" and no category to choose. The
+   address is shown rather than collected, because somebody should be able to
+   see where a reply will land before they press anything. #}
+{% extends "settings/base.html" %}
+{% block title %}Send feedback{% endblock %}
+{% set back_href = url_for('settings.home') %}
+{% set back_label = 'Settings' %}
+{# No pill on the page the pill leads to. #}
+{% block feedback %}{% endblock %}
+
+{% block content %}
+<div class="card pad">
+    <div class="hint">
+        Something broken, missing or irritating — or something you like. It goes
+        straight to the person who builds DinkyDash, and every one is read.
+    </div>
+</div>
+
+{# `changed` when the message is being handed back after a refusal: the box then
+   holds words that have not been sent anywhere, and the form has no "original"
+   to compare them against. Same reason the item editor sets it after a failed
+   validation. #}
+<form method="post" data-dirty-guard="{{ 'changed' if problem else '' }}"
+      style="display:flex;flex-direction:column;gap:0.875rem;">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="field">
+        <label for="message">What would you like to tell us?</label>
+        <textarea id="message" name="message" rows="8" maxlength="{{ longest }}"
+                  style="min-height:9rem;"
+                  {% if problem %}aria-invalid="true"{% endif %}
+                  aria-describedby="{{ 'error-message ' if problem }}hint-message"
+                  >{{ message or '' }}</textarea>
+        {% if problem %}<div class="field-error" id="error-message" role="alert">{{ problem }}</div>{% endif %}
+        <div class="hint" id="hint-message">
+            {% if address %}We will reply to <strong>{{ address }}</strong>.{% endif %}
+            Nothing from your dashboard is sent with it — no names, no calendar
+            and no appointments. Only what you write here.
+        </div>
+    </div>
+    <button class="btn" type="submit">Send feedback</button>
+</form>
+
+<div class="hint" style="text-align:center;">
+    Or write to <a href="mailto:{{ support }}">{{ support }}</a> — it is the same inbox.
+</div>
+{% endblock %}

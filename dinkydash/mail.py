@@ -18,8 +18,9 @@ and fifteen saved lines do not pay for one.
 
 **Single mode never calls this.** A self-hosted dashboard has no accounts, so it has
 no logins to mail and no dunning to send. Nothing here is imported unless cloud
-mode asks for it, and `send` refuses rather than guessing if it is reached
-without a key.
+mode asks for it — `web/feedback.py` decides whether there is a key before
+importing anything from here, for that reason — and `send` refuses rather than
+guessing if it is reached without a key.
 
 The shape follows `calendars.fetch_feed`: a typed error the caller decides
 about, a transport that tests replace, and a message that carries no secret.
@@ -73,13 +74,30 @@ class MailRefused(MailError):
     """
 
 
+def support_address():
+    """The address a person reaches us on, in the app and out of it.
+
+    Where a reply to a sign-in email lands, and where the feedback form sends
+    what somebody writes. One function because it is one mailbox: a support
+    address that could disagree with the reply-to on our own mail would send
+    somebody's reply somewhere their feedback never went.
+    """
+    return _reply_to()
+
+
 def send(to, subject, text, html=None, transport=None, api_key=None,
-         sender=None, sender_name=None, timeout=DEFAULT_TIMEOUT):
+         sender=None, sender_name=None, reply_to=None, timeout=DEFAULT_TIMEOUT):
     """Send one message. Returns None, raises `MailError` if it did not go.
 
     `transport` is the seam the tests use. It takes the same arguments
     `requests.post` does and must behave the same way, which is why the default
     is literally `requests.post` rather than a wrapper around it.
+
+    `reply_to` overrides where a reply lands, and the feedback form is what it
+    is for: a message arrives in the support inbox with the family's own
+    address on it, so answering is Reply rather than a copy and paste. It goes
+    through `_clean_address` like the recipient does — a value that reaches a
+    header is a header injection wherever it came from.
     """
     recipient = _clean_address(to)
     key = _clean_key(api_key if api_key is not None else os.environ.get("SENDGRID_API_KEY"))
@@ -88,7 +106,7 @@ def send(to, subject, text, html=None, transport=None, api_key=None,
     body = {
         "personalizations": [{"to": [{"email": recipient}]}],
         "from": {"email": sender or _sender(), "name": sender_name or DEFAULT_FROM_NAME},
-        "reply_to": {"email": _reply_to(), "name": DEFAULT_FROM_NAME},
+        "reply_to": _reply(reply_to),
         "subject": subject,
         "content": _content(text, html),
     }
@@ -196,8 +214,20 @@ def _sender():
     return os.environ.get("DINKYDASH_MAIL_FROM") or DEFAULT_FROM
 
 
+def _reply(reply_to):
+    """The `reply_to` block. Ours carries a name; somebody else's does not.
+
+    A name is a label the sender chose for themselves, and "DinkyDash" on a
+    family's own address would be a mail client showing our name against their
+    mailbox.
+    """
+    if reply_to:
+        return {"email": _clean_address(reply_to)}
+    return {"email": _reply_to(), "name": DEFAULT_FROM_NAME}
+
+
 def _reply_to():
-    """Where a reply lands. Overridable, and never the send-only address."""
+    """Where a reply lands by default. Overridable, never the send-only address."""
     return os.environ.get("DINKYDASH_MAIL_REPLY_TO") or DEFAULT_REPLY_TO
 
 

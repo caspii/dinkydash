@@ -69,6 +69,10 @@
                "Not now", a muted pill. Rows and outline buttons take --warm
                instead: on a white card that reads as warmth, this as dirt. */
             --tint: rgba(154, 134, 119, 0.12);
+            /* How wide the page gets. Named because two things have to agree on
+               it: the sheet everything is read in, and the strip the feedback
+               pill is docked to at the foot of it. */
+            --shell: 28.75rem;
         }
         *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
         /* An inline `display` beats the browser's own [hidden] rule, so say it here. */
@@ -95,7 +99,7 @@
             -webkit-font-smoothing: antialiased;
         }
         /* Built for a phone; on anything wider it just centres. */
-        .shell { max-width: 28.75rem; margin: 0 auto; min-height: 100vh; background: var(--bg); }
+        .shell { max-width: var(--shell); margin: 0 auto; min-height: 100vh; background: var(--bg); }
         a { color: var(--accent); text-decoration: none; }
 
         /* The bar holds the way back and the title, and nothing that writes: a page
@@ -331,6 +335,54 @@
 
         .inline-form { display: inline; }
 
+        /* **The feedback pill** (settings/_feedback.html). Docked to the foot of
+           the *sheet* rather than the corner of the window: on a desktop browser
+           a viewport-corner button would sit out in the margin, yards from the
+           page it belongs to. So the dock is the shell's own width, centred the
+           same way, and the pill lands on the bottom right of the page wherever
+           that page happens to be.
+
+           The dock itself takes no pointer events and only the controls inside
+           it do, so a tap that misses the pill reaches whatever is under it
+           rather than a transparent strip across the foot of the page. Below
+           the app bar's z-index for the same reason a sticky header outranks a
+           floating button: the header is navigation, this is an offer. */
+        .feedback-dock {
+            position: fixed; left: 0; right: 0; bottom: 0; z-index: 4;
+            max-width: var(--shell); margin: 0 auto;
+            padding: 0 1rem 1rem;
+            display: flex; justify-content: flex-end;
+            pointer-events: none;
+        }
+        .feedback-dock > * { pointer-events: auto; }
+        /* Room under the last card for the pill to sit over nothing. Written
+           with `:has()` so a page that dropped the block — the operator's, the
+           sign-in pages — keeps the padding it always had, and so the space
+           goes back when the pill is waved away. */
+        body:has(.feedback-dock:not([hidden])) .content { padding-bottom: 4.5rem; }
+        .feedback {
+            display: flex; align-items: center;
+            border: 1.5px solid var(--border-strong); border-radius: 999px;
+            background: var(--surface);
+            box-shadow: 0 2px 10px rgba(45, 35, 25, 0.14);
+        }
+        .feedback .open {
+            display: inline-flex; align-items: center; gap: 0.4375rem;
+            height: 2.625rem; padding: 0 0.875rem;
+            border-radius: 999px; color: var(--text);
+            font-size: 0.8125rem; font-weight: 800; white-space: nowrap;
+        }
+        /* Drawn only once the script below has something to remember a
+           dismissal with; without it the pill is simply the link. */
+        .feedback .dismiss {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 2.375rem; height: 2.625rem; flex-shrink: 0;
+            border: none; border-left: 1px solid var(--border);
+            border-radius: 0 999px 999px 0;
+            background: transparent; color: var(--text-muted);
+            font-family: inherit; cursor: pointer;
+        }
+
         /* Where the dashboard is (settings/_screen_link.html). The QR plate is white
            in both themes on purpose: scanners expect dark on light, and an
            inverted code is read by some phones and not others. */
@@ -362,7 +414,7 @@
            never shifts the one below it. */
         .btn, .row, .chev, .appbar .back, .appbar .action, .picker label, .picker .more, .move button,
         .emoji-grid button, .pill, .calendar-help summary, .checkline label, .hint a, .note-box a, .flash a,
-        .field input, .field select, .field textarea {
+        .field input, .field select, .field textarea, .feedback .open, .feedback .dismiss {
             transition: background-color 0.12s ease, border-color 0.12s ease, color 0.12s ease,
                         box-shadow 0.12s ease, transform 0.12s ease, opacity 0.12s ease;
         }
@@ -395,6 +447,10 @@
             .hint a:hover, .note-box a:hover, .flash a:hover { color: var(--accent-dark); text-decoration: underline; }
             a.pill.muted:hover { background: rgba(154, 134, 119, 0.2); color: var(--text); }
             a.pill.warm:hover { background: rgba(232, 93, 36, 0.16); }
+
+            .feedback:hover { border-color: var(--accent); }
+            .feedback .open:hover { color: var(--accent-dark); }
+            .feedback .dismiss:hover { background: var(--tint); color: var(--text); }
         }
         /* Pressed. After the hover block on purpose: at equal specificity the
            later rule wins while both apply, and a press should beat a hover. */
@@ -410,6 +466,8 @@
         .move button:not(:disabled):active { background: var(--border); }
         .picker .more:active { background: var(--border); }
         .emoji-grid button:active { background: var(--border); }
+        .feedback .open:active { background: var(--warm); }
+        .feedback .dismiss:active { background: var(--border); }
         /* Keyboard focus: one ring throughout, and only from the keyboard —
            :focus-visible never draws for a click. Text inputs keep their own
            cue (the border goes accent, above). The invisible radio behind a
@@ -422,6 +480,9 @@
         .move button:focus-visible { outline-offset: 1px; }
         /* Inside the ring, so it never lies across the emoji either side of it. */
         .emoji-grid button:focus-visible { outline-offset: -2px; }
+        /* Inside, for the same reason: the two halves of the pill are one
+           rounded shape and a ring around either would overhang the other. */
+        .feedback .open:focus-visible, .feedback .dismiss:focus-visible { outline-offset: -2px; }
     </style>
 </head>
 <body>
@@ -442,5 +503,10 @@
     </div>
 </div>
 {% block interactions %}{% include "settings/_interactions.html" %}{% endblock %}
+{# The way to tell us something, on every page of the signed-in area. A block,
+   because three kinds of page drop it: the sign-in pages, which have no session
+   to send from; the operator's page, which carries no script of any kind; and
+   the feedback page itself. #}
+{% block feedback %}{% include "settings/_feedback.html" %}{% endblock %}
 </body>
 </html>

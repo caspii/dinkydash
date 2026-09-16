@@ -26,7 +26,9 @@ from dinkydash.context import compute_birthday_info, parse_monthday, upcoming_fo
 from dinkydash.runner import refresh_calendars
 from dinkydash.runner import run as run_generation
 from web import CLOUD
+from web import feedback as feedback_module
 from web import manifest as manifest_module
+from web import ratelimit
 from web import setup as setup_module
 from web.emoji import one_emoji
 from web.family import (current_access, current_address, current_budget,
@@ -51,6 +53,21 @@ SCREEN_REPLACEMENT = {
     "message": "Every connected screen will stop until you open the new link on it.",
     "confirm": "Replace screen link", "cancel": "Keep current link",
 }
+
+# How much feedback one family may send in an hour. Somebody with something to
+# say writes once, occasionally twice; past this it is a script or a stuck
+# button, and either way it is our sending reputation being spent rather than
+# theirs. In this process only, like the sign-in limit beside it — a bound on
+# abuse, not a quota.
+MOST_FEEDBACK = 5
+FEEDBACK_SECONDS = 3600
+
+
+@bp.record_once
+def _build_the_feedback_limiter(state):
+    """Give each app its own feedback limiter, as `routes/auth.py` does."""
+    state.app.config.setdefault(
+        "FEEDBACK_LIMITER", ratelimit.Limiter(MOST_FEEDBACK, FEEDBACK_SECONDS))
 
 
 @bp.before_request
@@ -1030,3 +1047,91 @@ def system():
     except Exception:
         zones = [config.get("timezone", "UTC")]
     return render_template("settings/system.html", config=config, zones=zones)
+
+
+# -- telling us something ---------------------------------------------------
+
+NOTHING_WRITTEN = "Write something first, then press Send."
+TOO_LONG = ("That is longer than this form sends. Trim it to {longest:,} characters, "
+            "or email it to {support} instead.")
+TOO_MUCH = ("That is more than this form takes in an hour. Email {support} and it "
+            "will reach the same person.")
+DID_NOT_GO = ("That did not send — the fault is ours, not yours. Try again in a "
+              "minute, or email it to {support}.")
+IT_WENT = "Thank you — that has gone to a person, and every one is read."
+
+
+@bp.route("/feedback", methods=["GET", "POST"])
+def feedback():
+    """Tell us something: one form, one email, nothing stored (DIN-34).
+
+    A 404 rather than a disabled page when there is nowhere to send it. The
+    condition is `feedback.enabled()`, which is the same one the pill in
+    `settings/base.html` is drawn behind, so a route that cannot work is never a
+    route somebody is offered. It is also what keeps `dinkydash.mail` unimported
+    on a machine with no mail provider.
+
+    Behind the blueprint's own `guard()` like every other page here, so in cloud
+    mode a message always has an account behind it. That is the spam control
+    that matters: the open door is `/login`, and it is Turnstile's.
+    """
+    if not feedback_module.enabled():
+        abort(404)
+    if request.method == "GET":
+        return _feedback_page()
+
+    message = feedback_module.clean(request.form.get("message"))
+    support = feedback_module.support_address()
+    if not message:
+        return _feedback_page(message, NOTHING_WRITTEN)
+    if len(message) > feedback_module.LONGEST:
+        return _feedback_page(message, TOO_LONG.format(
+            longest=feedback_module.LONGEST, support=support))
+
+    limiter = current_app.config["FEEDBACK_LIMITER"]
+    if not limiter.allow(_who_is_writing()):
+        return _feedback_page(message, TOO_MUCH.format(support=support))
+
+    # Imported here for the reason the route is gated at all: on a machine with
+    # no key, nothing on this path is ever reached, so nothing imports `mail`.
+    from dinkydash.mail import MailError
+
+    cloud_mode = current_app.config["MODE"] == CLOUD
+    try:
+        feedback_module.submit(
+            message,
+            address=current_address(),
+            family_id=current_family_id() if cloud_mode else None,
+        )
+    except MailError as exc:
+        # The exception, never the message. What somebody wrote is theirs, and
+        # what failed is our mail provider.
+        log.warning("A feedback message did not go out: %s", exc)
+        return _feedback_page(message, DID_NOT_GO.format(support=support))
+
+    # That one went, and nothing of what it said.
+    log.info("A feedback message was sent.")
+    flash(IT_WENT, "ok")
+    return redirect(url_for("settings.home"))
+
+
+def _feedback_page(message=None, problem=None):
+    """The form, empty or holding back what somebody has already typed."""
+    return render_template("settings/feedback.html", message=message,
+                           problem=problem, longest=feedback_module.LONGEST,
+                           support=feedback_module.support_address(),
+                           address=current_address())
+
+
+def _who_is_writing():
+    """The rate-limit key: the family hosted, the caller's address otherwise.
+
+    The family rather than the address, because the limit is on an account and
+    a household may well have two parents and two phones. Self-hosted there is
+    no account to key on and no shared reputation at stake — the caller's own
+    network is the limit — so it falls back to the address `ratelimit` can see,
+    which on a home network is deliberately nothing at all.
+    """
+    if current_app.config["MODE"] == CLOUD:
+        return current_family_id()
+    return ratelimit.client_ip(request)

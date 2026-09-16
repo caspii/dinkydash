@@ -3,6 +3,9 @@
 {% extends "settings/base.html" %}
 {% block title %}Check your email{% endblock %}
 {% block manifest %}{% endblock %}
+{# No pill: there is no session behind these pages, so the page it leads
+   to would only ever be a redirect back to here. #}
+{% block feedback %}{% endblock %}
 
 {% block appbar %}
 <h1 style="padding-left:0.25rem;color:var(--accent);font-size:1.15rem;">DinkyDash</h1>

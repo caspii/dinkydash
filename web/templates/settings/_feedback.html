@@ -1,0 +1,43 @@
+{# **The way to tell us something** (DIN-34). A pill at the foot of every page of
+   the signed-in area, which is a link to `/settings/feedback` and nothing more
+   clever than one: a dialog would have to be opened by a script, and the point
+   of a feedback button is that it works on the page somebody is annoyed on.
+
+   Drawn only when there is somewhere to send it — the same `feedback.enabled()`
+   the route is gated behind, so the button and the page cannot disagree about
+   whether the form exists. #}
+{% if feedback_enabled() %}
+{% import "settings/_icons.html" as feedback_icons %}
+<div class="feedback-dock" id="feedback-dock">
+    <div class="feedback">
+        <a class="open" href="{{ url_for('settings.feedback') }}">{{ feedback_icons.speech() }}<span>Feedback</span></a>
+        <button class="dismiss" type="button" id="feedback-hide" hidden
+                aria-label="Hide the feedback button">{{ feedback_icons.close() }}</button>
+    </div>
+</div>
+<script>
+    // Rendered, then hidden — not the other way round. Without JavaScript there
+    // is nothing to remember a dismissal with, so the link has to be in the
+    // markup rather than put there by a script; and the × is the half that
+    // needs one, so that is the half that waits.
+    //
+    // This runs where it stands, before the page paints, so a pill somebody
+    // waved away last week does not flash up before going again.
+    (function () {
+        var dock = document.getElementById('feedback-dock');
+        var hide = document.getElementById('feedback-hide');
+        var KEY = 'dinkydash-feedback-pill';
+        var gone = false;
+        try {
+            gone = localStorage.getItem(KEY) === 'hidden';
+        } catch (e) { /* private mode: show it, and let it be hidden for this visit */ }
+        if (gone) { dock.hidden = true; return; }
+
+        hide.hidden = false;
+        hide.addEventListener('click', function () {
+            try { localStorage.setItem(KEY, 'hidden'); } catch (e) {}
+            dock.hidden = true;
+        });
+    })();
+</script>
+{% endif %}

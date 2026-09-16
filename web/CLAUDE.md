@@ -82,6 +82,20 @@ cursor, and on a list page the link stretches over the whole row (`a.row-main::a
 avatar and the pill open the item the way the home page's rows already did; anything that must
 stay its own target inside a row sits above it the way `.move` does.
 
+**The feedback pill is drawn on every page of the signed-in area, and its condition is
+"is there anywhere to send it".** `settings/_feedback.html` is a link to `/settings/feedback`
+docked to the foot of the shell, dismissible for good in `localStorage` — so the settings home
+also carries a row to the same page, because an offer that can be waved away has to exist
+somewhere it cannot be lost. Three kinds of page drop the `{% block feedback %}`: the sign-in
+pages, which have no session for the page it leads to; `/admin`, which carries no script of any
+kind; and the feedback page itself. The dashboard is outside the shell and could never have it.
+**Not a mode check** — `web.feedback.enabled()` asks whether a mail key is set, so a Pi with no
+mail provider is offered nothing rather than a button that fails, and the same function gates the
+route, which 404s. Nothing is stored: `web/feedback.py` composes one email to
+`mail.support_address()` with the family's own address as the reply-to, carrying the words, that
+address and the family id and nothing from the dashboard. **What somebody wrote is never logged**,
+on the way out or on the way to a failure. `tests/test_feedback.py` holds each of those.
+
 **A route gets its store from `web.family.current_store()`, never from `app.config`.** In single
 mode that is the one `FileStore` the process was built with. In cloud mode it is a `PostgresStore`
 built for this request from the family on the session, cached on `g`, over the process-wide pool.

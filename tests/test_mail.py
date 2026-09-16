@@ -16,7 +16,7 @@ import traceback
 import pytest
 import requests
 
-from dinkydash.mail import MailError, MailRefused, send
+from dinkydash.mail import MailError, MailRefused, send, support_address
 
 
 class FakeResponse:
@@ -70,6 +70,34 @@ class TestTheRequest:
     def test_there_is_a_timeout(self):
         """A send that hangs forever would hang whatever asked for it."""
         assert send_ok().timeout > 0
+
+
+class TestWhereAReplyGoes:
+    def test_by_default_it_is_the_support_inbox(self):
+        """`dinkydash.co` has no MX records; a reply to the From address is lost."""
+        assert send_ok().json["reply_to"]["email"] == support_address()
+
+    def test_it_can_be_overridden_from_the_environment(self, monkeypatch):
+        monkeypatch.setenv("DINKYDASH_MAIL_REPLY_TO", "support@example.test")
+        assert send_ok().json["reply_to"]["email"] == "support@example.test"
+
+    def test_a_caller_can_point_it_somewhere_else(self):
+        """Feedback: the message arrives with the family's own address on it."""
+        assert send_ok(reply_to="parent@example.test")\
+            .json["reply_to"] == {"email": "parent@example.test"}
+
+    def test_another_address_carries_no_name_of_ours(self):
+        """A mail client would show "DinkyDash" against their mailbox."""
+        assert "name" not in send_ok(reply_to="parent@example.test").json["reply_to"]
+
+    @pytest.mark.parametrize("address", ["a@b.test\nbcc: x@y.test", "notanemail"])
+    def test_it_is_cleaned_like_the_recipient(self, address):
+        """A value that reaches a header is a header injection wherever it came from."""
+        post = Recorder()
+        with pytest.raises(MailRefused):
+            send("parent@example.test", "Hi", "Body", reply_to=address,
+                 transport=post, api_key="SG.test")
+        assert post.url is None
 
 
 class TestContent:
