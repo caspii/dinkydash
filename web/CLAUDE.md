@@ -249,6 +249,16 @@ after the first paint and sets taller lines than the system fallback, so a size 
 lands can overflow once it swaps in — measured at 557px of content in a 480px panel. The dashboard only
 looks right because it re-measures when the font arrives.
 
+**The agenda's time column is a token, because a family can choose a 12-hour clock.** It does not
+shrink, so it is sized for the widest time that clock can write — `--time-column`, 5.2rem for
+`12:00` and 7.4rem for `12:00 pm`, selected by `data-clock` on `<html>` beside `data-theme`.
+Measured rather than guessed: at 800x480 the widest 12-hour time is 89.2px in a 99.1px column, and
+the wider column costs no type size at any of the three sizes (the root stays 13.40 / 20.10 /
+13.99px). **`data-clock` is on `<html>`, which a refresh keeps**, so `swap()` carries it across by
+hand the way it already did the theme; forget that and a family who changes the setting gets the new
+times in the old column until something forces a real reload. The times themselves are written in
+`dinkydash/clock.py` — see the root `CLAUDE.md`.
+
 **The agenda's row budget.** `MAX_EVENTS = 5` is the budget for the whole agenda, not today's cap.
 Today fills it first; tomorrow tops up whatever is left, capped again at `MAX_TOMORROW = 3` so it
 stays a footnote even on an empty day. A five-event day therefore renders exactly as it did before

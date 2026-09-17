@@ -15,12 +15,16 @@ from ruamel.yaml import YAML
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString
 
 from .calendars import addresses, zone
+from .clock import CLOCKS, DEFAULT_CLOCK
 
 log = logging.getLogger(__name__)
 
 DEFAULTS = {
     "family_name": "Our family",
     "timezone": "UTC",
+    # Beside the timezone because the two are read together: one decides what a
+    # time *is*, the other how it is written.
+    "clock": DEFAULT_CLOCK,
     "location": "",
     "theme": "light",
     "calendars": [],
@@ -146,6 +150,11 @@ def with_defaults(raw):
 
     if config.get("theme") not in THEMES:
         config["theme"] = "light"
+    # Coerced rather than trusted for the same reason as the theme: this value
+    # arrives from a hand-edited file or a jsonb column, and an unrecognised
+    # one should fall back to the default rather than reach a formatter.
+    if config.get("clock") not in CLOCKS:
+        config["clock"] = DEFAULT_CLOCK
 
     return config
 

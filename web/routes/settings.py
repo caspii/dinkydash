@@ -22,6 +22,7 @@ from dinkydash import config as config_module
 from dinkydash import lifecycle, schedule, screens
 from dinkydash.calendars import FeedError, addresses, describe_feed, feed_label
 from dinkydash.claude_client import GenerationError
+from dinkydash.clock import CLOCKS, DEFAULT_CLOCK, clock_of, format_time
 from dinkydash.context import compute_birthday_info, parse_monthday, upcoming_for
 from dinkydash.runner import refresh_calendars
 from dinkydash.runner import run as run_generation
@@ -275,12 +276,13 @@ def home():
     payload = current_store().load_payload(config)
 
     tzinfo = config_module.tzinfo_for(config)
+    clock = clock_of(config)
     # The first brief is due immediately; the next tick's timing depends on the host.
     status = {"state": "waiting",
               "detail": "No dashboard has been generated yet. The next run writes it."}
     if payload:
         generated_for = payload.get("generated_for_date")
-        written = _clock(payload.get("generated_at"), tzinfo)
+        written = _clock(payload.get("generated_at"), tzinfo, clock)
         if generated_for == today.isoformat():
             status = {"state": "ready",
                       "detail": f"Today's dashboard is up — written {written or 'earlier'}."}
@@ -288,7 +290,7 @@ def home():
             status = {"state": "stale", "detail": f"Showing the dashboard from {generated_for}."}
         # A refresh with no brief yet leaves a payload holding only the agenda,
         # so an unwritten dashboard stays "waiting" rather than claiming a date.
-        fetched = _clock(payload.get("calendars_fetched_at"), tzinfo)
+        fetched = _clock(payload.get("calendars_fetched_at"), tzinfo, clock)
         if fetched:
             status["detail"] += f" Calendars refreshed {fetched}."
 
@@ -378,12 +380,14 @@ def set_timezone():
     return redirect(url_for("settings.home"))
 
 
-def _clock(stamp, tzinfo):
+def _clock(stamp, tzinfo, clock=None):
     """An ISO timestamp as the time on the family's own clock, or None.
 
     Stamps are written in UTC. The server is often not in the family's timezone
     — a Pi is frequently left on UTC, and hosted the server is nowhere near
     them — so reading the characters out of the string showed the wrong time.
+    Written in whichever clock they read, so this page does not contradict the
+    dashboard it is describing.
     """
     if not stamp:
         return None
@@ -393,7 +397,7 @@ def _clock(stamp, tzinfo):
         return None
     if moment.tzinfo is None:
         moment = moment.replace(tzinfo=timezone.utc)
-    return moment.astimezone(tzinfo).strftime("%H:%M")
+    return format_time(moment.astimezone(tzinfo), clock or DEFAULT_CLOCK)
 
 
 @bp.route("/manifest.webmanifest")
@@ -654,7 +658,8 @@ def check_feed(item, config):
     nxt = found["next"]
     tail = ""
     if nxt:
-        when = "all day" if nxt["all_day"] else nxt["time"]
+        when = "all day" if nxt["all_day"] else format_time(
+            nxt.get("start") or nxt.get("time"), clock_of(config))
         tail = f" Next up: {nxt['title']}, {nxt['date']} at {when}."
     return {"ok": True, "message": lead + tail}
 
@@ -799,7 +804,13 @@ def cadence_choices(current):
 
 
 def cadence_values(config):
-    """The two keys as the form wants them — an int and an "HH:MM" string."""
+    """The two keys as the form wants them — an int and an "HH:MM" string.
+
+    `brief_time` stays `HH:MM` whatever clock the family reads: it is the value
+    of an `<input type="time">`, which takes that shape on the wire and draws it
+    in the reader's own locale. The prose below is the part that follows the
+    setting.
+    """
     return {
         "refresh_minutes": int(schedule.refresh_interval(config).total_seconds() // 60),
         "brief_time": schedule.brief_time(config).strftime("%H:%M"),
@@ -810,8 +821,9 @@ def cadence_summary(config):
     """The one line the settings home shows: "Calendars every hour · daily message at 06:00"."""
     values = cadence_values(config)
     cadence = describe_minutes(values["refresh_minutes"])
+    written = format_time(schedule.brief_time(config), clock_of(config))
     return (f"Calendars {cadence[:1].lower()}{cadence[1:]} · "
-            f"daily message at {values['brief_time']}")
+            f"daily message at {written}")
 
 
 @bp.route("/refresh", methods=["GET", "POST"])
@@ -1034,6 +1046,9 @@ def system():
         timezone = request.form.get("timezone", "").strip()
         if timezone:
             config["timezone"] = timezone
+        clock = request.form.get("clock", "").strip()
+        if clock in CLOCKS:
+            config["clock"] = clock
         model = request.form.get("claude_model", "").strip()
         if model and current_app.config["MODE"] != CLOUD:
             config["claude_model"] = model
@@ -1046,7 +1061,13 @@ def system():
         zones = sorted(available_timezones())
     except Exception:
         zones = [config.get("timezone", "UTC")]
-    return render_template("settings/system.html", config=config, zones=zones)
+    # Each choice is labelled with what the formatter actually prints, so the
+    # example beside it cannot drift from the times on the wall.
+    names = {"24h": "24-hour", "12h": "12-hour"}
+    clocks = [(name, f"{names[name]} ({format_time(time(15, 45), name)})")
+              for name in CLOCKS]
+    return render_template("settings/system.html", config=config, zones=zones,
+                           clocks=clocks)
 
 
 # -- telling us something ---------------------------------------------------

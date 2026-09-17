@@ -19,8 +19,22 @@
             {% endfor %}
         </select>
         <div class="hint">
-            Decides when &ldquo;today&rdquo; rolls over and how calendar times are shown. Set this
+            Decides when &ldquo;today&rdquo; rolls over and what a calendar time is. Set this
             even on a Pi whose clock is already local — the engine works from it, not the server clock.
+        </div>
+    </div>
+
+    {# Beside the time zone, because the two are read together: that one decides
+       what a time is, this one decides how it is written. #}
+    <div class="field">
+        <label for="clock">Clock</label>
+        <select id="clock" name="clock">
+            {% for name, label in clocks %}
+            <option value="{{ name }}" {{ 'selected' if name == config.clock }}>{{ label }}</option>
+            {% endfor %}
+        </select>
+        <div class="hint">
+            How times are written on the dashboard, and in the line written for you each morning.
         </div>
     </div>
 
