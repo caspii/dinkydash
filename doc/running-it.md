@@ -33,12 +33,13 @@ headline and the written line come from the model.
 That split is why a failed run is not a disaster. Yesterday's fetch already reached 14 days ahead,
 so today's times are still there and still right.
 
-## The three states the dashboard can be in
+## The states the dashboard can be in
 
 | What you see | What it means | What to do |
 |---|---|---|
 | The dashboard, no banner | Today's run succeeded | Nothing |
-| An amber banner across the top | Today's brief failed or hasn't happened yet. Times, turns and countdowns are still today's; only the written line is older, and it is labelled | Nothing — the next tick retries. Check `generate.log` if it stays. Press **Rewrite daily message** in settings to force it |
+| An amber banner across the top | Today's brief was due and did not arrive. Times, turns and countdowns are still today's; only the written line is older, and it is labelled | Nothing — the next tick retries. Check `generate.log` if it stays. Press **Rewrite daily message** in settings to force it |
+| Yesterday's line, labelled, with no banner | It is before `brief_time` (06:00 by default) on your clock: today's brief is not due yet, so nothing is wrong | Nothing |
 | "Nearly there" | The people are still the example file's invented ones, or the timezone is still UTC | Finish the set-up steps on the settings home. The tick writes nothing until then |
 | "Writing … first dashboard" | Set up, but nothing has been generated yet | Nothing — the next tick writes it, whatever the hour. Press **Write first daily message** in settings if you'd rather not wait |
 

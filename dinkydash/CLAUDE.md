@@ -250,6 +250,14 @@ Yesterday's fetch reached 14 days ahead, so today's agenda is still in it. The s
 replaced by a computed one (`"3 things on today, starting at 08:20."`) because a day-old AI headline
 can be actively wrong.
 
+**Stale and late are two different questions, and only one of them may raise the banner.** A
+dashboard is stale from local midnight, which is when the words stop being today's; the brief is
+not *owed* until `brief_time`, so `build_view` also takes `now` and asks `schedule.brief_due`
+whether anything is actually missing. Between the two the wall shows yesterday's line, labelled,
+and says nothing else — an amber "this morning's daily message didn't arrive" before it was due
+reports a fault that has not happened, in a kitchen, all night. More than a day behind is late at
+any hour, and a caller with no clock to pass (the frozen dashboard) gets the plain answer.
+
 That same 14-day window is where **tomorrow's** agenda comes from, so it survives a failed run too.
 
 The payload carries two stamps, **both in UTC**: `generated_at` (when the brief was written) and

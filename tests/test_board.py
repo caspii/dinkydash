@@ -4,11 +4,13 @@ The design claim being tested: when a morning's run fails, the times, turns and
 countdowns on the wall are still *today's* — only the written line is old.
 """
 
-from datetime import date
+import json
+from datetime import date, datetime, timezone
 
 import pytest
 
 from dinkydash.board import build_view, computed_headline
+from dinkydash.config import tzinfo_for
 
 CONFIG = {
     "family_name": "The Wilsons",
@@ -117,6 +119,68 @@ class TestStaleBoard:
     def test_the_note_survives_because_it_is_harmless(self):
         view = build_view(CONFIG, self.data, TODAY)
         assert view["note"] == "An octopus fact"
+
+
+class TestTheBannerWaitsUntilTheBriefIsDue:
+    """Stale is not the same as late, and only late may show the banner.
+
+    A dashboard goes stale at local midnight; the brief is not owed until
+    `brief_time`, 06:00 by default. Between the two, an amber "this morning's
+    daily message didn’t arrive" reports a failure that has not happened —
+    all night, on a screen in a kitchen. The words are still handled as stale
+    throughout, because yesterday’s headline is wrong from midnight on.
+    """
+
+    data = payload("2026-09-02", [event("2026-09-03", "08:20", "School run")])
+
+    def view_at(self, hour, minute=0, config=CONFIG, data=None):
+        """The dashboard as it reads at that hour on the family’s own clock."""
+        moment = datetime(2026, 9, 3, hour, minute, tzinfo=tzinfo_for(config))
+        return build_view(config, self.data if data is None else data,
+                          moment.date(), now=moment)
+
+    def test_the_small_hours_claim_nothing(self):
+        view = self.view_at(1, 30)
+        assert view["stale"] is True      # the line on the wall is yesterday’s
+        assert view["overdue"] is False   # but nothing was owed yet
+
+    def test_after_the_brief_time_it_is_late(self):
+        assert self.view_at(6, 5)["overdue"] is True
+
+    def test_the_hour_is_the_one_the_family_chose(self):
+        late = dict(CONFIG, brief_time="08:00")
+        assert self.view_at(7, 0, config=late)["overdue"] is False
+        assert self.view_at(8, 30, config=late)["overdue"] is True
+
+    def test_it_is_the_family_clock_not_the_server_clock(self):
+        # 23:30 UTC is 01:30 in Berlin: their night, not their morning.
+        moment = datetime(2026, 9, 2, 23, 30, tzinfo=timezone.utc)
+        view = build_view(CONFIG, self.data, date(2026, 9, 3), now=moment)
+        assert view["overdue"] is False
+
+    def test_more_than_a_day_behind_is_late_at_any_hour(self):
+        old = payload("2026-08-30", [event("2026-09-03", "08:20", "School run")])
+        assert self.view_at(1, 30, data=old)["overdue"] is True
+
+    def test_an_agenda_with_no_brief_at_all_is_late_at_any_hour(self):
+        # Nothing to be a day behind from, so there is no grace to give.
+        agenda = {"events": [event("2026-09-03", "08:20", "School run")],
+                  "calendars_fetched_at": "2026-09-03T00:10:00+00:00"}
+        assert self.view_at(1, 30, data=agenda)["overdue"] is True
+
+    def test_todays_dashboard_is_never_late(self):
+        assert self.view_at(1, 30, data=payload("2026-09-03"))["overdue"] is False
+
+    def test_the_words_are_still_yesterdays_overnight(self):
+        # The banner going quiet must not put yesterday’s headline back up:
+        # "Ines starts nursery today" was wrong the moment the day changed.
+        view = self.view_at(1, 30)
+        assert view["headline"] == "1 thing on today, starting at 08:20."
+        assert view["note"] == "An octopus fact"
+        assert view["stale_days"] == 1
+
+    def test_a_caller_with_no_clock_counts_every_stale_dashboard_as_late(self):
+        assert build_view(CONFIG, self.data, TODAY)["overdue"] is True
 
 
 class TestTomorrow:
@@ -342,3 +406,38 @@ class TestTheWaitingScreen:
         assert "Nearly there" in page
         assert "first dashboard" not in page.split("Nearly there")[0]
         assert "Writing" not in page
+
+
+class TestTheBannerOnTheDashboard:
+    """The one part of this a family reads, so the page itself is checked.
+
+    Rendered through the real route, because that is what decides which moment
+    `build_view` is given — a dashboard that knows it is 01:30 and a template
+    that shows the banner anyway would pass every test above.
+    """
+
+    BANNER = "daily message didn"
+
+    def page_at(self, tmp_path, monkeypatch, hour, minute=0):
+        from dinkydash import config as config_module
+        from dinkydash.store import FileStore
+        from tests.conftest import client_for
+        from web import create_app
+
+        path = tmp_path / "config.yaml"
+        path.write_text('family_name: "The Wilsons"\ntimezone: "Europe/Berlin"\n')
+        (tmp_path / "dashboard_data.json").write_text(json.dumps(
+            payload("2026-09-02", [event("2026-09-03", "08:20", "School run")])))
+        moment = datetime(2026, 9, 3, hour, minute,
+                          tzinfo=tzinfo_for({"timezone": "Europe/Berlin"}))
+        monkeypatch.setattr(config_module, "now_for", lambda _: moment)
+        return client_for(create_app(FileStore(path))).get("/").get_data(as_text=True)
+
+    def test_the_night_is_quiet(self, tmp_path, monkeypatch):
+        page = self.page_at(tmp_path, monkeypatch, 1, 30)
+        assert self.BANNER not in page
+        # Still labelled, so nobody reads yesterday’s line as today’s.
+        assert "Yesterday" in page
+
+    def test_the_morning_says_so(self, tmp_path, monkeypatch):
+        assert self.BANNER in self.page_at(tmp_path, monkeypatch, 7, 0)

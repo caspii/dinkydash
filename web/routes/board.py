@@ -87,8 +87,11 @@ def render_board(store, manifest_url=None, access=None):
     if access and access.ended:
         view = board_view.build_lapsed_view(config, payload, access.show_last_board)
     else:
-        today = config_module.today_for(config)
-        view = board_view.build_view(config, payload, today)
+        # One read of the family's clock, not two: `now` decides whether a
+        # dashboard that is not today's is actually late, and a date taken
+        # separately could land the other side of midnight from it.
+        now = config_module.now_for(config)
+        view = board_view.build_view(config, payload, now.date(), now=now)
     return render_template("board.html", view=view,
                            manifest_url=manifest_url or url_for("board.manifest"))
 
