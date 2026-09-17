@@ -104,6 +104,11 @@ The contact address is `hi@keepthescore.com` on purpose: **`dinkydash.co` has no
 so it sends email and receives none. `dinkydash/mail.py` sets the same address as `Reply-To`
 for that reason. When DinkyDash gets a mailbox, all three move together.
 
+Where the feedback form *sends* is a separate thing and deliberately not an address on these
+pages — `DINKYDASH_FEEDBACK_TO`, per `web/feedback.py`. What the policy says about it is the
+kind of mailbox and who reads it, which stays true when that variable changes; an address
+written here would not.
+
 ## The two image generators
 
 Both are one-off scripts whose outputs are committed, so a normal build needs neither Pillow

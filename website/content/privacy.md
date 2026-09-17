@@ -5,7 +5,7 @@ template: page.html
 description: What DinkyDash stores, who it is sent to, how long it is kept, and how to get it back or delete it.
 ---
 
-*Last updated: 16 September 2026.*
+*Last updated: 17 September 2026.*
 
 DinkyDash puts a family's day on a screen. That means the things it holds are a
 household's names, dates of birth and movements — which is about as personal as
@@ -59,13 +59,14 @@ delivered. When you use the feedback form, what you wrote and your address go
 the same way. SendGrid never sees a calendar, a name or a date of birth.
 
 **Feedback goes to a mailbox, not to a database.** What you write in the form is
-sent to `hi@keepthescore.com` with your account's address and your family's
-internal reference on it, so we can reply and find the dashboard you are asking
-about. Nothing from the dashboard goes with it — no names, no calendar links and
-no appointments — unless you write them yourself. That mailbox is on Google
-Workspace, the same one you reach by writing to us directly, and it is where
-your message stays: there is no feedback table in the app, so nothing about it
-appears in your export and there is nothing in the app to delete.
+emailed to us with your account's address and your family's internal reference
+on it, so we can reply and find the dashboard you are asking about. Nothing from
+the dashboard goes with it — no names, no calendar links and no appointments —
+unless you write them yourself. It arrives in a mailbox held by Google, read by
+Caspar and nobody else, and that is where your message stays: there is no
+feedback table in the app, so nothing about it appears in your export and there
+is nothing in the app to delete. Writing to **hi@keepthescore.com** reaches the
+same person, and is what a reply to us comes back to.
 
 **Sentry sees that something broke, and not whose dashboard it was.** When the app
 or the background worker hits an error, a report goes to Sentry: which line of
@@ -95,7 +96,7 @@ API key at all, and simply goes without the written line.
 | **Anthropic** | Writes the daily note from the day's agenda | United States |
 | **DigitalOcean** | Runs the app and the database | Frankfurt, Germany (US company) |
 | **SendGrid** (Twilio) | Delivers sign-in and feedback emails | United States |
-| **Google** (Workspace) | The mailbox our support and feedback email arrives in | United States |
+| **Google** | The mailbox our support and feedback email arrives in | United States |
 | **Cloudflare** | DNS; website and app delivery through DigitalOcean's App Platform; the bot check on the sign-in page | Global (US company) |
 | **Sentry** (Functional Software) | Error reports, and the checks that the app and the worker are running | United States |
 

@@ -121,6 +121,16 @@ envs:
   - key: DINKYDASH_ADMIN_EMAILS
     scope: RUN_TIME
     type: SECRET
+  # Where the feedback form sends (`web/feedback.py`). Not a credential either,
+  # and a `SECRET` for the same reason as the line above: it is somebody's
+  # mailbox and this file is public. Unset means feedback goes to the address
+  # the app already gives out, which is what a self-hosted dashboard does.
+  # **In `.env` before the next apply**, like the keys around it, or the merge
+  # snippet in the header fails on it. The privacy policy describes the mailbox
+  # a message lands in, so this and that page move together.
+  - key: DINKYDASH_FEEDBACK_TO
+    scope: RUN_TIME
+    type: SECRET
   # Where error reports and the worker's check-ins go (DIN-35, DIN-54):
   # `dinkydash/sentry.py`, in both the service and the worker. A DSN is not a
   # password — its holder can only *send* events — but it is not published

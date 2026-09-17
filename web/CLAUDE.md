@@ -92,9 +92,13 @@ kind; and the feedback page itself. The dashboard is outside the shell and could
 **Not a mode check** — `web.feedback.enabled()` asks whether a mail key is set, so a Pi with no
 mail provider is offered nothing rather than a button that fails, and the same function gates the
 route, which 404s. Nothing is stored: `web/feedback.py` composes one email to
-`mail.support_address()` with the family's own address as the reply-to, carrying the words, that
-address and the family id and nothing from the dashboard. **What somebody wrote is never logged**,
-on the way out or on the way to a failure. `tests/test_feedback.py` holds each of those.
+`feedback.recipient()` with the family's own address as the reply-to, carrying the words, that
+address and the family id and nothing from the dashboard. **Where it lands is movable and the
+address the app prints is not**: `DINKYDASH_FEEDBACK_TO` routes messages to a mailbox somebody
+actually reads, while `mail.support_address()` stays the reply-to on our own mail, the contact in
+the legal pages and what the form offers when a send fails. The privacy policy describes the
+mailbox a message arrives in, so moving one means reading the other. **What somebody wrote is
+never logged**, on the way out or on the way to a failure. `tests/test_feedback.py` holds each of those.
 
 **A route gets its store from `web.family.current_store()`, never from `app.config`.** In single
 mode that is the one `FileStore` the process was built with. In cloud mode it is a `PostgresStore`

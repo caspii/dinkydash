@@ -2,11 +2,12 @@
 
     enabled() -> bool
     clean(message) -> str
+    recipient() -> str
     submit(message, address=None, family_id=None) -> None
 
-One form, one email, no table. A family writes a few sentences, they arrive in
-the support inbox with that family's own address as the reply-to, and nothing is
-stored on our side — so there is no feedback to export, none to delete, and no
+One form, one email, no table. A family writes a few sentences, they arrive in a
+mailbox with that family's own address as the reply-to, and nothing is stored
+on our side — so there is no feedback to export, none to delete, and no
 migration to run. That is deliberate: **the cheapest version of this that a
 person can actually reach beats a better one that is not built yet.** If enough
 arrives to need triage, a table and a queue can follow it.
@@ -30,6 +31,10 @@ import os
 # what keeps `mail`'s promise — single mode never imports it — true: with no key
 # the pill is not drawn and the route is a 404, so nothing on that path runs.
 MAIL_KEY = "SENDGRID_API_KEY"
+
+# Where the form sends, when it should not be the address the app publishes.
+# Named here for the same reason `MAIL_KEY` is: reading it costs no import.
+FEEDBACK_TO = "DINKYDASH_FEEDBACK_TO"
 
 # What one message may carry. Generous, because somebody describing a bug may
 # paste the thing that went wrong, and short enough that the form is not a way
@@ -79,21 +84,48 @@ def subject_for(address=None):
     return f"{SUBJECT} from {address}" if address else f"{SUBJECT} (self-hosted)"
 
 
+def recipient():
+    """Where a message goes, which need not be the address the pages give out.
+
+    Defaults to the support mailbox, so a self-hosted dashboard and a deployment
+    that sets nothing behave as they always have. `DINKYDASH_FEEDBACK_TO` moves
+    what the form sends to another mailbox — one that is read every day rather
+    than the one printed on the policy — and moves nothing else:
+    `support_address()` stays the reply-to on our own mail, the contact address
+    in the legal pages, and what this page offers when a send fails.
+
+    **The two can diverge without stranding anybody**, because a reply is sent
+    from wherever the message was read and carries that family's own address, so
+    an answer and its thread stay together whichever mailbox answered. What must
+    not diverge is this and the privacy policy: the mailbox a message lands in
+    is something that page states, so a deployment that sets this says so there.
+
+    Read at send time and never cached, like `enabled()`: the address behind a
+    form is operational, and moving it should not need a restart.
+    """
+    chosen = os.environ.get(FEEDBACK_TO, "").strip()
+    return chosen or support_address()
+
+
 def submit(message, address=None, family_id=None):
-    """Send one message to the support inbox. Raises `mail.MailError` if it did not go.
+    """Send one message to the feedback mailbox. Raises `mail.MailError` if it did not go.
 
     Imported here rather than at the top of the module, so that a deployment
     with no key never reaches `dinkydash.mail` at all.
     """
     from dinkydash import mail
 
-    mail.send(mail.support_address(), subject_for(address),
+    mail.send(recipient(), subject_for(address),
               compose(message, address=address, family_id=family_id),
               reply_to=address)
 
 
 def support_address():
-    """Where it goes, for the page that offers emailing us directly instead."""
+    """The address the app gives out: the fallback for a send that did not go.
+
+    Where feedback lands as well, unless `recipient()` has been pointed
+    elsewhere.
+    """
     from dinkydash import mail
 
     return mail.support_address()

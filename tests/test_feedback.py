@@ -3,8 +3,9 @@
 Four claims, and each is the reason a test below exists:
 
 * **A message reaches a person, with a way to answer it.** It goes to the
-  support address with the family's own address as the reply-to, so replying is
-  Reply rather than a copy and paste.
+  feedback mailbox — the support address unless `DINKYDASH_FEEDBACK_TO` names
+  another — with the family's own address as the reply-to, so replying is Reply
+  rather than a copy and paste.
 * **It carries nothing from the dashboard.** The page says so beside the box —
   no name, no calendar, no written line — and a page that makes a claim is a
   page whose claim is worth asserting. What goes is the words, the address and
@@ -82,6 +83,17 @@ def a_mail_key(monkeypatch):
     monkeypatch.setenv("SENDGRID_API_KEY", "SG.test")
 
 
+@pytest.fixture(autouse=True)
+def no_redirected_mailbox(monkeypatch):
+    """Where feedback goes is the default here, whatever the machine has set.
+
+    A developer with a real `DINKYDASH_FEEDBACK_TO` in the environment would
+    otherwise fail the tests that assert the default, and pass the one below
+    for the wrong reason.
+    """
+    monkeypatch.delenv(feedback.FEEDBACK_TO, raising=False)
+
+
 # -- what a message is made of ----------------------------------------------
 
 class TestComposing:
@@ -110,6 +122,26 @@ class TestComposing:
     def test_nothing_written_cleans_to_nothing(self):
         assert feedback.clean("   \r\n  ") == ""
         assert feedback.clean(None) == ""
+
+
+class TestWhereItGoes:
+    """The mailbox is movable; the address the app prints is not."""
+
+    def test_by_default_it_is_the_address_we_give_out(self):
+        assert feedback.recipient() == mail.support_address()
+
+    def test_a_chosen_mailbox_wins(self, monkeypatch):
+        monkeypatch.setenv(feedback.FEEDBACK_TO, "elsewhere@example.com")
+        assert feedback.recipient() == "elsewhere@example.com"
+
+    def test_a_blank_one_is_no_choice(self, monkeypatch):
+        monkeypatch.setenv(feedback.FEEDBACK_TO, "   ")
+        assert feedback.recipient() == mail.support_address()
+
+    def test_moving_it_leaves_the_address_on_the_page_alone(self, monkeypatch):
+        monkeypatch.setenv(feedback.FEEDBACK_TO, "elsewhere@example.com")
+        assert feedback.support_address() == mail.support_address()
+        assert feedback.support_address() != feedback.recipient()
 
 
 class TestWhetherItExists:
@@ -190,6 +222,13 @@ class TestSending:
     def test_it_goes_to_the_support_inbox(self, parent, outbox):
         parent.post("/settings/feedback", data={"message": MESSAGE})
         assert outbox.only["to"] == mail.support_address()
+
+    def test_or_to_the_mailbox_that_was_chosen_instead(self, parent, outbox, monkeypatch):
+        monkeypatch.setenv(feedback.FEEDBACK_TO, "elsewhere@example.com")
+        parent.post("/settings/feedback", data={"message": MESSAGE})
+        assert outbox.only["to"] == "elsewhere@example.com"
+        # Still the family's own address to reply to, wherever it landed.
+        assert outbox.only["reply_to"] == ADDRESS
 
     def test_a_reply_lands_with_the_family_that_wrote(self, parent, outbox):
         parent.post("/settings/feedback", data={"message": MESSAGE})
