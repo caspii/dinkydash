@@ -7,7 +7,7 @@ Guidance for `website/`. The root `CLAUDE.md` holds the rules that apply to ever
 **`website/` never runs on the dashboard**, and that is what settles most questions here.
 
 - **Its dependencies go in `requirements-site.txt`, never `requirements.txt`.** The runtime
-  list is what `deploy_to_pi.sh` installs on a Pi, and a Pi serves no marketing site. The
+  list is what a self-hosted dashboard installs, and a Pi serves no marketing site. The
   site needs `markdown`, `pyyaml` and `gunicorn`; the two image scripts need `Pillow` and
   live in `requirements-dev.txt`, and `generate_social_preview.py` also wants Chrome, which
   pip cannot install. `requirements-cloud.txt` pulls in the site's list, because one

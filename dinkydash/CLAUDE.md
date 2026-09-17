@@ -40,9 +40,9 @@ These rules keep the storage contract consistent:
   stops sending disappears, because that is what whole-row writes do in Postgres, and a stale value
   surviving on a Pi but not in the cloud is exactly the divergence the seam exists to prevent.
   `FileStore` takes a short `flock` **on the config directory** for settings and payload writes — a
-  lock file beside the data would have to be kept out of `deploy_to_pi.sh`'s `rsync --delete`, and a
-  deploy landing mid-write would otherwise unlink the inode a running tick still held, leaving the
-  next writer to lock a fresh file and serialise against nobody. This also covers a `data_file`
+  lock file beside the data would have to be protected from anything that syncs or prunes that
+  directory, and a copy landing mid-write would otherwise unlink the inode a running tick still
+  held, leaving the next writer to lock a fresh file and serialise against nobody. This also covers a `data_file`
   in another directory. Cloud mode stores the two halves in separate rows.
 - **Settings saves invalidate affected calendars before another refresh can publish.** Both
   stores compare the fetch's calendar settings with the saved config inside the write lock;

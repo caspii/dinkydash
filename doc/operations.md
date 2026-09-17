@@ -12,8 +12,7 @@ replaced — which cannot be named here, because `tests/test_tenancy.py` fails i
 mentions it. A grep for the session key returns only `web/__init__.py`, and that reads
 `DINKYDASH_SECRET_KEY`, a different name; nothing calls `from_prefixed_env`, so Flask never sees a
 plain `SECRET_KEY`. **Stripped from the main checkout and this workspace on 17 September 2026**;
-the Pi's copy still has them, and `deploy_to_pi.sh` excludes `.env` on purpose, so that one has to
-be edited in place. `.env` is not in git, so a strip in a worktree dies with that worktree and the
+the Pi's copy still has them and has to be edited in place. `.env` is not in git, so a strip in a worktree dies with that worktree and the
 next workspace is seeded from the main checkout — which is why an earlier note in `CLAUDE.md`
 claiming they had been stripped did not stay true.
 
@@ -32,8 +31,9 @@ re-appliable `EV[...]` ciphertext instead of anything from `.env`.
 **The Anthropic key was rotated on 7 September 2026** (DIN-20), after living on a Pi and having
 been rsynced. The old key now reads 401 from the API; the new one is in `.env` in the main checkout
 and on the Pi, written in place. CI could not have done it, and a future rotation is the same manual
-job: revoke in the Anthropic console, then edit each copy where it lives. `deploy_to_pi.sh` excludes
-`.env`, so pushing one copy over the other is not an option and is not meant to be.
+job: revoke in the Anthropic console, then edit each copy where it lives. `.env` is not in git and
+nothing copies it between machines, so pushing one copy over the other is not an option and is not
+meant to be.
 
 ## Managed Postgres, created 8 September 2026
 
@@ -507,11 +507,15 @@ out of the CI log.
 
 ## Raspberry Pi deployment
 
-`deploy_to_pi.sh` rsyncs the code to the Pi — protecting the Pi's own `config.yaml`, generated data
-and `.env`, and with `--delete` clearing anything dropped from the repo — creates the virtualenv if
-it is missing, installs dependencies, and restarts the `dinkydash.service` systemd unit when it is
-installed. Host, user and target directory are overridable with the `PI_HOST`, `PI_USER` and
-`PI_DIR` environment variables; `--dry-run` shows what a deploy would change without touching the Pi.
+**`deploy_to_pi.sh` was removed on 17 September 2026.** The Pi's kiosk browser shows the hosted
+dashboard, so the code on that machine is not what its screen displays, and an rsync-and-restart
+script aimed at it was a deploy path with nothing at the end of it. Updating a
+self-hosted install is `git pull`, `pip install -r requirements.txt` and a service restart, which is
+what `website/content/getting-started.md` tells a self-hoster to do. The Pi's own `config.yaml`,
+generated data and `.env` are not in git, so a pull leaves them alone — which is what the script's
+exclude list existed to guarantee.
+
+The rest of this section is the self-hosted path, and still holds for anyone running it.
 
 Generation runs via cron:
 ```

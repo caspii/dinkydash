@@ -60,7 +60,7 @@ the text below it jumps when the image lands.
 ### Prerequisites
 
 The site's own dependencies are in `requirements-site.txt`, not `requirements.txt` — a Raspberry Pi
-has no business rendering landing pages, and `deploy_to_pi.sh` installs the smaller file:
+has no business rendering landing pages, and a self-hosted dashboard installs the smaller file:
 
 ```bash
 pip install -r ../requirements-site.txt

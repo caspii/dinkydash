@@ -208,9 +208,9 @@ def _locked(directory):
     """An exclusive lock on the directory, for one read and one write.
 
     **The directory rather than a lock file beside the data**, and that is the
-    point: a sidecar would have to be kept out of `deploy_to_pi.sh`'s
-    `rsync --delete`, and if it ever were not, a deploy landing mid-write would
-    unlink the inode a running tick still holds. The next writer would then
+    point: a sidecar would have to be protected from anything that syncs or
+    prunes that directory, and if it ever were not, a copy landing mid-write
+    would unlink the inode a running tick still holds. The next writer would then
     create a fresh file, take a lock on a different inode, and serialise against
     nobody — silently. A directory's inode survives all of that, and there is no
     file to remember to exclude.
