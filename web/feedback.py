@@ -87,8 +87,8 @@ def subject_for(address=None):
 def recipient():
     """Where a message goes, which need not be the address the pages give out.
 
-    Defaults to the support mailbox, so a self-hosted dashboard and a deployment
-    that sets nothing behave as they always have. `DINKYDASH_FEEDBACK_TO` moves
+    Defaults to the support mailbox, which is what a self-hosted dashboard and
+    a deployment that sets nothing get. `DINKYDASH_FEEDBACK_TO` moves
     what the form sends to another mailbox — one that is read every day rather
     than the one printed on the policy — and moves nothing else:
     `support_address()` stays the reply-to on our own mail, the contact address

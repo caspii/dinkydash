@@ -477,17 +477,7 @@ The old `lcd_rotate` and `display_rotate` lines in `config.txt` no longer apply 
 
 ## Updating later
 
-To push a code change from your computer to the Pi, the repo includes `deploy_to_pi.sh`. It copies the code across and leaves the Pi's own `config.yaml`, dashboard data and `.env` untouched, then installs any new dependencies and restarts the service. It creates the virtualenv on a first deploy, so it works for the initial install as well as later updates.
-
-```bash
-./deploy_to_pi.sh                          # deploy
-./deploy_to_pi.sh --dry-run                # preview the changes, touch nothing
-PI_HOST=192.168.1.50 ./deploy_to_pi.sh     # if raspberrypi.local doesn't resolve
-```
-
-By default it talks to `raspberrypi.local`. If that name does not resolve, pass the Pi's address with `PI_HOST` as shown above.
-
-To update by hand on the Pi instead:
+To pick up a new version, pull it on the Pi itself — over SSH, or with a keyboard attached:
 
 ```bash
 cd /home/pi/dinkydash
@@ -495,6 +485,8 @@ git pull
 venv/bin/pip install -r requirements.txt
 sudo systemctl restart dinkydash.service
 ```
+
+Your settings and your key stay where they are: `config.yaml`, the dashboard's data files and `.env` are not in git, so a pull does not touch them.
 
 ---
 

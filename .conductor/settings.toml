@@ -7,7 +7,7 @@ run_mode = "nonconcurrent"
 # requirements-cloud.txt is the superset — it pulls in requirements-site.txt,
 # which pulls in requirements.txt — so this one line installs psycopg, the
 # Markdown renderer and gunicorn. Cloud mode cannot import without psycopg, and
-# the preview is cloud mode. None of it reaches a Pi: `deploy_to_pi.sh`
+# the preview is cloud mode. None of it reaches a self-hosted dashboard, which
 # installs requirements.txt alone.
 #
 # config.yaml and dashboard_data.json are only needed by single mode now, but

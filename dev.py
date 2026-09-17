@@ -8,6 +8,10 @@ Production uses wsgi.py; a self-hosted Pi continues to use app.py.
 `DATABASE_URL`, and a launcher that connects to whatever it finds is a local
 preview of somebody's production. `require_local_database` refuses anything
 that is not loopback or a Unix socket, before a connection is opened.
+
+**And it does not have to be named at all.** `DEV_DATABASE_URL` is the default,
+so `.env` needs no `DATABASE_URL` entry and a development value does not sit
+under the name production uses for its pooled connection.
 """
 
 import ipaddress
@@ -21,6 +25,19 @@ import time
 
 ROOT = Path(__file__).resolve().parent
 HOST = "127.0.0.1"
+
+# The development database, when neither the shell nor `.env` names one. It is
+# the database `doc/development.md` tells you to create, and this launcher
+# refuses anything that is not on this machine anyway, so there is nothing a
+# default can reach that an explicit value could not.
+#
+# **It is hardcoded to keep it out of `.env`.** That file is copied into every
+# new workspace and its keys are the names production uses, so a local database
+# named `DATABASE_URL` is one that something wanting the pooled connection can
+# be handed. A value only development uses belongs in the file only development
+# runs.
+DEV_DATABASE_URL = "postgresql:///dinkydash_dev"
+
 START_TIMEOUT = 15
 STOP_TIMEOUT = 5
 
@@ -29,9 +46,14 @@ def configure():
     from dotenv import load_dotenv
 
     load_dotenv(ROOT / ".env", override=False)
-    for name in ("DATABASE_URL", "DINKYDASH_SECRET_KEY"):
-        if not os.environ.get(name, "").strip():
-            raise RuntimeError(f"{name} is required; set it in the environment or .env.")
+    # A session key cannot be defaulted the way a database name can: it has to
+    # be private, and a launcher that invents one signs cookies with a value
+    # nobody chose.
+    if not os.environ.get("DINKYDASH_SECRET_KEY", "").strip():
+        raise RuntimeError(
+            "DINKYDASH_SECRET_KEY is required; set it in the environment or .env.")
+    if not os.environ.get("DATABASE_URL", "").strip():
+        os.environ["DATABASE_URL"] = DEV_DATABASE_URL
     require_local_database(os.environ["DATABASE_URL"])
     from web import SELF_HOSTED_KEY
 

@@ -7,7 +7,7 @@
 # in `requirements.txt`, so this one file installs everything the container
 # runs. `gunicorn` is inherited from it and is deliberately not repeated here.
 #
-# Deliberately not in requirements.txt, which is what deploy_to_pi.sh installs:
+# Deliberately not in requirements.txt, which a self-hosted dashboard installs:
 # a self-hosted dashboard has no database, serves with Flask's own server, and has
 # no business rendering landing pages.
 #

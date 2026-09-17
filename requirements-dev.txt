@@ -1,7 +1,7 @@
 -r requirements.txt
 
-# Not installed on the Pi — deploy_to_pi.sh installs requirements.txt only, and
-# the dashboard needs none of this to run. Pinned for the same reason.
+# Not installed on a self-hosted dashboard, which installs requirements.txt
+# only and needs none of this to run. Pinned for the same reason.
 
 # The test suite.
 pytest==9.1.1

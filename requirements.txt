@@ -1,4 +1,4 @@
-# Runtime only. This is what deploy_to_pi.sh installs on the Pi, so the site
+# Runtime only. This is what a self-hosted dashboard installs, so the site
 # generator and the test suite are not here — see requirements-dev.txt.
 #
 # Pinned so a clean venv installs what CI passed on. Bump deliberately: this

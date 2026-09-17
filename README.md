@@ -152,7 +152,6 @@ versions CI passed on. A pull request that fails either check shows a red X.
 | `tests/` | 368 tests. Run them before committing |
 | `doc/` | Running it day to day, and upgrading from an older version |
 | `design/` | Mockups for the dashboard and settings UI, with the reasoning |
-| `deploy_to_pi.sh` | Deployment (rsync + service restart) |
 | `.env` | `ANTHROPIC_API_KEY` (not in git) |
 | `.env.example` | The template for it — copy to `.env` |
 | `.github/workflows/test.yml` | CI: pytest and gitleaks, on every push and pull request |

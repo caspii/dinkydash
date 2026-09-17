@@ -25,8 +25,9 @@ def test_one_default_run_starts_both_apps():
     (SCRATCH_URL, FILE_URL, SCRATCH_URL),
     (None, FILE_URL, FILE_URL),
     (SCRATCH_URL, None, SCRATCH_URL),
-    (None, None, None),
-    ('', FILE_URL, None),
+    # Nothing names a database, so the launcher's own development one is used.
+    (None, None, dev.DEV_DATABASE_URL),
+    ('', FILE_URL, dev.DEV_DATABASE_URL),
 ])
 def test_preview_preserves_explicit_environment_and_never_prints_the_database(
         tmp_path, monkeypatch, capsys, exported, file_value, expected):
@@ -56,13 +57,8 @@ def test_preview_preserves_explicit_environment_and_never_prints_the_database(
     output = capsys.readouterr()
     assert FILE_URL not in output.out + output.err
     assert SCRATCH_URL not in output.out + output.err
-    if expected is None:
-        assert result != 0
-        assert 'DATABASE_URL is required' in output.err
-        assert not captured
-    else:
-        assert result == 0, output.err
-        assert captured == {
-            'database': expected, 'mode': 'cloud',
-            'ports': {'Dashboard': 5123, 'Website': 5124},
-        }
+    assert result == 0, output.err
+    assert captured == {
+        'database': expected, 'mode': 'cloud',
+        'ports': {'Dashboard': 5123, 'Website': 5124},
+    }

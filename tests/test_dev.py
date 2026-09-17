@@ -44,6 +44,27 @@ def test_dotenv_defaults_and_environment_precedence(monkeypatch, tmp_path):
     assert os.environ["DINKYDASH_APP_URL"] == "http://127.0.0.1:5300"
 
 
+@pytest.mark.parametrize("unset", ["", "   "])
+def test_no_database_url_uses_the_development_one(monkeypatch, unset):
+    """Nothing to set, so there is nothing to put in `.env` and copy around."""
+    monkeypatch.setenv("DATABASE_URL", unset)
+    monkeypatch.setenv("DINKYDASH_MODE", "single")
+    dev.configure()
+    assert os.environ["DATABASE_URL"] == dev.DEV_DATABASE_URL
+
+
+def test_a_named_database_still_wins(monkeypatch):
+    monkeypatch.setenv("DATABASE_URL", "postgresql:///somebody_elses_dev")
+    monkeypatch.setenv("DINKYDASH_MODE", "single")
+    dev.configure()
+    assert os.environ["DATABASE_URL"] == "postgresql:///somebody_elses_dev"
+
+
+def test_the_default_is_a_database_on_this_machine(monkeypatch):
+    """The default goes through the same refusal as anything else would."""
+    dev.require_local_database(dev.DEV_DATABASE_URL)
+
+
 @pytest.mark.parametrize("values, expected", [
     ({}, (5000, 5001)),
     ({"DINKYDASH_PORT": "5100", "DINKYDASH_WEBSITE_PORT": "5200"}, (5100, 5200)),
@@ -57,7 +78,6 @@ def test_ports(monkeypatch, values, expected):
 
 
 @pytest.mark.parametrize("values, error", [
-    ({"DATABASE_URL": " "}, "DATABASE_URL"),
     ({"DATABASE_URL": "postgresql://nobody:hunter2@db.example.com/dinkydash"}, "on this machine"),
     ({"DINKYDASH_SECRET_KEY": ""}, "DINKYDASH_SECRET_KEY"),
     ({"DINKYDASH_SECRET_KEY": "dinkydash-self-hosted"}, "private development key"),
@@ -241,9 +261,16 @@ def test_port_conflict_stops_both(pg_pool, ports, launch, occupied):
 
 
 def test_missing_config_starts_neither(launch):
-    process, log = launch({"DATABASE_URL": ""})
+    """The session key, which is the one thing here that cannot be defaulted.
+
+    An unset `DATABASE_URL` is not a failure and so is not tested here: it falls
+    back to `DEV_DATABASE_URL`, and a launched process would then reach for
+    whatever database this machine has. The fallback is asserted above instead,
+    without a process.
+    """
+    process, log = launch({"DINKYDASH_SECRET_KEY": ""})
     assert process.wait(timeout=10) == 1
-    assert "DATABASE_URL is required" in log.read_text()
+    assert "DINKYDASH_SECRET_KEY is required" in log.read_text()
     assert "Starting " not in log.read_text()
 
 

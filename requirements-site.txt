@@ -1,8 +1,8 @@
 -r requirements.txt
 
 # The marketing site, when it is served rather than built (DIN-27). Not in
-# requirements.txt because deploy_to_pi.sh installs that file onto a dashboard that
-# has no business rendering landing pages, and not in requirements-cloud.txt
+# requirements.txt because a self-hosted dashboard installs that file and has
+# no business rendering landing pages, and not in requirements-cloud.txt
 # because the site needs no database.
 #
 # jinja2 is absent on purpose: Flask depends on it already.

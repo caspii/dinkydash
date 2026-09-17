@@ -70,9 +70,9 @@ in every clone and fork after the commit that removes it, so the fix is rotation
 - **Real family data.** Names, dates of birth and children's faces are the entire content of this
   app. Screenshots for the README or the marketing site come from `python sample_board.py`, which
   invents people. Tests invent people too.
-- **Secrets come from the environment**, never a literal in code or config. `.env` also lives on the
-  Pi, and `deploy_to_pi.sh` deliberately excludes it — rotating a key means editing it on the Pi in
-  place, and in the main checkout, rather than pushing one over the other.
+- **Secrets come from the environment**, never a literal in code or config. `.env` is not in git and
+  there is a copy wherever the app runs, so rotating a key means editing each copy where it
+  lives — on a Pi in place, and in the main checkout — rather than pushing one over the other.
 - **A new dependency is a supply-chain decision** in an app holding other families' calendars.
   Prefer the standard library; justify anything else in the PR.
 
@@ -298,7 +298,7 @@ Two things the net does not catch, both worth knowing before trusting it:
 so a clean venv gets what was tested. Bump deliberately, and check the release notes: `anthropic`
 must stay at 1.x or later, because `claude_client.py` calls `output_config` structured outputs.
 
-**`requirements.txt` is runtime only** — it is what `deploy_to_pi.sh` installs on the Pi. The site
+**`requirements.txt` is runtime only** — it is what a self-hosted dashboard installs. The site
 generator's dependencies (`jinja2`, `markdown`, `pyyaml`) and the favicon script's (`Pillow`) live
 in `requirements-dev.txt`, because `website/` never runs on the dashboard. A new import in `website/`
 goes there, not in `requirements.txt`.
@@ -522,6 +522,15 @@ to tell you.
   issue it opened, or what production did that day. That history goes in
   [doc/operations.md](doc/operations.md), the log, or in Linear: the repo is public, and a war story
   in code is operational detail published for ever.
+- **Nor the previous version.** A comment is read by somebody who has never seen the code any other
+  way, so "this used to be X", "no longer does Y", "as it always has", "reversed in DIN-30" and
+  "renamed because" all describe something that, to them, does not exist — and they have to read it
+  before finding out it does not matter. Write the rule that holds now: not *"`DATABASE_URL` no
+  longer belongs in `.env`"* but *"`.env` needs no `DATABASE_URL`; the launcher defaults to a local
+  one"*. **The test is whether the sentence still makes sense to somebody who arrived today.** This
+  covers docstrings, config headers, `.env.example`, `.do/app.yaml`, test docstrings and commit-sized
+  "why I changed this" notes — everything except `doc/operations.md`, which is the log and is dated
+  on purpose, and the Linear issue, which is where a decision's history belongs.
 - **British English** throughout — UI copy, the model's system prompt, and `%-d %B` date formatting
   (`25 December`, not `December 25`).
 - **Times are 24-hour by default** (`08:20`), and a family can choose 12-hour (`8:20 am`) instead.
