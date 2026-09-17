@@ -8,6 +8,8 @@ history can tell whether today repeats last Tuesday.
 
 import random
 
+from .clock import DEFAULT_CLOCK, clock_of, format_time
+
 # Rotated each day to push the model off its default "safe" answer (the
 # clowder-of-cats fact) and give the line a fresh anchor even before any
 # history exists.
@@ -91,8 +93,12 @@ def note_instruction(kind, config, rng=None):
     )
 
 
-def _format_event(event):
-    when = "All day" if event["all_day"] else event["time"]
+def _format_event(event, clock=DEFAULT_CLOCK):
+    # On the family's clock, because the model quotes these times back into the
+    # headline — a 12-hour family reading "swimming at 15:45" in the prose has
+    # the same complaint one line down from the agenda.
+    when = "All day" if event["all_day"] else format_time(
+        event.get("start") or event.get("time"), clock)
     where = f" ({event['location']})" if event.get("location") else ""
     return f"- {when}: {event['title']}{where}"
 
@@ -122,7 +128,7 @@ def build_user_prompt(config, today, events_today, events_soon, chores,
     lines.append("")
     if events_today:
         lines.append("On today's calendar:")
-        lines.extend(_format_event(e) for e in events_today)
+        lines.extend(_format_event(e, clock_of(config)) for e in events_today)
     else:
         lines.append("Nothing at all on today's calendar.")
 

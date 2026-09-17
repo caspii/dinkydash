@@ -524,7 +524,11 @@ to tell you.
   in code is operational detail published for ever.
 - **British English** throughout — UI copy, the model's system prompt, and `%-d %B` date formatting
   (`25 December`, not `December 25`).
-- **Times are 24-hour** on the dashboard (`08:20`).
+- **Times are 24-hour by default** (`08:20`), and a family can choose 12-hour (`8:20 am`) instead.
+  Every displayed time goes through `dinkydash/clock.py`, which is also the *only* place the two
+  shapes are written — a `%H:%M` anywhere else is a time that will not follow the setting. Stored
+  times keep one shape in both modes; the reader's shape is applied at the point of display, so a
+  change shows on the next redraw rather than on the next calendar fetch.
 - The dashboard is sized in `rem` off one root `clamp(11px, 2.4vh, 26px)`, so the same layout reads on a
   480px-tall Pi panel and a living-room TV. Two columns above a 3:2 aspect ratio, one below.
 - The settings UI does the same off one root `clamp(1rem, 0.75rem + 0.625vw, 1.25rem)`: the mockup's

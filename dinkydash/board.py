@@ -10,6 +10,7 @@ written line is yesterday's, and it says so.
 from datetime import date, datetime, timedelta
 
 from .calendars import events_on
+from .clock import clock_of, format_time
 from .config import is_set_up
 from .context import build_countdowns, compute_chore_assignments
 from .schedule import refresh_interval
@@ -31,6 +32,25 @@ MAX_RELOAD_SECONDS = 300
 # Before the first run there is nothing to show, so ask more often: the screen
 # then fills itself in a minute after the dashboard is written rather than five.
 WAITING_RELOAD_SECONDS = 60
+
+
+def as_shown(events, clock):
+    """The same events, each time written the way this family reads it.
+
+    Stored events carry `%H:%M` with the full ISO `start` beside it, so the
+    displayed time is recomputed here rather than baked in at fetch time — a
+    change to the setting then shows on the next redraw instead of waiting for
+    the next calendar refresh. Copies rather than mutates: the payload it reads
+    from belongs to the caller.
+    """
+    shown = []
+    for event in events:
+        if event.get("all_day"):
+            shown.append(event)
+            continue
+        written = format_time(event.get("start") or event.get("time"), clock)
+        shown.append({**event, "time": written or event.get("time")})
+    return shown
 
 
 def computed_headline(events):
@@ -74,6 +94,10 @@ def build_view(config, payload, today):
     view = {
         "family_name": config.get("family_name", ""),
         "theme": theme,
+        # The times are already written for this family below; the template
+        # still needs to know which clock, because "12:00 pm" is wider than
+        # "12:00" and the agenda's time column is a fixed width.
+        "clock": clock_of(config),
         "date_display": today.strftime("%A, %-d %B"),
         "chores": chores,
         "countdowns": countdowns,
@@ -106,13 +130,17 @@ def build_view(config, payload, today):
     view["reload_seconds"] = reload_seconds(config)
 
     fetched = payload.get("events") or []
-    events = events_on(fetched, today)[:MAX_EVENTS]
+    clock = view["clock"]
+    # Rewritten before anything reads a time off them, so the computed headline
+    # below is on the family's clock too.
+    events = as_shown(events_on(fetched, today)[:MAX_EVENTS], clock)
     view["events"] = events
     # The fetch reaches 14 days ahead, so tomorrow is in the payload even when
     # it is a day old. Slots are what today did not use, which is why a busy
     # day silently drops tomorrow rather than overflowing the panel.
     slots = min(MAX_TOMORROW, MAX_EVENTS - len(events))
-    view["tomorrow"] = events_on(fetched, today + timedelta(days=1))[:slots] if slots else []
+    view["tomorrow"] = as_shown(
+        events_on(fetched, today + timedelta(days=1))[:slots], clock) if slots else []
 
     stale = payload.get("generated_for_date") != today.isoformat()
     view["stale"] = stale
@@ -151,5 +179,6 @@ def build_lapsed_view(config, payload, show_last_board):
     return {
         "state": "ended", "family_name": "", "reload_seconds": MAX_RELOAD_SECONDS,
         "theme": "dark" if config.get("theme") == "dark" else "light",
+        "clock": clock_of(config),
         "timezone": config.get("timezone") or "UTC",
     }

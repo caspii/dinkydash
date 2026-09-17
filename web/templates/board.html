@@ -8,7 +8,7 @@
 </div>
 {% endmacro -%}
 <!doctype html>
-<html lang="en" data-theme="{{ view.theme }}">
+<html lang="en" data-theme="{{ view.theme }}" data-clock="{{ view.clock }}">
 <head>
     <meta charset="utf-8">
     <title>{{ view.family_name or "DinkyDash" }}</title>
@@ -50,6 +50,10 @@
             --warn-bg: #fdf6e7;
             --warn-fg: #b45309;
             --stale-box: #faf6f1;
+            /* The agenda's time column. It does not shrink, so it is sized for
+               the widest time that clock can write, and today and tomorrow
+               share the left edge it sets. */
+            --time-column: 5.2rem;
         }
 
         [data-theme="dark"] {
@@ -68,6 +72,11 @@
             --warn-fg: #f2b968;
             --stale-box: #221b16;
         }
+
+        /* "12:00 pm" is three characters longer than "12:00", so the column it
+           has to fit is wider. A token rather than a second set of agenda
+           rules: only the width differs. */
+        [data-clock="12h"] { --time-column: 7.4rem; }
 
         *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -170,7 +179,7 @@
             font-size: 1.5rem;
             font-weight: 800;
             color: var(--accent);
-            width: 5.2rem;
+            width: var(--time-column);
             flex-shrink: 0;
         }
         .event-time.all-day { font-size: 1rem; }
@@ -179,7 +188,7 @@
 
         /* Tomorrow only appears when today left room. It reads a step back from
            today — smaller and muted — so a time is never taken for today's. The
-           time column keeps its 5.2rem width, so both days share a left edge. */
+           time column keeps its full width, so both days share a left edge. */
         .tomorrow { margin-top: 1.5rem; }
         .tomorrow .events { gap: 0.45rem; }
         .tomorrow .event-time { font-size: 1.15rem; color: var(--text-muted); }
@@ -569,7 +578,10 @@
     }
 
     function swap(next) {
+        // Both live on <html>, which a swap keeps, so each has to be carried
+        // across by hand or the new body is drawn with the old chrome.
         root.setAttribute("data-theme", next.documentElement.getAttribute("data-theme") || "light");
+        root.setAttribute("data-clock", next.documentElement.getAttribute("data-clock") || "24h");
         document.title = next.title;
         var colour = document.querySelector('meta[name="theme-color"]');
         var nextColour = next.querySelector('meta[name="theme-color"]');

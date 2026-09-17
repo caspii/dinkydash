@@ -12,6 +12,10 @@ family_name: "Our family"
 # this value, not from the server clock.
 timezone: "Europe/Berlin"
 
+# How times are written: 24h (15:45) or 12h (3:45 pm). The time zone above
+# decides what a time is; this decides how it is shown.
+clock: "24h"
+
 # Optional. Gives the daily line a bit of local flavour.
 location: "Berlin, Germany"
 
