@@ -5,6 +5,12 @@ wrote them, they can go stale), while the agenda, whose-turn and countdowns are
 recomputed here from the config and today's date. So when a morning's
 generation fails, the times and turns on the wall are still today's — only the
 written line is yesterday's, and it says so.
+
+Two words for that, because they are not the same thing: `stale` is "the line
+on the wall is not today's", which decides how the words are shown; `overdue`
+is "and this morning's brief was due by now", which is the only thing the amber
+banner may claim. Between local midnight and `brief_time` a dashboard is stale
+and nothing is wrong.
 """
 
 from datetime import date, datetime, timedelta
@@ -13,7 +19,7 @@ from .calendars import events_on
 from .clock import clock_of, format_time
 from .config import is_set_up
 from .context import build_countdowns, compute_chore_assignments
-from .schedule import refresh_interval
+from .schedule import brief_due, refresh_interval
 
 # The agenda's row budget, not just today's cap. Today fills it first and
 # tomorrow tops up whatever is left, so a quiet day stops leaving the column
@@ -65,6 +71,27 @@ def computed_headline(events):
     return f"{count} {noun} on today."
 
 
+def brief_is_overdue(config, payload, stale_days, now):
+    """Whether a stale dashboard means this morning's brief actually failed.
+
+    Yesterday's line is not a fault until this morning's was due. Between local
+    midnight and `brief_time` nothing is owed, so "this morning's daily message
+    didn't arrive" would be reporting a failure that has not happened — on a
+    screen in a kitchen, for the whole of the small hours. The banner waits for
+    the hour the family chose, and `schedule.brief_due` is what decides it, so
+    the wall and the tick cannot disagree about when a brief is late.
+
+    Two exceptions, both of them real faults at any hour: a dashboard more than
+    a day behind, and a payload with no readable date to be behind from. A
+    caller with no clock to pass gets the plain "stale means late" answer.
+    """
+    if now is None:
+        return True
+    if stale_days is None or stale_days > 1:
+        return True
+    return brief_due(config, payload, now)
+
+
 def reload_seconds(config):
     """How long the dashboard waits before rendering itself again.
 
@@ -75,8 +102,13 @@ def reload_seconds(config):
     return min(MAX_RELOAD_SECONDS, int(refresh_interval(config).total_seconds()))
 
 
-def build_view(config, payload, today):
-    """The complete view model for templates/board.html."""
+def build_view(config, payload, today, now=None):
+    """The complete view model for templates/board.html.
+
+    `now` is this moment on the family's clock, and only the banner reads it:
+    without one every stale dashboard counts as late, which is what a caller
+    rendering a fixed day (the frozen dashboard, a test) wants.
+    """
     theme = config.get("theme", "light")
     theme = theme if theme in ("light", "dark") else "light"
 
@@ -106,6 +138,7 @@ def build_view(config, payload, today):
         "headline": "",
         "note": "",
         "stale": False,
+        "overdue": False,
         "state": "waiting",
         "set_up": set_up,
         "reload_seconds": WAITING_RELOAD_SECONDS,
@@ -157,6 +190,7 @@ def build_view(config, payload, today):
             view["stale_days"] = (today - generated).days
         except (KeyError, ValueError):
             view["stale_days"] = None
+        view["overdue"] = brief_is_overdue(config, payload, view["stale_days"], now)
 
     return view
 

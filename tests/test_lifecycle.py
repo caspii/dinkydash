@@ -183,7 +183,10 @@ def test_lapsed_board_dates_and_turns_do_not_advance(hosted, pg_pool, pg_family,
     update_family(pg_pool, pg_family, "trial_ends_at = now() - interval '1 day'")
     path = board_path(pg_pool, pg_family)
     first = parent.get(path)
-    monkeypatch.setattr(config_module, "today_for", lambda _: datetime(2030, 1, 1).date())
+    # `now_for` is the clock the dashboard reads; `today_for` is derived from it,
+    # so patching this one moves both and the frozen board must ignore both.
+    monkeypatch.setattr(config_module, "now_for",
+                        lambda _: datetime(2030, 1, 1, tzinfo=timezone.utc))
     second = parent.get(path)
     assert first.data == second.data
     text = first.get_data(as_text=True)

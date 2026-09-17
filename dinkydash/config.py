@@ -298,9 +298,14 @@ def tzinfo_for(config):
     return zone(config.get("timezone") or "UTC")
 
 
+def now_for(config):
+    """This moment on the family's own clock, not the server's."""
+    return datetime.now(tzinfo_for(config))
+
+
 def today_for(config):
     """Today's date in the family's own timezone, not the server's."""
-    return datetime.now(tzinfo_for(config)).date()
+    return now_for(config).date()
 
 
 def people_names(config):
