@@ -77,10 +77,15 @@ class MailRefused(MailError):
 def support_address():
     """The address a person reaches us on, in the app and out of it.
 
-    Where a reply to a sign-in email lands, and where the feedback form sends
-    what somebody writes. One function because it is one mailbox: a support
-    address that could disagree with the reply-to on our own mail would send
-    somebody's reply somewhere their feedback never went.
+    Where a reply to a sign-in email lands, what the legal pages give as the
+    contact, and what the feedback form offers when it could not send. One
+    function because those are one mailbox: an address the app prints that
+    could disagree with the reply-to on our own mail would send somebody's
+    reply somewhere nobody reads.
+
+    It is also where the feedback form sends by default, and that one is
+    movable — `web.feedback.recipient()` — because where a message is read is
+    not a claim made to anybody, while this address is on a page.
     """
     return _reply_to()
 
