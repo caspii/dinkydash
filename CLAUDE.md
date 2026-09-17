@@ -522,6 +522,15 @@ to tell you.
   issue it opened, or what production did that day. That history goes in
   [doc/operations.md](doc/operations.md), the log, or in Linear: the repo is public, and a war story
   in code is operational detail published for ever.
+- **Nor the previous version.** A comment is read by somebody who has never seen the code any other
+  way, so "this used to be X", "no longer does Y", "as it always has", "reversed in DIN-30" and
+  "renamed because" all describe something that, to them, does not exist — and they have to read it
+  before finding out it does not matter. Write the rule that holds now: not *"`DATABASE_URL` no
+  longer belongs in `.env`"* but *"`.env` needs no `DATABASE_URL`; the launcher defaults to a local
+  one"*. **The test is whether the sentence still makes sense to somebody who arrived today.** This
+  covers docstrings, config headers, `.env.example`, `.do/app.yaml`, test docstrings and commit-sized
+  "why I changed this" notes — everything except `doc/operations.md`, which is the log and is dated
+  on purpose, and the Linear issue, which is where a decision's history belongs.
 - **British English** throughout — UI copy, the model's system prompt, and `%-d %B` date formatting
   (`25 December`, not `December 25`).
 - **Times are 24-hour by default** (`08:20`), and a family can choose 12-hour (`8:20 am`) instead.

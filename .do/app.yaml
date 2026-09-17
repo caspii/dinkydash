@@ -22,20 +22,42 @@
 # check that only reads `spec get` cannot catch it.
 #
 # So this file is the **shape** of the app, reviewed like code, and the values
-# are merged in at apply time from outside the working tree:
+# come from the app itself at apply time.
 #
-#   python3 - <<'EOF'
-#   import os, yaml
-#   d = yaml.safe_load(open(".do/app.yaml"))
-#   for e in d["envs"]:
-#       if e.get("type") == "SECRET":
-#           e["value"] = os.environ[e["key"]]      # from .env, never committed
-#   yaml.safe_dump(d, open("/tmp/apply.yaml", "w"), sort_keys=False)
-#   EOF
+# **Not from `.env`.** `.env` is a development file that happens to share
+# production's key names: its `DATABASE_URL` is a database on the developer's
+# own machine — `dev.py` refuses anything else — and its `DINKYDASH_SECRET_KEY`
+# is a development key. Merging it into this spec hands the container a database
+# it cannot reach, `db.ready` refuses to start, and the deploy fails and rolls
+# back — while the `migrate` job and the worker carry on, because they read
+# `DATABASE_URL_DIRECT`, which is a production value in both files.
+#
+# **Take the last good deployment's own spec instead.** Every secret comes back
+# from the API as `EV[...]`, which is ciphertext scoped to this app and can be
+# applied again unchanged — so nothing has to be known, retyped or guessed, and
+# only the entry being changed is written in the clear:
+#
+#   doctl apps get-deployment <APP_ID> <DEPLOYMENT_ID> -o json \
+#     | python3 -c 'import json,sys,yaml; yaml.safe_dump(json.load(sys.stdin)[0]["spec"], sys.stdout, sort_keys=False)' \
+#     > /tmp/apply.yaml
+#   # edit /tmp/apply.yaml: the one env entry, with its plaintext value
+#   doctl apps propose --app <APP_ID> --spec /tmp/apply.yaml     # shape check only
 #   doctl apps update <APP_ID> --spec /tmp/apply.yaml && rm /tmp/apply.yaml
 #
+# Diff that spec against this file first: the difference should be the change
+# being made, plus a DO-generated `ingress` block that App Platform regenerates.
+# **A new key still has to be added here**, because this file is the reviewed
+# shape — but it is added as an entry with no value, exactly like its neighbours.
+#
 # **Never commit an `EV[...]` blob here either** — it is ciphertext of a
-# production credential, in a public repo.
+# production credential, in a public repo, and a spec is not where it belongs
+# even though the platform would accept it.
+#
+# `propose` validates the shape and prints the cost. It cannot tell a wrong
+# value from a right one, so what proves a deploy is the deploy: the `migrate`
+# job printing that the schema is up to date, the worker logging a completed
+# pass, and — for the Turnstile pair, which is all-or-nothing — the sign-in page
+# rendering a widget.
 #
 # **The alert block below is applied by the same command**, and App Platform
 # keeps the alert's *destinations* outside the spec: an alert created this way

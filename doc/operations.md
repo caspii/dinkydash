@@ -6,16 +6,28 @@ standing rules live in `CLAUDE.md`. If something here hardens into a rule, move 
 
 ## Secrets and `.env`
 
-**`.env` should hold `ANTHROPIC_API_KEY` and nothing else.** `FLASK_ENV`, `SECRET_KEY`,
-`DATABASE_URL`, `UPLOAD_FOLDER` and `MAX_CONTENT_LENGTH` are leftovers from an abandoned plan and
-none of them is read by any code — a grep over the repo returns only `web/__init__.py`, and that
-reads `DINKYDASH_SECRET_KEY`, a different name. **They are all still there**, as of 7 September 2026:
-in the main checkout, on the Pi, and in every new worktree. `.env` is not in git, so stripping it in
-a worktree dies with that worktree, and the next workspace is seeded from the main checkout again —
-which is why an earlier note in `CLAUDE.md` claiming they had been stripped did not stay true. Every copy has
-to be edited where it lives, including the Pi's, whose `.env` `deploy_to_pi.sh` does not overwrite.
-Do not put `SECRET_KEY` back: nothing calls `from_prefixed_env`, so Flask never sees it, and the
-session key comes from `DINKYDASH_SECRET_KEY` or the hardcoded fallback whatever `.env` says.
+**`FLASK_ENV`, `SECRET_KEY`, `UPLOAD_FOLDER` and `MAX_CONTENT_LENGTH` are leftovers and none of
+them is read by any code**, along with the one-family environment variable that multi-tenancy
+replaced — which cannot be named here, because `tests/test_tenancy.py` fails if any file in the repo
+mentions it. A grep for the session key returns only `web/__init__.py`, and that reads
+`DINKYDASH_SECRET_KEY`, a different name; nothing calls `from_prefixed_env`, so Flask never sees a
+plain `SECRET_KEY`. **Stripped from the main checkout and this workspace on 17 September 2026**;
+the Pi's copy still has them, and `deploy_to_pi.sh` excludes `.env` on purpose, so that one has to
+be edited in place. `.env` is not in git, so a strip in a worktree dies with that worktree and the
+next workspace is seeded from the main checkout — which is why an earlier note in `CLAUDE.md`
+claiming they had been stripped did not stay true.
+
+**`DATABASE_URL` no longer belongs in `.env` either**, and that one was not merely untidy.
+`dev.py` defaults to `DEV_DATABASE_URL` (`postgresql:///dinkydash_dev`) when nothing names a
+database, so local development needs no entry. What the entry cost: the apply recipe in
+`.do/app.yaml` merged `.env` into the production spec, so on 17 September 2026 the local
+development URL was applied as the pooled production one. `db.ready` refused to start the `site`
+container, the deploy failed and App Platform rolled it back within three minutes; the `migrate`
+job and the worker were unaffected because they use `DATABASE_URL_DIRECT`, which really is
+production. Nothing was lost and the site stayed up on the previous deployment, but the app's
+stored spec kept the bad value, so the next push to main would have failed the same way until it
+was replaced. The recipe in that file's header now takes the last good deployment's spec and its
+re-appliable `EV[...]` ciphertext instead of anything from `.env`.
 
 **The Anthropic key was rotated on 7 September 2026** (DIN-20), after living on a Pi and having
 been rsynced. The old key now reads 401 from the API; the new one is in `.env` in the main checkout
