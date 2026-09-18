@@ -190,7 +190,7 @@ def address_for(pool, user_id):
         return row[0] if row else None
 
 
-def delete_family(pool, family_id):
+def delete_family(pool, family_id, *, billing=None):
     """Delete a family and its dependent rows in one transaction.
 
     Signup tokens have no user foreign key, so delete those by address explicitly.
@@ -198,6 +198,11 @@ def delete_family(pool, family_id):
     """
     with pool.connection() as conn, conn.transaction():
         with conn.cursor() as cur:
+            cur.execute("SELECT id FROM families WHERE id = %s FOR UPDATE", (family_id,))
+            if not cur.fetchone():
+                return False
+            from .billing import Billing
+            (billing or Billing.from_env()).delete_customer(cur, family_id)
             cur.execute("SELECT email FROM users WHERE family_id = %s", (family_id,))
             addresses = [row[0] for row in cur.fetchall()]
             if addresses:
