@@ -4,6 +4,10 @@ Guidance for `website/`. The root `CLAUDE.md` holds the rules that apply to ever
 `website/README.md` is the fuller guide to building the site and to what belongs in
 `images/` — read it before adding an image or a page.
 
+**Everything on this site is customer-facing copy, so [`doc/voice.md`](../doc/voice.md)
+applies to every word of it** — contractions, read it aloud, and no claim about what the
+product does that you have not traced to the code that does it.
+
 **`website/` never runs on the dashboard**, and that is what settles most questions here.
 
 - **Its dependencies go in `requirements-site.txt`, never `requirements.txt`.** The runtime
