@@ -24,7 +24,7 @@ Two footnotes on that last row, both in Hearth's favor: the $699 is a list price
 
 ## Where Skylight wins
 
-Skylight nails the core job: your Google, Apple, or Outlook calendars merged into one big, color-coded family view. The interface is polished, the companion app is solid, and the 15″ model's $299.99 entry price is the lowest way into a premium dedicated display. Meal planning and its AI-powered "Magic Import" (photograph a school newsletter, get calendar events) are genuinely useful — but note they live behind the $79/year Plus plan. Read more on [what Skylight's subscription does and doesn't cover](/skylight-calendar-subscription/).
+Skylight nails the core job: your Google, Apple, or Outlook calendars merged into one big, colour-coded family view. The interface is polished, the companion app is solid, and the 15″ model's $299.99 entry price is the lowest way into a premium dedicated display. Meal planning and its AI-powered "Magic Import" (photograph a school newsletter, get calendar events) are genuinely useful — but note they live behind the $79/year Plus plan. Read more on [what Skylight's subscription does and doesn't cover](/skylight-calendar-subscription/).
 
 ## Where Hearth wins
 

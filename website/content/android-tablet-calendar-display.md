@@ -16,7 +16,7 @@ faq:
     a: "Nothing if the tablet is already in a drawer. A used Android tablet good enough for this costs about $50 to $80. The software is free and open source, and the only running cost is the AI daily note at roughly $0.13 a month."
 ---
 
-**Yes — and it is the cheapest good wall calendar you can build.** An Android tablet already
+**Yes — and it's the cheapest good wall calendar you can build.** An Android tablet already
 has a screen, a browser and a charging port, which is the entire hardware requirement. Old
 ones are abundant and cost about $50 used, so this is the version of a $600 family display
 that costs almost nothing.
@@ -29,7 +29,7 @@ DinkyDash is a **web page**, not an app you install. So there are two parts:
    licensed, and about an evening's work. Or [start a free 14-day hosted trial](https://app.dinkydash.co/login), no card required.
 2. **The tablet**, which is the screen. It opens that address in Chrome.
 
-Nothing goes through the Play Store, and there is no Google account to sign in to.
+Nothing goes through the Play Store, and there's no Google account to sign in to.
 
 ![The DinkyDash dashboard on a tablet in portrait, stacked into one column: today's events, whose turn each chore is, countdowns and the daily note](/images/family-calendar-tablet-board.webp)
 
@@ -47,7 +47,7 @@ the dashboard runs **full screen**, with no address bar, and gets the DinkyDash 
 family's name.
 
 **3. Stop the screen sleeping.** Settings → **Display** → **Screen timeout** → the longest
-option. That is usually 30 minutes, which is not enough on its own, so also turn on
+option. That's usually 30 minutes, which isn't enough on its own, so also turn on
 **Stay awake while charging** in **Developer options**. (Developer options appear after
 tapping **Build number** seven times under **About tablet**.)
 
@@ -56,16 +56,16 @@ adhesive wall mount are the usual answer.
 
 ## When you want it locked down properly
 
-The steps above give you a tablet showing a calendar. They do not stop a child swiping out of
+The steps above give you a tablet showing a calendar. They don't stop a child swiping out of
 it, and Android's own screen timeout will fight you on some devices.
 
 **[Fully Kiosk Browser](https://www.fully-kiosk.com/)** is what most people end up with. It
 holds the screen on regardless of Android's timeout, hides the status and navigation bars,
 locks the tablet to one address behind a PIN, and can switch the screen off overnight and back
-on before breakfast. There is a free version, and a one-off paid unlock for the locking
-features. Point it at the same address and you are done.
+on before breakfast. There's a free version, and a one-off paid unlock for the locking
+features. Point it at the same address and you're done.
 
-That is the only extra piece of software in this whole build, and it is optional.
+That's the only extra piece of software in this whole build, and it's optional.
 
 ## What ends up on the screen
 
@@ -75,7 +75,7 @@ That is the only extra piece of software in this whole build, and it is optional
   link, and each has its own page here with the steps.
 - **A chore chart that rotates**, moving on one person a day by itself.
 - **Countdowns** to birthdays, Christmas and the school holidays.
-- **A daily note written each morning** by Claude, around your family's actual day.
+- **A daily note, written fresh each day** by Claude, around your family's actual day.
 
 The dashboard refreshes itself every five minutes. If the Wi-Fi drops, it keeps the last
 dashboard on screen with a small "Reconnecting" note rather than an error page, and catches up
@@ -96,7 +96,7 @@ A Skylight Calendar is $299.99 to $599.99 plus an optional $79 a year for the sa
 [best digital family calendar page](/best-digital-family-calendar/) puts them side by side.
 
 **Buying a tablet for this?** Screen size matters more than speed. The dashboard is a static page
-that redraws every five minutes, so a slow tablet is fine; a small or dim one is not. Ten
+that redraws every five minutes, so a slow tablet is fine; a small or dim one isn't. Ten
 inches or more, and check the screen is bright enough to read across a kitchen.
 
 ## Other screens
@@ -105,7 +105,7 @@ inches or more, and check the screen is bright enough to read across a kitchen.
 - [Raspberry Pi](/raspberry-pi-family-calendar/) — the tidiest permanent panel, about $100
 - [Smart TV](/smart-tv-calendar-display/) — works, but the screensaver fights you
 - [Fire TV](/fire-tv-calendar-display/) — for the living-room television
-- [Echo Show](/echo-show-calendar-display/) — the one that does not work, and why
+- [Echo Show](/echo-show-calendar-display/) — the one that doesn't work, and why
 
 ## Start here
 

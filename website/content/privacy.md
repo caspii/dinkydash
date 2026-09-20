@@ -30,7 +30,7 @@ either something you typed or something the software produced.
 | **Your family's details** | You type them: names, dates of birth, emoji, chores, special dates | They are what the dashboard shows |
 | **Your calendar links** | You paste them | To fetch the events the dashboard shows |
 | **Your calendar events** | Fetched from those links | The agenda on the dashboard |
-| **The written line** | Written by Claude each morning | The dashboard's headline and note |
+| **The written line** | Written by Claude once a day | The dashboard's headline and note |
 | **Sign-in links** | Generated when you ask for one | Hashed, never stored as a working link |
 | **Counts of model calls** | Recorded when the dashboard is written | So one account cannot run up an unbounded bill |
 | **Counts of sign-ups and first calendar connections** | Recorded when a family is created, and the first time it saves a calendar link | So we can see whether the product is being used, without looking at anyone's account |
@@ -47,7 +47,7 @@ Analytics, which is cookieless and collects no personal data.
 
 The services below receive only what they need for their part of the app.
 
-**Anthropic sees your family's day.** Once each morning the day's agenda — the
+**Anthropic sees your family's day.** Once a day the day's agenda — the
 event titles and times, your family's names and interests — is sent to
 Anthropic so Claude can write the headline and the one written line. That is
 the feature. Nothing else about you is sent, and it is not used to train

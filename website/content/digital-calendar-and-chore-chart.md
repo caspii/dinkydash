@@ -18,7 +18,7 @@ DinkyDash handles this with automatic rotation. You define each recurring chore 
 
 > 🍽️ Set table — **Jun** &nbsp;&nbsp; 🐕 Feed dog — **Mina**
 
-Nobody negotiates with a screen. The rotation is provably fair (it cycles through everyone in order), it never forgets, and it resets fresh every morning alongside the day's calendar events, birthday countdowns, and an AI-written daily message.
+Nobody negotiates with a screen. The rotation is provably fair (it cycles through everyone in order), and it never forgets. The turn changes with the date, alongside the day's calendar events, birthday countdowns and an AI-written daily message.
 
 ## Your options for a calendar + chore chart screen
 
@@ -35,7 +35,7 @@ Skylight, Hearth and DAKboard all do chores well — that's part of why families
 
 ## The countdown trick
 
-One more thing that earns its place on the chore screen: countdowns. "8 days until your birthday" and "19 days until vacation" give kids a reason to look at the dashboard voluntarily every morning — and while they're there, they see whose turn the dishes are. That's the whole trick, honestly.
+One more thing that earns its place on the chore screen: countdowns. "8 days until your birthday" and "19 days until the holiday" give kids a reason to look at the dashboard voluntarily every morning — and while they're there, they see whose turn the dishes are. That's the whole trick, honestly.
 
 You can see the effect without installing anything: our [birthday countdown](/birthday-countdown/) is the same panel on its own, free and with no sign-up. Add the kids' birthdays and leave it open on a spare screen.
 

@@ -18,7 +18,7 @@ faq:
 
 Google Calendar's iCal link is called the **secret address**, and it lives under
 **Settings → your calendar → Integrate calendar**. You can only get it in a browser
-on a computer; the phone apps do not show it.
+on a computer; the phone apps don't show it.
 
 Here are the four steps, then what the link is and why it needs looking after.
 
@@ -32,7 +32,7 @@ Here are the four steps, then what the link is and why it needs looking after.
 4. Scroll down to **Integrate calendar** and copy the address under
    **Secret address in iCal format**.
 
-That is the whole job. The address looks like this:
+That's the whole job. The address looks like this:
 
 ```url
 https://calendar.google.com/calendar/ical/you%40gmail.com/private-xxxx/basic.ics
@@ -43,16 +43,16 @@ The real one has a long random string where `private-xxxx` is. Everything after
 
 ## What the link actually is
 
-It is a **live, read-only feed** of that one calendar. Anything that can read it sees your
-events update as you change them, and nothing that reads it can write back. That is why a wall
+It's a **live, read-only feed** of that one calendar. Anything that can read it sees your
+events update as you change them, and nothing that reads it can write back. That's why a wall
 display, a dashboard or another calendar app asks for this rather than for your password:
-you are handing over a view, not an account.
+you're handing over a view, not an account.
 
-It is also why the address is long and random. **The random part is the login.** There is no
+It's also why the address is long and random. **The random part is the login.** There's no
 sign-in step, so whoever holds the URL is treated as you, indefinitely, and Google has no way
 to tell you who has used it. Treat the address exactly like a password:
 
-- Do not put it in a shared document, a screenshot, a public issue or a group chat.
+- Don't put it in a shared document, a screenshot, a public issue or a group chat.
 - If it does get out, open the same **Integrate calendar** screen and press **Reset** next to
   the secret address. Google issues a new one and the old one stops working immediately —
   which also means anything you had pointed at the old address needs the new one.
@@ -66,13 +66,13 @@ into a single agenda.
 
 Repeat the four steps for each calendar in the **Settings for my calendars** list.
 
-## If the section is not there
+## If the section isn't there
 
 Two things hide it:
 
 - **A work, school or organisation account.** An administrator can switch external sharing
   off for everyone, and when they have, the **Secret address in iCal format** row simply is
-  not on the page. There is no way round it from your side. A personal Google account is the
+  not on the page. There's no way round it from your side. A personal Google account is the
   usual answer — make a family calendar there and invite your work account to the events that
   matter.
 - **A calendar somebody else owns.** A calendar shared *with* you has no secret address of
@@ -81,19 +81,19 @@ Two things hide it:
 
 ## Put it on a screen
 
-A calendar link on its own does nothing. The point of getting it is to show the calendar
+A calendar link on its own does nothing. The point of getting it's to show the calendar
 somewhere the family will actually look — a tablet in the hall, an old TV, a small screen on
 the kitchen wall.
 
 Which screen? An [old iPad](/ipad-calendar-display/) or an [Android
 tablet](/android-tablet-calendar-display/) is the cheapest good panel, a [Raspberry
 Pi](/raspberry-pi-family-calendar/) the tidiest, and a [smart TV](/smart-tv-calendar-display/)
-or [Fire TV](/fire-tv-calendar-display/) will show it on the big screen. There is one device it
-does not work on, and [the Echo Show page](/echo-show-calendar-display/) says why.
+or [Fire TV](/fire-tv-calendar-display/) will show it on the big screen. There's one device it
+doesn't work on, and [the Echo Show page](/echo-show-calendar-display/) says why.
 
 [DinkyDash](/) is free, open-source software that does exactly that: paste the link and it
 shows today's events on a wall screen, alongside a rotating chore chart, birthday countdowns
-and a daily note written each morning. There is no Google sign-in — the link is the whole
+and a daily note written fresh each day. There's no Google sign-in — the link is the whole
 connection, and it can only read.
 
 To add it:
@@ -113,13 +113,13 @@ guide](/getting-started/#personal-calendar) has the detail.
 ## Two things people get wrong
 
 **An `http://` version of the address.** Some older guides suggest editing the URL by hand.
-Do not — the address is a password, and plain `http` puts it on the network in the clear.
+Don't — the address is a password, and plain `http` puts it on the network in the clear.
 DinkyDash refuses `http` links for that reason. Copy what Google gives you.
 
 **Confusing it with the public address.** The same **Integrate calendar** screen also lists a
 public address and an embed code. Those only work on a calendar you have made public, which
 means anybody can find it. The secret address is the one that works on a private calendar,
-and it is the one you want.
+and it's the one you want.
 
 ## Other calendars
 

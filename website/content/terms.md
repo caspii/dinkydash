@@ -113,7 +113,7 @@ statutory rights as a consumer, which these terms do not affect.
 ## Your data
 
 The [privacy policy](/privacy/) is part of these terms. The short version: your
-family's day goes to Anthropic each morning so Claude can write a line, your
+family's day goes to Anthropic once a day so Claude can write a line, your
 email address goes to SendGrid for sign-in links and subscription notices, and
 Stripe receives billing details when you choose to pay. Nothing is sold to anybody.
 

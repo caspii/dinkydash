@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}DinkyDash — Digital Family Calendar for Screens You Own{% endblock %}
-{% block description %}A family calendar for the wall, on the tablet, TV or monitor you already own. Paste one calendar link and it rebuilds itself every morning. Free for 14 days, no card required.{% endblock %}
+{% block description %}A family calendar for the wall, on the tablet, TV or monitor you already own. Paste one calendar link and it rebuilds itself every day. Free for 14 days, no card required.{% endblock %}
 {% block og_title %}DinkyDash — A Family Calendar on the Screen You Already Own{% endblock %}
 {# No og_image override: the home page shares the same card as everything else. #}
 
@@ -18,45 +18,45 @@
 {% set faqs = [
     {
         "q": "What happens after the 14 days?",
-        "a": "Nothing is charged, because there is nothing to charge with yet: paid subscriptions are still being built. When the trial ends your dashboard stops updating each morning and says so, and we will tell you well before anything changes. The planned price is $39 a year or $6 a month, and nobody is charged without agreeing to it first.",
+        "a": "Nothing is charged, because there's nothing to charge with yet: paid subscriptions are still being built. When the trial ends your dashboard stops updating each day and says so, and we'll tell you well before anything changes. The plan is $39 a year or $6 a month, and nobody is charged without agreeing to it first.",
     },
     {
         "q": "Do I need a card?",
-        "a": "No, and there is nowhere to put one. You give us an email address, we send you a link, and that is the whole sign-up. No card details are asked for and none are stored.",
+        "a": "No, and there is nowhere to put one. You give us an email address, we send you a link, and that's the whole sign-up. No card details are asked for and none are stored.",
     },
     {
         "q": "What do I have to buy?",
-        "a": "Nothing. DinkyDash is the software, not the screen, so it runs on whatever you already have with a web browser: an old iPad or Android tablet, a smart TV, a spare monitor, a laptop on the counter, or a Raspberry Pi with a touchscreen. The dashboard measures the screen it lands on and sizes itself to be read from across the room.",
+        "a": "Nothing. DinkyDash is the software, not the screen, so it runs on whatever you've already got with a web browser: an old iPad or Android tablet, a smart TV, a spare monitor, a laptop on the counter, or a Raspberry Pi with a touchscreen. The dashboard measures the screen it lands on and sizes itself to be read from across the room.",
     },
     {
         "q": "Does it work with Google, Apple and Outlook calendars?",
-        "a": "Yes, all three, and Cozi as well. Each of them lets you share a calendar as an iCal link, and that link is what DinkyDash reads. You paste it in, so there is no sign-in to grant and no app to install on the screen. Connect several and they are merged into one agenda in time order.",
+        "a": "Yes, all three, and Cozi as well. Each of them lets you share a calendar as an iCal link, and that link is what DinkyDash reads. You paste it in, so there's no sign-in to grant and no app to install on the screen. Connect several and they're merged into one agenda in time order.",
         "href": "/getting-started/",
         "link": "The setup guide has the steps for each one",
     },
     {
         "q": "Where do my children's names and birthdays go?",
-        "a": "They are stored so we can build your dashboard each morning, and the day's agenda goes to Anthropic so Claude can write the daily line. Nothing is sold, there are no adverts, and there is no camera and no microphone anywhere in this. If the calendar you connect also holds work and private appointments, you can limit it to the events shared with your partner, and the rest is never stored and never sent.",
+        "a": "They're stored so we can build your dashboard each day, and the day's agenda goes to Anthropic so Claude can write the daily line. Nothing is sold, there are no adverts, and there's no camera and no microphone anywhere in this. If the calendar you connect also holds work and private appointments, you can limit it to the events shared with your partner, and the rest is never stored and never sent.",
         "href": "/privacy/",
         "link": "The privacy policy names every company involved",
     },
     {
         "q": "How is this different from a Skylight or a Hearth?",
-        "a": "Skylight and Hearth sell you a dedicated touchscreen, from $329.99 to $699, with a subscription on top that is optional at Skylight and required at Hearth. DinkyDash is just the software, running on a screen you already own, and nothing on it can be taken away later. It also does something they do not: a line written fresh every morning from your actual day.",
+        "a": "Skylight and Hearth sell you a dedicated touchscreen, from $329.99 to $699, with a subscription on top that's optional at Skylight and required at Hearth. DinkyDash is just the software, running on a screen you already own, and nothing on it can be taken away later. It also does something they don't: a line written fresh each day, about what's actually on.",
         "href": "/skylight-calendar-alternatives/",
         "link": "See the full comparison",
     },
     {
         "q": "Can I run it myself instead?",
-        "a": "Yes, and that will not change. DinkyDash is open source under the MIT license and the hosted version is built from the same repository, so they are one dashboard with a different person keeping it running. The commands are at the foot of this page. Self-hosting is free for ever, needs your own Anthropic key at well under a dollar a month, and is community-supported rather than something we promise to fix.",
+        "a": "Yes, and that won't change. DinkyDash is open source and MIT-licensed, and the hosted version is built from the same repository, so they're one dashboard with a different person keeping it running. The commands are at the foot of this page. Self-hosting is free for ever, needs your own Anthropic key at well under a dollar a month, and is community-supported rather than something we promise to fix.",
     },
     {
         "q": "What happens to my dashboard if DinkyDash goes away?",
-        "a": "If you self-host, nothing happens: the code is MIT-licensed and already on your machine, so it keeps running whether this project continues or not. If we are hosting it for you, the same code is public, and your settings are a small file you can export and run yourself. That is the point of building it this way.",
+        "a": "If you self-host, nothing happens: the code is MIT-licensed and already on your machine, so it keeps running whether this project continues or not. If we're hosting it for you, the same code is public, and your settings are a small file you can export and run yourself. That's the point of building it this way.",
     },
     {
         "q": "Will features I have today ever move behind a subscription?",
-        "a": "Not for anything already released. Everything on the dashboard today is published under the MIT license, and that grant cannot be withdrawn for code that is already out, so a copy you are running stays yours to run. The hosted version is a convenience: we run the machine and pay the AI bill. It is not a key to features you would otherwise lose.",
+        "a": "Not for anything already released. Everything on the dashboard today is MIT-licensed, and that grant can't be withdrawn for code that's already out, so a copy you're running stays yours to run. The hosted version is a convenience: we run the machine and pay the AI bill. It isn't a key to features you'd otherwise lose.",
     },
 ] %}
 
@@ -572,12 +572,12 @@
         <div class="hero-copy">
             <div class="hero-pill"><span class="dot"></span> On kitchen walls since 2021</div>
             <h1>A family calendar for the wall, on a screen you already own</h1>
-            <p class="subtitle">Paste one calendar link and open your dashboard on any tablet, TV or spare monitor. It rebuilds itself every morning, so there is nothing to keep up to date.</p>
+            <p class="subtitle">Paste one calendar link and open your dashboard on any tablet, TV or spare monitor. It rebuilds itself every day, so there's nothing to keep up to date.</p>
             <div class="hero-buttons">
                 <a href="{{ app_url }}/login" class="btn">Start free &mdash; 14 days, no card</a>
             </div>
-            <p class="price-line"><strong>Then $39 a year</strong>, and nothing is charged without you agreeing to it. The code is public too, so you could always run the same dashboard yourself, free.</p>
-            <p class="hero-alt">Would you rather run it on your own machine? <a href="#for-makers">It is free and MIT-licensed &rarr;</a></p>
+            <p class="price-line"><strong>Then $39 a year</strong>, and nothing is charged without you agreeing to it. The code's public too, so you could always run the same dashboard yourself, free.</p>
+            <p class="hero-alt">Would you rather run it on your own machine? <a href="#for-makers">It's free and MIT-licensed &rarr;</a></p>
             <div class="hero-proof">
                 <span>No card required</span>
                 <span>Any browser is the screen</span>
@@ -597,7 +597,7 @@
     <div class="container">
         <div class="section-head">
             <h2>Five minutes, then it looks after itself</h2>
-            <p>Three steps, the second is optional, and the third is opening a web page. After that, the dashboard is the only thing doing any work.</p>
+            <p>Three steps, the second one's optional, and the third is opening a web page. After that, the dashboard is the only thing doing any work.</p>
         </div>
         <ol class="steps" role="list">
             <li class="step">
@@ -625,8 +625,8 @@
                 <p>Your dashboard has its own link. Open it in any browser &mdash; an old tablet, the TV, a monitor on the counter &mdash; and leave the screen on.</p>
             </li>
         </ol>
-        <p class="lede">It is a link, not a login: nothing to sign in to on the screen, and nothing to install on it. Every morning the dashboard rebuilds itself. The agenda comes from your calendars. Whose turn it is, and the countdowns, are worked out from the date. The headline and the one written line are new each morning, and they are the only part an AI writes.</p>
-        <p class="lede">There is no layout to build and no account to link on the wall. <strong>The dashboard has one layout, and it is already right.</strong></p>
+        <p class="lede">It's a link, not a login: nothing to sign in to on the screen, and nothing to install on it. Once a day the dashboard rebuilds itself, at a time you pick. The agenda comes from your calendars. Whose turn it is, and the countdowns, are worked out from the date. The headline and the one written line are the only part an AI writes.</p>
+        <p class="lede">There's no layout to build and no account to link on the wall. <strong>The dashboard has one layout, and it's already right.</strong></p>
     </div>
 </section>
 
@@ -634,19 +634,19 @@
 <section class="section upkeep">
     <div class="container">
         <div class="section-head">
-            <h2>It is still right in March</h2>
-            <p>Every family organiser dies the same way. Somebody sets it up in January, and by March nobody is ticking the boxes. So there are no boxes &mdash; and here is what it survives without anyone noticing.</p>
+            <h2>It's still right in March</h2>
+            <p>Every family organiser dies the same way. Somebody sets it up in January, and by March nobody's ticking the boxes. So there are no boxes &mdash; and here's what it survives without anyone noticing.</p>
         </div>
         <div class="cards-grid pairs">
             <div class="card">
                 <span class="failure">Nobody ticked the chart</span>
                 <h3>Chores move on the date</h3>
-                <p>There is nothing to tick and nobody to chase. Each chore passes to the next person every day, so the wall is still naming the right name in March with no one having touched it.</p>
+                <p>There's nothing to tick and nobody to chase. Each chore passes to the next person every day, so the wall is still naming the right name in March with nobody having touched it.</p>
             </div>
             <div class="card">
                 <span class="failure">Nobody updated the ages</span>
                 <h3>Countdowns count themselves</h3>
-                <p>Ages and days-to-go are worked out fresh from today's date every time the page loads, so they cannot drift. <a href="/birthday-countdown/">Try the birthday countdown &rarr;</a></p>
+                <p>Ages and days-to-go are worked out fresh from today's date every time the page loads, so they can't drift. <a href="/birthday-countdown/">Try the birthday countdown &rarr;</a></p>
             </div>
             <div class="card">
                 <span class="failure">A calendar stopped answering</span>
@@ -654,9 +654,9 @@
                 <p>If a feed goes missing or a provider changes an address, the rest of the agenda is built as usual and the settings page tells you which calendar failed.</p>
             </div>
             <div class="card">
-                <span class="failure">The overnight run failed</span>
-                <h3>A bad morning stays honest</h3>
-                <p>The times, turns and countdowns are still today's, because they are worked out as the page loads. Only the written line is old, and the dashboard says so rather than pretending.</p>
+                <span class="failure">The daily run failed</span>
+                <h3>A stale line says so</h3>
+                <p>The times, turns and countdowns are still today's, because they're worked out as the page loads. Only the written line is old, and the dashboard says so rather than pretending.</p>
             </div>
         </div>
         <p class="lede">The rest of the category is running the other way &mdash; tap-to-complete, points, rewards, child locks. Those are <strong>apps on a wall</strong>, and apps on a wall need feeding. This is a poster that updates itself.</p>
@@ -668,27 +668,27 @@
     <div class="container">
         <div class="section-head">
             <h2>Yours to keep</h2>
-            <p>Every other family calendar is a company standing between you and your own week. Companies raise prices, move features behind a subscription, and close.</p>
+            <p>Every other family calendar puts a company between you and your own week. Companies raise prices, move features behind a subscription, and close.</p>
         </div>
         <div class="cards-grid">
             <div class="card">
                 <h3>Buy the screen, then rent the features</h3>
-                <p>Skylight sells the 15&Prime; Calendar from $329.99. Photo Screensaver, Meal Planning, Magic Import and Rewards are not included &mdash; they need Plus, at $79 a year.</p>
+                <p>Skylight sells the 15&Prime; Calendar from $329.99. Photo Screensaver, Meal Planning, Magic Import and Rewards aren't included &mdash; they need Plus, at $79 a year.</p>
                 <span class="verdict">Stop paying, and they stop.</span>
             </div>
             <div class="card">
-                <h3>Or the subscription is not optional</h3>
+                <h3>Or the subscription isn't optional</h3>
                 <p>Hearth Display lists at $699, and the membership is required: $9 a month, or $86.40 a year. Routines, rewards and meal planning go with it if it lapses.</p>
                 <span class="verdict">Nearly $800 in year one.</span>
             </div>
             <div class="card">
                 <h3>Or the company simply closes</h3>
-                <p>Maple, a family organiser app, was acquired and shuts down on 31 December 2026. Nothing its users did caused that, and nothing they could have done would have prevented it.</p>
+                <p>Maple, a family organiser app, was acquired and shuts down on 31 December 2026. Nothing its customers did caused that, and nothing they could have done would have stopped it.</p>
                 <span class="verdict">This happens.</span>
             </div>
         </div>
-        <p class="lede">DinkyDash is MIT-licensed and public, and the hosted version you are being offered is built from that same repository. <strong>There is no version of this you can be locked out of.</strong></p>
-        <p class="lede">Which is the honest pitch for the $39: you are not paying us to hold the keys, because there are no keys. You are paying us to run the machine and pay the AI bill. The day you would rather do that yourself, <a href="https://github.com/caspii/dinkydash">the code is right there</a> and every dashboard on every wall carries on working.</p>
+        <p class="lede">DinkyDash is MIT-licensed and public, and the hosted version you're being offered is built from that same repository. <strong>There's no version of this you can be locked out of.</strong></p>
+        <p class="lede">Which is the honest pitch for the $39: you're not paying us to hold the keys, because there are no keys. You're paying us to run the machine and pay the AI bill. The day you'd rather do that yourself, <a href="https://github.com/caspii/dinkydash">the code is right there</a> and every dashboard on every wall carries on working.</p>
         <p class="source-note">Competitor prices and features checked 6 September 2026. Skylight and Hearth are good products &mdash; you just might not need the hardware.</p>
         <div class="mid-cta">
             <a href="{{ app_url }}/login" class="btn">Start free &mdash; 14 days, no card</a>
@@ -735,7 +735,7 @@
                 <p>Prop it on the counter, point a browser at your dashboard's link, done.</p>
             </div>
         </div>
-        <p class="lede">A screen nobody touches, that is right when you walk past it. <strong>You are not buying a tablet for the fridge; you are giving one a job.</strong></p>
+        <p class="lede">A screen nobody touches, that's right when you walk past it. <strong>You're not buying a tablet for the fridge &mdash; you're giving one a job.</strong></p>
     </div>
 </section>
 
@@ -743,7 +743,7 @@
 <section class="band samples">
     <div class="container">
         <div class="section-head">
-            <h2>One line, written each morning</h2>
+            <h2>One line, written fresh each day</h2>
             <p>No other family calendar does this. Claude reads the day ahead and writes a headline and a single line &mdash; some days a fact worth repeating at school, some days about the dog.</p>
         </div>
         <div class="samples-grid">
@@ -763,7 +763,7 @@
                 <span class="sample-kind">An empty Sunday</span>
             </div>
         </div>
-        <p class="lede">It keeps a month of what it has already written, so it never repeats itself &mdash; and on a genuinely empty day it says so, rather than inventing excitement. <strong>This is what stops a wall display becoming wallpaper by week three.</strong></p>
+        <p class="lede">It keeps a month of what it's already written, so it doesn't repeat itself &mdash; and on a genuinely empty day it says so, rather than inventing excitement. <strong>This is what stops a wall display becoming wallpaper by week three.</strong></p>
         <p class="source-note">Illustrative examples, written to the same brief the real one gets. No real family's data appears anywhere on this site.</p>
     </div>
 </section>
@@ -773,9 +773,9 @@
     <div class="container">
         <div class="section-head">
             <h2>No adverts, no camera, nothing sold</h2>
-            <p>The dashboard holds your children's names, their birthdays and your week. Here is exactly where that goes.</p>
+            <p>The dashboard holds your children's names, their birthdays and your week. Here's exactly where that goes.</p>
         </div>
-        <p class="lede">There is no camera and no microphone, because it is a web page. We keep your settings so we can build the dashboard each morning, and once a day the agenda goes to Anthropic so Claude can write the line. Nothing else leaves, nothing is sold, and there are no adverts.</p>
+        <p class="lede">There's no camera and no microphone, because it's a web page. We keep your settings so we can build the dashboard each day, and once a day the agenda goes to Anthropic so Claude can write the line. Nothing else leaves, nothing is sold, and there are no adverts.</p>
         <p class="lede">You can export the lot and delete the account whenever you like, and <strong>the code that touches all of it is public</strong>. <a href="/privacy/">The privacy policy names every company involved</a>, which is a short list.</p>
     </div>
 </section>
@@ -846,7 +846,7 @@
             <p>Here&rsquo;s what &ldquo;You host it&rdquo; actually involves: the same repository, on your own machine, free for ever.</p>
         </div>
         <div class="makers-body">
-            <p>DinkyDash has been open source since 2021 and self-hosting is not a demo of it &mdash; it is the same code the hosted version runs, in single-family mode. You can have the real dashboard on your own machine in about two minutes, with no API key and nothing to pay for:</p>
+            <p>DinkyDash has been open source since 2021, and self-hosting isn't a demo of it &mdash; it's the same code the hosted version runs, for one family. You can have the real dashboard on your own machine in about two minutes, with no API key and nothing to pay for:</p>
 <pre><code>git clone https://github.com/caspii/dinkydash.git
 cd dinkydash
 python3 -m venv venv &amp;&amp; source venv/bin/activate
@@ -856,7 +856,7 @@ python sample_board.py &amp;&amp; python app.py</code></pre>
             <p>That serves the dashboard on <code>localhost:5000</code>, with an invented family and a canned daily line. Add your own calendar links from <code>/settings</code>, and an Anthropic key when you want the real one &mdash; it runs once a day and costs well under a dollar a month.</p>
 
             <h3>What to know before you do</h3>
-            <p>Setup on a Raspberry Pi is an afternoon rather than five minutes: systemd, kiosk mode, a screen schedule. <strong>There is no login</strong> &mdash; the dashboard and the settings page are both served without authentication, on the assumption they sit on your home network like a printer, so keep the port off the public internet. And self-hosting is community-supported: issues and pull requests are welcome, but there is no support commitment.</p>
+            <p>Setting up a Raspberry Pi is an afternoon rather than five minutes: systemd, kiosk mode, a screen schedule. <strong>There's no login</strong> &mdash; the dashboard and the settings page are both served without authentication, on the assumption they sit on your home network like a printer, so keep the port off the public internet. And self-hosting is community-supported: issues and pull requests are welcome, but there's no support commitment.</p>
 
             <div class="makers-links">
                 <a href="/getting-started/">The setup guide</a>
@@ -880,7 +880,7 @@ python sample_board.py &amp;&amp; python app.py</code></pre>
 <section class="section cta">
     <div class="container">
         <h2>Put it on the wall this week</h2>
-        <p>Paste a calendar link, open it on the screen you already own, and leave it there. Free for fourteen days, and we do not ask for a card.</p>
+        <p>Paste a calendar link, open it on the screen you already own, and leave it there. Free for fourteen days, and we don't ask for a card.</p>
         <div class="cta-buttons">
             <a href="{{ app_url }}/login" class="btn">Start free &mdash; 14 days, no card</a>
         </div>

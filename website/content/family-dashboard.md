@@ -1,58 +1,56 @@
 ---
 title: The AI-Powered Family Dashboard
 template: page.html
-description: How DinkyDash uses AI to create a daily family dashboard with calendars, chores, countdowns, and personalized content.
+description: How DinkyDash uses AI to write a daily family dashboard with calendars, chores and countdowns — and which parts aren't AI at all.
 ---
 
 If you've ever had a child ask "how many days until Christmas?" for the 47th time, DinkyDash was built for you.
 
-DinkyDash is an AI-powered dashboard that sits on a small screen in your home — in the kitchen, the hallway, or wherever your family passes by. Every morning, it generates a brand new dashboard with everything your family needs to know for the day.
+It's a dashboard for a small screen somewhere your family walks past — the kitchen, the hallway, the top of the stairs. Once a day it rewrites itself. The rest of the time it just sits there, being right.
 
-## What makes it different
+## What the AI actually writes
 
-Traditional family dashboards or shared calendars require someone to keep them updated. DinkyDash doesn't. You set it up once with your family's info, and Claude AI writes fresh content every single morning.
+Worth being precise about, because most of the dashboard isn't AI at all.
 
-That means:
+Claude writes **two things**: a headline, and one line underneath it. That's the daily message, and it's written around your family's real day. Everything else works itself out from the date:
 
-- **No manual updates.** The dashboard writes itself.
-- **Always relevant.** It knows what day it is, who has events, and whose turn it is for chores.
-- **Genuinely fun.** Kids actually want to look at it because there's always something new — a fun fact, a line about the pet, a personalized message.
+- **The countdowns** recalculate every time the page loads, so they can't drift.
+- **The chore rota** moves to the next person when the date changes. Nothing to tick.
+- **The agenda** comes straight from your calendars, merged into one list in time order.
 
-## A typical DinkyDash morning
+That split is the whole trick. If the daily message fails to write one day, the times, turns and countdowns are still today's — and the dashboard says the line is old rather than pretending otherwise.
 
-Imagine it's a Tuesday in November. Your family wakes up and walks past the dashboard in the kitchen. Today it shows:
+## A Tuesday in November
 
-- A cheerful headline: "Happy Tuesday! Only 3 more days until the weekend."
-- Chore badges showing it's Lily's turn for dishes and Sam's turn to feed the dog
-- A [countdown](/birthday-countdown/): 28 days until Christmas, 5 days until Dad's birthday
-- Today's calendar in time order, merged from both parents' feeds: school pickup at 3pm, swimming at 5pm, dinner at grandma's at 7pm
-- A fun fact about space that Sam will probably talk about all day
+Your family walks past the screen. It shows:
+
+- A headline: "Happy Tuesday! Only 3 more days until the weekend."
+- Chore badges: Lily's turn for the dishes, Sam's turn to feed the dog
+- [Countdowns](/birthday-countdown/): 28 days until Christmas, 5 days until Dad's birthday
+- Today's calendar in time order, merged from both parents' feeds — school pickup at 15:00, swimming at 17:00, dinner at grandma's at 19:00
+- A fact about space that Sam will probably repeat all day
 - A line about the dog: "Buddy has claimed the warm patch by the radiator again"
 
-All of this was written by AI at 6am, specifically for your family, for this exact day.
+The headline and those last two lines are Claude's. The rest is arithmetic.
 
-## Five reasons to try DinkyDash
+## Why nobody has to feed it
 
-**1. It answers the recurring questions**
+Every other family calendar needs somebody to keep it current. Someone ticks the chores off, someone updates the ages, someone remembers to change the rota. That person gives up around week three, and then the wall is lying.
 
-Kids love to ask the same things over and over. How many days until my birthday? Whose turn is it to take the trash out? When is our vacation? The dashboard answers all of these at a glance.
+DinkyDash has nothing to tick. The rota advances on the date whether anyone's looking or not, and a birthday countdown that says 28 days is doing the sum fresh, not reading a number somebody typed in November.
 
-**2. It makes chores fair and visible**
+## Two ways to run it
 
-DinkyDash automatically rotates chores daily. Everyone can see whose turn it is right there on the screen. No more "I did it yesterday" arguments.
+**We host it.** Paste a calendar link, open your dashboard on any screen with a browser, and leave it there. Free for 14 days, and we don't ask for a card. [Start a trial](https://app.dinkydash.co/login).
 
-**3. It keeps the whole family in sync**
+**You host it.** It's MIT-licensed and free for ever. You'll need something to serve it — an old laptop, a spare PC, a [Raspberry Pi](/raspberry-pi-family-calendar/) — and your own Anthropic key, which runs well under a dollar a month. [The setup guide](/getting-started/) has the commands.
 
-By pulling events from Google Calendar, the dashboard shows what everyone has going on today. No more missed pickups or forgotten appointments.
+Same code either way. The only difference is who keeps it running.
 
-**4. It brings a little joy**
+## It's private, both ways
 
-The AI-generated fun facts give your family something to talk about at breakfast. It's a small thing, but it makes mornings a bit more interesting.
+There's no camera and no microphone, because it's a web page.
 
-**5. It's completely private**
+Run it yourself and your family's details stay on your machine. The one thing that leaves is the day's agenda, which goes to Anthropic under your own key so Claude can write the line. Let us host it and we store your settings so we can build the dashboard each day, and that same agenda goes to Anthropic under ours.
 
-DinkyDash runs on your own Raspberry Pi. Your family data stays in your house. There's no cloud service, no account to create, no data being sent anywhere except to generate the daily dashboard.
-
-## Getting started
-
-DinkyDash is free and open source. You'll need a Raspberry Pi, a small display, and an Anthropic API key. Check out the [GitHub repository](https://github.com/caspii/dinkydash) for setup instructions.
+Nothing is sold, there are no adverts, and [the privacy policy](/privacy/) names every company involved. It's a short list.

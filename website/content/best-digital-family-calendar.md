@@ -15,7 +15,7 @@ You're paying for plug-and-play: unbox, connect Wi-Fi, done. As of September 202
 
 **Skylight Calendar 2 (15″, $299.99) / Calendar Max (27″, $599.99)** — the category leader and the safest pick. Best-in-class calendar view, meal planning and AI event import with the optional Plus plan ($79/yr). If you just want it to work, buy this. ([What the subscription does and doesn't cover →](/skylight-calendar-subscription/))
 
-**Hearth Display (27″, $699 + $9/mo, or $86.40/yr billed annually)** — the routines specialist. Visual morning/evening checklists kids run themselves; a favorite with ADHD families. Priciest option in the category. ([Hearth vs Skylight compared →](/hearth-vs-skylight/))
+**Hearth Display (27″, $699 + $9/mo, or $86.40/yr billed annually)** — the routines specialist. Visual morning and evening checklists kids run themselves; a favourite with ADHD families. Priciest option in the category. ([Hearth vs Skylight compared →](/hearth-vs-skylight/))
 
 **Cozyla (from $169.99)** — dedicated hardware whose pitch is "no monthly fees," and the core calendar, chores and routines do work without one. Watch for the optional Calendar Essential plan, which auto-renews at $79.99/yr after a 30-day trial and covers meal planning and the AI voice agent. Less polished than Skylight, but pay-once pricing.
 
@@ -25,7 +25,7 @@ You're paying for plug-and-play: unbox, connect Wi-Fi, done. As of September 202
 
 A family calendar display is, mechanically, a screen showing a web page. If a spare tablet, a TV, or a $100 Raspberry Pi is available, software gets you there:
 
-**DinkyDash (free, open source)** — our project, and the reason this site exists. Any screen with a browser becomes a family calendar with automatic chore rotation, birthday countdowns, and an AI-written daily message — a fresh greeting and fun fact every morning, written around your own family, which no hardware calendar offers. It reads [Google](/google-calendar-ical-link/), [Apple iCloud](/icloud-calendar-link/), [Outlook](/outlook-calendar-ics-link/) and [Cozi](/cozi-calendar-display/) calendars (paste each one's sharing link; there's no sign-in) and merges them into a single agenda. Setup takes an afternoon and a bit of terminal comfort ([guide](/getting-started/)); you can also [start a free 14-day hosted trial](https://app.dinkydash.co/login) with no card required.
+**DinkyDash (free, open source)** — our project, and the reason this site exists. Any screen with a browser becomes a family calendar with automatic chore rotation, birthday countdowns, and an AI-written daily message — a fresh greeting and fact every day, written around your own family, which no hardware calendar offers. It reads [Google](/google-calendar-ical-link/), [Apple iCloud](/icloud-calendar-link/), [Outlook](/outlook-calendar-ics-link/) and [Cozi](/cozi-calendar-display/) calendars (paste each one's sharing link; there's no sign-in) and merges them into a single agenda. Setup takes an afternoon and a bit of terminal comfort ([guide](/getting-started/)); you can also [start a free 14-day hosted trial](https://app.dinkydash.co/login) with no card required.
 
 **Mango Display (free tier; Pro $5.99/mo or $59.99/yr)** — commercial BYO-screen software with polished apps for smart TVs and tablets. The no-DIY version of this path — but budget for Pro, because the free plan has no calendar.
 
@@ -47,8 +47,8 @@ A family calendar display is, mechanically, a screen showing a web page. If a sp
 | Cozyla | From $169.99 | $0, or $79.99/yr optional | Pay-once hardware |
 | DinkyDash | $0 (your screen) | $0 | AI daily message, open source |
 | Mango Display | $0 (your screen) | $0–60/yr | Easiest BYO-screen |
-| DAKboard | $0 (your screen) | $0–120/yr | Deep customization |
+| DAKboard | $0 (your screen) | $0–120/yr | Deep customisation |
 
 *Prices checked 6 September 2026.*
 
-Whichever path you take: the win isn't the gadget, it's the behavior change — the family checking one shared screen instead of asking one exhausted parent. The cheapest way to test whether that works in your house is [the free one](/getting-started/).
+Whichever path you take: the win isn't the gadget, it's the behaviour change — the family checking one shared screen instead of asking one exhausted parent. The cheapest way to test whether that works in your house is [the free one](/getting-started/).
