@@ -444,12 +444,13 @@
     <div class="container">
         <a class="nav-brand" href="/">DinkyDash</a>
         {# **What the nav is for.** These are the pages a visitor who is already
-           here would choose to open. The competitor comparisons are not: they are
-           written to be arrived at from a search, and every one of them is still
-           linked site-wide from the footer, which is where an entry page belongs.
-           In the nav they pointed a reader half-way through our own pitch at
-           pages about Skylight and DAKboard, and "Alternatives" on our own site
-           reads as alternatives to us.
+           here would choose to open. The competitor comparisons and the free
+           birthday countdown are not: they are written to be arrived at from a
+           search, and each is linked site-wide from the footer, which is where an
+           entry page belongs. A reader half-way through our own pitch is not
+           looking for one panel of the dashboard on its own, and the comparisons
+           pointed them at pages about Skylight and DAKboard, where
+           "Alternatives" on our own site reads as alternatives to us.
 
            Price leads, because it is the answer to the question the rest of the
            home page is arguing about. It is an anchor rather than a page: the
@@ -461,8 +462,6 @@
                terminal. Named for what it is, it releases the reader who wants
                it without competing with the button beside it. #}
             {{ nav_link('/getting-started/', 'Self-hosting', '/getting-started/') }}
-            {# The free tool, under the name somebody would search for. #}
-            {{ nav_link('/birthday-countdown/', 'Birthday countdown', '/birthday-countdown/') }}
             {{ nav_link('/about/', 'About', '/about/') }}
         </ul>
         <div class="nav-actions">
