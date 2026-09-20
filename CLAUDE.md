@@ -40,6 +40,7 @@ that matters in one place lives beside that place, and arrives when you open a f
 | [`dinkydash/CLAUDE.md`](dinkydash/CLAUDE.md) | Touching the engine, the storage seam, the payload, the tick, or `migrations/` |
 | [`web/CLAUDE.md`](web/CLAUDE.md) | Changing the dashboard's layout, the settings UI, or measuring either |
 | [`website/CLAUDE.md`](website/CLAUDE.md) | Working on the marketing site or the image generators |
+| [`doc/voice.md`](doc/voice.md) | Writing or changing anything a customer reads — the site, the settings UI, email, the README |
 | [`doc/operations.md`](doc/operations.md) | You need the state of the running system — secrets, the Pi, what has been rotated. A log, not guidance, and deliberately not loaded |
 
 ## This is a public repo
@@ -357,6 +358,7 @@ dinkydash/
 ├── generate.py        orchestrator: config + date + events -> payload
 ├── board.py           payload + config -> what the template renders
 ├── config.py          config.yaml load/save (ruamel round-trip), item ids
+├── clock.py           the only place a displayed time is formatted, in either shape
 ├── history.py         what the recent notes say, and how they trim (pure)
 ├── schedule.py        due(config, payload, now) -> what a tick owes (pure)
 ├── store.py           the seven storage operations; FileStore, the single-mode one
@@ -367,6 +369,8 @@ dinkydash/
 ├── screens.py         the token that puts a dashboard on a wall (cloud only)
 ├── budget.py          what a family may spend on the model, and what everybody may
 │                     (`accounts.delete_family` is the hard delete)
+├── billing.py         hosted subscriptions: Stripe owns payments, Postgres owns access (cloud only)
+├── lifecycle.py       trial and access boundaries, on the database's aware clock (cloud only)
 ├── growth.py          signups and activations per day, with no family in the row (cloud only)
 ├── sentry.py          error reports and the worker's check-in, and what neither may carry (cloud only)
 └── runner.py          the two halves of the day, reading and writing through a store
@@ -378,12 +382,17 @@ web/
 ├── setup.py           the set-up checklist: what a new family still has to do, from the config
 ├── assets.py          static URLs with the file's content version, and the year they are cached for
 ├── ratelimit.py       a per-key counter, in this process (the per-IP half)
+├── turnstile.py       the bot check in front of /login; off unless both keys are set
+├── urls.py            app origins and dashboard paths, shared with the login-link CLI
+├── emoji.py           what a free-text emoji field is allowed to hold
+├── manifest.py        the two installable pages: a wall panel and a phone
 ├── feedback.py        what somebody can tell us: one form, one email, nothing kept
 ├── routes/board.py    the dashboard and the preview harness
 ├── routes/settings.py the settings UI (one table drives every list section)
 ├── routes/auth.py     /login, /login/link, /logout — cloud mode only
 ├── routes/screen.py   /s/<token> — the dashboard with no session, cloud mode only
 ├── routes/admin.py    /admin — signups and activations by week, for DINKYDASH_ADMIN_EMAILS only
+├── routes/billing.py  signed-in payment actions, and the separately signed Stripe webhook
 └── templates/         board.html, preview.html, auth/*.html, settings/*.html, admin/growth.html
 ```
 
@@ -520,6 +529,14 @@ right at one size is not evidence about the other two — and `--window-size` ca
 to tell you.
 
 ## Conventions
+
+- **Copy follows [doc/voice.md](doc/voice.md), and the register of this file is not it.**
+  Everything here is engineering documentation: dense, formal, written without contractions.
+  Customer-facing writing is the opposite, and matching the surrounding page is no defence when
+  that page has the same fault. Two rules carry most of it — read it aloud and use contractions,
+  and **trace every claim about what the product does to the code that does it** before writing
+  it down. A sentence about a feature that does not exist reads exactly like one about a feature
+  that does.
 
 - **Product wording follows [doc/terminology.md](doc/terminology.md).** Call the complete display
   a **dashboard** and the device showing it a **screen**. Keep the glossary in step with UI,
