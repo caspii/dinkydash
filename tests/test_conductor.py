@@ -11,6 +11,10 @@ import dev
 ROOT = Path(__file__).resolve().parents[1]
 FILE_URL = 'postgresql:///invented_file_database'
 SCRATCH_URL = 'postgresql:///invented_scratch_database'
+# Stands for `db.DEV_DATABASE_URL` in the table below, resolved inside the test:
+# naming it here would import psycopg at collection, and this file has to be
+# collectable on a machine that installed requirements.txt alone.
+DEVELOPMENT = None
 
 
 def test_one_default_run_starts_both_apps():
@@ -26,8 +30,8 @@ def test_one_default_run_starts_both_apps():
     (None, FILE_URL, FILE_URL),
     (SCRATCH_URL, None, SCRATCH_URL),
     # Nothing names a database, so the launcher's own development one is used.
-    (None, None, dev.DEV_DATABASE_URL),
-    ('', FILE_URL, dev.DEV_DATABASE_URL),
+    (None, None, DEVELOPMENT),
+    ('', FILE_URL, DEVELOPMENT),
 ])
 def test_preview_preserves_explicit_environment_and_never_prints_the_database(
         tmp_path, monkeypatch, capsys, exported, file_value, expected):
@@ -42,6 +46,10 @@ def test_preview_preserves_explicit_environment_and_never_prints_the_database(
     if exported is not None:
         monkeypatch.setenv('DATABASE_URL', exported)
     monkeypatch.setattr(dev, 'ROOT', tmp_path)
+    if expected is DEVELOPMENT:
+        from dinkydash.db import DEV_DATABASE_URL
+
+        expected = DEV_DATABASE_URL
     captured = {}
 
     def validate():

@@ -200,6 +200,17 @@ Three things about that runner are load-bearing:
 - **Migrations connect with `DATABASE_URL_DIRECT`, not `DATABASE_URL`.** The first is the cluster,
   the second is DigitalOcean's transaction-mode pool, which is the wrong end for schema work and for
   `pg_dump`.
+- **And `migrate.py` reads that variable from the environment, never from `.env`.** A developer's
+  `.env` holds the live cluster under exactly that key, so a schema tool that loaded it would read
+  "apply my change" as "apply it to the running service" — and say nothing either way, because an
+  up-to-date schema reports the same from both. With nothing in the environment it uses
+  `db.DEV_DATABASE_URL`, which is also `dev.py`'s default, so the database the launcher serves is
+  the database that has the schema. `tests/test_migrate.py` is where that is held.
+- **A hostless URL is not a local database; `db.on_this_machine` is what decides.** libpq fills the
+  missing host from `PGHOST` or `PGHOSTADDR`, so `postgresql:///dinkydash_dev` reaches whatever
+  those name. Both the launcher's refusal and `migrate.py`'s default go through that one function,
+  which asks libpq's parser rather than reading the string — a host also hides in the query string,
+  in a comma-separated list and in `hostaddr`.
 
 Connections go through `dinkydash/db.py`. `pool()` is a small bounded `psycopg_pool` — its size is a
 latency knob, not a safety one, because DigitalOcean's own pool is what stops the cluster's 22

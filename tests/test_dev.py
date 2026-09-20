@@ -49,8 +49,10 @@ def test_no_database_url_uses_the_development_one(monkeypatch, unset):
     """Nothing to set, so there is nothing to put in `.env` and copy around."""
     monkeypatch.setenv("DATABASE_URL", unset)
     monkeypatch.setenv("DINKYDASH_MODE", "single")
+    from dinkydash.db import DEV_DATABASE_URL
+
     dev.configure()
-    assert os.environ["DATABASE_URL"] == dev.DEV_DATABASE_URL
+    assert os.environ["DATABASE_URL"] == DEV_DATABASE_URL
 
 
 def test_a_named_database_still_wins(monkeypatch):
@@ -62,7 +64,9 @@ def test_a_named_database_still_wins(monkeypatch):
 
 def test_the_default_is_a_database_on_this_machine(monkeypatch):
     """The default goes through the same refusal as anything else would."""
-    dev.require_local_database(dev.DEV_DATABASE_URL)
+    from dinkydash.db import DEV_DATABASE_URL
+
+    dev.require_local_database(DEV_DATABASE_URL)
 
 
 @pytest.mark.parametrize("values, expected", [
@@ -264,7 +268,7 @@ def test_missing_config_starts_neither(launch):
     """The session key, which is the one thing here that cannot be defaulted.
 
     An unset `DATABASE_URL` is not a failure and so is not tested here: it falls
-    back to `DEV_DATABASE_URL`, and a launched process would then reach for
+    back to `db.DEV_DATABASE_URL`, and a launched process would then reach for
     whatever database this machine has. The fallback is asserted above instead,
     without a process.
     """
