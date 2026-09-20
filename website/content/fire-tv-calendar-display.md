@@ -2,7 +2,7 @@
 title: "A Family Calendar on Fire TV (No App to Install)"
 seo_title: "Fire TV Calendar Display: Put Your Family Calendar on a TV"
 template: page.html
-description: There is no good family calendar app for Fire TV, but there is a browser — and a web-based calendar dashboard works in it. Here is the setup, and the honest limit of using a TV stick for this.
+description: There's no good family calendar app for Fire TV, but there's a browser — and a web-based calendar dashboard works in it. Here's the setup, and the honest limit of using a TV stick for this.
 faq:
   - q: "Is there a family calendar app for Fire TV?"
     a: "Not a good one. The Fire TV app store is built around streaming, and the calendar apps in it are thin. The better route is Amazon's own Silk Browser, which is free in the same store — any web-based calendar dashboard opens in it with nothing else to install."
@@ -16,7 +16,7 @@ faq:
     a: "No. Silk is a free download, the calendar software is free and open source, and nothing here touches Prime."
 ---
 
-There is no good family calendar app for Fire TV. There is, however, a **browser** — Amazon's
+There's no good family calendar app for Fire TV. There's, however, a **browser** — Amazon's
 own Silk, free in the same app store — and a web-based calendar dashboard opens in it with nothing
 else to install.
 
@@ -39,8 +39,8 @@ screen. Nothing needs configuring for a particular set.
 ## Set it up
 
 **1. Install Silk.** From the Fire TV home screen, go to **Find → Search**, type or say
-"Silk", pick **Amazon Silk** and choose **Download**. It is free and it is Amazon's own, so
-there is no sideloading and no developer mode.
+"Silk", pick **Amazon Silk** and choose **Download**. It's free and it's Amazon's own, so
+there's no sideloading and no developer mode.
 
 **2. Type the address, once.** On your own network it looks like `http://192.168.1.50:5000`.
 Typing that on an on-screen keyboard with a remote is the worst minute of this whole setup.
@@ -53,7 +53,7 @@ Two ways round it:
 the home screen and you never type the address again.
 
 **4. Push the screensaver out.** Settings → **Display & Sounds** → **Screensaver** → set
-**Start after** to its longest value. This does not remove the screensaver, only delays it.
+**Start after** to its longest value. This doesn't remove the screensaver, only delays it.
 
 ## The honest limit
 
@@ -84,11 +84,11 @@ calendar display](/smart-tv-calendar-display/) for Samsung and LG.
   link, and each has its own page here with the steps.
 - **A chore chart that rotates**, moving on one person a day by itself.
 - **Countdowns** to birthdays, Christmas and the school holidays.
-- **A daily note written each morning** by Claude, around your family's actual day.
+- **A daily note, written fresh each day** by Claude, around your family's actual day.
 
 The dashboard refreshes itself every five minutes, and if the Wi-Fi drops it keeps the last
 dashboard on screen with a small "Reconnecting" note rather than an error page. The script that
-does it is written for old browsers, and one too old for it, or with JavaScript switched off,
+does it's written for old browsers, and one too old for it, or with JavaScript switched off,
 falls back to a plain HTML refresh. That matters on a TV stick, where the browser is the least
 capable one in the house.
 
@@ -104,7 +104,7 @@ line — a Claude API call once a day, roughly $0.13 a month, and the dashboard 
 - [iPad](/ipad-calendar-display/) — the best cheap always-on panel
 - [Android tablet](/android-tablet-calendar-display/) — the same, cheaper second-hand
 - [Raspberry Pi](/raspberry-pi-family-calendar/) — the tidiest permanent panel, about $100
-- [Echo Show](/echo-show-calendar-display/) — the one that does not work, and why
+- [Echo Show](/echo-show-calendar-display/) — the one that doesn't work, and why
 
 ## Start here
 

@@ -8,15 +8,15 @@ The digital family calendar for screens you already own — a TV, an old tablet,
 
 Website: [dinkydash.co](https://dinkydash.co)
 
-Every morning, DinkyDash merges your calendars into one agenda, works out whose turn each chore is, counts down to the next birthday, and asks Claude for a headline and one line of copy. Then it puts the lot on a screen at home — light or dark, sized to read from across the kitchen.
+DinkyDash merges your calendars into one agenda, works out whose turn each chore is, counts down to the next birthday, and once a day asks Claude for a headline and one line of copy. Then it puts the lot on a screen at home — light or dark, sized to read from across the kitchen.
 
 ## Two ways to run it
 
 **Self-hosted (this repo).** Free, MIT-licensed, runs on your own hardware with your own Anthropic API key. Setup takes an afternoon and some comfort with a terminal.
 
-> Self-hosting is **community-supported**. Issues and pull requests are welcome, but there is no support commitment — if you need it to just work, use the hosted version.
+> Self-hosting is **community-supported**. Issues and pull requests are welcome, but there's no support commitment — if you need it to just work, use the hosted version.
 
-**Hosted.** [Start a free 14-day trial.](https://app.dinkydash.co/login) No card required. Paid subscriptions are still in development; planned pricing is $39/year or $6/month. Built from this same repo, in cloud mode — see [Two modes, always](CLAUDE.md#two-modes-always).
+**Hosted.** [Start a free 14-day trial.](https://app.dinkydash.co/login) No card required. Paid plans are still being built; the plan is $39 a year or $6 a month. Built from this same repo, in cloud mode — see [Two modes, always](CLAUDE.md#two-modes-always).
 
 ## What the dashboard shows
 
@@ -25,9 +25,9 @@ Every morning, DinkyDash merges your calendars into one agenda, works out whose 
 - A personal calendar can show only the events shared with your partner, and keep
   work and private appointments to itself
 - A look at tomorrow underneath it, on the days today leaves room
-- Whose turn each chore is — rotated daily, nothing to tick off
+- Whose turn each chore is — it moves on with the date, nothing to tick off
 - Countdowns to birthdays, holidays and special dates
-- An AI-written headline, and one line that is some days a fact, some days
+- An AI-written headline, and one line that's some days a fact, some days
   about the dog
 - Light or dark, chosen in the settings UI
 
@@ -38,8 +38,8 @@ the same file, and the UI keeps your comments.
 
 ```
 [cron every 5m] → generate.py --tick → every hour: re-fetches every iCal feed, in time order
-                                     → once a day at 06:00 (and at once on the first run):
-                                       builds the prompt, calls Claude
+                                     → once a day at a time you set, 06:00 by default
+                                       (and at once on the first run): calls Claude
                                      → saves dashboard_data.json
 
 [browser]       → web/routes/board.py → recomputes chores, countdowns and today's agenda
@@ -47,7 +47,7 @@ the same file, and the UI keeps your comments.
 ```
 
 Only the headline and the written line come from the model. Ages, countdowns, chore turns and the
-agenda are recomputed on every render, so if a morning's run fails the times and turns on the wall
+agenda are recomputed on every render, so if a day's run fails the times and turns on the wall
 are still today's — the dashboard just labels the written line as older.
 
 ---

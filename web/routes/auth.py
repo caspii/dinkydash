@@ -266,20 +266,20 @@ for you to replace:
 
 The button works once, and the link goes stale after fifteen minutes.
 
-If you did not ask for this, you can ignore it. Nothing has been created and
+If you didn't ask for this, you can ignore it. Nothing has been created and
 nothing will be, because opening the link on its own does nothing.
 
 - DinkyDash
 https://dinkydash.co
 """
     return f"""\
-Here is your link to sign in to DinkyDash. Open it and press the button:
+Here's your link to sign in to DinkyDash. Open it and press the button:
 
 {link}
 
 The button works once, and the link goes stale after fifteen minutes.
 
-If you did not ask for this, you can ignore it. Opening the link on its own
+If you didn't ask for this, you can ignore it. Opening the link on its own
 does nothing, and it stops working by itself.
 
 - DinkyDash
@@ -297,15 +297,15 @@ people, chores and countdowns are already filled in with an invented family
 for you to replace:</p>
 <p><a href="{link}">Start my dashboard</a></p>
 <p>The button works once, and the link goes stale after fifteen minutes.</p>
-<p>If you did not ask for this, you can ignore it. Nothing has been created
+<p>If you didn't ask for this, you can ignore it. Nothing has been created
 and nothing will be, because opening the link on its own does nothing.</p>
 <p>— DinkyDash</p>
 """
     return f"""\
-<p>Here is your link to sign in to DinkyDash. Open it and press the button:</p>
+<p>Here's your link to sign in to DinkyDash. Open it and press the button:</p>
 <p><a href="{link}">Sign in to DinkyDash</a></p>
 <p>The button works once, and the link goes stale after fifteen minutes.</p>
-<p>If you did not ask for this, you can ignore it. Opening the link on its own
+<p>If you didn't ask for this, you can ignore it. Opening the link on its own
 does nothing, and it stops working by itself.</p>
 <p>— DinkyDash</p>
 """

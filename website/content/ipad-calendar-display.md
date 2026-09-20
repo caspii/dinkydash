@@ -2,7 +2,7 @@
 title: "Turn an Old iPad Into a Family Calendar Display"
 seo_title: "iPad Calendar Display: Use an Old iPad as a Wall Calendar"
 template: page.html
-description: An old iPad makes the best cheap family calendar display there is — always on, always charged, wall-mounted. Here is how to set one up with free, open-source software and no App Store account.
+description: An old iPad makes the best cheap family calendar display there's — always on, always charged, wall-mounted. Here's how to set one up with free, open-source software and no App Store account.
 faq:
   - q: "Can I use an old iPad as a family calendar display?"
     a: "Yes, and it is the best cheap option there is. Any iPad that still runs Safari can show a wall calendar full screen. You need three settings: Auto-Lock set to Never, Guided Access to stop anyone leaving the page, and the charger left plugged in."
@@ -16,12 +16,12 @@ faq:
     a: "It ages the battery faster than normal use, yes. For a wall panel that hardly matters — the iPad is permanently on mains power, so a tired battery only shortens how long it survives a power cut. An old iPad doing this job is already past the point where its battery mattered."
 ---
 
-**Yes — an old iPad is the best cheap family calendar display there is.** It has a good
+**Yes — an old iPad is the best cheap family calendar display there's.** It has a good
 screen, it charges over one cable, it already sits flat against a wall, and iOS has both
 settings you need built in: a screen that never sleeps, and a lock that keeps everyone on one
 page.
 
-Here is the whole setup, with free and open-source software.
+Here's the whole setup, with free and open-source software.
 
 ## What you need
 
@@ -31,7 +31,7 @@ DinkyDash is a **web page**, not an app you install. So there are two parts:
    licensed, and about an evening's work. Or [start a free 14-day hosted trial](https://app.dinkydash.co/login), no card required.
 2. **The iPad**, which is the screen. It opens that address in Safari.
 
-Nothing goes through the App Store, and there is no Apple ID to sign in to.
+Nothing goes through the App Store, and there's no Apple ID to sign in to.
 
 ![The DinkyDash dashboard on a tablet in portrait, stacked into one column: today's events, whose turn each chore is, countdowns and the daily note](/images/family-calendar-tablet-board.webp)
 
@@ -58,7 +58,7 @@ dashboard until somebody triple-clicks and types the passcode — which is what 
 ending up in Settings.
 
 **5. Leave it plugged in.** A right-angled cable and an adhesive wall mount are the usual
-answer. Turn the brightness down to about a third; it is a glanceable panel, not a film.
+answer. Turn the brightness down to about a third; it's a glanceable panel, not a film.
 
 ## Two things worth knowing
 
@@ -80,12 +80,12 @@ Nothing is hidden and nothing breaks.
   link, and each has its own page here with the steps.
 - **A chore chart that rotates**, moving on one person a day by itself.
 - **Countdowns** to birthdays, Christmas and the school holidays.
-- **A daily note written each morning** by Claude, around your family's actual day.
+- **A daily note, written fresh each day** by Claude, around your family's actual day.
 
 The dashboard refreshes itself every five minutes. If the Wi-Fi drops, it keeps the last
 dashboard on screen with a small "Reconnecting" note rather than an error page, and catches up
 when the connection returns; with JavaScript switched off it falls back to a plain HTML refresh.
-There is nothing to tap and nothing to maintain — you keep editing events in your normal
+There's nothing to tap and nothing to maintain — you keep editing events in your normal
 calendar app, and the wall follows.
 
 ## What it costs
@@ -103,7 +103,7 @@ For comparison, a Skylight Calendar is $299.99 to $599.99 plus an optional $79 a
 - [Raspberry Pi](/raspberry-pi-family-calendar/) — the tidiest permanent panel, about $100
 - [Smart TV](/smart-tv-calendar-display/) — works, but the screensaver fights you
 - [Fire TV](/fire-tv-calendar-display/) — for the living-room television
-- [Echo Show](/echo-show-calendar-display/) — the one that does not work, and why
+- [Echo Show](/echo-show-calendar-display/) — the one that doesn't work, and why
 
 ## Start here
 

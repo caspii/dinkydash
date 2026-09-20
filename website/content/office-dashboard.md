@@ -1,51 +1,44 @@
 ---
 title: DinkyDash for Offices and Shared Spaces
 template: page.html
-description: Use DinkyDash as an AI-powered information display for offices, co-working spaces, and shared areas.
+description: Using DinkyDash as a daily information screen for an office, classroom or co-working space — what it does, and what it won't do.
 ---
 
-DinkyDash was built for families, but the same concept works beautifully in offices, co-working spaces, classrooms, and any shared area where people need quick, glanceable information.
+DinkyDash was built for families. It works in an office kitchen, a classroom or a co-working lobby too — but it helps to know what you're actually getting, because it's a family product wearing a different hat.
 
-The idea is simple: a small screen that displays AI-generated, always-fresh content tailored to the people in that space.
+## What's on the screen
 
-## Why AI-generated dashboards work for offices
+Today's shared calendar in time order, whose turn it is for the rotating jobs, countdowns to the dates that matter, and two lines written fresh each day by Claude: a headline and one note.
 
-Static office dashboards get ignored. Someone puts up a screen with a Google Calendar and a motivational quote, and after a week nobody looks at it.
+The note is one of two things — a fact, or a line about the pet if you've named one. That's the lot. There's no icebreaker generator and no conversation-starter feature.
 
-DinkyDash is different because the content changes completely every day. The AI writes new headlines and a new fact every morning. People actually stop and read it because there's always something they haven't seen before.
+## What it's actually good at
 
-## Four ways to use DinkyDash in shared spaces
+Static office screens get ignored. Someone puts up a shared calendar and a motivational quote, and by week two nobody's looking. The headline and the fact change every day, which is enough to make people glance — and while they're glancing they see the rota and the calendar.
 
-**1. Team dashboard in the office kitchen**
+The rota is the part that earns its place. Who's buying the coffee, who's cleaning the fridge, who's running stand-up: it moves to the next person when the date changes, with nothing to tick and nobody to chase. That's the failure mode it fixes. A shared spreadsheet needs somebody to maintain it, and that person gives up in about three weeks.
 
-Configure DinkyDash with your team members, shared calendar, and rotating responsibilities (who's buying coffee, who's cleaning the fridge, who's running standup). Every morning, the AI generates a fresh team dashboard with today's meetings, a fun icebreaker, and something to talk about at lunch.
+## Mapping it onto a team
 
-**2. Classroom daily dashboard**
+The settings are built around a household, so you translate:
 
-Teachers can set up DinkyDash with student names, class events, and rotating classroom jobs. The AI writes a daily greeting, shows countdowns to field trips and holidays, rotates who's line leader or dashboard eraser, and includes an age-appropriate fun fact.
+| The setting | What it becomes |
+|---|---|
+| **People** | Team members, students, members |
+| **Chores** | Rotating jobs — facilitator, kitchen, stand-up |
+| **Special dates** | Deadlines, launches, term dates |
+| **Calendars** | Your team's shared calendar, via its iCal link |
 
-**3. Co-working space welcome screen**
+## The honest limits
 
-A DinkyDash in a co-working lobby can show community events, rotating "member spotlight" features, shared resource schedules, and daily conversation starters. It makes the space feel more personal without requiring someone to update content manually.
+- **It thinks it's writing for a household.** Claude is told the name, who's in it and where they are. There's no tone setting, no audience setting and no custom prompt — none of those are settings. Self-host and you can edit the prompt in the source, but that's a code change, not configuration.
+- **The note is a fact or the pet.** Nothing else, and nothing age-aware.
+- **Everyone sees the same screen.** There's no per-person view and no sign-in on the display.
 
-**4. Family business or workshop**
-
-Small businesses with a shared break room can use DinkyDash to show the day's schedule, whose turn it is for various tasks, and inject a bit of fun into the workday with a daily fact.
-
-## Adapting DinkyDash for your space
-
-DinkyDash is configured through a simple YAML file. To adapt it for an office or shared space:
-
-- **People** become team members, students, or community members
-- **Chores** become rotating responsibilities (meeting facilitator, kitchen cleanup, etc.)
-- **Special dates** become deadlines, launches, team events
-- **Calendar** connects to your team's shared Google Calendar
-- **The AI prompt** can be customized to match the tone of your space — professional, playful, or somewhere in between
-
-The AI adapts its writing style based on the context you give it. A classroom dashboard will sound different from an office dashboard because the prompt tells Claude about the setting and audience.
+If you can live with those, it's a good shared-space screen. If you need per-team content or a tone dial, it isn't the tool and we'd rather say so.
 
 ## Getting started
 
-DinkyDash is free, open source, and runs on any Raspberry Pi with a screen. The setup takes an afternoon, and once it's running, it generates a new dashboard every morning on its own.
+**Hosted** — paste your team's calendar link and open the dashboard on whatever screen is nearest. Free for 14 days, and we don't ask for a card. [Start a trial](https://app.dinkydash.co/login).
 
-Check out the [GitHub repository](https://github.com/caspii/dinkydash) for setup instructions and configuration examples.
+**Self-hosted** — MIT-licensed and free for ever. It runs on anything that can serve a web page: an old laptop, a spare PC, a Raspberry Pi. [The setup guide](/getting-started/) has the commands, and you'll want your own Anthropic key, which costs well under a dollar a month.

@@ -31,7 +31,7 @@ Here are the steps, then the three things about this link that surprise people.
 4. Press **Copy**.
 
 The Calendar app on a Mac, iPhone or iPad has the same **Public Calendar** switch beside each
-calendar, and offers the link once it is on. The browser is easier if the link then has to go
+calendar, and offers the link once it's on. The browser is easier if the link then has to go
 into something on a computer.
 
 The address looks like this:
@@ -43,12 +43,12 @@ webcal://p00-caldav.icloud.com/published/2/xxxxxxxxxxxx
 The real one has a long random string where the `xxxx` are, and the number after `p` varies
 by which Apple server holds your calendar. Both are normal.
 
-## "Public" does not mean listed
+## "Public" doesn't mean listed
 
 This is the part worth understanding before you paste the link anywhere.
 
-Apple does not publish your calendar to a directory, and it is not searchable. Nobody finds
-it by accident. But there is **no sign-in on the other end** — the long random string in the
+Apple doesn't publish your calendar to a directory, and it's not searchable. Nobody finds
+it by accident. But there's **no sign-in on the other end** — the long random string in the
 URL is what stands in for a password. Anyone holding the link reads that whole calendar, for
 as long as sharing stays on, and Apple gives you no way to see who has.
 
@@ -61,17 +61,17 @@ working, and Apple emails anyone you shared it with to say so.
 ## Why the link starts with `webcal://`
 
 `webcal://` is an old scheme whose only job is to tell your computer "hand this to a calendar
-app, not a browser". Underneath it is an ordinary web address. Swap `webcal` for `https` and
+app, not a browser". Underneath it's an ordinary web address. Swap `webcal` for `https` and
 it fetches the same file.
 
 Most tools do that swap for you, so **paste it exactly as Apple gives it to you** and let the
 other end sort it out. DinkyDash converts `webcal://` to `https://` on the way in and leaves
-the rest of the address alone. What it will not accept is a plain `http://` link: the address
+the rest of the address alone. What it won't accept is a plain `http://` link: the address
 is a password, and `http` would put it on the network in the clear.
 
 ## When an old link stops working
 
-An iCloud sharing link is not permanent, and this catches people out months later.
+An iCloud sharing link isn't permanent, and this catches people out months later.
 
 **Switching Public Calendar off and on again issues a different link.** The old one is dead —
 not paused, dead. Same if the calendar is deleted and recreated, or recreated on a different
@@ -79,7 +79,7 @@ Apple Account.
 
 So a wall display that has shown your calendar happily since spring can go blank one morning
 because somebody turned sharing off and on while tidying up. The fix is always the same: go
-back to iCloud.com, copy the link that is there now, and paste the new one in.
+back to iCloud.com, copy the link that's there now, and paste the new one in.
 
 ## One calendar per link
 
@@ -98,12 +98,12 @@ without anybody having to unlock a phone.
 Which screen? An [old iPad](/ipad-calendar-display/) or an [Android
 tablet](/android-tablet-calendar-display/) is the cheapest good panel, a [Raspberry
 Pi](/raspberry-pi-family-calendar/) the tidiest, and a [smart TV](/smart-tv-calendar-display/)
-or [Fire TV](/fire-tv-calendar-display/) will show it on the big screen. There is one device it
-does not work on, and [the Echo Show page](/echo-show-calendar-display/) says why.
+or [Fire TV](/fire-tv-calendar-display/) will show it on the big screen. There's one device it
+doesn't work on, and [the Echo Show page](/echo-show-calendar-display/) says why.
 
 [DinkyDash](/) is free, open-source software for exactly that: paste the link and today's
 events appear on a wall screen, next to a chore chart that rotates by itself, countdowns to
-birthdays and holidays, and a short daily note written each morning. There is no Apple sign-in
+birthdays and holidays, and a short note written fresh each day. There's no Apple sign-in
 anywhere in it — the link is the entire connection, and it can only read.
 
 To add it:
@@ -115,7 +115,7 @@ To add it:
 
 ![Adding a calendar in DinkyDash's settings: a name, the iCal link, and a Test calendar link button](/images/settings-add-calendar.webp)
 
-If the calendar you are pasting also holds work meetings, fill in **Only show events shared
+If the calendar you're pasting also holds work meetings, fill in **Only show events shared
 with** and give the other parent's email address. Only events they are invited to reach the
 screen; the rest never leave iCloud. The [getting started
 guide](/getting-started/#personal-calendar) covers that properly.

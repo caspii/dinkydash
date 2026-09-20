@@ -5,7 +5,7 @@ template: page.html
 description: Set up DinkyDash from scratch — first on your computer, then as a permanent wall dashboard on a Raspberry Pi running the current Raspberry Pi OS.
 ---
 
-This guide takes you from nothing to a working family dashboard. You start on your own computer, see the dashboard, then move it onto a Raspberry Pi that shows it on the wall and refreshes itself every morning.
+This guide takes you from nothing to a working family dashboard. You start on your own computer, see the dashboard, then move it onto a Raspberry Pi that shows it on the wall and keeps itself up to date.
 
 You do not need an Anthropic API key to try it — there is a no-key preview in step 3. You only need a key for the AI-written daily note, which runs once a day.
 
@@ -219,7 +219,7 @@ The settings page adds a short `id` to each person, pet, chore, date and calenda
 
 Everything on the dashboard is editable at `/settings`. Two things worth knowing:
 
-- **A saved dashboard is from this morning.** Editing a chore or a person shows up on the next page load, but the headline and daily note are only rewritten each morning. Press **Rewrite daily message** on the settings home page to get fresh copy immediately. Each press is one API call.
+- **A saved dashboard is from the last run.** Editing a chore or a person shows up on the next page load, but the headline and daily note are only rewritten once a day. Press **Rewrite daily message** on the settings home page to get fresh copy immediately. Each press is one API call.
 - **Adding a calendar checks the link.** Paste an iCal address and press **Test calendar link**. It tells you how many events it found and what the next one is, so you are not left guessing whether the URL works.
 - **A personal calendar can keep its private side.** Fill in **Only show events shared with** on that calendar, and only the events the other parent is on reach the dashboard. See [a personal calendar with work in it](#personal-calendar) above.
 
@@ -509,4 +509,4 @@ tail -f /home/pi/dinkydash/generate.log   # last night's generation
 /home/pi/screen_control.sh on         # screen on
 ```
 
-Once it is set up, the family gets a fresh dashboard every morning, and there is nothing to tap and nothing to maintain.
+Once it is set up, the family gets a fresh dashboard every day, and there is nothing to tap and nothing to maintain.

@@ -17,8 +17,8 @@ Your DIY calendar shows everything on one glanceable screen, refreshed automatic
 
 - **Today's events** from Google Calendar (or any calendar with an iCal link)
 - **A chore chart** that rotates between kids automatically every day
-- **Countdowns** to birthdays, holidays, and vacations
-- **A daily message written by AI** — a fresh greeting and fun fact every single morning, personalized to your family
+- **Countdowns** to birthdays, holidays and the dates everyone keeps asking about
+- **A daily message written by AI** — a fresh greeting and fact every single day, written around your family
 
 That last one is something even the $600 hardware doesn't do.
 
@@ -95,7 +95,7 @@ No, but you need to be willing to copy commands into a terminal and read an erro
 Two things, both fixable in a minute. Chromium sometimes starts before the server is ready and shows a connection error at boot — the startup script waits for the server to fix this. And emoji render as empty boxes until you install the emoji font package. Both are covered in the [troubleshooting section](/getting-started/).
 
 **What happens if the internet goes down?**
-The dashboard keeps showing yesterday's data. The AI daily message is generated once each morning and saved to a file, so the screen never depends on a live connection to display something.
+The dashboard keeps showing yesterday's data. The AI daily message is written once a day and saved to a file, so the screen never depends on a live connection to display something.
 
 **Can the kids break it?**
 There's nothing to tap. It's a read-only display — events are edited in Google Calendar on your phone, so there's no way to delete next week from the wall.

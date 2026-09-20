@@ -1,21 +1,21 @@
 ---
 title: Transform Your Family's Morning Routine
 template: page.html
-description: How DinkyDash helps families start the day organized with an AI-generated morning dashboard.
+description: How DinkyDash helps families start the day organised, with a dashboard that writes itself.
 ---
 
 Mornings with kids are chaos. Between getting dressed, making breakfast, remembering school bags, and getting out the door on time, the last thing you need is to be everyone's personal assistant answering questions about the day ahead.
 
-DinkyDash helps by putting all the information your family needs on a single screen — generated fresh by AI every morning before anyone wakes up.
+DinkyDash helps by putting all the information your family needs on a single screen — generated fresh by AI each day, before anyone's up.
 
 ## The dashboard is ready before you are
 
-DinkyDash runs a cron job at 6am every morning. By the time your family walks into the kitchen, today's dashboard is already on the screen:
+DinkyDash writes the day's dashboard at 6am, or whenever you'd rather have it. By the time your family walks into the kitchen, today's dashboard is already on the screen:
 
 - **What's happening today** — all calendar events at a glance, so everyone knows the plan
 - **Whose turn for chores** — no arguments, the dashboard says so
 - **Countdowns** — how many days until the things everyone keeps asking about
-- **Something fun** — a fact, a line about the pet, or a personalized message to start the day right
+- **Something fun** — a fact, or a line about the pet
 
 ## Five ways DinkyDash improves mornings
 
@@ -25,7 +25,7 @@ DinkyDash runs a cron job at 6am every morning. By the time your family walks in
 
 **2. Chore time is no longer a negotiation**
 
-The dashboard rotates chores automatically. Today it's Lily's turn for dishes, tomorrow it's Sam's. It's right there on the screen in a colored badge. Fair, visible, non-negotiable.
+The dashboard rotates chores automatically. Today it's Lily's turn for dishes, tomorrow it's Sam's. It's right there on the screen in a coloured badge. Fair, visible, non-negotiable.
 
 **3. No one forgets what's happening after school**
 
@@ -37,7 +37,7 @@ Every morning there's a new fun fact written by AI. "Did you know that honey nev
 
 **5. The mental load gets lighter**
 
-Instead of keeping everyone's schedule and chore assignments in your head, it's all on the screen. The AI handles the presentation, the chore rotation, the countdown math. You just glance at it like everyone else.
+Instead of keeping everyone's schedule and chore assignments in your head, it's all on the screen. The AI writes the headline and the note; the rota and the countdown maths look after themselves. You just glance at it like everyone else.
 
 ## What a DinkyDash morning looks like
 
@@ -51,4 +51,4 @@ Instead of keeping everyone's schedule and chore assignments in your head, it's 
 
 ## Getting started
 
-DinkyDash is free, open source, and runs on a Raspberry Pi. Set it up once, and your family gets a new dashboard every morning without lifting a finger. Check out the [GitHub repository](https://github.com/caspii/dinkydash) to get started.
+DinkyDash is free, open source, and runs on a Raspberry Pi. Set it up once, and your family gets a new dashboard every day without lifting a finger. Check out the [GitHub repository](https://github.com/caspii/dinkydash) to get started.

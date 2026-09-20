@@ -5,7 +5,7 @@ template: page.html
 description: How to turn a Raspberry Pi into a wall-mounted family calendar and dashboard — today's events, rotating chores, birthday countdowns and an AI daily message, for about $100 in parts and no subscription.
 ---
 
-A Raspberry Pi, a small touchscreen and some open-source software make a genuinely good family calendar: it hangs on the kitchen wall, shows today's schedule at a glance, updates itself every morning, and costs about **$100 in parts with nothing monthly**.
+A Raspberry Pi, a small touchscreen and some open-source software make a genuinely good family calendar: it hangs on the kitchen wall, shows today's schedule at a glance, keeps itself up to date, and costs about **$100 in parts with nothing monthly**.
 
 This page covers the hardware side — which Pi, which screen, what it draws, what it costs. The [full setup guide](/getting-started/) has the copy-paste commands.
 
@@ -19,14 +19,14 @@ This page covers the hardware side — which Pi, which screen, what it draws, wh
   [Google](/google-calendar-ical-link/), [iCloud](/icloud-calendar-link/),
   [Outlook](/outlook-calendar-ics-link/) and [Cozi](/cozi-calendar-display/) each have one
 - **A chore chart** that rotates between family members automatically each day
-- **Countdowns** to birthdays, holidays and vacations
-- **A daily message written by Claude** — a fresh greeting and fun fact every morning, written around your actual family
+- **Countdowns** to birthdays, holidays and the dates everyone keeps asking about
+- **A daily message written by Claude** — a fresh greeting and fact every day, written around your actual family
 
 No touch interaction is required. It's a display, not an app — which is the point, and also why a modest Pi is plenty.
 
-If you have not ordered parts yet, the [birthday countdown](/birthday-countdown/) is one panel of this running in a plain browser tab — a fair preview of what a wall screen feels like, on a screen you are already looking at.
+If you haven't ordered parts yet, the [birthday countdown](/birthday-countdown/) is one panel of this running in a plain browser tab — a fair preview of what a wall screen feels like, on a screen you're already looking at.
 
-A Pi is not the only screen this runs on, and it is not the cheapest. The same dashboard goes on an [old iPad](/ipad-calendar-display/), an [Android tablet](/android-tablet-calendar-display/), a [smart TV](/smart-tv-calendar-display/) or a [Fire TV](/fire-tv-calendar-display/) — and not, for one specific reason, on an [Echo Show](/echo-show-calendar-display/). A Pi is the tidiest permanent panel; a tablet is the quickest way to find out whether your family looks at one at all.
+A Pi isn't the only screen this runs on, and it's not the cheapest. The same dashboard goes on an [old iPad](/ipad-calendar-display/), an [Android tablet](/android-tablet-calendar-display/), a [smart TV](/smart-tv-calendar-display/) or a [Fire TV](/fire-tv-calendar-display/) — and not, for one specific reason, on an [Echo Show](/echo-show-calendar-display/). A Pi is the tidiest permanent panel; a tablet is the quickest way to find out whether your family looks at one at all.
 
 ## Which Raspberry Pi
 
@@ -68,7 +68,7 @@ Second-hand Pis are abundant and this workload will never stress one, so the use
 
 The architecture is deliberately boring, which is why it keeps running:
 
-1. **A cron job at 6am** runs a generation script. It fetches your calendar, works out ages, birthday countdowns and whose turn it is for each chore, sends all of that to the Claude API, and writes the result to a single JSON file.
+1. **A cron job at 6am** runs a generation script. It fetches your calendar, works out ages, birthday countdowns and whose turn it's for each chore, sends all of that to the Claude API, and writes the result to a single JSON file.
 2. **A small Flask server** reads that JSON file and renders the page.
 3. **Chromium launches fullscreen at boot** in kiosk mode and refreshes every five minutes.
 
@@ -104,7 +104,7 @@ Both are covered, with fixes, in the [troubleshooting section](/getting-started/
 
 A Skylight Calendar Max is $599.99, plus $79 a year for the Plus features. A Hearth Display is $699 plus $9 a month. They're nicely made, and if you want something that works out of the box with a support line, they're reasonable purchases.
 
-But a digital family calendar is fundamentally a screen showing a web page. If you're comfortable with a terminal, the Pi version costs about a sixth as much, has no subscription, keeps your family's data on your own device, and does one thing the $600 hardware doesn't: writes you a fresh daily message every morning.
+But a digital family calendar is fundamentally a screen showing a web page. If you're comfortable with a terminal, the Pi version costs about a sixth as much, has no subscription, keeps your family's data on your own device, and does one thing the $600 hardware doesn't: writes you a fresh daily message every day.
 
 The full cost comparison is on the [DIY Skylight calendar page](/diy-skylight-calendar/).
 

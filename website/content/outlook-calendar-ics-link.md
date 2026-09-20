@@ -43,10 +43,10 @@ account produces the shape above. Either is fine.
 
 ## The two choices that matter
 
-**Permission: "Can view all details".** The other options publish only *when* you are busy,
-with no titles and no locations. That is useful for scheduling with colleagues and useless on
+**Permission: "Can view all details".** The other options publish only *when* you're busy,
+with no titles and no locations. That's useful for scheduling with colleagues and useless on
 a kitchen wall — a screen that says "Busy, 15:00" tells nobody anything. Pick the full-detail
-option or the display will look broken when it is working exactly as configured.
+option or the display will look broken when it's working exactly as configured.
 
 **ICS, not HTML.** Outlook gives you both:
 
@@ -56,13 +56,13 @@ option or the display will look broken when it is working exactly as configured.
 | **ICS** | A machine-readable feed, for another calendar app or a display to subscribe to |
 
 Anything that has to *show your events somewhere else* needs the ICS link. Paste the HTML one
-into a dashboard and it will fail to parse, because it is a web page rather than a calendar.
+into a dashboard and it will fail to parse, because it's a web page rather than a calendar.
 
 ## Publishing is a password in a URL
 
-Once published, the ICS link works for whoever holds it. There is no sign-in at the other end
+Once published, the ICS link works for whoever holds it. There's no sign-in at the other end
 — the long random string in the address is what stands in for one. Anyone with the URL reads
-your calendar at full detail, for as long as it stays published, and Microsoft does not tell
+your calendar at full detail, for as long as it stays published, and Microsoft doesn't tell
 you who has.
 
 So treat it the way you would treat a password: keep it out of shared documents, screenshots,
@@ -70,17 +70,17 @@ public issues and group chats. To take it back, return to **Shared calendars** a
 publishing. The link dies immediately, and republishing gives you a different one — so
 anything pointed at the old address needs updating.
 
-## When "Publish a calendar" is not there
+## When "Publish a calendar" isn't there
 
 On a **work or school Microsoft 365 account**, calendar publishing is an administrator
-setting, and plenty of organisations leave it off. When it is off, the section is missing or
-does nothing at all, and there is no way round it from your side.
+setting, and plenty of organisations leave it off. When it's off, the section is missing or
+does nothing at all, and there's no way round it from your side.
 
 Two things that do work:
 
 - **Use a personal Outlook.com account** for the family calendar, and invite your work account
   to the events that matter.
-- **Ask the administrator.** It is a per-organisation policy in the Exchange admin centre, and
+- **Ask the administrator.** It's a per-organisation policy in the Exchange admin centre, and
   in a small business the answer is sometimes just yes.
 
 ## One calendar per link
@@ -98,12 +98,12 @@ opening a laptop.
 Which screen? An [old iPad](/ipad-calendar-display/) or an [Android
 tablet](/android-tablet-calendar-display/) is the cheapest good panel, a [Raspberry
 Pi](/raspberry-pi-family-calendar/) the tidiest, and a [smart TV](/smart-tv-calendar-display/)
-or [Fire TV](/fire-tv-calendar-display/) will show it on the big screen. There is one device it
-does not work on, and [the Echo Show page](/echo-show-calendar-display/) says why.
+or [Fire TV](/fire-tv-calendar-display/) will show it on the big screen. There's one device it
+doesn't work on, and [the Echo Show page](/echo-show-calendar-display/) says why.
 
 [DinkyDash](/) is free, open-source software for that: paste the ICS link and today's events
 appear on a wall screen, beside a chore chart that rotates by itself, countdowns to birthdays
-and holidays, and a short line written fresh each morning. There is no Microsoft sign-in in
+and holidays, and a short line written fresh each day. There's no Microsoft sign-in in
 it — the published link is the whole connection, and it can only read.
 
 To add it:

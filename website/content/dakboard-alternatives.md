@@ -15,7 +15,7 @@ faq:
   - q: "What is the best DAKboard alternative for a Raspberry Pi?"
     a: "DinkyDash and MagicMirror² both run on a Raspberry Pi and are free and open source. DinkyDash is a family calendar with a chore rotation and countdowns and needs no modules to be useful. MagicMirror² is a general module platform, so it is more flexible and takes longer to set up."
   - q: "Can I keep my family's data on my own machine?"
-    a: "With a self-hosted option, yes. DinkyDash, MagicMirror² and Home Assistant all run on your own hardware, so your config and family details stay there. One exception worth knowing: DinkyDash sends the day's agenda to Anthropic each morning to write the daily note. DAKboard, Mango Display, Skylight and Hearth all store your data on their servers."
+    a: "With a self-hosted option, yes. DinkyDash, MagicMirror² and Home Assistant all run on your own hardware, so your config and family details stay there. One exception worth knowing: DinkyDash sends the day's agenda to Anthropic once a day to write the daily note. DAKboard, Mango Display, Skylight and Hearth all store your data on their servers."
 ---
 
 DAKboard has been the go-to wall display for tinkerers for years, and it earned that. But plenty of people go looking for something else — usually because the free tier is tighter than expected, because they want the source, or because they want a family calendar rather than a general-purpose dashboard.
@@ -46,17 +46,17 @@ Three reasons come up repeatedly, and they point at different replacements.
 
 **It is not open source.** You can run the display on your own Raspberry Pi, which reads like self-hosting, but the service runs on DAKboard's servers and the source is not published. If your reason for building a wall display was keeping the family's schedule on your own hardware, that is the wrong shape.
 
-**It is a dashboard first, a family organizer second.** DAKboard does now market a chore chart — a column per family member, one tap to check something off, points that convert into rewards you set, and a child lock so siblings can't clear each other's lists. It is on Essential and Plus, not the free tier. But the product underneath is still a way of arranging many data sources on one screen, so "whose turn is it to feed the dog" means pointing a general tool at a specific job.
+**It's a dashboard first, a family organiser second.** DAKboard does now market a chore chart — a column per family member, one tap to check something off, points that convert into rewards you set, and a child lock so siblings can't clear each other's lists. It is on Essential and Plus, not the free tier. But the product underneath is still a way of arranging many data sources on one screen, so "whose turn is it to feed the dog" means pointing a general tool at a specific job.
 
 ## 1. DinkyDash — free, open source, family-shaped
 
 Full disclosure: DinkyDash is our project, so treat this entry accordingly — the rest of the page is written to be useful whether or not you pick it.
 
-DinkyDash turns any TV, tablet, Raspberry Pi or spare monitor into a family calendar. It shows today's events from any iCal link, a chore chart that rotates between kids automatically, countdowns to birthdays and holidays, and **a daily message written by AI every morning** — a fresh greeting written around your family's actual day. No other option on this page does that last one.
+DinkyDash turns any TV, tablet, Raspberry Pi or spare monitor into a family calendar. It shows today's events from any iCal link, a chore chart that rotates between kids automatically, countdowns to birthdays and holidays, and **a daily message written by AI, fresh every day** — a greeting written around your family's actual day. No other option on this page does that last one.
 
 ![The DinkyDash dashboard showing today's agenda, whose turn each chore is, countdowns to birthdays and holidays, and the AI-written daily note](/images/family-dashboard-board.webp)
 
-It is MIT-licensed, and self-hosting it is free forever, with no paid tier and no screen limit. Run it yourself and your config — names, birthdays, calendar links — stays on your own machine. To be precise about the one thing that does leave: the day's agenda is sent to Anthropic each morning to write the note. You can try the whole thing without an API key first — there is a no-key preview in the [setup guide](/getting-started/) — but the daily message is the part that needs one.
+It is MIT-licensed, and self-hosting it is free forever, with no paid tier and no screen limit. Run it yourself and your config — names, birthdays, calendar links — stays on your own machine. To be precise about the one thing that does leave: the day's agenda is sent to Anthropic once a day to write the note. You can try the whole thing without an API key first — there is a no-key preview in the [setup guide](/getting-started/) — but the daily message is the part that needs one.
 
 The trade-off is real: self-hosting means an afternoon and some comfort with a terminal. Our [getting started guide](/getting-started/) has copy-paste commands. The only running cost is your own Anthropic key for the daily message — about $0.13 a month, and well under $1.
 

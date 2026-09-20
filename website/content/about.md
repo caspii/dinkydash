@@ -5,7 +5,7 @@ template: page.html
 description: DinkyDash is a free, open-source digital family calendar that runs on screens you already own — with an AI-written daily message for your family.
 ---
 
-DinkyDash is a free, open-source **digital family calendar for screens you already own**. Point a TV, an old tablet, or a Raspberry Pi at it and your family gets one glanceable screen with today's calendar, a self-rotating chore chart, countdowns to the big days — and a daily message written fresh every morning by AI.
+DinkyDash is a free, open-source **digital family calendar for screens you already own**. Point a TV, an old tablet, or a Raspberry Pi at it and your family gets one glanceable screen with today's calendar, a self-rotating chore chart, countdowns to the big days — and a daily message written fresh every day by AI.
 
 It was built by [Caspar](https://casparwre.de), an indie developer in Berlin, for his own kids — and open-sourced because a family calendar shouldn't cost $600 plus a subscription.
 
@@ -18,7 +18,7 @@ Every morning at 6am, DinkyDash automatically:
 - Fetches your Google Calendar events (any iCal link works)
 - Figures out whose turn it is for each chore
 - Calculates countdowns to birthdays, holidays, and special dates
-- Sends all of this to Claude, which writes a personalized dashboard
+- Sends all of this to Claude, which writes the headline and the daily note
 
 The result is a screen that feels alive. It knows it's someone's birthday week. It writes a different fun fact every day, tuned to your kids' interests. Kids check it voluntarily — which is the entire battle.
 
@@ -27,15 +27,15 @@ The result is a screen that feels alive. It knows it's someone's birthday week. 
 - **A daily headline** — a cheerful, AI-written greeting for your family
 - **Today's agenda** — what's happening today, in time order, merged from every calendar you add
 - **Chore rotation** — who does what today, rotated automatically and fairly
-- **Countdowns** — days until birthdays, holidays, vacations, and special events
-- **A daily note** — a fun fact, or something about the pet, different every morning
+- **Countdowns** — days until birthdays, holidays and the dates everyone keeps asking about
+- **A daily note** — a fact, or something about the pet, different every day
 
 ## The principles
 
 - **Bring your own screen.** Anything with a browser works — no proprietary hardware, ever.
 - **No subscription.** MIT-licensed, free forever. You bring your own AI API key; a day's dashboard costs a few cents.
 - **Private by design.** Your family's details live in one config file on your own device — not in our cloud, because there isn't one.
-- **Boring, reliable tech.** Python, a cron job, and a web page: `generate.py` builds the day's dashboard as JSON each morning, and a tiny Flask app renders it. It's fixable with a search engine and an afternoon.
+- **Boring, reliable tech.** Python, a cron job, and a web page: `generate.py` builds the day's dashboard as JSON once a day, and a tiny Flask app renders it. It's fixable with a search engine and an afternoon.
 
 ## Where to start
 

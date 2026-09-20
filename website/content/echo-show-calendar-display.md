@@ -2,7 +2,7 @@
 title: "Echo Show as a Family Calendar Display: What Works, and What Doesn't"
 seo_title: "Echo Show Calendar Display: The Honest Guide"
 template: page.html
-description: An Echo Show can show your calendar — through Alexa's own calendar linking. What it cannot do is stay on a web dashboard, because the browser closes itself after about fifteen minutes. Here is the honest version of both.
+description: An Echo Show can show your calendar — through Alexa's own calendar linking. What it can't do is stay on a web dashboard, because the browser closes itself after about fifteen minutes. Here's the honest version of both.
 faq:
   - q: "Can an Echo Show display my family calendar?"
     a: "Yes, through Alexa's own calendar feature. Link a Google, Microsoft or iCloud calendar in the Alexa app under Settings, Calendar, and the Echo Show displays it and answers questions about it. This is the route that works."
@@ -30,7 +30,7 @@ is still the answer.
 
 ## The route that works: link a calendar to Alexa
 
-This has nothing to do with us and it is what most people asking the question actually want.
+This has nothing to do with us and it's what most people asking the question actually want.
 
 1. Open the **Alexa app** on your phone.
 2. Go to **More → Settings → Calendar**.
@@ -40,22 +40,22 @@ The Echo Show then shows those events on its home screen, answers "what's on tod
 events by voice. On an **Echo Show 15** or **21**, the calendar widget on the larger screen is
 genuinely a decent kitchen display.
 
-What it will not do is rotate a chore chart, count down to birthdays, or write you a line each
+What it won't do is rotate a chore chart, count down to birthdays, or write you a line each
 morning. It shows a calendar, competently.
 
-## The route that does not: a web dashboard in Silk
+## The route that doesn't: a web dashboard in Silk
 
 The Echo Show has Amazon's Silk browser built in, so you can type a URL and a page will load
 and fill the screen. For about a quarter of an hour.
 
 **Silk on Echo Show closes itself after roughly ten to fifteen minutes of no input**, returning
 to the home screen. This is widely reported by people trying to run exactly this kind of
-dashboard, and Amazon's own support position is that the timeout cannot be switched off.
+dashboard, and Amazon's own support position is that the timeout can't be switched off.
 Workarounds circulate — pages that play a silent audio loop to convince the device something
 is happening — and they are fragile, undocumented, and can stop working with any firmware
 update.
 
-We are not going to tell you to build a kitchen wall panel on that. A wall panel has one job,
+We aren't going to tell you to build a kitchen wall panel on that. A wall panel has one job,
 which is to be right there when you glance at it.
 
 ## What to use instead
@@ -70,7 +70,7 @@ put it on, and both major platforms have a built-in way to lock it there:
 - **[A Raspberry Pi with a small screen](/raspberry-pi-family-calendar/)** — about $100 in
   parts, and the tidiest permanent panel of the three.
 
-Keep the Echo Show for what it is good at: voice, timers, music and a glance at the calendar
+Keep the Echo Show for what it's good at: voice, timers, music and a glance at the calendar
 Alexa already knows about.
 
 ## What you get on the tablet instead
@@ -85,9 +85,9 @@ Alexa already knows about.
   link, and each has its own page here with the steps.
 - **A chore chart that rotates**, moving on one person a day by itself.
 - **Countdowns** to birthdays, Christmas and the school holidays.
-- **A daily note written each morning** by Claude, around your family's actual day.
+- **A daily note, written fresh each day** by Claude, around your family's actual day.
 
-It is MIT licensed with no subscription for the self-hosted version. The one running cost is
+It's MIT licensed with no subscription for the self-hosted version. The one running cost is
 the daily note — a Claude API call once a day, roughly $0.13 a month — and the dashboard works
 without it.
 

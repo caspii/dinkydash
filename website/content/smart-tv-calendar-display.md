@@ -2,7 +2,7 @@
 title: "Put a Family Calendar on Your Smart TV (Samsung, LG and the rest)"
 seo_title: "Smart TV Calendar Display: Samsung, LG and Android TV"
 template: page.html
-description: Samsung and LG TVs have a web browser, so they can show a family calendar with no app to install. Here is how — and the honest limit, which is that a TV is built to stop showing a still image.
+description: Samsung and LG TVs have a web browser, so they can show a family calendar with no app to install. Here's how — and the honest limit, which is that a TV is built to stop showing a still image.
 faq:
   - q: "Can I display a calendar on my smart TV?"
     a: "Yes, if the TV has a web browser — Samsung's Tizen sets and LG's webOS sets both do. Open the browser, type the address of a calendar page, and it fills the screen. There is no app to install."
@@ -39,8 +39,8 @@ display. Nothing needs configuring for a particular television.
 
 ## Set it up
 
-**1. Find the browser.** On **Samsung**, it is **Internet**, in the apps row on the home bar.
-On **LG**, it is **Web Browser**, in the launcher. On an **Android TV or Google TV** box there
+**1. Find the browser.** On **Samsung**, it's **Internet**, in the apps row on the home bar.
+On **LG**, it's **Web Browser**, in the launcher. On an **Android TV or Google TV** box there
 is usually no browser preinstalled — install Chrome, or use a [Fire TV
 stick](/fire-tv-calendar-display/) instead.
 
@@ -56,7 +56,7 @@ the dashboard is two clicks from the home screen for good.
 
 ## The honest limit
 
-**Most TVs switch to a screensaver after about 30 minutes without a button press.** That is
+**Most TVs switch to a screensaver after about 30 minutes without a button press.** That's
 not a bug you can configure away on every set:
 
 - **Samsung** and **LG LCD sets** usually let you turn the screensaver off, or lengthen it,
@@ -64,9 +64,9 @@ not a bug you can configure away on every set:
   **Energy saving**.
 - **OLED sets do it deliberately**, and on many of them the option is missing entirely. An
   OLED panel can retain a static image permanently, so the manufacturer moves or dims the
-  picture on purpose. That is the panel protecting itself, and you should let it.
+  picture on purpose. That's the panel protecting itself, and you should let it.
 
-There is a second, plainer problem: a television is in the living room. A family calendar earns
+There's a second, plainer problem: a television is in the living room. A family calendar earns
 its keep in the kitchen or the hall, where people pass it on the way out of the door.
 
 So the fair summary is: **a smart TV is a good way to put the day on the big screen for a
@@ -83,11 +83,11 @@ a television.
   link, and each has its own page here with the steps.
 - **A chore chart that rotates**, moving on one person a day by itself.
 - **Countdowns** to birthdays, Christmas and the school holidays.
-- **A daily note written each morning** by Claude, around your family's actual day.
+- **A daily note, written fresh each day** by Claude, around your family's actual day.
 
 The dashboard refreshes itself every five minutes, and if the Wi-Fi drops it keeps the last
 dashboard on screen with a small "Reconnecting" note rather than an error page. The script that
-does it is written for old browsers, and one too old for it, or with JavaScript switched off,
+does it's written for old browsers, and one too old for it, or with JavaScript switched off,
 falls back to a plain HTML refresh — which matters here more than anywhere: TV browsers are the
 oldest browsers in the house, and this one keeps working in them.
 
@@ -103,7 +103,7 @@ Claude API call once a day, roughly $0.13 a month, and the dashboard works witho
 - [iPad](/ipad-calendar-display/) — the best cheap always-on panel
 - [Android tablet](/android-tablet-calendar-display/) — the same, cheaper second-hand
 - [Raspberry Pi](/raspberry-pi-family-calendar/) — the tidiest permanent panel, about $100
-- [Echo Show](/echo-show-calendar-display/) — the one that does not work, and why
+- [Echo Show](/echo-show-calendar-display/) — the one that doesn't work, and why
 
 ## Start here
 
