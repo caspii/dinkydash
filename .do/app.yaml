@@ -323,7 +323,10 @@ workers:
 jobs:
   # Runs before the new code is live, so the schema is always ahead of what
   # needs it and a failed migration fails the deploy instead of half-updating a
-  # running app. `migrate.py` with no argument reads DATABASE_URL_DIRECT.
+  # running app. `migrate.py` with no argument reads DATABASE_URL_DIRECT from
+  # the environment, which here is this spec and on a developer's machine is
+  # nothing: it reads no `.env`, so a bare run there migrates that machine's own
+  # development database rather than this cluster.
   - name: migrate
     kind: PRE_DEPLOY
     github:

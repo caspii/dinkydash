@@ -9,12 +9,13 @@ Production uses wsgi.py; a self-hosted Pi continues to use app.py.
 preview of somebody's production. `require_local_database` refuses anything
 that is not loopback or a Unix socket, before a connection is opened.
 
-**And it does not have to be named at all.** `DEV_DATABASE_URL` is the default,
-so `.env` needs no `DATABASE_URL` entry and a development value does not sit
-under the name production uses for its pooled connection.
+**And it does not have to be named at all.** `db.DEV_DATABASE_URL` is the
+default, so `.env` needs no `DATABASE_URL` entry and a development value does
+not sit under the name production uses for its pooled connection. `migrate.py`
+defaults to the same constant, so the database this serves is the database that
+has the schema.
 """
 
-import ipaddress
 import logging
 import multiprocessing
 import os
@@ -26,24 +27,14 @@ import time
 ROOT = Path(__file__).resolve().parent
 HOST = "127.0.0.1"
 
-# The development database, when neither the shell nor `.env` names one. It is
-# the database `doc/development.md` tells you to create, and this launcher
-# refuses anything that is not on this machine anyway, so there is nothing a
-# default can reach that an explicit value could not.
-#
-# **It is hardcoded to keep it out of `.env`.** That file is copied into every
-# new workspace and its keys are the names production uses, so a local database
-# named `DATABASE_URL` is one that something wanting the pooled connection can
-# be handed. A value only development uses belongs in the file only development
-# runs.
-DEV_DATABASE_URL = "postgresql:///dinkydash_dev"
-
 START_TIMEOUT = 15
 STOP_TIMEOUT = 5
 
 
 def configure():
     from dotenv import load_dotenv
+
+    from dinkydash.db import DEV_DATABASE_URL
 
     load_dotenv(ROOT / ".env", override=False)
     # A session key cannot be defaulted the way a database name can: it has to
@@ -97,38 +88,22 @@ def require_local_database(url):
     shared with the real service.
 
     Only a loopback address or a Unix socket is accepted, with no override:
-    an escape hatch would end up in `.env` as well.
-    libpq's own parser is used because a host can hide in the query string
-    (`postgresql:///x?host=...`), in a comma-separated list or in `hostaddr`,
-    and an absent host falls back to `PGHOST`. The message names the variable
-    and never the value: a connection string carries a password.
+    an escape hatch would end up in `.env` as well. `db.on_this_machine` is
+    what reads the string, so the launcher and `migrate.py` accept the same
+    set. The message names the variable and never the value: a connection
+    string carries a password.
     """
-    from psycopg.conninfo import conninfo_to_dict
+    from dinkydash import db
 
     try:
-        params = conninfo_to_dict(url)
+        local = db.on_this_machine(url)
     except Exception:
         raise RuntimeError("DATABASE_URL is not a valid connection string.") from None
-    hosts = []
-    for key in ("host", "hostaddr"):
-        value = params.get(key) or os.environ.get("PG" + key.upper(), "")
-        hosts.extend(str(value).split(","))
-    if not all(_on_this_machine(host) for host in hosts):
+    if not local:
         raise RuntimeError(
             "DATABASE_URL is not a database on this machine. The launcher only runs "
             "against a local development database such as postgresql:///dinkydash_dev; "
             "a copied .env may be pointing it at the hosted pool.")
-
-
-def _on_this_machine(host):
-    """Loopback, a Unix socket directory, or libpq's default socket."""
-    host = host.strip()
-    if not host or host.startswith("/") or host == "localhost":
-        return True
-    try:
-        return ipaddress.ip_address(host).is_loopback
-    except ValueError:
-        return False
 
 
 def validate_database():
@@ -148,11 +123,43 @@ def validate_database():
     except Exception as exc:
         # Driver exceptions can contain credentials or connection details.
         raise RuntimeError(
-            f"Database validation failed ({type(exc).__name__}). Check DATABASE_URL "
-            "and apply migrations to your development database with migrate.py."
+            f"Database validation failed ({type(exc).__name__}). Check DATABASE_URL, "
+            f"then apply the schema with: {migrate_command()}"
         ) from None
     if any(path.name not in applied for path in db.migrations()):
-        raise RuntimeError("Database migrations are missing; run migrate.py on your development database.")
+        raise RuntimeError(
+            f"Database migrations are missing. Apply them with: {migrate_command()}")
+
+
+def migrate_command():
+    """A command to migrate the database this launcher is about to serve.
+
+    Written to be pasted into a fresh terminal, which is where somebody reading
+    this will be, so it can assume nothing that terminal does not have. Not
+    `$DATABASE_URL`: this process was given that by `.env` or by the run
+    environment, and a shell somewhere else has neither. Not a bare `python`
+    either — `sys.executable` is the interpreter that has the dependencies
+    installed, written relative to the repository when it lives there, which is
+    the `venv/bin/python` the rest of the documentation uses.
+
+    `migrate.py` has a default of its own and never reads `DATABASE_URL`, which
+    in production is the pooler and the wrong end for schema work. So a database
+    other than the default has to be named again here, with its password taken
+    out: a message like this is pasted into terminals and chat windows.
+    """
+    from dinkydash import db
+
+    interpreter = Path(sys.executable)
+    if interpreter.is_relative_to(ROOT):
+        interpreter = interpreter.relative_to(ROOT)
+    url = os.environ.get("DATABASE_URL", "")
+    if url == db.DEV_DATABASE_URL:
+        return f"{interpreter} migrate.py"
+    try:
+        return f'{interpreter} migrate.py --database-url "{db.without_password(url)}"'
+    except Exception:
+        # An unparseable URL is the failure being reported, not a thing to quote.
+        return f"{interpreter} migrate.py --database-url <the database DATABASE_URL names>"
 
 
 def applied_migrations(conn):

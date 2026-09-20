@@ -4,7 +4,7 @@ Cloud mode only. Single mode never imports this, which is what keeps a
 Raspberry Pi from installing a Postgres driver it will never open — psycopg
 lives in `requirements-cloud.txt`, not `requirements.txt`.
 
-Two connection strings, and the difference matters:
+Three connection strings, and the difference matters:
 
     DATABASE_URL         DigitalOcean's connection pool, transaction mode.
                          What `web` and `worker` use, through `pool()` below.
@@ -12,6 +12,8 @@ Two connection strings, and the difference matters:
                          CREATE INDEX CONCURRENTLY cannot run inside a
                          transaction block, and pg_dump errors against a
                          transaction-mode pool.
+    DEV_DATABASE_URL     A database on the developer's own machine. Not a
+                         variable: a constant below, so that no file carries it.
 
 Never send a session-level `SET` through DATABASE_URL. A transaction-mode
 pooler hands a server connection to its next client exactly as the last one
@@ -19,6 +21,7 @@ left it, so the setting lands on the worker or on somebody's request.
 `SET LOCAL` inside a transaction is fine, because it ends with the transaction.
 """
 
+import ipaddress
 import logging
 import os
 import re
@@ -30,6 +33,23 @@ from psycopg_pool import ConnectionPool
 log = logging.getLogger(__name__)
 
 MIGRATIONS_DIR = Path(__file__).resolve().parent.parent / "migrations"
+
+# The database development runs against, when nothing in the environment names
+# one. `dev.py` serves it and `migrate.py` applies the schema to it, and they
+# read the same constant: a launcher and a migration tool that disagreed about
+# which database is the development one would leave a dashboard refusing to
+# start against a schema its owner had just been told was up to date.
+#
+# **Hardcoded, so that no file has to carry it.** `.env` is copied into every
+# new workspace and its keys are the names production uses, so a development
+# value stored there is one that something reaching for the production database
+# can be handed. A value only development uses belongs in the files only
+# development runs. Neither caller can then reach a real service by accident:
+# `migrate.py` reads no `.env`, so a cluster has to be named on its command line
+# or exported on purpose, and both put this value through `on_this_machine`
+# before using it — a URL with no host is a request about this machine only for
+# as long as `PGHOST` agrees.
+DEV_DATABASE_URL = "postgresql:///dinkydash_dev"
 
 # A migration whose text carries this marker is applied outside a transaction,
 # because some statements refuse to run inside one. CREATE INDEX CONCURRENTLY is
@@ -101,6 +121,54 @@ def ready(pool, timeout=None):
         raise RuntimeError(
             f"The database did not answer within {timeout:g} seconds. Cloud mode "
             "will not start without it; check DATABASE_URL.") from None
+
+
+def on_this_machine(conninfo):
+    """Whether a connection string names nothing but this machine.
+
+    libpq's own parser is asked rather than the string read, because a host can
+    hide in the query string (`postgresql:///x?host=...`), in a comma-separated
+    list or in `hostaddr` — and a URL with **no** host falls back to `PGHOST`,
+    so a hostless one is not local by construction. That is why the development
+    default is checked like anything else rather than trusted for its shape.
+
+    Loopback, a Unix socket directory, or libpq's own default socket. Raises if
+    libpq cannot parse the string: a target nobody can read is not one to
+    assume anything about.
+    """
+    from psycopg.conninfo import conninfo_to_dict
+
+    params = conninfo_to_dict(conninfo)
+    hosts = []
+    for key in ("host", "hostaddr"):
+        value = params.get(key) or os.environ.get("PG" + key.upper(), "")
+        hosts.extend(str(value).split(","))
+    return all(_local_host(host) for host in hosts)
+
+
+def _local_host(host):
+    host = host.strip()
+    if not host or host.startswith("/") or host == "localhost":
+        return True
+    try:
+        return ipaddress.ip_address(host).is_loopback
+    except ValueError:
+        return False
+
+
+def without_password(conninfo):
+    """The same connection string, minus any password, for printing.
+
+    A connection string is the useful thing to put in a message telling
+    somebody which command to run, and the password is the one part of it that
+    must not be. Returns keyword form, which `connect` accepts as readily as a
+    URL, and needs quoting in a shell because it contains spaces.
+    """
+    from psycopg.conninfo import conninfo_to_dict, make_conninfo
+
+    params = conninfo_to_dict(conninfo)
+    params.pop("password", None)
+    return make_conninfo(**params)
 
 
 def connect(conninfo=None):

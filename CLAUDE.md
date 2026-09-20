@@ -434,10 +434,18 @@ they actually run.
 
 **Apply the schema** (cloud mode only)
 ```bash
-venv/bin/python migrate.py --status                  # what is outstanding
-venv/bin/python migrate.py --database-url postgresql:///dinkydash_dev
+venv/bin/python migrate.py --status   # what is outstanding
+venv/bin/python migrate.py            # apply it
 ```
-Without `--database-url` it reads `DATABASE_URL_DIRECT` — the cluster, not the pool.
+**It does not read `.env`.** That file holds the live cluster under production's own key
+`DATABASE_URL_DIRECT`, and a schema tool that loaded it would treat "apply my change" as "apply it
+to the running service" — silently, because an up-to-date schema reports the same either way. So
+with nothing named it migrates `db.DEV_DATABASE_URL`, this machine's development database and the
+one `dev.py` serves — put through `db.on_this_machine` first, because a URL with no host is
+redirected by `PGHOST` and a local-looking default is not a local one. `DATABASE_URL_DIRECT` is
+used when the *environment* sets it, which on App
+Platform's pre-deploy job is the only thing set and on a laptop takes an export; `--database-url`
+overrides both, and an empty value there is refused rather than fallen back from.
 
 **Generate a dashboard** (needs `ANTHROPIC_API_KEY` in `.env`)
 ```bash

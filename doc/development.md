@@ -7,18 +7,34 @@ Postgres database (Postgres must already be running):
 python3 -m venv venv
 venv/bin/pip install -r requirements-dev.txt -r requirements-cloud.txt
 createdb dinkydash_dev
-export DATABASE_URL=postgresql:///dinkydash_dev
 export DINKYDASH_SECRET_KEY="$(venv/bin/python -c 'import secrets; print(secrets.token_hex(32))')"
-venv/bin/python migrate.py --database-url "$DATABASE_URL"
+venv/bin/python migrate.py
 venv/bin/python dev.py
 ```
 
-Use a separate database name for each workspace. For Conductor's Run action, put
-the development `DATABASE_URL` and `DINKYDASH_SECRET_KEY` in the workspace's
-gitignored `.env`, or supply them in the run environment. A terminal export alone
-does not change Conductor's environment. Explicit environment values override
-`.env`; inspect which database you selected before migrating or signing in.
-The launcher never applies migrations or creates sample accounts.
+`dinkydash_dev` is what both commands use when nothing names a database, so
+there is no `DATABASE_URL` to export and every workspace opens on a schema that
+is already applied. **`migrate.py` reads no `.env`**: that file carries the live
+cluster under production's own key `DATABASE_URL_DIRECT`, and a schema tool that
+loaded it would migrate the running service on a bare `migrate.py` — without
+saying so, because an up-to-date schema reports the same either way.
+
+Give a branch its own database when its migrations would disturb the others.
+Name it in the run environment rather than in `.env`, which is copied into each
+new workspace under the keys production uses, and name it on `migrate.py`'s
+command line as well — that tool never reads `DATABASE_URL`, which in production
+is the pooler and the wrong end for schema work:
+
+```bash
+export DATABASE_URL=postgresql:///dinkydash_scratch
+venv/bin/python migrate.py --database-url "$DATABASE_URL"
+```
+
+`DINKYDASH_SECRET_KEY` does belong in `.env`, because it cannot be defaulted. A
+terminal export alone does not change Conductor's environment. Explicit
+environment values override `.env`; check which database you selected before
+migrating or signing in. The launcher never applies migrations or creates sample
+accounts.
 
 **The launcher only accepts a database on this machine**: a loopback address or a
 Unix socket, with no override. A workspace's `.env` can carry a remote
