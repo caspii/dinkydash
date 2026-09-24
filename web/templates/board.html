@@ -348,9 +348,15 @@
     Your trial or subscription has ended. Showing the last saved dashboard; its dates and turns are paused.
 </div>
 {% elif view.overdue %}
+{# The banner calls the note what its label calls it, so a reader can match the
+   two. An agenda with no brief behind it has no note below to point at. #}
 <div class="banner">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7.6v5"></path><path d="M12 16.2h.01"></path></svg>
-    This morning&rsquo;s daily message didn&rsquo;t arrive. Times, turns and countdowns are today&rsquo;s &mdash; only the written line is older.
+    {% if view.note %}
+    Today&rsquo;s note hasn&rsquo;t arrived, so you&rsquo;re seeing an older one below. Everything else is today&rsquo;s.
+    {% else %}
+    Today&rsquo;s note hasn&rsquo;t arrived. Everything else is today&rsquo;s.
+    {% endif %}
 </div>
 {% endif %}
 
@@ -426,7 +432,7 @@
 
         {% if view.note %}
         <div class="note{{ ' is-stale' if view.stale }}">
-            {% if view.stale %}<div class="note-label">Yesterday&rsquo;s line</div>{% endif %}
+            {% if view.stale %}<div class="note-label">{% if view.stale_days == 1 %}Yesterday&rsquo;s note{% else %}Older note{% endif %}</div>{% endif %}
             {{ view.note }}
         </div>
         {% endif %}

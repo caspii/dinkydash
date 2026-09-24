@@ -265,7 +265,7 @@ can be actively wrong.
 dashboard is stale from local midnight, which is when the words stop being today's; the brief is
 not *owed* until `brief_time`, so `build_view` also takes `now` and asks `schedule.brief_due`
 whether anything is actually missing. Between the two the wall shows yesterday's line, labelled,
-and says nothing else — an amber "this morning's daily message didn't arrive" before it was due
+and says nothing else — an amber "today's note hasn't arrived" before it was due
 reports a fault that has not happened, in a kitchen, all night. More than a day behind is late at
 any hour, and a caller with no clock to pass (the frozen dashboard) gets the plain answer.
 
