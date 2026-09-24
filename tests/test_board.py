@@ -125,8 +125,8 @@ class TestTheBannerWaitsUntilTheBriefIsDue:
     """Stale is not the same as late, and only late may show the banner.
 
     A dashboard goes stale at local midnight; the brief is not owed until
-    `brief_time`, 06:00 by default. Between the two, an amber "this morning's
-    daily message didn’t arrive" reports a failure that has not happened —
+    `brief_time`, 06:00 by default. Between the two, an amber
+    "today’s note hasn’t arrived" reports a failure that has not happened —
     all night, on a screen in a kitchen. The words are still handled as stale
     throughout, because yesterday’s headline is wrong from midnight on.
     """
@@ -416,9 +416,10 @@ class TestTheBannerOnTheDashboard:
     that shows the banner anyway would pass every test above.
     """
 
-    BANNER = "daily message didn"
+    BANNER = "note hasn&rsquo;t arrived"
+    POINTER = "older one below"
 
-    def page_at(self, tmp_path, monkeypatch, hour, minute=0):
+    def page_at(self, tmp_path, monkeypatch, hour, minute=0, data=None):
         from dinkydash import config as config_module
         from dinkydash.store import FileStore
         from tests.conftest import client_for
@@ -426,7 +427,7 @@ class TestTheBannerOnTheDashboard:
 
         path = tmp_path / "config.yaml"
         path.write_text('family_name: "The Wilsons"\ntimezone: "Europe/Berlin"\n')
-        (tmp_path / "dashboard_data.json").write_text(json.dumps(
+        (tmp_path / "dashboard_data.json").write_text(json.dumps(data or
             payload("2026-09-02", [event("2026-09-03", "08:20", "School run")])))
         moment = datetime(2026, 9, 3, hour, minute,
                           tzinfo=tzinfo_for({"timezone": "Europe/Berlin"}))
@@ -436,8 +437,25 @@ class TestTheBannerOnTheDashboard:
     def test_the_night_is_quiet(self, tmp_path, monkeypatch):
         page = self.page_at(tmp_path, monkeypatch, 1, 30)
         assert self.BANNER not in page
-        # Still labelled, so nobody reads yesterday’s line as today’s.
-        assert "Yesterday" in page
+        # Still labelled, so nobody reads yesterday’s note as today’s.
+        assert "Yesterday&rsquo;s note" in page
 
     def test_the_morning_says_so(self, tmp_path, monkeypatch):
-        assert self.BANNER in self.page_at(tmp_path, monkeypatch, 7, 0)
+        page = self.page_at(tmp_path, monkeypatch, 7, 0)
+        assert self.BANNER in page
+        # The banner points at the note by the name on its label.
+        assert self.POINTER in page
+        assert "Yesterday&rsquo;s note" in page
+
+    def test_a_note_older_than_yesterday_is_not_called_yesterdays(self, tmp_path, monkeypatch):
+        old = payload("2026-08-30", [event("2026-09-03", "08:20", "School run")])
+        page = self.page_at(tmp_path, monkeypatch, 7, 0, data=old)
+        assert "Older note" in page
+        assert "Yesterday" not in page
+
+    def test_with_no_note_the_banner_points_at_nothing(self, tmp_path, monkeypatch):
+        agenda = {"events": [event("2026-09-03", "08:20", "School run")],
+                  "calendars_fetched_at": "2026-09-03T00:10:00+00:00"}
+        page = self.page_at(tmp_path, monkeypatch, 7, 0, data=agenda)
+        assert self.BANNER in page
+        assert self.POINTER not in page

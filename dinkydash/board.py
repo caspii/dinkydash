@@ -75,9 +75,9 @@ def brief_is_overdue(config, payload, stale_days, now):
     """Whether a stale dashboard means this morning's brief actually failed.
 
     Yesterday's line is not a fault until this morning's was due. Between local
-    midnight and `brief_time` nothing is owed, so "this morning's daily message
-    didn't arrive" would be reporting a failure that has not happened — on a
-    screen in a kitchen, for the whole of the small hours. The banner waits for
+    midnight and `brief_time` nothing is owed, so "today's note hasn't arrived"
+    would be reporting a failure that has not happened — on a screen in a
+    kitchen, for the whole of the small hours. The banner waits for
     the hour the family chose, and `schedule.brief_due` is what decides it, so
     the wall and the tick cannot disagree about when a brief is late.
 
@@ -154,7 +154,7 @@ def build_view(config, payload, today, now=None):
         return view
     if not set_up and not payload.get("generated_for_date"):
         # The calendars have been fetched but the family is still setting up.
-        # An agenda under an amber "this morning's brief didn't arrive" banner
+        # An agenda under an amber "today's note hasn't arrived" banner
         # would be wrong twice over: no brief was attempted, and the chores
         # beside it would be the invented household's. The waiting screen
         # says what is actually going on.
