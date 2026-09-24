@@ -146,6 +146,9 @@ class Billing:
             if expired or not previous or previous[1]["expires_at"] <= row["now"].timestamp():
                 params = {
                     "mode": "subscription", "customer": row["stripe_customer_id"],
+                    # This integration owns tax and billing; do not inherit an
+                    # account's default opt-in to Stripe's merchant of record.
+                    "managed_payments": {"enabled": False},
                     # Delayed bank payments can remain 'active' after failure.
                     # Keep the MVP's subscription-status access rule to cards.
                     "payment_method_types": ["card"],

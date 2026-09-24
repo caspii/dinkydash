@@ -53,6 +53,12 @@
 {% endblock %}
 
 {% block content %}
+{% if status.state == 'lapsed' %}
+<div class="flash error" role="alert">
+    {{ status.detail }}
+    <a href="{{ url_for('billing.home') }}">Open Subscription to resume updates.</a>
+</div>
+{% endif %}
 {% if setting_up %}
 {# **The checklist.** Shown until the family is set up and its first dashboard is
    written, in place of the daily controls — "Refresh calendars" with no

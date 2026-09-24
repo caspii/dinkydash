@@ -7,6 +7,8 @@ immediately, even during a trial. The return URL never grants access.
 The MVP accepts cards and their supported wallets. Delayed bank-payment methods
 need separate invoice-based access handling: Stripe can leave those subscriptions
 active even after a failed payment ([subscription lifecycle](https://docs.stripe.com/billing/subscriptions/overview)).
+Checkout explicitly disables Managed Payments: this integration uses standard
+Stripe billing and owns its tax settings, regardless of the account's default.
 
 ## Configuration
 
