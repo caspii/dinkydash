@@ -246,11 +246,25 @@ def test_paid_reactivation_clears_lapse_and_ignores_the_old_trial_deadline(
     assert access.now - access.lapsed_at < timedelta(minutes=1)
 
 
-def test_expiry_keeps_settings_and_export_access(hosted, pg_pool, pg_family):
+@pytest.mark.parametrize("persisted", [False, True])
+def test_expiry_keeps_settings_and_export_access(hosted, pg_pool, pg_family, persisted):
     parent, _, _ = hosted
     update_family(pg_pool, pg_family, "trial_ends_at = now()")
+    if persisted:
+        lifecycle.expire_trials(pg_pool)
     home = parent.get("/settings/").get_data(as_text=True)
     assert "has ended" in home
+    assert '<div class="flash error" role="alert">' in home
+    assert '<a href="/settings/billing">Open Subscription to resume updates.</a>' in home
     assert 'type="submit" disabled' in home
     assert parent.get("/settings/account/export").status_code == 200
     assert parent.post("/settings/system", data={"family_name": "Updated family"}).status_code == 302
+
+
+@pytest.mark.parametrize("status,deadline", [("trialing", "1 day"), ("active", "-1 day")])
+def test_live_settings_do_not_show_the_resume_alert(hosted, pg_pool, pg_family, status, deadline):
+    parent, _, _ = hosted
+    update_family(pg_pool, pg_family,
+                  "status = %s, trial_ends_at = now() + %s::interval", (status, deadline))
+    home = parent.get("/settings/").get_data(as_text=True)
+    assert "Open Subscription to resume updates." not in home

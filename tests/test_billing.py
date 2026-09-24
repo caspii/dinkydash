@@ -176,6 +176,7 @@ def test_checkout_server_owns_price_customer_and_redirects(parent, service, pg_p
     assert params["success_url"] == "https://app.example.com/settings/billing?checkout=returned"
     assert params["subscription_data"] == {"metadata": {"family_id": str(pg_family)}}
     assert params["automatic_tax"] == {"enabled": False}
+    assert params["managed_payments"] == {"enabled": False}
     assert params["payment_method_types"] == ["card"]
     assert state(pg_pool, pg_family)["status"] == "trialing"
     assert b"Payment confirmation" in parent.get("/settings/billing?checkout=returned").data
