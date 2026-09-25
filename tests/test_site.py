@@ -112,6 +112,8 @@ class TestHostedSignup:
         readme = (Path(__file__).resolve().parents[1] / "README.md").read_text()
         assert f"]({self.URL})" in readme
         assert not re.search(r"typeform\.com|waitlist|waiting list", readme, re.I)
+        assert "$39 a year or $6 a month" in readme
+        assert "still being built" not in readme
 
     def test_every_faq_answer_in_the_schema_is_on_the_page(self, client):
         """Google requires FAQPage markup to describe content the visitor can
@@ -134,13 +136,15 @@ class TestHostedSignup:
                    if schema.get("@type") == "FAQPage")
         answers = {q["name"]: q["acceptedAnswer"]["text"] for q in faq["mainEntity"]}
         after = next(a for name, a in answers.items() if "14 days" in name)
-        assert "still being built" in after and "$39 a year" in after
+        assert "$39 a year" in after and "$6 a month" in after
+        assert "Checkout" in after
+        assert "still being built" not in after
         card = next(a for name, a in answers.items() if name == "Do I need a card?")
-        assert "No, and there is nowhere to put one." in card
+        assert "We don't ask for a card" in card
+        assert "nowhere to put one" not in card
 
-    def test_the_hosted_price_is_offered_but_not_yet_purchasable(self, client):
-        """`InStock` on the hosted offer would tell a rich result the
-        subscription can be bought. It cannot be, until checkout ships."""
+    def test_the_hosted_subscription_can_be_bought(self, client):
+        """Checkout sells the hosted plan, so the offer is in stock."""
         graph = next(schema["@graph"] for schema in self._schemas(client)
                      if "@graph" in schema)
         app = next(node for node in graph
@@ -149,7 +153,21 @@ class TestHostedSignup:
         assert offers["Self-hosted"]["price"] == "0"
         assert offers["Self-hosted"]["availability"].endswith("/InStock")
         assert offers["Hosted"]["price"] == "39"
-        assert offers["Hosted"]["availability"].endswith("/PreOrder")
+        assert offers["Hosted"]["availability"].endswith("/InStock")
+        assert "PreOrder" not in offers["Hosted"]["availability"]
+
+    def test_public_copy_does_not_say_payments_are_unbuilt(self, client):
+        """The live price is $39 a year or $6 a month, and Checkout takes it."""
+        stale = re.compile(
+            r"still being built|aren't switched on|still in development|"
+            r"planned pricing|planned \$39|nothing to charge with|PreOrder",
+            re.I,
+        )
+        for page in render.pages():
+            body = client.get(page["url"]).get_data(as_text=True)
+            assert not stale.search(body), page["url"]
+        readme = (Path(__file__).resolve().parents[1] / "README.md").read_text()
+        assert not stale.search(readme)
 
     def test_every_page_offers_the_trial_in_the_navigation(self, client):
         """Most visitors arrive on a guide, not the home page, so the button in

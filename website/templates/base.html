@@ -360,10 +360,8 @@
             }
         }
     </style>
-    {# The hosted offer is `PreOrder` rather than `InStock` on purpose: the
-       trial is live and the price is published, but there is no way to pay
-       yet, and `InStock` is a claim that there is. It becomes `InStock` in the
-       commit that ships checkout, and not before. #}
+    {# The hosted offer is `InStock`: Checkout sells the subscription.
+       The trial is free and needs no card; the price is what you pay after. #}
     <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -415,7 +413,7 @@
           "name": "Hosted",
           "price": "39",
           "priceCurrency": "USD",
-          "availability": "https://schema.org/PreOrder",
+          "availability": "https://schema.org/InStock",
           "description": "We run it for you. Free for fourteen days, no card required.",
           "priceSpecification": {
             "@type": "UnitPriceSpecification",

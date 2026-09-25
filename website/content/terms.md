@@ -63,7 +63,7 @@ run it, change it, run it for other people.
 **The first fourteen days are free and we do not ask for a card.** After that
 the hosted service is $39 a year, or $6 a month if you would rather.
 
-When subscriptions are available in your settings, Stripe processes the payment.
+When you choose a subscription, Stripe processes the payment.
 You choose a billing period and see the final total, including any applicable tax,
 in Checkout before paying. A subscription starts when you pay, including during
 the free trial, and renews automatically for the billing period you chose.
