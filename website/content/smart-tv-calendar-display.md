@@ -83,7 +83,7 @@ a television.
   link, and each has its own page here with the steps.
 - **A chore chart that rotates**, moving on one person a day by itself.
 - **Countdowns** to birthdays, Christmas and the school holidays.
-- **A daily note, written fresh each day** by Claude, around your family's actual day.
+- **A headline, written fresh each day** by Claude, around your family's actual day.
 
 The dashboard refreshes itself every five minutes, and if the Wi-Fi drops it keeps the last
 dashboard on screen with a small "Reconnecting" note rather than an error page. The script that
@@ -94,7 +94,7 @@ oldest browsers in the house, and this one keeps working in them.
 ## What it costs
 
 Nothing beyond the television you already own. DinkyDash is free and MIT licensed with no
-subscription for the self-hosted version, and the only running cost is the daily note — a
+subscription for the self-hosted version, and the only running cost is the headline — a
 Claude API call once a day, roughly $0.13 a month, and the dashboard works without it.
 
 ## Other screens

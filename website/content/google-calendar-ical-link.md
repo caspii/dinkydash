@@ -93,7 +93,7 @@ doesn't work on, and [the Echo Show page](/echo-show-calendar-display/) says why
 
 [DinkyDash](/) is free, open-source software that does exactly that: paste the link and it
 shows today's events on a wall screen, alongside a rotating chore chart, birthday countdowns
-and a daily note written fresh each day. There's no Google sign-in — the link is the whole
+and a headline written fresh each day. There's no Google sign-in — the link is the whole
 connection, and it can only read.
 
 To add it:

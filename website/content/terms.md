@@ -16,7 +16,7 @@ to you and none of this does.
 
 DinkyDash reads calendars you point it at, works out whose turn each chore is
 and how many days until the things you are counting down to, and once each
-morning asks Claude to write a headline and one line about the day. It renders
+morning asks Claude to write a headline about the day. It renders
 all of that as a web page you can leave on a screen.
 
 **It is a display, not a source of truth.** It shows what your calendar says.
@@ -101,7 +101,7 @@ the dashboard itself can keep running on your own machine.
 
 The service is provided as it is. We do not promise it will be uninterrupted or
 error-free, that a calendar provider's feed will always answer, or that the
-written line will always be sensible — it is written by a language model and
+headline will always be sensible — it is written by a language model and
 occasionally it will be odd.
 
 To the extent the law allows, we are not liable for indirect or consequential

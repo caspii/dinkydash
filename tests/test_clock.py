@@ -188,7 +188,7 @@ class TestWhatTheModelIsTold:
         return build_user_prompt(
             board_config(clock), TODAY,
             [event("15:45", "Swimming"), event(None, "Inset day", all_day=True)],
-            [], [], [], [], "fact",
+            [], [], [],
         )
 
     def test_twelve_hour(self):

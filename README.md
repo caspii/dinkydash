@@ -8,7 +8,7 @@ The digital family calendar for screens you already own — a TV, an old tablet,
 
 Website: [dinkydash.co](https://dinkydash.co)
 
-DinkyDash merges your calendars into one agenda, works out whose turn each chore is, counts down to the next birthday, and once a day asks Claude for a headline and one line of copy. Then it puts the lot on a screen at home — light or dark, sized to read from across the kitchen.
+DinkyDash merges your calendars into one agenda, works out whose turn each chore is, counts down to the next birthday, and once a day asks Claude for a headline. Then it puts the lot on a screen at home — light or dark, sized to read from across the kitchen.
 
 ## Two ways to run it
 
@@ -27,8 +27,7 @@ DinkyDash merges your calendars into one agenda, works out whose turn each chore
 - A look at tomorrow underneath it, on the days today leaves room
 - Whose turn each chore is — it moves on with the date, nothing to tick off
 - Countdowns to birthdays, holidays and special dates
-- An AI-written headline, and one line that's some days a fact, some days
-  about the dog
+- An AI-written headline, tied to the day
 - Light or dark, chosen in the settings UI
 
 Configure all of it from your phone at `/settings`, or by editing `config.yaml` directly — they are
@@ -46,9 +45,9 @@ the same file, and the UI keeps your comments.
                                       → renders the dashboard
 ```
 
-Only the headline and the written line come from the model. Ages, countdowns, chore turns and the
+Only the headline comes from the model. Ages, countdowns, chore turns and the
 agenda are recomputed on every render, so if a day's run fails the times and turns on the wall
-are still today's — the dashboard just labels the written line as older.
+are still today's — the headline is one worked out from the day, and the dashboard says so.
 
 ---
 
@@ -71,8 +70,8 @@ python app.py
 - http://localhost:5000/preview — Pi, TV and tablet sizes side by side
 
 The chore turns, ages and countdowns are computed from the `config.yaml` you just made, so
-editing it and reloading shows your own family. Only the headline and the one written line
-are canned until you add an Anthropic API key.
+editing it and reloading shows your own family. Only the headline is canned until
+you add an Anthropic API key.
 
 **Then follow the [getting started guide](https://dinkydash.co/getting-started/)** — it has
 the API key step, where to find your calendar's iCal link for Google, iCloud and Outlook, and

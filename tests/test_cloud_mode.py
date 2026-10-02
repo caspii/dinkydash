@@ -210,7 +210,8 @@ class TestABoardOutOfPostgres:
     def test_the_board_renders_the_stored_brief(self, client, pg_pool, pg_family):
         page = client.get(board_path(pg_pool, pg_family)).get_data(as_text=True)
         assert "Swimming, then football" in page
-        assert "An octopus fact." in page
+        # A stored note still loads. The dashboard does not show it.
+        assert "An octopus fact." not in page
 
     def test_it_recomputes_the_chore_rather_than_reading_it(
             self, client, pg_pool, pg_family):

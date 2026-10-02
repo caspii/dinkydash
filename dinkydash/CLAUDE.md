@@ -251,21 +251,23 @@ never starts.
 
 ## What the payload holds, and what it does not
 
-The payload stores only what cannot be recomputed: the model's `headline` and `note`, plus the
-fetched calendar window (14 days, not just today). Chores, countdowns and ages are pure functions of
+The payload stores only what cannot be recomputed: the model's `headline`, plus the
+fetched calendar window (14 days, not just today). `note` and `note_kind` are still on the
+brief, empty when a new one is written, so an older file and an export keep their shape.
+The dashboard does not render a note. Chores, countdowns and ages are pure functions of
 config + date, so `board.build_view` recomputes them on every render.
 
 That split is deliberate and load-bearing: when a morning's generation fails, the times, turns and
-countdowns on the wall are still **today's** — only the written line is old, and the dashboard says so.
-Yesterday's fetch reached 14 days ahead, so today's agenda is still in it. The stale headline is
-replaced by a computed one (`"3 things on today, starting at 08:20."`) because a day-old AI headline
-can be actively wrong.
+countdowns on the wall are still **today's**. Yesterday's fetch reached 14 days ahead, so today's
+agenda is still in it. The stale headline is replaced by a computed one (`"3 things on today,
+starting at 08:20."`) because a day-old AI headline can be actively wrong, and the banner says
+so once the brief was due.
 
 **Stale and late are two different questions, and only one of them may raise the banner.** A
 dashboard is stale from local midnight, which is when the words stop being today's; the brief is
 not *owed* until `brief_time`, so `build_view` also takes `now` and asks `schedule.brief_due`
-whether anything is actually missing. Between the two the wall shows yesterday's line, labelled,
-and says nothing else — an amber "today's note hasn't arrived" before it was due
+whether anything is actually missing. Between the two the wall shows the computed headline
+and says nothing else — an amber "today's headline hasn't arrived" before it was due
 reports a fault that has not happened, in a kitchen, all night. More than a day behind is late at
 any hour, and a caller with no clock to pass (the frozen dashboard) gets the plain answer.
 

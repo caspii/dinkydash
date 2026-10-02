@@ -36,8 +36,6 @@ SAMPLE_EVENTS = [
 ]
 
 HEADLINE = "Swimming, then football — a full day."
-NOTE = ("Sample data, so the dashboard has something to show. Run generate.py, or "
-        "press “Rewrite daily message” in settings, for the real thing.")
 
 
 def is_usable(payload):
@@ -72,8 +70,10 @@ def build_payload(config, today, tzinfo):
         "family_name": config.get("family_name", ""),
         "timezone": config.get("timezone", "UTC"),
         "headline": HEADLINE,
-        "note": NOTE,
-        "note_kind": "sample",
+        # The brief still carries these keys. A new sample leaves them empty,
+        # the same way a generated brief does; an older file may still hold one.
+        "note": "",
+        "note_kind": "",
         "events": events,
         "model": "sample-data",
         "input_tokens": 0,

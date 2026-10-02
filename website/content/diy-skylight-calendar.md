@@ -18,7 +18,7 @@ Your DIY calendar shows everything on one glanceable screen, refreshed automatic
 - **Today's events** from Google Calendar (or any calendar with an iCal link)
 - **A chore chart** that rotates between kids automatically every day
 - **Countdowns** to birthdays, holidays and the dates everyone keeps asking about
-- **A daily message written by AI** — a fresh greeting and fact every single day, written around your family
+- **A daily message written by AI** — a fresh headline every day, written around your family
 
 That last one is something even the $600 hardware doesn't do.
 

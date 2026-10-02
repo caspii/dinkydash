@@ -15,7 +15,7 @@ DinkyDash writes the day's dashboard at 6am, or whenever you'd rather have it. B
 - **What's happening today** — all calendar events at a glance, so everyone knows the plan
 - **Whose turn for chores** — no arguments, the dashboard says so
 - **Countdowns** — how many days until the things everyone keeps asking about
-- **Something fun** — a fact, or a line about the pet
+- **A headline** — written around the day, so the screen has a name for the morning
 
 ## Five ways DinkyDash improves mornings
 
@@ -31,13 +31,13 @@ The dashboard rotates chores automatically. Today it's Lily's turn for dishes, t
 
 Swimming practice at 4pm? Dentist at 3:30? It's all on the dashboard, pulled directly from your Google Calendar. Kids can read it themselves and know what to expect.
 
-**4. The fun stuff gets everyone engaged**
+**4. The headline gives the day a name**
 
-Every morning there's a new fun fact written by AI. "Did you know that honey never spoils?" — or, on a day it picks the pet, "The cat has decided the printer is hers now." It gives the family something to talk about and gets kids excited to check the dashboard.
+Every morning there's a new headline, written around what's actually on. "Friday brings two fun runs" on a sports day, and a plain "Nothing booked in today" when the calendar is clear. It gives the family a line to read out loud.
 
 **5. The mental load gets lighter**
 
-Instead of keeping everyone's schedule and chore assignments in your head, it's all on the screen. The AI writes the headline and the note; the rota and the countdown maths look after themselves. You just glance at it like everyone else.
+Instead of keeping everyone's schedule and chore assignments in your head, it's all on the screen. The AI writes the headline; the rota and the countdown maths look after themselves. You just glance at it like everyone else.
 
 ## What a DinkyDash morning looks like
 
@@ -45,7 +45,7 @@ Instead of keeping everyone's schedule and chore assignments in your head, it's 
 
 **7:15am** — Your daughter walks into the kitchen and checks the screen. "Only 12 days until my birthday!" She sees it's her brother's turn to feed the cat. No arguments.
 
-**7:30am** — Over breakfast, your son reads out the fun fact: "A group of flamingos is called a flamboyance." Everyone laughs.
+**7:30am** — Over breakfast, your son reads the headline out: "Two fun runs for our champions." Everyone knows which morning it is.
 
 **7:45am** — Before heading out, you glance at the calendar section. Right — your son has a dentist appointment at 4pm. Almost forgot.
 

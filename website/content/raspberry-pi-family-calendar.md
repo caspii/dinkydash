@@ -20,7 +20,7 @@ This page covers the hardware side — which Pi, which screen, what it draws, wh
   [Outlook](/outlook-calendar-ics-link/) and [Cozi](/cozi-calendar-display/) each have one
 - **A chore chart** that rotates between family members automatically each day
 - **Countdowns** to birthdays, holidays and the dates everyone keeps asking about
-- **A daily message written by Claude** — a fresh greeting and fact every day, written around your actual family
+- **A daily message written by Claude** — a fresh headline every day, written around your actual family
 
 No touch interaction is required. It's a display, not an app — which is the point, and also why a modest Pi is plenty.
 

@@ -98,7 +98,7 @@ SECTIONS = {
             ("avatar_emoji", "Emoji", "emoji", False, ""),
             ("avatar_color", "Colour", "color", False, ""),
             ("interests", "Interests", "textarea", False,
-             "Informs the daily note — try “dinosaurs, drawing, swimming”."),
+             "Can shape the headline — try “dinosaurs, drawing, swimming”."),
         ],
     },
     "pets": {
@@ -106,7 +106,7 @@ SECTIONS = {
         "title": "Pets",
         "singular": "pet",
         "add_label": "Add a pet",
-        "blurb": "With a pet on file, some days the dashboard's note is about them.",
+        "blurb": "The headline can mention them.",
         "fields": [
             ("name", "Name", "text", True, ""),
             ("type", "Kind of animal", "text", False, "Dog, cat, rabbit…"),

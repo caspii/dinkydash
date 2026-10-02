@@ -80,9 +80,11 @@
 
         *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
-        /* Everything below is sized in rem off this one value, so the same
-           layout reads correctly on a 480px-tall Pi panel and a living-room TV. */
-        html { font-size: clamp(11px, 2.4vh, 26px); }
+        /* Everything below is sized in rem off this one value. The script at
+           the foot raises it until the dashboard fills the screen, and lowers
+           it again when a busy day would overflow. This clamp is the size a
+           browser with scripting off gets. */
+        html { font-size: clamp(12px, 3.2vh, 40px); }
 
         body {
             font-family: 'Nunito', system-ui, -apple-system, sans-serif;
@@ -100,8 +102,8 @@
             min-height: 0;
             display: flex;
             flex-direction: column;
-            gap: 1.4rem;
-            padding: 2.1rem 2.8rem;
+            gap: 1rem;
+            padding: 1.45rem 2.2rem 1.5rem;
         }
 
         .banner {
@@ -135,126 +137,143 @@
         .date { font-size: 1.1rem; font-weight: 700; color: var(--text-muted); }
 
         .headline {
-            font-size: 2.7rem;
+            font-size: 2.35rem;
             font-weight: 800;
-            line-height: 1.18;
+            line-height: 1.14;
             letter-spacing: -0.02em;
             flex-shrink: 0;
+            overflow-wrap: break-word;
         }
 
-        /* Wide and short (a TV, the Pi panel) has width to spare, so the agenda
-           and the side column sit next to each other. Tall screens (an iPad in
-           portrait, a phone) stack instead. */
-        .body { display: flex; flex-direction: column; gap: 1.4rem; flex-grow: 1; min-height: 0; }
-        @media (min-aspect-ratio: 3/2) {
-            /* The agenda is short on a quiet day and the side column is not, so
-               the note sits under the agenda rather than across the bottom —
-               otherwise the lower left quarter of the panel is dead space. */
+        /* Wide screens (a TV, a landscape tablet, the Pi panel) have width to
+           spare, so the agenda and the side column sit next to each other and
+           share the height. Portrait and narrow screens stack, side column
+           under the agenda. 5/4 keeps a 4:3 landscape tablet in two columns;
+           3/2 would stack it. */
+        .body {
+            display: flex;
+            flex-direction: column;
+            gap: 1.35rem;
+            flex-grow: 1;
+            min-height: 0;
+        }
+        .agenda, .side { min-width: 0; min-height: 0; }
+        /* Basis is the content height, then any leftover is shared. A zero
+           basis would split a stacked portrait page by ratio and let the side
+           column shrink below its text, which then paints past the screen. */
+        .agenda { display: flex; flex-direction: column; flex: 1.35 1 auto; }
+        @media (min-aspect-ratio: 5/4) and (min-width: 640px) {
             .body {
                 display: grid;
-                grid-template-columns: 1fr 34%;
-                grid-template-rows: auto 1fr;
-                column-gap: 3rem;
-                row-gap: 1.4rem;
+                grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+                grid-template-rows: minmax(0, 1fr);
+                column-gap: 2.2rem;
+                align-items: stretch;
             }
-            .agenda { grid-column: 1; grid-row: 1; }
-            .side { grid-column: 2; grid-row: 1 / span 2; }
-            .note { grid-column: 1; grid-row: 2; align-self: start; }
+            .agenda { grid-column: 1; height: 100%; }
+            .side { grid-column: 2; height: 100%; }
         }
 
         .label {
-            font-size: 0.78rem;
+            font-size: 0.82rem;
             font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 0.1em;
             color: var(--text-muted);
-            margin-bottom: 0.75rem;
+            margin-bottom: 0.65rem;
+            flex-shrink: 0;
         }
 
-        .agenda { display: flex; flex-direction: column; }
-
-        .events { display: flex; flex-direction: column; gap: 0.6rem; }
-        .event { display: flex; gap: 1.1rem; align-items: baseline; }
+        .events {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-evenly;
+            gap: 0.65rem;
+            flex: 1;
+            min-height: 0;
+        }
+        .event { display: flex; gap: 0.9rem; align-items: baseline; min-width: 0; }
         .event-time {
-            font-size: 1.5rem;
+            font-size: 1.9rem;
             font-weight: 800;
+            line-height: 1.2;
             color: var(--accent);
             width: var(--time-column);
             flex-shrink: 0;
         }
-        .event-time.all-day { font-size: 1rem; }
-        .event-title { font-size: 1.5rem; font-weight: 700; }
+        .event-time.all-day { font-size: 1.25rem; line-height: 1.25; }
+        .event-title {
+            font-size: 1.9rem;
+            font-weight: 700;
+            line-height: 1.22;
+            min-width: 0;
+            overflow-wrap: break-word;
+        }
         .event-where { color: var(--text-muted); font-weight: 600; }
 
         /* Tomorrow only appears when today left room. It reads a step back from
            today — smaller and muted — so a time is never taken for today's. The
            time column keeps its full width, so both days share a left edge. */
-        .tomorrow { margin-top: 1.5rem; }
-        .tomorrow .events { gap: 0.45rem; }
-        .tomorrow .event-time { font-size: 1.15rem; color: var(--text-muted); }
-        .tomorrow .event-time.all-day { font-size: 0.82rem; }
-        .tomorrow .event-title { font-size: 1.15rem; color: var(--text-mid); }
+        .tomorrow { margin-top: 0.9rem; flex-shrink: 0; }
+        .tomorrow .events { gap: 0.4rem; flex: 0; justify-content: flex-start; }
+        .tomorrow .event-time { font-size: 1.28rem; color: var(--text-muted); }
+        .tomorrow .event-time.all-day { font-size: 0.95rem; }
+        .tomorrow .event-title { font-size: 1.28rem; color: var(--text-mid); }
 
         .empty {
             background: var(--box);
             border-radius: 1rem;
-            padding: 1.5rem 1.8rem;
+            padding: 1.4rem 1.6rem;
             display: flex;
             flex-direction: column;
             justify-content: center;
-            gap: 0.4rem;
-            height: 100%;
+            gap: 0.45rem;
+            flex: 1;
+            min-height: 0;
         }
-        .empty-head { font-size: 1.55rem; font-weight: 800; color: var(--text-mid); }
-        .empty-sub { font-size: 1rem; color: var(--text-muted); }
+        .empty-head { font-size: 1.7rem; font-weight: 800; color: var(--text-mid); overflow-wrap: break-word; }
+        .empty-sub { font-size: 1.15rem; color: var(--text-muted); }
 
-        .side { display: flex; flex-direction: column; gap: 1.3rem; }
+        .side {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 1.35rem;
+            flex: 1 1 auto;
+        }
 
-        .chores { display: flex; flex-direction: column; align-items: flex-start; gap: 0.55rem; }
+        .chores { display: flex; flex-direction: column; align-items: flex-start; gap: 0.7rem; }
         .chore {
-            display: inline-flex;
+            display: flex;
             align-items: center;
-            gap: 0.55rem;
-            padding: 0.42rem 1.1rem 0.42rem 0.55rem;
-            border-radius: 999px;
-            font-size: 1.1rem;
+            gap: 0.6rem;
+            max-width: 100%;
+            padding: 0.55rem 1.15rem 0.55rem 0.65rem;
+            border-radius: 1.15rem;
+            font-size: 1.45rem;
             font-weight: 800;
+            line-height: 1.25;
+            overflow-wrap: break-word;
             background: var(--chore-1-bg);
             color: var(--chore-1-fg);
         }
         .chore:nth-child(even) { background: var(--chore-2-bg); color: var(--chore-2-fg); }
-        .chore-emoji { font-size: 1.25rem; }
+        .chore-emoji { font-size: 1.6rem; flex-shrink: 0; }
 
-        .countdowns { display: flex; flex-direction: column; gap: 0.5rem; }
+        .countdowns { display: flex; flex-direction: column; gap: 0.7rem; }
         .countdown {
             display: flex;
-            align-items: center;
-            gap: 0.65rem;
-            font-size: 1.05rem;
+            align-items: flex-start;
+            gap: 0.7rem;
+            font-size: 1.4rem;
+            line-height: 1.25;
             color: var(--text-mid);
+            min-width: 0;
         }
+        .countdown span { min-width: 0; overflow-wrap: break-word; }
         .countdown strong { color: var(--text); font-weight: 800; }
         .countdown.today strong { color: var(--accent); }
-        .countdown-emoji { font-size: 1.2rem; }
-
-        .note {
-            background: var(--box);
-            border-radius: 0.9rem;
-            padding: 1rem 1.35rem;
-            font-size: 1.05rem;
-            line-height: 1.5;
-            color: var(--text-mid);
-            flex-shrink: 0;
-        }
-        .note.is-stale { background: var(--stale-box); color: var(--text-muted); }
-        .note-label {
-            font-size: 0.7rem;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            color: var(--text-faint);
-            margin-bottom: 0.45rem;
-        }
+        .countdown-emoji { font-size: 1.55rem; flex-shrink: 0; line-height: 1.15; }
 
         /* First run, before any generation has landed. */
         .waiting {
@@ -348,15 +367,11 @@
     Your trial or subscription has ended. Showing the last saved dashboard; its dates and turns are paused.
 </div>
 {% elif view.overdue %}
-{# The banner calls the note what its label calls it, so a reader can match the
-   two. An agenda with no brief behind it has no note below to point at. #}
+{# The headline on screen is the one worked out from the day. The banner says
+   so, and only once this morning's brief was actually due. #}
 <div class="banner">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7.6v5"></path><path d="M12 16.2h.01"></path></svg>
-    {% if view.note %}
-    Today&rsquo;s note hasn&rsquo;t arrived, so you&rsquo;re seeing an older one below. Everything else is today&rsquo;s.
-    {% else %}
-    Today&rsquo;s note hasn&rsquo;t arrived. Everything else is today&rsquo;s.
-    {% endif %}
+    Today&rsquo;s headline hasn&rsquo;t arrived, so this one is worked out from the day. Everything else is today&rsquo;s.
 </div>
 {% endif %}
 
@@ -429,13 +444,6 @@
             </div>
             {% endif %}
         </div>
-
-        {% if view.note %}
-        <div class="note{{ ' is-stale' if view.stale }}">
-            {% if view.stale %}<div class="note-label">{% if view.stale_days == 1 %}Yesterday&rsquo;s note{% else %}Older note{% endif %}</div>{% endif %}
-            {{ view.note }}
-        </div>
-        {% endif %}
     </div>
 </div>
 
@@ -480,7 +488,11 @@
         // Let a phone viewer enlarge the dashboard without shrinking it back.
         if (window.visualViewport && window.visualViewport.scale > 1) return;
         var room = window.innerHeight;
-        var lo = 9, hi = Math.min(26, room / 24);   // same ceiling as the clamp
+        // High on purpose. The search below keeps the largest size that still
+        // fits, so a quiet day grows until it fills the screen and a busy day
+        // shrinks instead of being clipped. The clamp in the stylesheet is
+        // only what a browser with scripting off gets.
+        var lo = 11, hi = Math.min(120, room / 9);
         root.style.fontSize = hi + "px";
         if (naturalHeight() > room) {
             for (var i = 0; i < 14; i++) {          // ~0.001px, imperceptible cost

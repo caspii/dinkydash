@@ -1,6 +1,6 @@
 """The orchestrator.
 
-    generate(config, today, events, recent_notes) -> payload dict
+    generate(config, today, events) -> payload dict
 
 No config file is read here, no clock is consulted, nothing is written to disk:
 the caller injects the date and owns the I/O. That is what lets a Pi cron job
@@ -18,16 +18,19 @@ from datetime import datetime, timezone
 from .claude_client import call_claude
 from .context import build_countdowns, compute_chore_assignments
 from .calendars import events_on
-from .prompt import build_user_prompt, choose_note_kind
+from .prompt import build_user_prompt
 
 log = logging.getLogger(__name__)
 
 SOON_DAYS = 4
 
 
-def generate(config, today, events, recent_notes=(), client=None, rng=None,
-             note_kind=None):
-    """Produce today's payload. Raises GenerationError if the model call fails."""
+def generate(config, today, events, client=None):
+    """Produce today's payload. Raises GenerationError if the model call fails.
+
+    The model is asked for a headline only. `note` and `note_kind` are still
+    written, empty, so a stored brief keeps the shape an older file has.
+    """
     events = events or []
     events_today = events_on(events, today)
     horizon = today.toordinal() + SOON_DAYS
@@ -41,12 +44,10 @@ def generate(config, today, events, recent_notes=(), client=None, rng=None,
         config.get("people"), config.get("special_dates"), today
     )
 
-    kind = note_kind or choose_note_kind(config, rng=rng)
     user_prompt = build_user_prompt(
         config, today, events_today, events_soon, chores, countdowns,
-        recent_notes, kind, rng=rng,
     )
-    log.info("Prompt built (%d characters, note kind=%s)", len(user_prompt), kind)
+    log.info("Prompt built (%d characters)", len(user_prompt))
 
     ai = call_claude(user_prompt, config, client=client)
 
@@ -58,8 +59,10 @@ def generate(config, today, events, recent_notes=(), client=None, rng=None,
         "family_name": config.get("family_name", ""),
         "timezone": config.get("timezone", "UTC"),
         "headline": ai["headline"],
-        "note": ai["note"],
-        "note_kind": kind,
+        # The brief's shape still has these keys, so a stored dashboard and an
+        # export keep reading. Nothing new is written into them.
+        "note": "",
+        "note_kind": "",
         "events": events,
         "model": ai["model"],
         "input_tokens": ai["input_tokens"],

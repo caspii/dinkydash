@@ -7,13 +7,13 @@ description: Set up DinkyDash from scratch — first on your computer, then as a
 
 This guide takes you from nothing to a working family dashboard. You start on your own computer, see the dashboard, then move it onto a Raspberry Pi that shows it on the wall and keeps itself up to date.
 
-You do not need an Anthropic API key to try it — there is a no-key preview in step 3. You only need a key for the AI-written daily note, which runs once a day.
+You do not need an Anthropic API key to try it — there is a no-key preview in step 3. You only need a key for the AI-written headline, which runs once a day.
 
 ## What you need
 
 - **Python 3.11 or newer.**
 - **One or more calendar links** in iCal format. Google Calendar, Apple iCloud Calendar, Outlook and Cozi all give you one — see [find your calendar link](#find-your-calendar-link) below for the steps. Treat that link like a password: anyone who has it can read that calendar.
-- **An Anthropic API key** ([get one here](https://console.anthropic.com/settings/keys)) — only for the daily headline and one line of copy. You can run the whole dashboard without it first.
+- **An Anthropic API key** ([get one here](https://console.anthropic.com/settings/keys)) — only for the daily headline. You can run the whole dashboard without it first.
 - **A Raspberry Pi** with a small screen, for the permanent version. A Pi 4 with 2GB of RAM and the official 7-inch display (800×480) is the easy path. Hardware details are on the [Raspberry Pi build guide](/raspberry-pi-family-calendar/). A Pi is not the only option — the dashboard is a web page, so an [old iPad](/ipad-calendar-display/), an [Android tablet](/android-tablet-calendar-display/), a [smart TV](/smart-tv-calendar-display/) or a [Fire TV](/fire-tv-calendar-display/) will show it too.
 
 ---
@@ -112,7 +112,7 @@ cp config.example.yaml config.yaml
 ```yaml
 family_name: "The Wilsons"
 timezone: "Europe/Berlin"     # decides when "today" rolls over
-location: "Berlin, Germany"   # optional, flavours the daily note
+location: "Berlin, Germany"   # optional, gives the headline a sense of place
 theme: light                  # or dark
 
 calendars:                    # as many as you like; merged into one agenda
@@ -168,13 +168,13 @@ python sample_board.py     # writes a dashboard for today, with a canned headlin
 python app.py              # starts the server
 ```
 
-Open **http://localhost:5000**. The chore turns, ages and countdowns are computed from the `config.yaml` you just wrote, so edit it, reload, and you see your own family. Only the headline and the one written line are fake. `sample_board.py` refuses to overwrite a real dashboard, so it is safe to leave in place.
+Open **http://localhost:5000**. The chore turns, ages and countdowns are computed from the `config.yaml` you just wrote, so edit it, reload, and you see your own family. Only the headline is fake. `sample_board.py` refuses to overwrite a real dashboard, so it is safe to leave in place.
 
 Stop the server with `Ctrl+C` when you are done looking.
 
 ### Step 4: Add your Anthropic API key
 
-The daily note comes from the Claude API. Create a file called `.env` in the project folder:
+The headline comes from the Claude API. Create a file called `.env` in the project folder:
 
 ```bash
 echo "ANTHROPIC_API_KEY=sk-ant-..." > .env
@@ -201,10 +201,10 @@ Now these three pages are live:
 |---|---|
 | `family_name` | Shown in the corner of the dashboard. |
 | `timezone` | An IANA name like `Europe/Berlin`. Decides when "today" rolls over and how event times read. Set it even on a Pi whose clock is already local — the engine works from this, not the machine clock. |
-| `location` | Your city and country. Optional; gives the daily note local flavour. |
+| `location` | Your city and country. Optional; gives the headline a sense of place. |
 | `theme` | `light` or `dark`. |
 | `calendars` | One entry per iCal feed: a `label`, a `url` (the secret iCal address) and `enabled`. Merged into one agenda. An optional `shared_with` list of email addresses shows only the events with one of those people as a guest or organiser. |
-| `people` | `name`, `date_of_birth` (YYYY-MM-DD), an `avatar_emoji`, an `avatar_color`, and `interests` that feed the daily note. |
+| `people` | `name`, `date_of_birth` (YYYY-MM-DD), an `avatar_emoji`, an `avatar_color`, and `interests` that can shape the headline. |
 | `pets` | `name`, `type` and an `avatar_emoji`. |
 | `recurring` | Chores that rotate one person per day, in the order you list under `choices`. |
 | `special_dates` | Countdowns to yearly events, as `MM/DD` with no year. |
@@ -219,11 +219,11 @@ The settings page adds a short `id` to each person, pet, chore, date and calenda
 
 Everything on the dashboard is editable at `/settings`. Two things worth knowing:
 
-- **A saved dashboard is from the last run.** Editing a chore or a person shows up on the next page load, but the headline and daily note are only rewritten once a day. Press **Rewrite daily message** on the settings home page to get fresh copy immediately. Each press is one API call.
+- **A saved dashboard is from the last run.** Editing a chore or a person shows up on the next page load, but the headline is only rewritten once a day. Press **Rewrite daily message** on the settings home page to get fresh copy immediately. Each press is one API call.
 - **Adding a calendar checks the link.** Paste an iCal address and press **Test calendar link**. It tells you how many events it found and what the next one is, so you are not left guessing whether the URL works.
 - **A personal calendar can keep its private side.** Fill in **Only show events shared with** on that calendar, and only the events the other parent is on reach the dashboard. See [a personal calendar with work in it](#personal-calendar) above.
 
-The dashboard can be in one of three states: the normal dashboard, a first-run "waiting" screen before anything is generated, or a stale state after a failed or missing run. When stale, the times, turns and countdowns are still today's — only the written line is old, and the dashboard says so.
+The dashboard can be in one of three states: the normal dashboard, a first-run "waiting" screen before anything is generated, or a stale state after a failed or missing run. When the headline is late, the times, turns and countdowns are still today's. The headline is one worked out from the day, and the dashboard says so.
 
 ---
 
@@ -314,7 +314,7 @@ sudo systemctl start dinkydash.service
 
 A cron job ticks every five minutes, and each tick does only what your settings say is owed —
 nothing at all, most of the time. Calendars are re-fetched every hour, so an appointment added at
-09:00 for 15:00 reaches the dashboard the same afternoon. The daily note is written once, at 6am. Both
+09:00 for 15:00 reaches the dashboard the same afternoon. The headline is written once, at 6am. Both
 are yours to change under **Settings → How often it updates**.
 
 ```bash

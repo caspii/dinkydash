@@ -7,7 +7,7 @@ Use British English and sentence case, except for the product name **DinkyDash**
 ## The dashboard
 
 **Dashboard** is the name of the complete DinkyDash display: the agenda, chore turns,
-countdowns, headline and daily note. It replaces the former product term **board**.
+countdowns and headline. It replaces the former product term **board**.
 Use **dashboard** in prose and **Dashboard** at the start of a heading or button.
 
 A **screen** is the physical TV, tablet, monitor or Raspberry Pi panel showing a dashboard.
@@ -26,7 +26,7 @@ A **calendar** is one source of events, not the whole dashboard.
 | Settings | The area for configuring the household and dashboard | The home page for a signed-in hosted user, or `/settings` when self-hosting. |
 | Family / household | The people sharing a dashboard and its settings | The current system stores one household per account. “Name on the dashboard” controls its displayed name. Do not imply that each person has a separate login. |
 | Person / People | A household member | “People”, “Add a person”, “New person”, “Remove this person”. Birth date supplies the age and birthday countdown; names can participate in chores. |
-| Pet / Pets | A household animal | “Pets”, “Add a pet”, “New pet”, “Kind of animal”. A pet can be mentioned in the generated daily note. |
+| Pet / Pets | A household animal | “Pets”, “Add a pet”, “New pet”, “Kind of animal”. A pet can be mentioned in the headline. Pets are not a section of the dashboard. |
 | Chore / Chores | A household task assigned on a daily rotation | “Chores”, “Add a chore”, “New chore”, “Chore”, “Remove this chore”. There is no completion checkbox. |
 | Rotation order | The sequence of people who take a chore | “Whose turn, in order” shows the saved sequence. Checkboxes select people; arrows move them earlier or later. Newly selected people join at the end, and Save keeps the changes. This is separate from reordering People or the chore list. |
 | Whose turn | The current chore assignments | The dashboard section heading. Turns change daily; this is not task completion or an on-demand swap feature. |
@@ -35,12 +35,12 @@ A **calendar** is one source of events, not the whole dashboard.
 | Guest filter | The optional restriction to events shared with selected email addresses | Visible label: “Only show events shared with”. Matching guests or organisers allow an event through. An empty field allows all events from that calendar. |
 | On / Paused | Whether a calendar contributes events | List status labels. The edit checkbox is “Show on the dashboard”. Pausing keeps the calendar entry and clears its stored events. |
 | Agenda | The combined event list | The dashboard labels it “Today” and, when there is room, “Tomorrow”. It is assembled from calendars; it is not AI-generated. |
-| Headline | The large heading on the dashboard | Normally generated with the daily note. A stale dashboard can use a computed headline instead. |
-| Daily note | The short generated text accompanying the agenda | Interests, pets and the agenda inform it. A note is one part of the daily message; descriptive prose may call it a line, but this is not a separate feature. |
+| Headline | The large heading on the dashboard | Written once a day. A stale dashboard uses a headline worked out from the day instead, and says so once that headline was due. |
+| Daily note | Not a part of the dashboard | Do not use it in copy. The dashboard shows a headline, not a separate note. A stored brief and an export can still contain a note field. |
 | Special date / Special dates | A named annual occasion | “Special dates”, “Add a date”, “What is it”, with “Day” and “Month” under “Date”. Lists use named months, such as “1 July”. Invalid stored dates are flagged for repair and omitted from countdowns; 29 February is allowed. |
 | Countdown | Days remaining until a birthday or special date | Appears under “Coming up”. Birthday countdowns come from People and need no duplicate special-date entry. |
-| Refresh calendars | Fetch the latest events from enabled calendars | Updates the agenda; it does not rewrite the daily note. “Fetch the calendars” sets this interval under “How often it updates”. |
-| Daily message | The generated headline and daily note together | “Rewrite daily message” fetches calendars, then generates fresh text. Before the first generation the action is “Write first daily message”. “Write the daily message at” sets the schedule. Pending feedback says “Writing your daily message…”. |
+| Refresh calendars | Fetch the latest events from enabled calendars | Updates the agenda; it does not rewrite the headline. “Fetch the calendars” sets this interval under “How often it updates”. |
+| Daily message | The generated headline | “Rewrite daily message” fetches calendars, then generates a fresh headline. Before the first generation the action is “Write first daily message”. “Write the daily message at” sets the schedule. Pending feedback says “Writing your daily message…”. |
 | Time zone | The household's clock for dates, events and daily generation | “Time zone” under “Family & system”, with a suggested local zone during setup. |
 | Clock | Whether times are written 24-hour or 12-hour | “Clock” under “Family & system”, beside “Time zone”: “24-hour (15:45)” or “12-hour (3:45 pm)”. The time zone decides what a time is; this decides how it is written. Defaults to 24-hour and applies to the agenda, the computed headline and the generated daily message. |
 | Emoji | The small picture beside a person, pet, chore or special date | “Emoji” on the edit forms: a row of quick picks, “None”, and “More…”, which opens “Choose an emoji” with a search box that also takes an emoji typed on the keyboard. Shown as the avatar in settings lists and beside chores and countdowns on the dashboard. |
@@ -52,9 +52,10 @@ A **calendar** is one source of events, not the whole dashboard.
 ## Copy conventions
 
 Use **chore** for the household task and **calendar** for a connected event source in settings.
-**Daily message** names the headline-plus-note generation; **daily note** names its short prose
-part. Keep **brief** for implementation details. Use **Refresh calendars** for fetching events,
-which does not generate a new daily message. “Feed” is appropriate when explaining iCal/ICS,
+**Daily message** names the headline generation. **Daily note** is not a thing the
+dashboard shows; do not use it in new copy. Keep **brief** for implementation details.
+Use **Refresh calendars** for fetching events, which does not generate a new daily message.
+“Feed” is appropriate when explaining iCal/ICS,
 not as a competing settings label for a connected calendar.
 
 “Your dashboard” groups settings shared by every screen. A **screen** is the physical device,
