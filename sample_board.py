@@ -70,8 +70,8 @@ def build_payload(config, today, tzinfo):
         "family_name": config.get("family_name", ""),
         "timezone": config.get("timezone", "UTC"),
         "headline": HEADLINE,
-        # The brief still carries these keys. A new sample leaves them empty,
-        # the same way a generated brief does; an older file may still hold one.
+        # The brief still carries these keys. Generation leaves them empty,
+        # and so does a sample.
         "note": "",
         "note_kind": "",
         "events": events,
