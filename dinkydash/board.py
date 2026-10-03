@@ -1,10 +1,11 @@
 """Turning config + payload into what the dashboard template renders.
 
-The split that matters: `headline` and `note` come from the payload (the model
-wrote them, they can go stale), while the agenda, whose-turn and countdowns are
+The split that matters: `headline` comes from the payload (the model wrote it,
+and it can go stale), while the agenda, whose-turn and countdowns are
 recomputed here from the config and today's date. So when a morning's
-generation fails, the times and turns on the wall are still today's — only the
-written line is yesterday's, and it says so.
+generation fails, the times and turns on the wall are still today's. A stale
+headline gives way to one worked out from the day. A stored `note` is kept on
+the view so an older brief still builds; the template does not render it.
 
 Two words for that, because they are not the same thing: `stale` is "the line
 on the wall is not today's", which decides how the words are shown; `overdue`
@@ -74,10 +75,10 @@ def computed_headline(events):
 def brief_is_overdue(config, payload, stale_days, now):
     """Whether a stale dashboard means this morning's brief actually failed.
 
-    Yesterday's line is not a fault until this morning's was due. Between local
-    midnight and `brief_time` nothing is owed, so "today's note hasn't arrived"
-    would be reporting a failure that has not happened — on a screen in a
-    kitchen, for the whole of the small hours. The banner waits for
+    Yesterday's headline is not a fault until this morning's was due. Between
+    local midnight and `brief_time` nothing is owed, so a banner would be
+    reporting a failure that has not happened — on a screen in a kitchen, for
+    the whole of the small hours. The banner waits for
     the hour the family chose, and `schedule.brief_due` is what decides it, so
     the wall and the tick cannot disagree about when a brief is late.
 
@@ -178,10 +179,11 @@ def build_view(config, payload, today, now=None):
     stale = payload.get("generated_for_date") != today.isoformat()
     view["stale"] = stale
     view["state"] = "stale" if stale else "ready"
+    # Kept so a brief that still has one builds the same view. The template
+    # does not render it.
     view["note"] = payload.get("note", "")
     # A day-old headline can be actively wrong ("Ines starts nursery today"), so
-    # it gives way to one derived from the real day. The note is harmless when
-    # stale, so it stays — labelled.
+    # it gives way to one derived from the real day.
     view["headline"] = computed_headline(events) if stale else payload.get("headline", "")
 
     if stale:

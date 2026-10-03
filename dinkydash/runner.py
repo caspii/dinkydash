@@ -1,13 +1,12 @@
 """The two halves of the daily cycle: fetch the calendars, write the brief.
 
 `refresh_calendars` re-fetches the feeds and costs a few HTTP requests.
-`write_brief` asks Claude for the headline and note and costs money. They were
-one function only because history put them there; splitting them lets the
-calendars run on their own cadence, so an appointment added at 09:00 reaches
-the wall the same day (`generate.py --tick`, and `dinkydash.schedule.due`).
+`write_brief` asks Claude for the headline and costs money. The two halves run
+on their own clocks, so an appointment added at 09:00 reaches the wall the
+same day (`generate.py --tick`, and `dinkydash.schedule.due`).
 
-`run` is still both, in order, which is what `python generate.py` has always
-meant and what the settings page's "Rewrite now" does.
+`run` is still both, in order, which is what `python generate.py` means and
+what the settings page's "Rewrite daily message" does.
 
 All three take a `store` and read and write only through it, so nothing here
 knows whether the dashboard it is replacing is a file on a Pi or a row belonging to
@@ -110,7 +109,7 @@ def _with_last_known(fresh, previous, failed_labels, start, end):
 
 
 def write_brief(config, store, today=None, client=None, budget=None):
-    """Ask Claude for today's headline and note, and store them. Costs one call.
+    """Ask Claude for today's headline, and store it. Costs one call.
 
     The events come from the stored payload rather than a second fetch, so the
     brief always describes the agenda the dashboard is showing, and a tick that
@@ -129,7 +128,6 @@ def write_brief(config, store, today=None, client=None, budget=None):
     stored = store.load_payload(config) or {}
 
     keep = int(config.get("history_days") or 30)
-    recent = store.recent_notes(config, keep)
 
     # **Charged before the call, not after.** A key that has been revoked fails
     # every time and reports no usage, so counting successes would let a
@@ -139,7 +137,7 @@ def write_brief(config, store, today=None, client=None, budget=None):
 
     payload = generate(
         budget.generation_config(config), today, stored.get("events") or [],
-        recent_notes=recent, client=client,
+        client=client,
     )
     budget.record(payload.get("input_tokens"), payload.get("output_tokens"))
     # Only the brief. `stored` was read before a model call that takes seconds,

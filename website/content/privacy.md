@@ -5,7 +5,7 @@ template: page.html
 description: What DinkyDash stores, who it is sent to, how long it is kept, and how to get it back or delete it.
 ---
 
-*Last updated: 17 September 2026.*
+*Last updated: 2 October 2026.*
 
 DinkyDash puts a family's day on a screen. That means the things it holds are a
 household's names, dates of birth and movements — which is about as personal as
@@ -15,7 +15,7 @@ it.
 **If you run DinkyDash yourself**, most of this does not apply to us at all.
 Your config, your calendar links and your dashboard stay on your machine, and the
 only thing that leaves it is the day's agenda, sent to Anthropic so Claude can
-write the daily note — with your own API key, under your own agreement with
+write the headline — with your own API key, under your own agreement with
 them. We hold nothing. This page describes the **hosted** version at
 `app.dinkydash.co`.
 
@@ -30,7 +30,7 @@ either something you typed or something the software produced.
 | **Your family's details** | You type them: names, dates of birth, emoji, chores, special dates | They are what the dashboard shows |
 | **Your calendar links** | You paste them | To fetch the events the dashboard shows |
 | **Your calendar events** | Fetched from those links | The agenda on the dashboard |
-| **The written line** | Written by Claude once a day | The dashboard's headline and note |
+| **The headline** | Written by Claude once a day | The line at the top of the dashboard |
 | **Sign-in links** | Generated when you ask for one | Hashed, never stored as a working link |
 | **Counts of model calls** | Recorded when the dashboard is written | So one account cannot run up an unbounded bill |
 | **Counts of sign-ups and first calendar connections** | Recorded when a family is created, and the first time it saves a calendar link | So we can see whether the product is being used, without looking at anyone's account |
@@ -49,8 +49,8 @@ The services below receive only what they need for their part of the app.
 
 **Anthropic sees your family's day.** Once a day the day's agenda — the
 event titles and times, your family's names and interests — is sent to
-Anthropic so Claude can write the headline and the one written line. That is
-the feature. Nothing else about you is sent, and it is not used to train
+Anthropic so Claude can write the headline. That is the feature. Nothing else
+about you is sent, and it is not used to train
 models.
 
 **SendGrid delivers sign-in links, subscription notices and feedback.** Your
@@ -95,13 +95,13 @@ not see the address you typed, and it is on no other page. It sets no
 advertising cookie and we do not use it to track you.
 
 If you would rather Anthropic saw nothing, self-host: the dashboard works with no
-API key at all, and simply goes without the written line.
+API key at all, and simply goes without the headline.
 
 ### Sub-processors
 
 | Who | What they do | Where |
 |---|---|---|
-| **Anthropic** | Writes the daily note from the day's agenda | United States |
+| **Anthropic** | Writes the headline from the day's agenda | United States |
 | **DigitalOcean** | Runs the app and the database | Frankfurt, Germany (US company) |
 | **SendGrid** (Twilio) | Delivers sign-in emails, subscription notices and feedback | United States |
 | **Google** | The mailbox our support and feedback email arrives in | United States |
@@ -135,11 +135,11 @@ We would rather hold less, so most of this expires on its own.
 - **Your calendar events**: one rolling fourteen-day window per family,
   overwritten every time the calendars are refreshed. Nothing accumulates — the
   most we ever hold about your calendar is that one window.
-- **The written lines**: daily messages are kept while your account exists. A
-  separate recent history helps the model avoid repetition; it keeps at least
-  the last 30 entries and drops older ones as new ones arrive. Rewriting a day
-  replaces that day's saved daily message, while an earlier version may remain in the
-  recent history until it is trimmed.
+- **The headline**: kept while your account exists. A recent history keeps at
+  least the last 30 entries and drops older ones as new ones arrive, and that
+  history is in your export. An older entry can still hold a short note the
+  dashboard no longer shows. Rewriting a day replaces that day's saved headline;
+  an earlier version may remain in the recent history until it is trimmed.
 - **Sign-in links**: deleted once expired, which is fifteen minutes. A link that
   has been used is deleted on the same schedule.
 - **Anything you send us**: kept in our mailbox as long as any other

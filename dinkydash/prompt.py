@@ -1,38 +1,9 @@
 """Prompt construction.
 
-The dashboard shows one written line a day plus a headline, so that is all we ask
-for. Which *kind* of line — a fact, or something about the pet — is chosen here
-in Python rather than left to the model, so the rotation is even and the
-history can tell whether today repeats last Tuesday.
+The dashboard shows one headline a day, so that is all we ask for.
 """
 
-import random
-
 from .clock import DEFAULT_CLOCK, clock_of, format_time
-
-# Rotated each day to push the model off its default "safe" answer (the
-# clowder-of-cats fact) and give the line a fresh anchor even before any
-# history exists.
-FUN_FACT_THEMES = [
-    "animals", "outer space", "the ocean", "dinosaurs", "the human body",
-    "weather and seasons", "insects and bugs", "plants and trees",
-    "food and cooking", "faraway countries", "inventions and machines",
-    "music and instruments", "sports and games", "rivers and mountains",
-    "the moon and stars", "reptiles and amphibians", "birds",
-    "colours and light", "vehicles and travel", "castles and history",
-    "robots and technology", "volcanoes and earthquakes", "rainforests",
-    "deserts", "snow and ice", "how everyday things work",
-]
-
-PET_ANGLES = [
-    "what they are probably up to right now",
-    "an opinion they seem to hold",
-    "a spot in the house they have claimed",
-    "something they are suspicious of",
-    "a small triumph of theirs",
-]
-
-NOTE_KINDS = ("fact", "pet")
 
 RESPONSE_SCHEMA = {
     "type": "object",
@@ -41,56 +12,25 @@ RESPONSE_SCHEMA = {
             "type": "string",
             "description": "A warm greeting tied to today, at most 10 words.",
         },
-        "note": {
-            "type": "string",
-            "description": "The single line for the dashboard's note box, at most 25 words.",
-        },
     },
-    "required": ["headline", "note"],
+    "required": ["headline"],
     "additionalProperties": False,
 }
 
 SYSTEM_PROMPT = """\
-You write the daily text for DinkyDash, a family dashboard that hangs on a kitchen \
-wall. Young children read it, so keep the language simple and warm. It is a \
-glanceable display, not an article: every word has to earn its place.
+You write the daily headline for DinkyDash, a family dashboard that hangs on a \
+kitchen wall. Young children read it, so keep the language simple and warm. It \
+is a glanceable display, not an article: every word has to earn its place.
 
 Write British English. Do not use emoji — the dashboard adds its own. Do not \
 mention that you are an AI, and do not greet the reader by describing the \
 weather, which you cannot see.
 
 The headline names something real about today, drawn from the day's events, \
-birthdays or countdowns. If the day is genuinely empty, say so plainly rather \
-than inventing excitement.
-
-The note must be clearly different from every recent note listed in the \
-prompt — a different topic, not a rewording. Reach past the obvious answer.\
+birthdays or countdowns. A pet or an interest may colour it when it belongs to \
+the day. If the day is genuinely empty, say so plainly rather than inventing \
+excitement. Reply with the headline only.\
 """
-
-
-def choose_note_kind(config, rng=None):
-    """Pick which kind of line today's note is. Pets only if there are pets."""
-    rng = rng or random
-    kinds = [k for k in NOTE_KINDS if k != "pet" or config.get("pets")]
-    return rng.choice(kinds)
-
-
-def note_instruction(kind, config, rng=None):
-    """The one-line brief for today's note, with a rotating anchor."""
-    rng = rng or random
-    if kind == "pet":
-        pets = config.get("pets") or []
-        names = ", ".join(p.get("name", "") for p in pets if p.get("name"))
-        types = ", ".join(p.get("type", "pet") for p in pets)
-        return (
-            f"Write one affectionate, funny line about the family pet "
-            f"({names or 'the pet'}, a {types or 'pet'}) — "
-            f"{rng.choice(PET_ANGLES)}. Invent it; you cannot see the pet."
-        )
-    return (
-        f"Write a surprising fact a child would repeat at school, about "
-        f"{rng.choice(FUN_FACT_THEMES)}. One or two short sentences."
-    )
 
 
 def _format_event(event, clock=DEFAULT_CLOCK):
@@ -104,7 +44,7 @@ def _format_event(event, clock=DEFAULT_CLOCK):
 
 
 def build_user_prompt(config, today, events_today, events_soon, chores,
-                      countdowns, recent_notes, note_kind, rng=None):
+                      countdowns):
     """Assemble everything the model needs into one prompt."""
     lines = [
         f"Today is {today.strftime('%A, %-d %B %Y')}.",
@@ -124,6 +64,20 @@ def build_user_prompt(config, today, events_today, events_soon, chores,
             if person.get("interests"):
                 bits.append(f"into {person['interests']}")
             lines.append(f"- {'; '.join(bits)}")
+
+    pets = config.get("pets") or []
+    if pets:
+        named = []
+        for pet in pets:
+            name = pet.get("name") or ""
+            kind = pet.get("type") or ""
+            if name and kind:
+                named.append(f"{name}, a {kind}")
+            elif name or kind:
+                named.append(name or kind)
+        if named:
+            lines.append("")
+            lines.append("Pets: " + "; ".join(named) + ".")
 
     lines.append("")
     if events_today:
@@ -151,11 +105,6 @@ def build_user_prompt(config, today, events_today, events_soon, chores,
             when = "today" if c["days"] == 0 else f"in {c['days']} days"
             lines.append(f"- {c['title']} {when}")
 
-    if recent_notes:
-        lines.append("")
-        lines.append("Recent notes — today's must not resemble any of these:")
-        lines.extend(f"- {n}" for n in recent_notes if n)
-
     lines.append("")
-    lines.append(note_instruction(note_kind, config, rng=rng))
+    lines.append("Write today's headline. Nothing else.")
     return "\n".join(lines)

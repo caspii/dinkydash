@@ -84,7 +84,7 @@ calendar display](/smart-tv-calendar-display/) for Samsung and LG.
   link, and each has its own page here with the steps.
 - **A chore chart that rotates**, moving on one person a day by itself.
 - **Countdowns** to birthdays, Christmas and the school holidays.
-- **A daily note, written fresh each day** by Claude, around your family's actual day.
+- **A headline, written fresh each day** by Claude, around your family's actual day.
 
 The dashboard refreshes itself every five minutes, and if the Wi-Fi drops it keeps the last
 dashboard on screen with a small "Reconnecting" note rather than an error page. The script that

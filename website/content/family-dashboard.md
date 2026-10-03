@@ -12,13 +12,13 @@ It's a dashboard for a small screen somewhere your family walks past — the kit
 
 Worth being precise about, because most of the dashboard isn't AI at all.
 
-Claude writes **two things**: a headline, and one line underneath it. That's the daily message, and it's written around your family's real day. Everything else works itself out from the date:
+Claude writes **one thing**: the headline. That's the daily message, and it's written around your family's real day. Everything else works itself out from the date:
 
 - **The countdowns** recalculate every time the page loads, so they can't drift.
 - **The chore rota** moves to the next person when the date changes. Nothing to tick.
 - **The agenda** comes straight from your calendars, merged into one list in time order.
 
-That split is the whole trick. If the daily message fails to write one day, the times, turns and countdowns are still today's — and the dashboard says the line is old rather than pretending otherwise.
+That split is the whole trick. If the daily message fails to write one day, the times, turns and countdowns are still today's. The headline is one worked out from the day, and the dashboard says so.
 
 ## A Tuesday in November
 
@@ -28,10 +28,8 @@ Your family walks past the screen. It shows:
 - Chore badges: Lily's turn for the dishes, Sam's turn to feed the dog
 - [Countdowns](/birthday-countdown/): 28 days until Christmas, 5 days until Dad's birthday
 - Today's calendar in time order, merged from both parents' feeds — school pickup at 15:00, swimming at 17:00, dinner at grandma's at 19:00
-- A fact about space that Sam will probably repeat all day
-- A line about the dog: "Buddy has claimed the warm patch by the radiator again"
 
-The headline and those last two lines are Claude's. The rest is arithmetic.
+The headline is Claude's. The rest is arithmetic.
 
 ## Why nobody has to feed it
 

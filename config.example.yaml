@@ -92,7 +92,8 @@ max_tokens: 1024
 # give the model context, and keep the agenda right if a morning's run fails.
 calendar_days_ahead: 14
 
-# How many days of past notes to send back to the model so it doesn't repeat itself.
+# How many past briefs to keep beside the dashboard. An export includes them.
+# The model is not shown them.
 history_days: 30
 
 # The two cadences, read by `generate.py --tick` (the */5 cron line). A plain

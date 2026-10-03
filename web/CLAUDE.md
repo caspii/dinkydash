@@ -211,11 +211,13 @@ reload timer. Export, deletion and settings remain accessible. Exports include b
 **Changing the dashboard layout.** Everything is sized in `rem` off one root value, so check all three
 sizes at `/preview` rather than just the one you are looking at.
 
-That root value is now *measured*, not guessed. The script at the foot of `board.html` binary-
+That root value is *measured*, not guessed. The script at the foot of `board.html` binary-
 searches the largest `html { font-size }` whose content still fits the viewport, capped at
-`min(26px, vh/24)`. The CSS `clamp()` stays as the no-JS fallback. Because `body` is
-`height:100vh;overflow:hidden`, nothing ever reports an overflow — so the script lets the page lay
-out freely for one measurement (`height:auto`) and puts it straight back.
+`min(120px, innerHeight / 9)`. A quiet day therefore grows until it fills the screen, and a
+busy day shrinks instead of being clipped. The CSS `clamp()` is the no-JS fallback and is
+deliberately smaller. Because `body` is `height:100vh;overflow:hidden`, nothing ever reports
+an overflow — so the script lets the page lay out freely for one measurement (`height:auto`)
+and puts it straight back.
 
 **The same script is what refreshes the dashboard, and it never reloads the page** (DIN-60). Every
 `view.reload_seconds` it fetches `location.href`, parses the copy, and swaps the `<body>` in — then
@@ -286,10 +288,13 @@ written. It has two wordings, chosen by `view.set_up`: "writing your first dashb
 is on its way, and "nearly there" while the family is still setting up and nothing is being
 written.
 
-In two-column mode the body is a grid, and **the note sits under the agenda, not across the
-bottom**. The agenda is short on a quiet day while chores plus countdowns are not, so a full-width
-note left the lower left quarter of an 800x480 panel empty. Under the agenda it balances the two
-columns instead: on a five-event day the left column measures 311px against the side column's 312.
+In two-column mode the body is a grid of agenda and side column, and both stretch to the
+height left under the headline. The breakpoint is `min-aspect-ratio: 5/4` and `min-width:
+640px`, so a 4:3 landscape tablet stays in two columns and a portrait tablet stacks the
+side column under the agenda. Stacked, each column's flex basis is its content height and
+leftover space is shared — a zero basis would split that page by ratio and let the side
+column shrink shorter than its text. There is no note on the dashboard. Long event titles,
+chore pills and countdowns wrap (`overflow-wrap: break-word`, `min-width: 0` on the flex item).
 
 ## Home screens and manifests
 

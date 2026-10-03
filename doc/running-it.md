@@ -16,19 +16,19 @@ appointment added at 09:00 for 15:00 onto the dashboard the same afternoon. Make
 once a day under **Settings → How often it updates**. Fetching faster than the provider updates
 buys nothing: Google's secret `.ics` link is cached at their end and can lag by hours.
 
-**Once a day at 06:00**, on your own clock, it asks Claude for a headline and one line of copy —
-the only part that costs money. The same page changes the hour. A brief that fails is simply
-owed again five minutes later, so a network blip at dawn no longer means a day-old line.
+**Once a day at 06:00**, on your own clock, it asks Claude for a headline — the only
+part that costs money. The same page changes the hour. A brief that fails is simply
+owed again five minutes later, so a network blip at dawn no longer means a day-old headline.
 
 **The very first one does not wait for the morning.** That hour says when to replace yesterday's
 line, and on a dashboard nobody has generated yet there is nothing to replace — so a Pi set up after
 dinner writes its dashboard on the next tick rather than showing "Writing … first dashboard" all evening.
 
-Both write atomically to `dashboard_data.json`, and a refresh never touches the written line.
+Both write atomically to `dashboard_data.json`, and a refresh never touches the headline.
 
 The browser does the rest of the work on every render: ages, countdowns, whose turn it is, and
 today's slice of the agenda are all recomputed from `config.yaml` and the current date. Only the
-headline and the written line come from the model.
+headline comes from the model.
 
 That split is why a failed run is not a disaster. Yesterday's fetch already reached 14 days ahead,
 so today's times are still there and still right.
@@ -38,8 +38,8 @@ so today's times are still there and still right.
 | What you see | What it means | What to do |
 |---|---|---|
 | The dashboard, no banner | Today's run succeeded | Nothing |
-| An amber banner across the top | Today's brief was due and did not arrive. Times, turns and countdowns are still today's; only the note is older, and it is labelled | Nothing — the next tick retries. Check `generate.log` if it stays. Press **Rewrite daily message** in settings to force it |
-| "Yesterday's note", with no banner | It is before `brief_time` (06:00 by default) on your clock: today's brief is not due yet, so nothing is wrong | Nothing |
+| An amber banner across the top | Today's headline was due and did not arrive. Times, turns and countdowns are still today's. The headline on screen is one worked out from the day | Nothing — the next tick retries. Check `generate.log` if it stays. Press **Rewrite daily message** in settings to force it |
+| A headline worked out from the day, with no banner | It is before `brief_time` (06:00 by default) on your clock: today's headline is not due yet, so nothing is wrong | Nothing |
 | "Nearly there" | The people are still the example file's invented ones, or the timezone is still UTC | Finish the set-up steps on the settings home. The tick writes nothing until then |
 | "Writing … first dashboard" | Set up, but nothing has been generated yet | Nothing — the next tick writes it, whatever the hour. Press **Write first daily message** in settings if you'd rather not wait |
 
@@ -136,9 +136,6 @@ Pi whose clock is already local.
 **A calendar shows nothing.** Check it under Settings → Calendars — a failed feed says so. Apple
 regenerates iCloud links when a calendar stops being shared, so a link that worked last month may
 need replacing.
-
-**The same fact twice in a fortnight.** `content_history.json` is what stops that; if you deleted
-it, the model has nothing to avoid. It refills itself over the next few days.
 
 **Emoji show as boxes.** `sudo apt install fonts-noto-color-emoji && fc-cache -fv`
 

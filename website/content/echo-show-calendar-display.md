@@ -75,7 +75,7 @@ Alexa already knows about.
 
 ## What you get on the tablet instead
 
-![The DinkyDash dashboard on a tablet in portrait, stacked into one column: today's events, whose turn each chore is, countdowns and the daily note](/images/family-calendar-tablet-board.webp)
+![The DinkyDash dashboard on a tablet in portrait, stacked into one column: today's events, whose turn each chore is, and countdowns](/images/family-calendar-tablet-board.webp)
 
 [DinkyDash](/) is free, open-source software that turns that tablet into a family dashboard:
 
@@ -85,10 +85,10 @@ Alexa already knows about.
   link, and each has its own page here with the steps.
 - **A chore chart that rotates**, moving on one person a day by itself.
 - **Countdowns** to birthdays, Christmas and the school holidays.
-- **A daily note, written fresh each day** by Claude, around your family's actual day.
+- **A headline, written fresh each day** by Claude, around your family's actual day.
 
 It's MIT licensed with no subscription for the self-hosted version. The one running cost is
-the daily note — a Claude API call once a day, roughly $0.13 a month — and the dashboard works
+the headline — a Claude API call once a day, roughly $0.13 a month — and the dashboard works
 without it.
 
 ## Other screens

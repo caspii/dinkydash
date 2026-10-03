@@ -13,7 +13,7 @@ faq:
   - q: "Do I need to install an app?"
     a: "No. DinkyDash is a web page, so Chrome is enough — add it to the home screen and it opens full screen. A kiosk browser is optional, and only worth it if you want the tablet locked down properly."
   - q: "How much does a tablet family calendar cost?"
-    a: "Nothing if the tablet is already in a drawer. A used Android tablet good enough for this costs about $50 to $80. The software is free and open source, and the only running cost is the AI daily note at roughly $0.13 a month."
+    a: "Nothing if the tablet is already in a drawer. A used Android tablet good enough for this costs about $50 to $80. The software is free and open source, and the only running cost is the AI headline at roughly $0.13 a month."
 ---
 
 **Yes — and it's the cheapest good wall calendar you can build.** An Android tablet already
@@ -31,7 +31,7 @@ DinkyDash is a **web page**, not an app you install. So there are two parts:
 
 Nothing goes through the Play Store, and there's no Google account to sign in to.
 
-![The DinkyDash dashboard on a tablet in portrait, stacked into one column: today's events, whose turn each chore is, countdowns and the daily note](/images/family-calendar-tablet-board.webp)
+![The DinkyDash dashboard on a tablet in portrait, stacked into one column: today's events, whose turn each chore is, and countdowns](/images/family-calendar-tablet-board.webp)
 
 The dashboard reads the shape of the screen: one column on a tall display, two on a wide one. So a
 tablet standing upright looks like the picture above, and one lying on its side splits the
@@ -75,7 +75,7 @@ That's the only extra piece of software in this whole build, and it's optional.
   link, and each has its own page here with the steps.
 - **A chore chart that rotates**, moving on one person a day by itself.
 - **Countdowns** to birthdays, Christmas and the school holidays.
-- **A daily note, written fresh each day** by Claude, around your family's actual day.
+- **A headline, written fresh each day** by Claude, around your family's actual day.
 
 The dashboard refreshes itself every five minutes. If the Wi-Fi drops, it keeps the last
 dashboard on screen with a small "Reconnecting" note rather than an error page, and catches up
@@ -90,7 +90,7 @@ the wall follows.
 | A tablet already in a drawer | **$0** |
 | A used Android tablet | ~$50–80 |
 | DinkyDash | Free, MIT licensed, no subscription |
-| The AI daily note | ~$0.13/month, and optional |
+| The AI headline | ~$0.13/month, and optional |
 
 A Skylight Calendar is $299.99 to $599.99 plus an optional $79 a year for the same wall. The
 [best digital family calendar page](/best-digital-family-calendar/) puts them side by side.

@@ -8,13 +8,13 @@ DinkyDash was built for families. It works in an office kitchen, a classroom or 
 
 ## What's on the screen
 
-Today's shared calendar in time order, whose turn it is for the rotating jobs, countdowns to the dates that matter, and two lines written fresh each day by Claude: a headline and one note.
+Today's shared calendar in time order, whose turn it is for the rotating jobs, countdowns to the dates that matter, and a headline written fresh each day by Claude.
 
-The note is one of two things — a fact, or a line about the pet if you've named one. That's the lot. There's no icebreaker generator and no conversation-starter feature.
+That's the lot. There's no icebreaker generator and no conversation-starter feature.
 
 ## What it's actually good at
 
-Static office screens get ignored. Someone puts up a shared calendar and a motivational quote, and by week two nobody's looking. The headline and the fact change every day, which is enough to make people glance — and while they're glancing they see the rota and the calendar.
+Static office screens get ignored. Someone puts up a shared calendar and a motivational quote, and by week two nobody's looking. The headline changes every day, which is enough to make people glance — and while they're glancing they see the rota and the calendar.
 
 The rota is the part that earns its place. Who's buying the coffee, who's cleaning the fridge, who's running stand-up: it moves to the next person when the date changes, with nothing to tick and nobody to chase. That's the failure mode it fixes. A shared spreadsheet needs somebody to maintain it, and that person gives up in about three weeks.
 
@@ -32,7 +32,7 @@ The settings are built around a household, so you translate:
 ## The honest limits
 
 - **It thinks it's writing for a household.** Claude is told the name, who's in it and where they are. There's no tone setting, no audience setting and no custom prompt — none of those are settings. Self-host and you can edit the prompt in the source, but that's a code change, not configuration.
-- **The note is a fact or the pet.** Nothing else, and nothing age-aware.
+- **The headline is written for a household.** Nothing else, and nothing age-aware.
 - **Everyone sees the same screen.** There's no per-person view and no sign-in on the display.
 
 If you can live with those, it's a good shared-space screen. If you need per-team content or a tone dial, it isn't the tool and we'd rather say so.

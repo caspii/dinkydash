@@ -1,7 +1,8 @@
 """What the dashboard shows, especially on a day the generation failed.
 
 The design claim being tested: when a morning's run fails, the times, turns and
-countdowns on the wall are still *today's* — only the written line is old.
+countdowns on the wall are still *today's*. The headline gives way to one
+worked out from the day. A stored note stays on the view and is not rendered.
 """
 
 import json
@@ -416,8 +417,7 @@ class TestTheBannerOnTheDashboard:
     that shows the banner anyway would pass every test above.
     """
 
-    BANNER = "note hasn&rsquo;t arrived"
-    POINTER = "older one below"
+    BANNER = "headline hasn&rsquo;t arrived"
 
     def page_at(self, tmp_path, monkeypatch, hour, minute=0, data=None):
         from dinkydash import config as config_module
@@ -437,25 +437,68 @@ class TestTheBannerOnTheDashboard:
     def test_the_night_is_quiet(self, tmp_path, monkeypatch):
         page = self.page_at(tmp_path, monkeypatch, 1, 30)
         assert self.BANNER not in page
-        # Still labelled, so nobody reads yesterday’s note as today’s.
-        assert "Yesterday&rsquo;s note" in page
+        assert "An octopus fact" not in page
 
-    def test_the_morning_says_so(self, tmp_path, monkeypatch):
+    def test_the_morning_says_the_headline_was_worked_out(self, tmp_path, monkeypatch):
         page = self.page_at(tmp_path, monkeypatch, 7, 0)
         assert self.BANNER in page
-        # The banner points at the note by the name on its label.
-        assert self.POINTER in page
-        assert "Yesterday&rsquo;s note" in page
+        assert "worked out from the day" in page
+        assert "An octopus fact" not in page
+        assert "Yesterday&rsquo;s note" not in page
 
-    def test_a_note_older_than_yesterday_is_not_called_yesterdays(self, tmp_path, monkeypatch):
+    def test_an_older_brief_still_renders_without_its_note(self, tmp_path, monkeypatch):
         old = payload("2026-08-30", [event("2026-09-03", "08:20", "School run")])
         page = self.page_at(tmp_path, monkeypatch, 7, 0, data=old)
-        assert "Older note" in page
+        assert "School run" in page
+        assert "An octopus fact" not in page
+        assert "Older note" not in page
         assert "Yesterday" not in page
 
-    def test_with_no_note_the_banner_points_at_nothing(self, tmp_path, monkeypatch):
+    def test_an_agenda_with_no_brief_still_says_the_headline_is_missing(self, tmp_path, monkeypatch):
         agenda = {"events": [event("2026-09-03", "08:20", "School run")],
                   "calendars_fetched_at": "2026-09-03T00:10:00+00:00"}
         page = self.page_at(tmp_path, monkeypatch, 7, 0, data=agenda)
         assert self.BANNER in page
-        assert self.POINTER not in page
+        assert "older one below" not in page
+
+
+class TestTheFactOfTheDayIsNotShown:
+    """A stored note must not come back onto the dashboard.
+
+    The brief can still carry one — an older file, an export, a row written
+    before the dashboard stopped asking for it — and the page has to render
+    the rest of that brief without printing the note.
+    """
+
+    def test_a_fresh_dashboard_drops_the_note(self, tmp_path, monkeypatch):
+        from dinkydash import config as config_module
+        from dinkydash.store import FileStore
+        from tests.conftest import client_for
+        from web import create_app
+
+        path = tmp_path / "config.yaml"
+        path.write_text(
+            'family_name: "The Wilsons"\ntimezone: "Europe/Berlin"\n'
+            'people:\n  - name: "Mia"\n    date_of_birth: "2017-03-15"\n'
+            'recurring:\n  - title: "Set the table"\n    emoji: "🍽"\n'
+            '    choices: ["Mia"]\n'
+        )
+        (tmp_path / "dashboard_data.json").write_text(json.dumps(payload(
+            "2026-09-03",
+            [event("2026-09-03", "08:20",
+                   "A very long appointment title that has to wrap on a narrow column")],
+            headline="Big morning",
+            note="Did you know? Violins are made from over 70 separate pieces of wood.",
+        )))
+        moment = datetime(2026, 9, 3, 9, 0,
+                          tzinfo=tzinfo_for({"timezone": "Europe/Berlin"}))
+        monkeypatch.setattr(config_module, "now_for", lambda _: moment)
+        page = client_for(create_app(FileStore(path))).get("/").get_data(as_text=True)
+        assert "Big morning" in page
+        assert "A very long appointment title that has to wrap" in page
+        assert "Set the table" in page
+        assert "Did you know?" not in page
+        assert "Violins are made" not in page
+        assert 'class="note' not in page
+        # The title is allowed to wrap; it is not clipped in the markup.
+        assert "overflow-wrap: break-word" in page

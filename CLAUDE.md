@@ -5,7 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Overview
 
 DinkyDash is a family dashboard for a screen on the wall. A daily cron job calls the Claude API to
-write a headline and one line of copy; the Flask app renders that alongside today's agenda, whose
+write a headline; the Flask app renders that alongside today's agenda, whose
 turn each chore is, and the countdowns — all recomputed from `config.yaml` at render time.
 
 Three components:
@@ -563,8 +563,10 @@ to tell you.
   shapes are written — a `%H:%M` anywhere else is a time that will not follow the setting. Stored
   times keep one shape in both modes; the reader's shape is applied at the point of display, so a
   change shows on the next redraw rather than on the next calendar fetch.
-- The dashboard is sized in `rem` off one root `clamp(11px, 2.4vh, 26px)`, so the same layout reads on a
-  480px-tall Pi panel and a living-room TV. Two columns above a 3:2 aspect ratio, one below.
+- The dashboard is sized in `rem` off one root. The stylesheet fallback is `clamp(12px, 3.2vh, 40px)`;
+  the script in `board.html` raises that until the content fills the viewport and lowers it when a
+  busy day would overflow, capped at `min(120px, innerHeight / 9)`. Two columns from a 5:4 aspect
+  ratio and 640px wide; portrait and narrower screens stack.
 - The settings UI does the same off one root `clamp(1rem, 0.75rem + 0.625vw, 1.25rem)`: the mockup's
   16px on a phone, up to 20px on a desktop browser, so the phone layout reads at desk distance
   without becoming a second layout. Every length in `web/templates/settings/` is therefore in `rem`

@@ -248,7 +248,8 @@ class TestWriteBrief:
     def test_it_records_the_note_in_the_history(self, home, store, config, api_key):
         runner.write_brief(config, store, today=date(2026, 9, 3), client=FakeClient())
         history = json.loads((home / "content_history.json").read_text())
-        assert history[-1]["note"] == "An octopus fact."
+        assert history[-1]["note"] == ""
+        assert history[-1]["headline"] == "Big morning"
         assert history[-1]["date"] == "2026-09-03"
 
     def test_it_works_with_no_payload_at_all(self, store, config, api_key):

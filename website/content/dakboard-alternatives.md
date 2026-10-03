@@ -15,7 +15,7 @@ faq:
   - q: "What is the best DAKboard alternative for a Raspberry Pi?"
     a: "DinkyDash and MagicMirror² both run on a Raspberry Pi and are free and open source. DinkyDash is a family calendar with a chore rotation and countdowns and needs no modules to be useful. MagicMirror² is a general module platform, so it is more flexible and takes longer to set up."
   - q: "Can I keep my family's data on my own machine?"
-    a: "With a self-hosted option, yes. DinkyDash, MagicMirror² and Home Assistant all run on your own hardware, so your config and family details stay there. One exception worth knowing: DinkyDash sends the day's agenda to Anthropic once a day to write the daily note. DAKboard, Mango Display, Skylight and Hearth all store your data on their servers."
+    a: "With a self-hosted option, yes. DinkyDash, MagicMirror² and Home Assistant all run on your own hardware, so your config and family details stay there. One exception worth knowing: DinkyDash sends the day's agenda to Anthropic once a day to write the headline. DAKboard, Mango Display, Skylight and Hearth all store your data on their servers."
 ---
 
 DAKboard has been the go-to wall display for tinkerers for years, and it earned that. But plenty of people go looking for something else — usually because the free tier is tighter than expected, because they want the source, or because they want a family calendar rather than a general-purpose dashboard.
@@ -54,9 +54,9 @@ Full disclosure: DinkyDash is our project, so treat this entry accordingly — t
 
 DinkyDash turns any TV, tablet, Raspberry Pi or spare monitor into a family calendar. It shows today's events from any iCal link, a chore chart that rotates between kids automatically, countdowns to birthdays and holidays, and **a daily message written by AI, fresh every day** — a greeting written around your family's actual day. No other option on this page does that last one.
 
-![The DinkyDash dashboard showing today's agenda, whose turn each chore is, countdowns to birthdays and holidays, and the AI-written daily note](/images/family-dashboard-board.webp)
+![The DinkyDash dashboard showing today's agenda, whose turn each chore is, countdowns to birthdays and holidays, and the AI-written headline](/images/family-dashboard-board.webp)
 
-It is MIT-licensed, and self-hosting it is free forever, with no paid tier and no screen limit. Run it yourself and your config — names, birthdays, calendar links — stays on your own machine. To be precise about the one thing that does leave: the day's agenda is sent to Anthropic once a day to write the note. You can try the whole thing without an API key first — there is a no-key preview in the [setup guide](/getting-started/) — but the daily message is the part that needs one.
+It is MIT-licensed, and self-hosting it is free forever, with no paid tier and no screen limit. Run it yourself and your config — names, birthdays, calendar links — stays on your own machine. To be precise about the one thing that does leave: the day's agenda is sent to Anthropic once a day to write the headline. You can try the whole thing without an API key first — there is a no-key preview in the [setup guide](/getting-started/) — but the daily message is the part that needs one.
 
 The trade-off is real: self-hosting means an afternoon and some comfort with a terminal. Our [getting started guide](/getting-started/) has copy-paste commands. The only running cost is your own Anthropic key for the daily message — about $0.13 a month, and well under $1.
 

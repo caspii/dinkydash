@@ -18,9 +18,9 @@ Every morning at 6am, DinkyDash automatically:
 - Fetches your Google Calendar events (any iCal link works)
 - Figures out whose turn it is for each chore
 - Calculates countdowns to birthdays, holidays, and special dates
-- Sends all of this to Claude, which writes the headline and the daily note
+- Sends all of this to Claude, which writes the headline
 
-The result is a screen that feels alive. It knows it's someone's birthday week. It writes a different fun fact every day, tuned to your kids' interests. Kids check it voluntarily — which is the entire battle.
+The result is a screen that feels alive. It knows it's someone's birthday week. The headline is written around that day. Kids check it voluntarily — which is the entire battle.
 
 ## What the dashboard shows
 
@@ -28,7 +28,6 @@ The result is a screen that feels alive. It knows it's someone's birthday week. 
 - **Today's agenda** — what's happening today, in time order, merged from every calendar you add
 - **Chore rotation** — who does what today, rotated automatically and fairly
 - **Countdowns** — days until birthdays, holidays and the dates everyone keeps asking about
-- **A daily note** — a fact, or something about the pet, different every day
 
 ## The principles
 

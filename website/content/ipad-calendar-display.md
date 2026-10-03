@@ -33,7 +33,7 @@ DinkyDash is a **web page**, not an app you install. So there are two parts:
 
 Nothing goes through the App Store, and there's no Apple ID to sign in to.
 
-![The DinkyDash dashboard on a tablet in portrait, stacked into one column: today's events, whose turn each chore is, countdowns and the daily note](/images/family-calendar-tablet-board.webp)
+![The DinkyDash dashboard on a tablet in portrait, stacked into one column: today's events, whose turn each chore is, and countdowns](/images/family-calendar-tablet-board.webp)
 
 Portrait or landscape both work. The dashboard is a single column on a tall screen and two columns
 on a wide one — it decides from the shape of the display, so an iPad standing upright looks
@@ -80,7 +80,7 @@ Nothing is hidden and nothing breaks.
   link, and each has its own page here with the steps.
 - **A chore chart that rotates**, moving on one person a day by itself.
 - **Countdowns** to birthdays, Christmas and the school holidays.
-- **A daily note, written fresh each day** by Claude, around your family's actual day.
+- **A headline, written fresh each day** by Claude, around your family's actual day.
 
 The dashboard refreshes itself every five minutes. If the Wi-Fi drops, it keeps the last
 dashboard on screen with a small "Reconnecting" note rather than an error page, and catches up
@@ -91,7 +91,7 @@ calendar app, and the wall follows.
 ## What it costs
 
 **Nothing, if the iPad is already in a drawer.** DinkyDash is free and MIT licensed with no
-subscription for the self-hosted version. The one running cost is the daily note, which is a
+subscription for the self-hosted version. The one running cost is the headline, which is a
 Claude API call once a day — roughly $0.13 a month — and the dashboard works without it.
 
 For comparison, a Skylight Calendar is $299.99 to $599.99 plus an optional $79 a year. The

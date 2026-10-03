@@ -11,8 +11,7 @@ import pytest
 
 from dinkydash.claude_client import GenerationError, call_claude
 from dinkydash.generate import generate
-from dinkydash.prompt import (RESPONSE_SCHEMA, NOTE_KINDS, build_user_prompt,
-                              choose_note_kind, note_instruction)
+from dinkydash.prompt import RESPONSE_SCHEMA, build_user_prompt
 
 CONFIG = {
     "family_name": "The Wilsons",
@@ -72,7 +71,7 @@ class FakeMessages:
 
 
 class FakeClient:
-    def __init__(self, reply='{"headline": "Big morning", "note": "An octopus fact."}',
+    def __init__(self, reply='{"headline": "Big morning"}',
                  raises=None):
         self.messages = FakeMessages(reply, raises)
 
@@ -86,7 +85,7 @@ class TestCallClaude:
     def test_returns_the_parsed_content(self, client):
         result = call_claude("prompt", CONFIG, client=client)
         assert result["headline"] == "Big morning"
-        assert result["note"] == "An octopus fact."
+        assert "note" not in result
         assert result["model"] == "claude-haiku-4-5"
         assert result["input_tokens"] == 1200
 
@@ -129,7 +128,6 @@ class TestPrompt:
             config=CONFIG, today=TODAY, events_today=EVENTS[:2], events_soon=EVENTS[2:3],
             chores=[{"title": "Set the table", "assigned_to": "Mia", "emoji": "🍽"}],
             countdowns=[{"title": "Christmas", "days": 113, "emoji": "🎄"}],
-            recent_notes=["An old fact about cats."], note_kind="fact",
         )
         defaults.update(kwargs)
         return build_user_prompt(**defaults)
@@ -144,10 +142,16 @@ class TestPrompt:
         assert "Mia, 9" in prompt  # born March 2017, so 9 by September 2026
         assert "dinosaurs" in prompt
 
-    def test_lists_recent_notes_to_avoid(self):
+    def test_names_a_pet_so_the_headline_can(self):
         prompt = self.build()
-        assert "An old fact about cats." in prompt
-        assert "must not resemble" in prompt
+        assert "Biscuit, a dog" in prompt
+
+    def test_does_not_ask_for_a_fact(self):
+        prompt = self.build().lower()
+        assert "fact" not in prompt
+        assert "did you know" not in prompt
+        assert "must not resemble" not in prompt
+        assert "write today's headline" in prompt
 
     def test_says_so_plainly_when_the_day_is_empty(self):
         prompt = self.build(events_today=[])
@@ -160,35 +164,13 @@ class TestPrompt:
         assert "All day: Inset day" in prompt
 
 
-class TestNoteKind:
-    def test_pets_are_only_offered_when_there_is_a_pet(self):
-        petless = dict(CONFIG, pets=[])
-        kinds = {choose_note_kind(petless) for _ in range(40)}
-        assert "pet" not in kinds
-        assert kinds <= set(NOTE_KINDS)
-
-    def test_a_pet_household_can_get_a_pet_note(self):
-        kinds = {choose_note_kind(CONFIG) for _ in range(60)}
-        assert "pet" in kinds
-
-    def test_each_kind_produces_its_own_instruction(self):
-        assert "Biscuit" in note_instruction("pet", CONFIG)
-        assert "fact" in note_instruction("fact", CONFIG).lower()
-
-    def test_a_petless_house_always_gets_a_fact(self):
-        # "fact" and "pet" are the only kinds left, so this is the whole
-        # rotation for a family without an animal.
-        petless = dict(CONFIG, pets=[])
-        assert {choose_note_kind(petless) for _ in range(40)} == {"fact"}
-
-
 class TestGenerate:
     def test_builds_a_complete_payload(self, client):
         payload = generate(CONFIG, TODAY, EVENTS, client=client)
         assert payload["generated_for_date"] == "2026-09-03"
         assert payload["headline"] == "Big morning"
-        assert payload["note"] == "An octopus fact."
-        assert payload["note_kind"] in NOTE_KINDS
+        assert payload["note"] == ""
+        assert payload["note_kind"] == ""
         assert payload["family_name"] == "The Wilsons"
         assert payload["model"] == "claude-haiku-4-5"
 
@@ -205,20 +187,24 @@ class TestGenerate:
         assert "countdowns" not in payload
 
     def test_the_prompt_sees_todays_events_and_the_near_future(self, client):
-        generate(CONFIG, TODAY, EVENTS, client=client, note_kind="fact")
+        generate(CONFIG, TODAY, EVENTS, client=client)
         prompt = client.messages.calls[0]["messages"][0]["content"]
         assert "School run" in prompt
         assert "Dentist" in prompt        # two days out, inside the horizon
         assert "Far off" not in prompt    # 27 days out, beyond it
+        assert "note" not in client.messages.calls[0]["output_config"]["format"]["schema"]["properties"]
 
     def test_the_payload_is_json_serialisable(self, client):
         payload = generate(CONFIG, TODAY, EVENTS, client=client)
         assert json.loads(json.dumps(payload))["headline"] == "Big morning"
 
-    def test_a_requested_note_kind_is_honoured(self, client):
-        payload = generate(CONFIG, TODAY, EVENTS, client=client, note_kind="pet")
-        assert payload["note_kind"] == "pet"
-        assert "Biscuit" in client.messages.calls[0]["messages"][0]["content"]
+    def test_a_note_in_the_reply_is_not_stored(self, client):
+        # Structured outputs will not send one. A reply that still has the
+        # key must not put a fact back on the brief.
+        client.messages.reply = '{"headline": "Big morning", "note": "An octopus fact."}'
+        payload = generate(CONFIG, TODAY, EVENTS, client=client)
+        assert payload["note"] == ""
+        assert payload["headline"] == "Big morning"
 
     def test_a_day_with_no_events_still_generates(self, client):
         payload = generate(CONFIG, TODAY, [], client=client)

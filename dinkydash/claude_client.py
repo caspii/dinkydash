@@ -22,7 +22,7 @@ class GenerationError(Exception):
 
 
 def call_claude(user_prompt, config, client=None):
-    """Ask Claude for today's headline and note. Returns a dict."""
+    """Ask Claude for today's headline. Returns a dict."""
     if client is None:
         from anthropic import Anthropic
         client = Anthropic()
@@ -54,7 +54,6 @@ def call_claude(user_prompt, config, client=None):
     usage = getattr(response, "usage", None)
     return {
         "headline": str(content.get("headline", "")).strip(),
-        "note": str(content.get("note", "")).strip(),
         "model": model,
         "input_tokens": getattr(usage, "input_tokens", None),
         "output_tokens": getattr(usage, "output_tokens", None),
