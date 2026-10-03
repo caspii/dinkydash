@@ -190,9 +190,11 @@ def test_lapsed_board_dates_and_turns_do_not_advance(hosted, pg_pool, pg_family,
     second = parent.get(path)
     assert first.data == second.data
     text = first.get_data(as_text=True)
-    for saved in ("Saved headline", "Saved appointment", "Saved note", "Tuesday, 8 September",
+    for saved in ("Saved headline", "Saved appointment", "Tuesday, 8 September",
                   "Set the table", "has ended", "dates and turns are paused"):
         assert saved in text
+    # The brief still stores a note. A lapsed board keeps that data and does not show it.
+    assert "Saved note" not in text
     assert "no-store" in first.headers["Cache-Control"]
     assert first.headers["X-Robots-Tag"] == "noindex, nofollow"
     assert model.messages.calls == []
