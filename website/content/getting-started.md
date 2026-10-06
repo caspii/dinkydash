@@ -7,7 +7,9 @@ description: Set up DinkyDash from scratch — first on your computer, then as a
 
 This guide takes you from nothing to a working family dashboard. You start on your own computer, see the dashboard, then move it onto a Raspberry Pi that shows it on the wall and keeps itself up to date.
 
-You do not need an Anthropic API key to try it — there is a no-key preview in step 3. You only need a key for the AI-written headline, which runs once a day.
+You don't need an Anthropic API key to try it — there's a no-key preview in step 3. You only need a key for the AI-written headline, which runs once a day.
+
+This is the self-hosting guide, and it uses a terminal. If you'd rather skip all of it, we can host the same dashboard for you: free for 14 days, then $39 a year or $6 a month. [Start free](https://app.dinkydash.co/login).
 
 ## What you need
 

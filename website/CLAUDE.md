@@ -8,6 +8,9 @@ Guidance for `website/`. The root `CLAUDE.md` holds the rules that apply to ever
 applies to every word of it** — contractions, read it aloud, and no claim about what the
 product does that you have not traced to the code that does it.
 
+**Nothing here ships without going through [`doc/content-process.md`](../doc/content-process.md)**:
+who drafts and checks, the checklist, and the tests in `tests/test_site.py` that block a merge.
+
 **`website/` never runs on the dashboard**, and that is what settles most questions here.
 
 - **Its dependencies go in `requirements-site.txt`, never `requirements.txt`.** The runtime

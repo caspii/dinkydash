@@ -6,11 +6,11 @@ description: How DinkyDash helps families start the day organised, with a dashbo
 
 Mornings with kids are chaos. Between getting dressed, making breakfast, remembering school bags, and getting out the door on time, the last thing you need is to be everyone's personal assistant answering questions about the day ahead.
 
-DinkyDash helps by putting all the information your family needs on a single screen — generated fresh by AI each day, before anyone's up.
+DinkyDash helps by putting what your family needs to know on a single screen, already up to date before anyone's awake.
 
 ## The dashboard is ready before you are
 
-DinkyDash writes the day's dashboard at 6am, or whenever you'd rather have it. By the time your family walks into the kitchen, today's dashboard is already on the screen:
+DinkyDash writes the day's headline at 06:00, or whenever you'd rather have it, and your calendars refresh every hour. By the time your family walks into the kitchen, today's dashboard is already on the screen:
 
 - **What's happening today** — all calendar events at a glance, so everyone knows the plan
 - **Whose turn for chores** — no arguments, the dashboard says so
@@ -29,7 +29,7 @@ The dashboard rotates chores automatically. Today it's Lily's turn for dishes, t
 
 **3. No one forgets what's happening after school**
 
-Swimming practice at 4pm? Dentist at 3:30? It's all on the dashboard, pulled directly from your Google Calendar. Kids can read it themselves and know what to expect.
+Swimming practice at 16:00? Dentist at 15:30? It's all on the dashboard, pulled directly from your Google Calendar. Kids can read it themselves and know what to expect.
 
 **4. The headline gives the day a name**
 
@@ -41,14 +41,18 @@ Instead of keeping everyone's schedule and chore assignments in your head, it's 
 
 ## What a DinkyDash morning looks like
 
-**6:00am** — DinkyDash wakes up before your family. It fetches today's calendar events, rotates the chores, calculates the countdowns, and asks Claude to write today's dashboard. The JSON is saved and ready to display.
+**06:00** — Before your family is up, Claude reads the day ahead and writes the headline. The calendar was already refreshed an hour ago, and the chores and countdowns move on with the date by themselves.
 
-**7:15am** — Your daughter walks into the kitchen and checks the screen. "Only 12 days until my birthday!" She sees it's her brother's turn to feed the cat. No arguments.
+**07:15** — Your daughter walks into the kitchen and checks the screen. "Only 12 days until my birthday!" She sees it's her brother's turn to feed the cat. No arguments.
 
-**7:30am** — Over breakfast, your son reads the headline out: "Two fun runs for our champions." Everyone knows which morning it is.
+**07:30** — Over breakfast, your son reads the headline out: "Two fun runs for our champions." Everyone knows which morning it is.
 
-**7:45am** — Before heading out, you glance at the calendar section. Right — your son has a dentist appointment at 4pm. Almost forgot.
+**07:45** — Before heading out, you glance at the calendar section. Right — your son has a dentist appointment at 16:00. Almost forgot.
 
 ## Getting started
 
-DinkyDash is free, open source, and runs on a Raspberry Pi. Set it up once, and your family gets a new dashboard every day without lifting a finger. Check out the [GitHub repository](https://github.com/caspii/dinkydash) to get started.
+Set it up once, and your family gets a fresh dashboard every day without lifting a finger.
+
+**We host it.** Paste a calendar link and open your dashboard on any screen with a browser. Free for 14 days, and we don't ask for a card. After that it's $39 a year or $6 a month. [Start free](https://app.dinkydash.co/login).
+
+**You host it.** It's open source and free on your own machine, with your own Anthropic key at about $0.13 a month. [The setup guide](/getting-started/) has the commands.

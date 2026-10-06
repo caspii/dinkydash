@@ -20,7 +20,7 @@ faq:
 Open the browser, type the address, and the dashboard fills the screen. No app, no account, no
 casting.
 
-But be told the limit up front: **a television is built to stop showing a still picture.**
+But know the limit up front: **a television is built to stop showing a still picture.**
 That makes it a fine screen to glance at and a poor always-on panel. The honest version of
 both halves is below.
 

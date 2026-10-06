@@ -33,7 +33,7 @@ faq:
 | Skylight Calendar Max (27″) | $599.99 | $599.99 + $79/yr → **~$679 first year** |
 | Cost over 3 years (Max) | $599.99 | **~$837** |
 
-*Prices checked 6 September 2026 — Skylight adjusts pricing and bundles regularly (Costco bundles sometimes include a year of Plus).*
+*Prices checked 6 October 2026 — Skylight adjusts pricing and bundles regularly (Costco bundles sometimes include a year of Plus).*
 
 ## Is Plus worth $79 a year?
 
@@ -45,7 +45,7 @@ You have three subscription-free routes:
 
 1. **Skylight without Plus** — keep the core calendar, skip the extras.
 2. **Cozyla** — dedicated hardware whose core calendar, chores and routines need no subscription. An optional Calendar Essential plan auto-renews at $79.99/yr and covers meal planning, custom screensavers and the AI voice agent.
-3. **Free software on a screen you already own** — [DinkyDash](/) is open source and turns any TV, tablet, or Raspberry Pi into a family calendar with chore rotations, countdowns, and an AI-written daily message. Hardware cost: $0 if you own a spare screen, [about $100 for a tidy Raspberry Pi build](/diy-skylight-calendar/). Subscription: none, ever.
+3. **Free software on a screen you already own** — [DinkyDash](/) is open source and turns any TV, tablet, or Raspberry Pi into a family calendar with chore rotations, countdowns, and an AI-written daily message. Hardware cost: $0 if you own a spare screen, [about $100 for a tidy Raspberry Pi build](/diy-skylight-calendar/). Subscription: none if you run it yourself. If you'd rather we host it, it's $39 a year after a free 14-day trial.
 
 For the full field, see our guide to [the 8 best Skylight Calendar alternatives](/skylight-calendar-alternatives/).
 

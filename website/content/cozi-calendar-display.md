@@ -76,7 +76,7 @@ Point it at Cozi:
 
 ![Adding a calendar in DinkyDash's settings: a name, the iCal link, and a Test calendar link button](/images/settings-add-calendar.webp)
 
-Everything stays where it's. You keep adding events in Cozi on your phone, because the feed
+Everything stays where it is. You keep adding events in Cozi on your phone, because the feed
 is read-only and a display can't write back to it. The screen just shows what Cozi already
 knows.
 
@@ -91,7 +91,7 @@ show:
 
 - **A chore chart that rotates.** List who is in the rota and it moves on one person a day,
   by itself. Nobody has to update a chart, and the screen — not a parent — is the one saying
-  whose turn it's.
+  whose turn it is.
 - **Countdowns.** Birthdays, Christmas, the school holidays. This is the feature children
   actually use, and it retires the "how many days until…" question.
 - **A headline.** Written each day around the family's real day.

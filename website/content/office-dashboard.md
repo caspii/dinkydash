@@ -10,7 +10,7 @@ DinkyDash was built for families. It works in an office kitchen, a classroom or 
 
 Today's shared calendar in time order, whose turn it is for the rotating jobs, countdowns to the dates that matter, and a headline written fresh each day by Claude.
 
-That's the lot. There's no icebreaker generator and no conversation-starter feature.
+That's the lot.
 
 ## What it's actually good at
 
@@ -31,8 +31,7 @@ The settings are built around a household, so you translate:
 
 ## The honest limits
 
-- **It thinks it's writing for a household.** Claude is told the name, who's in it and where they are. There's no tone setting, no audience setting and no custom prompt — none of those are settings. Self-host and you can edit the prompt in the source, but that's a code change, not configuration.
-- **The headline is written for a household.** Nothing else, and nothing age-aware.
+- **The headline is written for a household.** Claude is told the dashboard's name, the people on it and where they are, and writes as if they're a family. There's no tone, audience or custom-prompt setting. Self-host and you can edit the prompt in the source, but that's a code change, not configuration.
 - **Everyone sees the same screen.** There's no per-person view and no sign-in on the display.
 
 If you can live with those, it's a good shared-space screen. If you need per-team content or a tone dial, it isn't the tool and we'd rather say so.

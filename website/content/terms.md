@@ -5,7 +5,7 @@ template: page.html
 description: The terms for the hosted version of DinkyDash at app.dinkydash.co. Self-hosting is MIT-licensed and covered by the licence, not by these.
 ---
 
-*Last updated: 9 September 2026.*
+*Last updated: 3 October 2026.*
 
 These terms cover the **hosted** service at `app.dinkydash.co`. If you run
 DinkyDash yourself from the source code, the [MIT

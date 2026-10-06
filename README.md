@@ -122,7 +122,7 @@ pip install -r requirements-dev.txt   # adds pytest and the website build; not n
 python -m pytest tests/ -q
 ```
 
-368 tests, well under a second. They cover leap years, timezone conversion, event ordering, chore
+The suite runs in seconds. It covers leap years, timezone conversion, event ordering, chore
 rotation, the stale-dashboard logic, the config round-trip, and the settings routes that write it.
 
 GitHub Actions runs the same command on every push and pull request, on Python 3.11
@@ -156,7 +156,7 @@ versions CI passed on. A pull request that fails either check shows a red X.
 | `.github/workflows/test.yml` | CI: pytest and gitleaks, on every push and pull request |
 | `.gitleaks.toml` | Secret-scanning rules, including one for iCal secret addresses |
 | `dashboard_data.json` | The generated payload (not in git) |
-| `content_history.json` | Recent notes, so the model doesn't repeat itself (not in git) |
+| `content_history.json` | A rolling record of the last 30 days' runs (not in git) |
 
 ## Contributing
 
