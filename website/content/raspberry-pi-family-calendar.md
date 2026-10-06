@@ -68,13 +68,13 @@ Second-hand Pis are abundant and this workload will never stress one, so the use
 
 The architecture is deliberately boring, which is why it keeps running:
 
-1. **A cron job at 6am** runs a generation script. It fetches your calendar, works out ages, birthday countdowns and whose turn it's for each chore, sends all of that to the Claude API, and writes the result to a single JSON file.
-2. **A small Flask server** reads that JSON file and renders the page.
+1. **A cron job ticks every five minutes** and does only what's due: it re-fetches your calendars every hour, and once a day, at a time you pick (06:00 by default), it sends the day's agenda to the Claude API for the headline. Both are saved to a JSON file.
+2. **A small Flask server** reads that file and renders the page, working out ages, countdowns and whose turn each chore is from the date as it goes.
 3. **Chromium launches fullscreen at boot** in kiosk mode and refreshes every five minutes.
 
-The API call happens **once a day**, not on every page load. That matters for two reasons: the dashboard stays instant because it's only ever serving a static file, and your Anthropic bill is a few cents a month rather than a few dollars.
+The API call happens **once a day**, not on every page load. That matters for two reasons: the dashboard stays instant because nothing waits on the network, and your Anthropic bill is about $0.13 a month.
 
-If the network drops or the API call fails, the previous day's JSON is still on disk and the screen keeps showing it. A stale dashboard beats a blank one.
+If the network drops or the API call fails, the last calendar fetch is still on disk and reaches two weeks ahead, so today's agenda, turns and countdowns stay right. The headline falls back to one worked out from the day, and the dashboard says so. It never goes blank.
 
 ## Power draw and leaving it on
 

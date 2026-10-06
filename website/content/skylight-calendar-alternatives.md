@@ -14,7 +14,7 @@ The good news: you have real options — including some that cost nothing becaus
 
 | Alternative | Hardware cost | Subscription | Bring your own screen? |
 |---|---|---|---|
-| **DinkyDash** | $0 | None — open source | Yes |
+| **DinkyDash** | $0 | None self-hosted; hosted $39/yr or $6/mo after a free 14-day trial | Yes |
 | **Mango Display** | $0 | Free tier (no calendar); Pro $5.99/mo | Yes |
 | **DAKboard** | $0 | Free tier; $5–10/mo | Yes |
 | **Hearth Display** | $699 | $9/mo ($86.40/yr) | No |
@@ -23,7 +23,7 @@ The good news: you have real options — including some that cost nothing becaus
 | **Cozi** | $0 (phone app) | Free with ads | No wall display |
 | **Google Calendar on an old tablet** | $0 | None | Yes |
 
-*Prices checked 6 September 2026 — always confirm current pricing before buying. Dæly is sold in euros and ships from Germany.*
+*Prices checked 6 October 2026 — always confirm current pricing before buying. Dæly is sold in euros and ships from Germany.*
 
 ## 1. DinkyDash — free, open source, and AI-powered
 
@@ -33,7 +33,7 @@ It works with the calendars you already keep: **Google Calendar, Apple iCloud Ca
 
 It's MIT-licensed and free to self-host, which means being comfortable with a terminal for an afternoon. Our [getting started guide](/getting-started/) walks you through it. You can also [start a free 14-day hosted trial](https://app.dinkydash.co/login), with no card required.
 
-**Best for:** families with a tinkerer in the house who want $0 hardware and no subscription.
+**Best for:** families who want $0 hardware. Self-host it for free if there's a tinkerer in the house, or let us host it if there isn't.
 
 ## 2. Mango Display — polished BYO-screen software
 

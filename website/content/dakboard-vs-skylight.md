@@ -7,7 +7,7 @@ faq:
   - q: "What is the difference between DAKboard and Skylight?"
     a: "DAKboard is software you point at a screen you already own; Skylight is a screen you buy with the software built in. DAKboard costs $0–10 per month and nothing up front. Skylight costs $299.99 for the 15-inch Calendar 2 or $599.99 for the 27-inch Calendar Max, with an optional Plus subscription at $79 per year. Checked September 2026."
   - q: "Is DAKboard cheaper than Skylight?"
-    a: "Over three years, yes, if you already own a screen. DAKboard Essential is about $180 over three years and Plus is about $288. A 15-inch Skylight with Plus is about $537, and a 27-inch Calendar Max with Plus is about $837. If you have to buy a screen for DAKboard, its own CPU stick is around $80."
+    a: "Over three years, yes, if you already own a screen. DAKboard Essential is about $180 over three years and Plus is about $288. A 15-inch Skylight with Plus is about $537, and a 27-inch Calendar Max with Plus is about $837. If you need hardware to drive the screen, DAKboard's own CPU starts at $99.95."
   - q: "Which is better for a family calendar, DAKboard or Skylight?"
     a: "Skylight, if you want a touchscreen your family taps and no setup at all. DAKboard, if you already own a screen and want control over the layout. DAKboard is a general information dashboard that has added a chore chart; Skylight is built as a family calendar from the start. DinkyDash is a third option: free, open source, family-shaped, and it needs an afternoon of setup."
   - q: "Do I need a subscription for DAKboard or Skylight?"
@@ -24,14 +24,14 @@ Comparing the two best-known ways to put your family's calendar on a wall? Here'
 
 **DinkyDash** — our project — is a third shape: free, open source, bring your own screen, and no subscription at all. We're obviously not neutral about that one, so this page is written to be useful even if you pick one of the other two.
 
-*A word on what this page is. It compares published specifications and public prices, checked on 6 September 2026. It's not a review — we haven't lived with a Skylight on our kitchen wall, and we aren't going to pretend otherwise. For hands-on impressions of the hardware, go and read the people who actually bought one.*
+*A word on what this page is. It compares published specifications and public prices, checked on 6 October 2026. It's not a review — we haven't lived with a Skylight on our kitchen wall, and we aren't going to pretend otherwise. For hands-on impressions of the hardware, go and read the people who actually bought one.*
 
 ## Head to head
 
 | | DAKboard | Skylight Calendar | DinkyDash |
 |---|---|---|---|
-| **Screen** | Bring your own, or their ~$80 CPU stick | Included — 15″ or 27″ touchscreen | Bring your own |
-| **Hardware cost** | $0–80 | **$299.99** (15″ Calendar 2) / **$599.99** (27″ Calendar Max) | $0, or ~$100–130 for a Raspberry Pi build |
+| **Screen** | Bring your own, or their CPU from $99.95 | Included — 15″ or 27″ touchscreen | Bring your own |
+| **Hardware cost** | $0–100 | **$299.99** (15″ Calendar 2) / **$599.99** (27″ Calendar Max) | $0, or ~$100–130 for a Raspberry Pi build |
 | **Subscription** | Free tier; Essential **$6/mo** ($5 annually); Plus **$10/mo** ($8 annually) | Optional Plus, **$79/yr** | **None** self-hosted. Hosted trial free, then $39/yr or $6/mo |
 | **Calendars it reads** | Google, iCloud, Microsoft 365, Facebook Events, ICS files | Google, Apple and Outlook | Google, iCloud and Outlook — you paste a sharing link, there is no sign-in |
 | **Open source** | No | No | **Yes, MIT** |
@@ -41,7 +41,7 @@ Comparing the two best-known ways to put your family's calendar on a wall? Here'
 | **AI** | No | Magic Import on Plus — photograph a school newsletter, get events | A daily message written fresh each day |
 | **Setup** | About ten minutes | Out of the box | An afternoon, and some comfort with a terminal |
 
-*Prices checked 6 September 2026. Always confirm current pricing before buying.*
+*Prices checked 6 October 2026. Always confirm current pricing before buying.*
 
 ## What each one actually is
 
@@ -49,7 +49,7 @@ Comparing the two best-known ways to put your family's calendar on a wall? Here'
 
 DAKboard grew out of the Raspberry Pi community and has been the default answer for wall displays for years. You build a layout in their web editor — calendar, weather, photos, news, sports, whatever — and point any browser at the resulting screen URL. It runs on a TV, a tablet, an old monitor, or their own plug-in CPU.
 
-The thing to check before you start is **what the free tier actually is**. It gives you **one predefined screen and two calendars**, with predefined layouts only, DAKboard branding on the display, a 60-minute calendar refresh and a cap of 20 content blocks. Custom layouts — the feature DAKboard is known for — begin on Essential at $6/month, or $5/month billed annually, which also lifts you to two screens and five calendars. Plus, at $10/month or $8 annually, is where three screens, unlimited calendars and a 15-minute refresh live.
+The thing to check before you start is **what the free tier actually is**. It gives you **one predefined screen and two calendars**, with predefined layouts only, DAKboard branding on the display and a 60-minute calendar refresh. Custom layouts — the feature DAKboard is known for — begin on Essential at $6/month, or $5/month billed annually, which also lifts you to two screens and five calendars. Plus, at $10/month or $8 annually, is where three screens, unlimited calendars and a 15-minute refresh live.
 
 DAKboard does now market a **chore chart**: a column per family member, one tap to check something off, points that convert into rewards you set, and a child lock so siblings can't clear each other's lists. It's on Essential and Plus, not the free tier.
 
@@ -85,8 +85,8 @@ Annual billing where it's offered. The DAKboard and DinkyDash rows assume you al
 |---|---|---|---|
 | **DinkyDash, self-hosted** | $0 (own screen) or ~$100–130 (Pi build) | ~$5 | **~$5–135** |
 | DinkyDash, hosted | $0 | $117 at $39/year | **$117** |
-| DAKboard Essential | $0, or ~$80 for their CPU | ~$180 | **~$180–260** |
-| DAKboard Plus | $0, or ~$80 | ~$288 | **~$288–368** |
+| DAKboard Essential | $0, or ~$100 for their CPU | ~$180 | **~$180–280** |
+| DAKboard Plus | $0, or ~$100 | ~$288 | **~$288–388** |
 | Skylight 15″, no Plus | $299.99 | $0 | **~$300** |
 | Skylight 15″ + Plus | $299.99 | $237 | **~$537** |
 | Skylight Max + Plus | $599.99 | $237 | **~$837** |

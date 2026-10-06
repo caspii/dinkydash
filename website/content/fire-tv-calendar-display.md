@@ -16,7 +16,7 @@ faq:
     a: "No. Silk is a free download, the calendar software is free and open source, and nothing here touches Prime."
 ---
 
-There's no good family calendar app for Fire TV. There's, however, a **browser** — Amazon's
+There's no good family calendar app for Fire TV. There is, though, a **browser** — Amazon's
 own Silk, free in the same app store — and a web-based calendar dashboard opens in it with nothing
 else to install.
 

@@ -1,46 +1,40 @@
 ---
 title: About DinkyDash
-seo_title: "About DinkyDash — Free Open-Source Family Calendar"
+seo_title: "About DinkyDash — An Open-Source Family Calendar"
 template: page.html
-description: DinkyDash is a free, open-source digital family calendar that runs on screens you already own — with an AI-written daily message for your family.
+description: DinkyDash is an open-source family calendar for a screen you already own. We can host it for you, or you can run it yourself for free.
 ---
 
-DinkyDash is a free, open-source **digital family calendar for screens you already own**. Point a TV, an old tablet, or a Raspberry Pi at it and your family gets one glanceable screen with today's calendar, a self-rotating chore chart, countdowns to the big days — and a daily message written fresh every day by AI.
+DinkyDash is a **family calendar for a screen you already own**. Open it on a TV, an old tablet or a Raspberry Pi, and your family gets one screen with today's calendar, whose turn each chore is, and countdowns to the big days. A short headline at the top is written fresh each day.
 
-It was built by [Caspar](https://casparwre.de), an indie developer in Berlin, for his own kids — and open-sourced because a family calendar shouldn't cost $600 plus a subscription.
-
-## Why an AI-written dashboard?
-
-Most family calendar displays show static information that someone has to curate. DinkyDash takes a different approach: you describe your family once, and AI does the rest.
-
-Every morning at 6am, DinkyDash automatically:
-
-- Fetches your Google Calendar events (any iCal link works)
-- Figures out whose turn it is for each chore
-- Calculates countdowns to birthdays, holidays, and special dates
-- Sends all of this to Claude, which writes the headline
-
-The result is a screen that feels alive. It knows it's someone's birthday week. The headline is written around that day. Kids check it voluntarily — which is the entire battle.
+It was built by [Caspar](https://casparwre.de), an indie developer in Berlin, for his own kids. It's been open source since 2021, because a family calendar shouldn't cost $600 plus a subscription.
 
 ## What the dashboard shows
 
-- **A daily headline** — a cheerful, AI-written greeting for your family
-- **Today's agenda** — what's happening today, in time order, merged from every calendar you add
-- **Chore rotation** — who does what today, rotated automatically and fairly
-- **Countdowns** — days until birthdays, holidays and the dates everyone keeps asking about
+- **Today's agenda.** What's happening today, in time order, merged from every calendar you add.
+- **Whose turn it is.** Each chore passes to the next person every day, so nobody has to keep track.
+- **Countdowns.** Days until birthdays, holidays and the dates everyone keeps asking about.
+- **A headline.** One line about the day, written by AI. It's the only part an AI writes.
+
+## How it runs
+
+Once a day, at a time you pick, Claude reads the day ahead and writes the headline. Your calendars are fetched every hour on their own schedule. Whose turn it is and the countdowns are worked out from the date each time the page loads, so they're right even if nobody has touched anything for months.
 
 ## The principles
 
-- **Bring your own screen.** Anything with a browser works — no proprietary hardware, ever.
-- **No subscription.** MIT-licensed, free forever. You bring your own AI API key; a day's dashboard costs a few cents.
-- **Private by design.** Your family's details live in one config file on your own device — not in our cloud, because there isn't one.
-- **Boring, reliable tech.** Python, a cron job, and a web page: `generate.py` builds the day's dashboard as JSON once a day, and a tiny Flask app renders it. It's fixable with a search engine and an afternoon.
+- **Bring your own screen.** Anything with a browser works. There's no hardware to buy from us, now or later.
+- **Nothing to feed.** There's nothing to tick and nobody to chase. It looks after itself.
+- **Yours to keep.** The code is MIT-licensed and public, so the dashboard can't be taken away from you.
+
+## Two ways to have it
+
+**We host it.** Free for 14 days, and we don't ask for a card. After that it's $39 a year or $6 a month. We store your settings so we can build your dashboard each day, and the day's agenda goes to Anthropic so Claude can write the headline. [The privacy policy](/privacy/) names every company involved. [Start free](https://app.dinkydash.co/login).
+
+**You host it.** Free, on your own machine, with your own Anthropic key, which costs about $0.13 a month. Your family's details stay with you. The one thing that leaves is the day's agenda, which goes to Anthropic under your key. Setting it up takes an afternoon and some comfort with a terminal.
 
 ## Where to start
 
-- [Self-hosting guide](/getting-started/) — from zero to a dashboard on your wall
-- [The ~$100 DIY build](/diy-skylight-calendar/) — the Raspberry Pi + touchscreen route
-- [How it compares to Skylight, Hearth & co.](/skylight-calendar-alternatives/)
+- [Self-hosting guide](/getting-started/): from nothing to a dashboard on your wall
+- [The ~$100 DIY build](/diy-skylight-calendar/): the Raspberry Pi and touchscreen route
+- [How it compares to Skylight, Hearth and the rest](/skylight-calendar-alternatives/)
 - [The code, on GitHub](https://github.com/caspii/dinkydash)
-
-Want DinkyDash without the setup? [Start a free 14-day hosted trial](https://app.dinkydash.co/login), no card required.

@@ -9,7 +9,7 @@ faq:
   - q: "Is DAKboard open source?"
     a: "No. DAKboard is a commercial hosted service. You can run its display on your own hardware, such as a Raspberry Pi, but the software runs on DAKboard's servers and the source is not published. DinkyDash, MagicMirror² and Home Assistant are open source."
   - q: "What are the limits of DAKboard's free tier?"
-    a: "As of September 2026, the free tier gives one predefined screen, up to two calendars, predefined layouts only, DAKboard branding on the screen, a 60-minute calendar refresh and a limit of 20 content blocks. Custom layouts start on Essential at $6 per month, or $5 per month billed annually."
+    a: "As of September 2026, the free tier gives one predefined screen, up to two calendars, predefined layouts only, DAKboard branding on the screen and a 60-minute calendar refresh. Custom layouts start on Essential at $6 per month, or $5 per month billed annually."
   - q: "How much does DAKboard cost?"
     a: "DAKboard has a free tier. Essential is $6 per month, or $5 per month billed annually, for two custom screens and five calendars. Plus is $10 per month, or $8 per month billed annually, for three screens and unlimited calendars. Checked September 2026."
   - q: "What is the best DAKboard alternative for a Raspberry Pi?"
@@ -34,15 +34,15 @@ This page compares six alternatives on the things that actually decide it: what 
 | **Mango Display** | Free tier; Pro $5.99/mo | Bring your own | No | No |
 | **Skylight Calendar** | Optional $79/yr | $299.99–$599.99 | No | No |
 | **Hearth Display** | $86.40/yr required | $699 | No | No |
-| *DAKboard, for reference* | *Free tier; $5–10/mo* | *Bring your own, or ~$80 CPU* | *No* | *No* |
+| *DAKboard, for reference* | *Free tier; $5–10/mo* | *Bring your own, or their CPU from $99.95* | *No* | *No* |
 
-*Prices checked 6 September 2026. Always confirm current pricing before buying.*
+*Prices checked 6 October 2026. Always confirm current pricing before buying.*
 
 ## Why people look for a DAKboard alternative
 
 Three reasons come up repeatedly, and they point at different replacements.
 
-**The free tier is narrower than it looks.** DAKboard's free plan gives you **one predefined screen and two calendars**, with predefined layouts only, DAKboard branding on the screen, a 60-minute calendar refresh and a cap of 20 content blocks. Custom layouts — the thing DAKboard is known for — start on Essential at $6/month, or $5/month billed annually. Plus is $10/month, or $8/month annually, and that is where unlimited calendars and 15-minute refreshes live.
+**The free tier is narrower than it looks.** DAKboard's free plan gives you **one predefined screen and two calendars**, with predefined layouts only, DAKboard branding on the screen and a 60-minute calendar refresh. Custom layouts — the thing DAKboard is known for — start on Essential at $6/month, or $5/month billed annually. Plus is $10/month, or $8/month annually, and that is where unlimited calendars and 15-minute refreshes live.
 
 **It is not open source.** You can run the display on your own Raspberry Pi, which reads like self-hosting, but the service runs on DAKboard's servers and the source is not published. If your reason for building a wall display was keeping the family's schedule on your own hardware, that is the wrong shape.
 
@@ -123,7 +123,7 @@ A comparison page that only flatters its own product is not worth reading, so:
 
 - **Layout control.** DAKboard's custom layouts and CSS styling go further than anything here except MagicMirror², and unlike MagicMirror² you get there by dragging rather than by editing config files.
 - **Breadth of data sources.** Calendars, photos, weather, news, sports, stocks, smart-home feeds. DinkyDash does a family's day and nothing else, on purpose.
-- **Official hardware.** Their ~$80 CPU plugs into any TV and is genuinely plug-and-play. Self-hosting means you own the boot problems.
+- **Official hardware.** Their CPU (from $99.95) plugs into any TV and is genuinely plug-and-play. Self-hosting means you own the boot problems.
 - **It just works.** There is a company, a support queue and an uptime record. DinkyDash self-hosting is community-supported, which is a polite way of saying you are the support queue.
 - **Multiple screens.** If you want a display in the kitchen and another in the office showing different things, DAKboard is built for that. DinkyDash is built for one family dashboard.
 

@@ -50,8 +50,8 @@ The [full getting-started guide](/getting-started/) has copy-paste commands for 
 
 1. **Install DinkyDash** — clone the repo, install Python dependencies (about 10 minutes).
 2. **Describe your family** — one config file with names, birthdays, chores, special dates, and your [Google Calendar's iCal link](/google-calendar-ical-link/) (or [iCloud's](/icloud-calendar-link/), or [Outlook's](/outlook-calendar-ics-link/)).
-3. **Add an Anthropic API key** — this powers the AI-written daily message. A day's dashboard costs a few cents.
-4. **Set the 6am schedule** — one cron line generates a fresh dashboard every morning before anyone wakes up.
+3. **Add an Anthropic API key** — this powers the AI-written headline. It comes to about $0.13 a month.
+4. **Set the schedule** — one cron line checks every five minutes. Calendars refresh hourly, and the headline is written once a day at a time you pick (06:00 unless you change it).
 5. **Point your screen at it** — on a Pi, Chromium launches fullscreen at boot; on a tablet or TV, just open the dashboard URL in the browser.
 
 Realistically: an evening for the first build if you're comfortable in a terminal, and about ten minutes whenever you want to change a chore rotation afterwards.
@@ -81,12 +81,12 @@ A cheap tablet wall mount, a picture ledge, or a small easel stand all work. Non
 | AI daily message | No | Yes |
 | Fixable/customizable | No | It's your code |
 
-*Skylight prices checked 6 September 2026; the Raspberry Pi part prices above are approximate and were last checked August 2026.*
+*Skylight prices checked 6 October 2026; the Raspberry Pi part prices above are approximate and were last checked August 2026.*
 
 ## Questions people ask
 
 **Is there a monthly fee for a DIY calendar?**
-No subscription. The only running cost is the Anthropic API key for the daily message, which comes to a few cents a month — roughly $0.20–0.40 for a typical family. Skip the AI daily message and it's free. (For what Skylight itself charges, see our [Skylight subscription breakdown](/skylight-calendar-subscription/).)
+No subscription if you run it yourself. The only running cost is the Anthropic API key for the headline, which comes to about $0.13 a month. Skip the AI headline and it's free. (For what Skylight itself charges, see our [Skylight subscription breakdown](/skylight-calendar-subscription/).)
 
 **Do I need to know how to code?**
 No, but you need to be willing to copy commands into a terminal and read an error message without panicking. If you've ever followed a Raspberry Pi tutorial, you're comfortably over the bar. If the word "terminal" is a dealbreaker, buy the Skylight — that's a legitimate answer.
@@ -95,7 +95,7 @@ No, but you need to be willing to copy commands into a terminal and read an erro
 Two things, both fixable in a minute. Chromium sometimes starts before the server is ready and shows a connection error at boot — the startup script waits for the server to fix this. And emoji render as empty boxes until you install the emoji font package. Both are covered in the [troubleshooting section](/getting-started/).
 
 **What happens if the internet goes down?**
-The dashboard keeps showing yesterday's data. The AI daily message is written once a day and saved to a file, so the screen never depends on a live connection to display something.
+The screen doesn't go blank. Whose turn it is and the countdowns are still today's, because they're worked out from the date. The agenda comes from the last calendar fetch, which reaches two weeks ahead. If the headline couldn't be written, the dashboard shows one worked out from the day and says so.
 
 **Can the kids break it?**
 There's nothing to tap. It's a read-only display — events are edited in Google Calendar on your phone, so there's no way to delete next week from the wall.
