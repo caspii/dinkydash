@@ -133,7 +133,7 @@ provides our DNS and, as one of
 [DigitalOcean's sub-processors](https://www.digitalocean.com/trust/subprocessors),
 delivers website and app traffic through its global network. Hosting in
 Frankfurt does not mean all processing stays in Germany: requests pass through
-that network, Anthropic, SendGrid, Google and Sentry process data in the
+that network, and Anthropic, SendGrid, Google and Sentry process data in the
 United States, and so does Fathom for visitors outside the EU, as listed above.
 
 DigitalOcean and Cloudflare are United States companies. Their published
