@@ -112,6 +112,13 @@ envs:
   - key: DINKYDASH_SITE_URL
     scope: RUN_TIME
     value: https://dinkydash.co
+  # Cookieless visit counts on the public sign-in pages (`web/fathom.py`).
+  # The same public site id the marketing site already embeds. Unset means
+  # those pages load nothing, which is what a self-hosted dashboard gets.
+  # The dashboard, the settings and the screen never load it, set or not.
+  - key: FATHOM_SITE_ID
+    scope: RUN_TIME
+    value: HLVHPKAZ
   # In cloud mode the session is the login, so the app refuses to start on the
   # self-hosted fallback key.
   - key: DINKYDASH_SECRET_KEY

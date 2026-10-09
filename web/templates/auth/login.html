@@ -17,6 +17,7 @@
 {% set turnstile_key = turnstile_site_key() %}{% if turnstile_key %}
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" defer></script>
 {% endif %}
+{% include "_fathom.html" %}
 {% endblock %}
 
 {% block appbar %}
@@ -50,9 +51,10 @@
                    spellcheck="false" inputmode="email" required>
         </div>
         {# The bot check, and only when there are keys for it — see
-           `web/turnstile.py`. This is the one third-party request any page in
-           the signed-out area makes, and it is here because everything past
-           this button costs money: an email, and then a family and a trial. #}
+           `web/turnstile.py`. It is here because everything past this button
+           costs money: an email, and then a family and a trial. The cookieless
+           counter in the head is the other request these pages make, and only
+           when `FATHOM_SITE_ID` is set. #}
         {% set turnstile_key = turnstile_site_key() %}{% if turnstile_key %}
         <div class="cf-turnstile" data-sitekey="{{ turnstile_key }}"
              data-theme="auto" data-appearance="interaction-only"></div>

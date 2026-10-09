@@ -198,6 +198,11 @@ signs into — the settings pages and, in cloud mode, `auth/login.html` and `aut
 manifest link in its `<head>` is a `{% block manifest %}` so the login page can drop it: the
 manifest route is behind the login, and asking for it from outside would only ever be a redirect.
 
+**Fathom is not part of the shell.** `web/templates/_fathom.html` is included by the three
+public sign-in pages and by the one-shot page that counts a new account. `FATHOM_SITE_ID`
+unset draws nothing. The settings pages, billing, `/admin` and the dashboard do not include
+it, and a new page under the shell must not either — the counter stops at the door.
+
 **`cloud` is the template global for the mode**, not Flask's `config`. The settings pages pass the
 *family's* config dict under that name and shadow the app's, which is why `create_app` sets a
 separate `cloud` boolean — the Sign out button on the settings home is the first thing to use it.

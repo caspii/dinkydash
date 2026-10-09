@@ -38,10 +38,14 @@ either something you typed or something the software produced.
 | **Subscription records** | Stripe, after you choose to pay | Customer/subscription identifiers, payment status, monthly or yearly billing, renewal and cancellation dates; no card details |
 
 **We do not use cookies for tracking.** The hosted app sets one cookie, and it
-is the session that keeps you signed in. There is no analytics on
-`app.dinkydash.co`, no advertising, and no third-party script on the dashboard or
-the settings pages. The marketing site at `dinkydash.co` uses Ahrefs Web
-Analytics, which is cookieless and collects no personal data.
+is the session that keeps you signed in. There is no advertising. The sign-in
+pages on `app.dinkydash.co` load Fathom Analytics, so we can see which sites
+and campaigns bring people to a new dashboard. Fathom is cookieless. It does
+not see your name, your email address, your family's details or your calendar,
+and it is not loaded on the dashboard, the settings pages or the screen. The
+marketing site at `dinkydash.co` uses Fathom on every page, also without a
+cookie, and Ahrefs Web Analytics, which is also cookieless and collects no
+personal data.
 
 ## Where it goes
 
@@ -86,6 +90,20 @@ every few minutes that it is still running, which is how we find out when it is
 not, and Sentry checks from outside that the sign-in page answers. Neither
 carries anything about you.
 
+**Fathom counts visits to the sign-in pages, and a sign-up.** The pages where
+you ask for a link, check your email and press the button load Fathom
+Analytics. So does one page you see only once, just after a new account is
+created, which then opens your settings. Your browser tells Fathom which of
+those pages you opened, which site linked you here, and any campaign
+parameters on that link. Fathom also works out your browser, your type of
+device and your country. It uses your IP address and browser details to count
+you as one visitor for the day, mixing them into a code that changes every
+day, and it doesn't keep the address. It sets no cookie. It doesn't see your
+name, your email address, your family's details or your calendar, and it isn't
+on the dashboard, the settings pages or the screen. A sign-up is counted once,
+when the account is created. Signing in again isn't counted as a sign-up. The
+marketing site at dinkydash.co uses Fathom on every page.
+
 **Cloudflare checks that a person is asking for the sign-in link.** The sign-in
 page carries a Cloudflare Turnstile box, so your browser talks to Cloudflare
 when you ask us to email you a link. It is there to stop scripts having us send
@@ -106,6 +124,7 @@ API key at all, and simply goes without the headline.
 | **SendGrid** (Twilio) | Delivers sign-in emails, subscription notices and feedback | United States |
 | **Google** | The mailbox our support and feedback email arrives in | United States |
 | **Cloudflare** | DNS; website and app delivery through DigitalOcean's App Platform; the bot check on the sign-in page | Global (US company) |
+| **Fathom Analytics** (Conva Ventures) | Cookieless visit counts on the marketing site and the sign-in pages, and the sign-up event | Canadian company. EU and UK visitors are processed in Germany and Finland, other visitors in the United States, and the counts are stored in the United States |
 | **Sentry** (Functional Software) | Error reports, and the checks that the app and the worker are running | United States |
 | **Stripe** | Processes subscriptions and payments when you choose to pay | See [Stripe's privacy policy](https://stripe.com/privacy) for its entities and international processing |
 
@@ -115,13 +134,19 @@ provides our DNS and, as one of
 delivers website and app traffic through its global network. Hosting in
 Frankfurt does not mean all processing stays in Germany: requests pass through
 that network, and Anthropic, SendGrid, Google and Sentry process data in the
-United States as listed above.
+United States, and so does Fathom for visitors outside the EU, as listed above.
 
 DigitalOcean and Cloudflare are United States companies. Their published
 [data processing agreement](https://www.digitalocean.com/legal/data-processing-agreement)
 and [data processing addendum](https://www.cloudflare.com/cloudflare-customer-dpa/)
 set out safeguards for international transfers, including the EU–US Data
 Privacy Framework and standard contractual clauses where applicable.
+
+Fathom is run by a Canadian company, Conva Ventures, and Canada is covered by
+an EU adequacy decision. Under its
+[data processing agreement](https://usefathom.com/legal/dpa), the IP address of
+a visitor in the EU is hashed on servers in the EU before anything reaches its
+US infrastructure, and it keeps no personal data for longer than 24 hours.
 
 **Google Fonts is not on that list, and that is deliberate.** The only Google
 service here is the mailbox above. The typeface is served from our own servers,
