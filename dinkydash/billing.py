@@ -294,12 +294,13 @@ class Billing:
             status, lapse = "lapsed", deadline
         cur.execute(
             """UPDATE families SET status = %s, lapsed_at = %s, stripe_subscription_id = %s,
-                   subscription_status = %s, subscription_period_end = %s,
+                   subscription_status = %s, subscription_interval = %s,
+                   subscription_period_end = %s,
                    subscription_cancel_at = %s, billing_access_until = %s,
                    billing_synced_at = now(), updated_at = now()
                WHERE id = %s""",
             (status, lapse if status == "lapsed" else None, subscription["id"], remote,
-             period_end, cancel_at, deadline, row["id"]),
+             plan_interval(subscription), period_end, cancel_at, deadline, row["id"]),
         )
         if remote in {"past_due", "unpaid"} and invoice.get("id"):
             notice(cur, row["id"], "payment:" + invoice["id"], "payment_failed")
@@ -322,6 +323,31 @@ class Billing:
                 self.call(self.client.v1.customers.delete, row["stripe_customer_id"])
 
 
+def plan_interval(subscription):
+    """'month' or 'year' when every priced item agrees, otherwise None.
+
+    Stored with the status snapshot. The operator's page splits paying
+    families on it and does not ask Stripe. An unpriced item is skipped; a
+    price id with no recurring details, a weekly price, a multi-month price
+    or two items that disagree stores nothing rather than a guess.
+    """
+    intervals = []
+    for item in (subscription.get("items") or {}).get("data") or []:
+        price = item.get("price")
+        if not price:
+            continue
+        if not isinstance(price, dict):
+            return None
+        recurring = price.get("recurring") or {}
+        interval = recurring.get("interval")
+        if recurring.get("interval_count") != 1 or interval not in {"month", "year"}:
+            return None
+        intervals.append(interval)
+    if len(set(intervals)) == 1:
+        return intervals[0]
+    return None
+
+
 def timestamp(value):
     return datetime.fromtimestamp(value, timezone.utc) if value else None
 
@@ -329,8 +355,9 @@ def timestamp(value):
 def family(cur, family_id, *, lock=False):
     cur.execute(
         """SELECT id, status, trial_ends_at, lapsed_at, stripe_customer_id,
-                  stripe_subscription_id, subscription_status, subscription_period_end,
-                  subscription_cancel_at, billing_access_until, now() AS now
+                  stripe_subscription_id, subscription_status, subscription_interval,
+                  subscription_period_end, subscription_cancel_at, billing_access_until,
+                  now() AS now
            FROM families WHERE id = %s""" + (" FOR UPDATE" if lock else ""), (family_id,),
     )
     row = cur.fetchone()

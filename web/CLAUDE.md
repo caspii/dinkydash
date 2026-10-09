@@ -141,11 +141,14 @@ an explicit local `--base-url`. QR codes are drawn by `settings/_screen_link.htm
 `/settings/screen` and by the last step of the set-up checklist, and nowhere else.
 
 **`web/routes/admin.py` is the third blueprint only cloud mode registers, and its gate is a list.**
-`/admin` (DIN-37) shows signups and activations by week and the newest accounts to the operator and
+`/admin` (DIN-37) shows signups and activations by week, how many families have an active paid
+subscription, and the newest accounts to the operator and
 to nobody else: `guard()` first, so a signed-out visitor is sent to `/login` like everywhere else,
 then `family.is_admin()`, which compares the signed-in account's address with
 `DINKYDASH_ADMIN_EMAILS` and answers a miss with a 404 — never a 403, and an unset list is nobody.
-Everything on it comes from `dinkydash/growth.py`: counts that read no family row, and a roster
+Everything on it comes from `dinkydash/growth.py`: signup and activation counts that read no
+family row, a paying count that aggregates lifecycle status, Stripe subscription status and the
+stored plan interval, and a roster
 that reads the address and bookkeeping columns and never the config — `tests/test_admin.py` puts a
 named child and a labelled calendar on a family and asserts neither reaches the page. The chart is
 inline SVG drawn from numbers the route works out (`admin.chart`), because arithmetic in a

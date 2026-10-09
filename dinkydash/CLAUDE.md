@@ -80,7 +80,11 @@ because there is no family to scope *to*:
 - **`dinkydash/growth.py`**, which feeds the operator's page (DIN-37). Its counts are the narrowest
   read there is: `growth_by_day` is a date and two counts with no family identifier to scope by,
   kept by a trigger on `families` (migration 006) so that it survives deletion the way
-  `global_model_spend` does, and `families_now` is a bare `count(*)`. Its `roster` is wider, and
+  `global_model_spend` does, and `families_now` is a bare `count(*)`. `paying` is the same
+  kind of read: rows whose lifecycle `status` and Stripe `subscription_status` are both
+  `active`, which is an active paid subscription, split by the plan interval billing stored
+  with that snapshot. Trials, `past_due`, `canceled` and `lapsed` are left out, and the page
+  does not call Stripe. Its `roster` is wider, and
   deliberately only so wide — the address and the platform's bookkeeping columns on the newest
   families, never `config`, and no id in or out.
 

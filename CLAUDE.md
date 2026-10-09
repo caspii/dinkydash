@@ -164,7 +164,10 @@ mode is a different product on the same code.
   whose address is in `DINKYDASH_ADMIN_EMAILS`. Anybody else gets the same answer as a URL that does
   not exist, and an unset list means nobody. The counts read `growth_by_day` — a date and two
   counts, kept by a trigger on `families` and surviving deletion the way `global_model_spend` does —
-  and one bare `count(*)`. The roster reads each family's address and the platform's bookkeeping
+  one bare `count(*)`, and a count of paying families: lifecycle `status` and Stripe
+  `subscription_status` both `active`, split by the stored plan interval. That paying count is
+  still an aggregate. It reads no address and no config, and the page does not call Stripe. The
+  roster reads each family's address and the platform's bookkeeping
   (created, activated, status, deadlines, last sign-in) and **never the config**: no name, no
   calendar, no child's date of birth. No family id is rendered or taken from anywhere, so nothing
   on the page reaches one family. `tests/test_admin.py` asserts each of those, including that a

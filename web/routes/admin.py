@@ -17,12 +17,16 @@ authorisation miss in this app follows. An empty or missing list means nobody,
 which is the safe way for a new deployment to be wrong.
 
 **What the page reads is bounded, and the bound is written down.** The counts
-come from a table with no family identifiers in it plus one `count(*)`. The
-roster below them is the one read that touches a family's row, and it takes
-the address and the platform's bookkeeping — created, activated, status,
-deadlines, last sign-in — and never the config (`growth.roster`). Nothing in
-this file takes an id from the request, the session or the URL, and none is
-rendered, so there is no id to check and no way to reach one family from here.
+come from a table with no family identifiers in it, one `count(*)`, and one
+aggregate of lifecycle status, Stripe subscription status and plan interval
+(`growth.paying`). That aggregate is how many families have an active paid
+subscription. It does not ask Stripe, and it returns no address and no
+config. The roster below them is the one read that returns a family's row,
+and it takes the address and the platform's bookkeeping — created, activated,
+status, deadlines, last sign-in — and never the config (`growth.roster`).
+Nothing in this file takes an id from the request, the session or the URL,
+and none is rendered, so there is no id to check and no way to reach one
+family from here.
 
 The chart is inline SVG drawn from numbers worked out below, with no script
 and no third-party request — the settings shell's own rules. Its two colours
@@ -95,7 +99,7 @@ def growth_page():
     response = make_response(render_template(
         "admin/growth.html",
         weekly=weekly, latest=weekly[-1], span=weeks, spans=SPANS,
-        totals=total, families_now=families,
+        totals=total, families_now=families, paying=growth.paying(pool),
         # Every signup since the counter began is either a family that still
         # exists or one that was deleted. Clamped, in case a family predates
         # the counter in a way the backfill could not see.

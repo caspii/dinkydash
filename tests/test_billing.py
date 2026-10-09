@@ -85,6 +85,25 @@ class Stripe:
         return sdk(self.customers[cid])
 
 
+def test_plan_interval_is_month_or_year_only_when_every_priced_item_agrees():
+    def item(interval, count=1):
+        return {"price": {"recurring": {"interval": interval, "interval_count": count}}}
+
+    def subscription(*items):
+        return {"items": {"data": list(items)}}
+
+    assert billing.plan_interval(subscription(item("year"))) == "year"
+    assert billing.plan_interval(subscription(item("month"))) == "month"
+    assert billing.plan_interval(subscription({}, item("year"))) == "year"
+    assert billing.plan_interval(subscription(item("year"), item("year"))) == "year"
+    assert billing.plan_interval(subscription()) is None
+    assert billing.plan_interval({}) is None
+    assert billing.plan_interval(subscription(item("week"))) is None
+    assert billing.plan_interval(subscription(item("year", 2))) is None
+    assert billing.plan_interval(subscription(item("month"), item("year"))) is None
+    assert billing.plan_interval(subscription({"price": "price_year_example"})) is None
+
+
 def sdk(data):
     import stripe
     return stripe.StripeObject.construct_from(data, None)
@@ -245,6 +264,27 @@ def test_complete_trial_paid_cancel_and_reactivate(parent, service, pg_pool, pg_
     subscription(service, pg_family, id="sub_restarted")
     assert webhook(parent, service, pg_family, "evt_reactivated").status_code == 204
     assert state(pg_pool, pg_family)["lapsed_at"] is None
+
+
+def test_the_status_snapshot_records_monthly_or_yearly(parent, service, pg_pool, pg_family):
+    start(service, pg_pool, pg_family)
+    now = int(time.time())
+
+    def priced(interval):
+        subscription(service, pg_family, items={"data": [{
+            "current_period_end": now + 2592000,
+            "price": {"recurring": {"interval": interval, "interval_count": 1}},
+        }]})
+
+    priced("year")
+    assert webhook(parent, service, pg_family).status_code == 204
+    row = state(pg_pool, pg_family)
+    assert row["status"] == "active" and row["subscription_status"] == "active"
+    assert row["subscription_interval"] == "year"
+    priced("month")
+    assert webhook(parent, service, pg_family, "evt_plan_change",
+                   "customer.subscription.updated").status_code == 204
+    assert state(pg_pool, pg_family)["subscription_interval"] == "month"
 
 
 def test_duplicate_and_out_of_order_events_use_current_subscription(parent, service, pg_pool, pg_family):

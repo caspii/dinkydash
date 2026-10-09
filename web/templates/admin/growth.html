@@ -22,6 +22,7 @@
 
     .tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.625rem; }
     .tile { padding: 0.75rem 0.8125rem; display: flex; flex-direction: column; gap: 0.125rem; min-width: 0; }
+    .tile.wide { grid-column: 1 / -1; }
     .tile .name { font-size: 0.6875rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); }
     .tile .value { font-size: 1.75rem; font-weight: 800; line-height: 1.15; letter-spacing: -0.02em; }
     .tile .sub { font-size: 0.75rem; color: var(--text-muted); }
@@ -88,6 +89,12 @@
         <div class="name">Families now</div>
         <div class="value">{{ families_now }}</div>
         <div class="sub">{{ deleted }} deleted</div>
+    </div>
+    <div class="card tile wide">
+        <div class="name">Paying families</div>
+        <div class="value">{{ paying.total }}</div>
+        <div class="sub">Families with an active paid subscription. Trials, lapsed, cancelled and past due are not counted.</div>
+        <div class="sub">{{ paying.monthly }} monthly ($6) · {{ paying.yearly }} yearly ($39){% if paying.unrecorded %} · {{ paying.unrecorded }} not recorded{% endif %}</div>
     </div>
 </div>
 

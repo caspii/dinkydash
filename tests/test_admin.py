@@ -7,10 +7,12 @@
   and not on `DINKYDASH_ADMIN_EMAILS` is a 404, never a 403;
 * **an empty list is nobody**, including the person who would obviously be
   on it. A new deployment is closed until somebody opens it;
-* **the page is counts, and a bounded roster.** The counts read no family
-  row at all. The roster reads the address and the platform's bookkeeping on
-  the newest families and never the config — no name, no calendar, no child's
-  date of birth — and no family id is rendered or taken from anywhere.
+* **the page is counts, and a bounded roster.** Signup and activation counts
+  read no family row. The paying count aggregates lifecycle status, Stripe
+  subscription status and the stored plan interval — no address and no config.
+  The roster reads the address and the platform's bookkeeping on the newest
+  families and never the config — no name, no calendar, no child's date of
+  birth — and no family id is rendered or taken from anywhere.
 
 The chart's arithmetic is tested with no database. The rest skips without
 `DINKYDASH_TEST_DATABASE_URL`.
@@ -313,10 +315,13 @@ class TestWhatItShows:
             (this_monday, 3, 1),               # this week
         ])
         monkeypatch.setattr(growth, "families_now", lambda pool: 6)
+        monkeypatch.setattr(growth, "paying", lambda pool: growth.Paying(4, 1, 3, 0))
         html = admin_client.get("/admin").get_data(as_text=True)
-        # The tiles: 8 signups, 3 activations (38%), 6 families, 2 deleted.
+        # The tiles: 8 signups, 3 activations (38%), 6 families, 4 paying.
         tiles = re.findall(r'<div class="value">(\d+)</div>', html)
-        assert tiles == ["8", "3", "6"]
+        assert tiles == ["8", "3", "6", "4"]
+        assert "1 monthly ($6)" in html and "3 yearly ($39)" in html
+        assert "not recorded" not in html
         assert "38% of signups" in html
         assert "2 deleted" in html
         assert "3 this week" in html
@@ -437,3 +442,95 @@ class TestTheRoster:
         html = admin_client.get("/admin").get_data(as_text=True)
         assert "newest 1 of 3" in html
         assert html.count('class="row account"') == 1
+
+
+# -- paying families ----------------------------------------------------------
+
+def insert_families(pool, rows):
+    """Rows of (status, subscription_status, interval, cancel_at). Returns ids."""
+    from dinkydash import config as config_module
+
+    ids = []
+    with pool.connection() as conn, conn.transaction(), conn.cursor() as cur:
+        for status, subscription_status, interval, cancel_at in rows:
+            cur.execute(
+                """INSERT INTO families
+                       (screen_token, status, subscription_status,
+                        subscription_interval, subscription_cancel_at)
+                   VALUES (%s, %s, %s, %s, %s) RETURNING id""",
+                (config_module.new_screen_token(), status, subscription_status,
+                 interval, cancel_at),
+            )
+            ids.append(cur.fetchone()[0])
+    return ids
+
+
+def delete_families(pool, ids):
+    if not ids:
+        return
+    with pool.connection() as conn, conn.transaction(), conn.cursor() as cur:
+        cur.execute("DELETE FROM families WHERE id = ANY(%s)", (ids,))
+
+
+class TestPayingFamilies:
+    """A paying family is lifecycle `active` and Stripe subscription `active`.
+
+    The stored spellings are Stripe's: `canceled`, not cancelled. A Stripe
+    trial is lifecycle `active` with subscription status `trialing`, and that
+    is not paid. Cancelling at period end leaves both statuses `active` until
+    the deadline, so that family still counts.
+    """
+
+    def test_only_an_active_paid_subscription_counts(self, admin_client, pg_pool):
+        from datetime import datetime, timedelta, timezone
+
+        later = datetime.now(timezone.utc) + timedelta(days=20)
+        before = growth.paying(pg_pool)
+        left_out = [
+            ("trialing", None, None, None),
+            ("trialing", "trialing", "year", None),
+            ("lapsed", "canceled", "year", None),
+            ("lapsed", "active", "month", None),  # swept; the snapshot still says active
+            ("canceled", "canceled", "year", None),
+            ("past_due", "past_due", "month", None),
+            ("active", "trialing", "month", None),  # Stripe trial, not paid
+            ("active", None, "year", None),
+            ("active", "past_due", "month", None),
+            ("active", "canceled", "year", None),
+            ("active", "unpaid", "month", None),
+            ("active", "paused", None, None),
+        ]
+        paying_rows = [
+            ("active", "active", "month", None),
+            ("active", "active", "year", None),
+            ("active", "active", "year", later),  # cancels at period end; still paying
+            ("active", "active", None, None),
+        ]
+        made = insert_families(pg_pool, left_out)
+        try:
+            assert growth.paying(pg_pool) == before
+            made.extend(insert_families(pg_pool, paying_rows))
+            after = growth.paying(pg_pool)
+            assert after.total == before.total + 4
+            assert after.monthly == before.monthly + 1
+            assert after.yearly == before.yearly + 2
+            assert after.unrecorded == before.unrecorded + 1
+
+            html = admin_client.get("/admin").get_data(as_text=True)
+            assert re.search(
+                rf'Paying families</div>\s*<div class="value">{after.total}</div>', html)
+            assert (f"{after.monthly} monthly ($6) · {after.yearly} yearly ($39)"
+                    f" · {after.unrecorded} not recorded") in html
+            assert ("Families with an active paid subscription. "
+                    "Trials, lapsed, cancelled and past due are not counted.") in html
+        finally:
+            delete_families(pg_pool, made)
+
+    def test_opening_the_page_does_not_call_stripe(self, admin_client, monkeypatch):
+        def refuse(*args, **kwargs):
+            raise AssertionError("the admin page must not call Stripe")
+
+        monkeypatch.setattr("dinkydash.billing.Billing.subscriptions", refuse)
+        monkeypatch.setattr("dinkydash.billing.Billing.prices", refuse)
+        monkeypatch.setattr("dinkydash.billing.Billing.sync", refuse)
+        assert admin_client.get("/admin").status_code == 200
