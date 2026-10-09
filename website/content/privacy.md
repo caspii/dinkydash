@@ -5,7 +5,7 @@ template: page.html
 description: What DinkyDash stores, who it is sent to, how long it is kept, and how to get it back or delete it.
 ---
 
-*Last updated: 2 October 2026.*
+*Last updated: 9 October 2026.*
 
 DinkyDash puts a family's day on a screen. That means the things it holds are a
 household's names, dates of birth and movements — which is about as personal as
@@ -35,7 +35,7 @@ either something you typed or something the software produced.
 | **Counts of model calls** | Recorded when the dashboard is written | So one account cannot run up an unbounded bill |
 | **Counts of sign-ups and first calendar connections** | Recorded when a family is created, and the first time it saves a calendar link | So we can see whether the product is being used, without looking at anyone's account |
 | **Anything you send us** | You write it in the feedback form, or email us | So we can answer it and fix what you told us about. It is not stored in the app — it arrives as an email |
-| **Subscription records** | Stripe, after you choose to pay | Customer/subscription identifiers, payment status, renewal and cancellation dates; no card details |
+| **Subscription records** | Stripe, after you choose to pay | Customer/subscription identifiers, payment status, monthly or yearly billing, renewal and cancellation dates; no card details |
 
 **We do not use cookies for tracking.** The hosted app sets one cookie, and it
 is the session that keeps you signed in. There is no analytics on
@@ -62,7 +62,7 @@ not included unless you write them in feedback yourself.
 **Stripe handles payments when you choose a subscription.** Starting Checkout
 creates a Stripe customer with an internal account identifier. You enter your
 billing email, name, address and payment details directly on Stripe's pages.
-We receive subscription status and identifiers, not your card details. Your
+We receive subscription status, whether you pay monthly or yearly, and identifiers, not your card details. Your
 calendars and family details are never sent to Stripe. Signing up for the free
 trial does not create a Stripe customer.
 
