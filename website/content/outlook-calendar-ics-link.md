@@ -101,7 +101,7 @@ Pi](/raspberry-pi-family-calendar/) the tidiest, and a [smart TV](/smart-tv-cale
 or [Fire TV](/fire-tv-calendar-display/) will show it on the big screen. There's one device it
 doesn't work on, and [the Echo Show page](/echo-show-calendar-display/) says why.
 
-[DinkyDash](/) is free, open-source software for that: paste the ICS link and today's events
+[DinkyDash](/) is open-source software that does exactly that. We can host it for you ($39 a year after a 14-day free trial), or you can run it yourself for free. Paste the ICS link and today's events
 appear on a wall screen, beside a chore chart that rotates by itself, countdowns to birthdays
 and holidays, and a short line written fresh each day. There's no Microsoft sign-in in
 it — the published link is the whole connection, and it can only read.
@@ -127,6 +127,4 @@ guide](/getting-started/#personal-calendar) has the detail.
 - [Apple iCloud Calendar](/icloud-calendar-link/) — turn on Public Calendar and copy the link
 - [Cozi](/cozi-calendar-display/) — Settings → Shared Cozi Calendars
 
-They mix freely and end up as one agenda. The [full setup guide](/getting-started/) is the
-next step — it runs the dashboard on your own computer first, then moves it onto a screen that
-stays on the wall.
+They mix freely and end up as one agenda. To skip the setup, [start a free 14-day hosted trial](https://app.dinkydash.co/login) and paste the link there. To run it yourself, the [full setup guide](/getting-started/) starts on your own computer.

@@ -33,7 +33,7 @@ Swimming practice at 16:00? Dentist at 15:30? It's all on the dashboard, pulled 
 
 **4. The headline gives the day a name**
 
-Every morning there's a new headline, written around what's actually on. "Friday brings two fun runs" on a sports day, and a plain "Nothing booked in today" when the calendar is clear. It gives the family a line to read out loud.
+Each day there's a new headline, written at the time you set, around what's actually on. "Friday brings two fun runs" on a sports day, and a plain "Nothing booked in today" when the calendar is clear. It gives the family a line to read out loud.
 
 **5. The mental load gets lighter**
 

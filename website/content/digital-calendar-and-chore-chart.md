@@ -1,7 +1,7 @@
 ---
 title: A Digital Calendar and Chore Chart in One Screen
 template: page.html
-description: Combine the family calendar and the kids' chore chart on one wall screen — with chores that rotate automatically every day. No $300 hardware, no subscription, no nagging.
+description: Combine the family calendar and the kids' chore chart on one wall screen — with chores that rotate automatically every day. No hardware to buy, and free if you run it yourself.
 ---
 
 Every family runs the same two systems: a calendar (who needs to be where) and a chore chart (who's doing what). And in most kitchens they live in different places — the calendar on someone's phone, the chore chart on paper that stops being true by Wednesday.
@@ -29,7 +29,7 @@ Nobody negotiates with a screen. The rotation is provably fair (it cycles throug
 | **Skylight Calendar** | $299.99–$599.99 | Chore chart free; rewards need Plus ($79/yr) |
 | **Hearth Display** | $699 + $9/mo ($86.40/yr) | Routines and task assignments |
 
-*Prices checked 6 October 2026.*
+*Prices checked 9 October 2026.*
 
 Skylight, Hearth and DAKboard all do chores well — that's part of why families pay for them. But if the price is the obstacle, the free route gets you the core loop (visible chores, fair rotation, zero nagging) on a screen you already own. Our [DIY guide](/diy-skylight-calendar/) shows the whole build, and the [getting started guide](/getting-started/) has the copy-paste setup.
 

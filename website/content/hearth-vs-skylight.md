@@ -18,7 +18,7 @@ Comparing the two big family-calendar displays? Here's the short version: **Skyl
 | Chores | Chore chart; rewards need Plus | Routine and task system built in |
 | Realistic 3-year cost | $599.99 + $237 ≈ **$837** (Max with Plus) | $699 + $259 ≈ **$958** (annual membership) |
 
-*Prices checked 6 October 2026. Skylight also sells a smaller 10″ Calendar from $169.99.*
+*Prices checked 9 October 2026. Skylight also sells a smaller 10″ Calendar, $169.99 on its product page; Skylight's comparison chart says from $149.99.*
 
 One footnote on that last row: Hearth's membership is required to set the display up, but you can cancel it afterwards and keep the calendar and profiles. The routines, lists, rewards and meal planning go with it.
 
@@ -37,7 +37,7 @@ Hearth is designed around *routines*, not just events: visual morning and evenin
 
 ## The third option: don't buy a screen at all
 
-Both products are, at heart, a screen showing your family's day. If you have an old tablet, a TV, or $100 for a Raspberry Pi, software gives you the same glanceable calendar, with chore rotations and countdowns, and no touchscreen to buy.
+Both products are, at heart, a screen showing your family's day. If you have an old tablet, a TV, or about $150 for a Raspberry Pi, software gives you the same glanceable calendar, with chore rotations and countdowns, and no touchscreen to buy.
 
 That's what [DinkyDash](/) does. It's open source and free to run yourself, or we host it for $39 a year after a 14-day free trial. It also puts a fresh headline about the day at the top of the screen, which neither of these does. See [how to build one in an afternoon](/diy-skylight-calendar/), or compare [all eight Skylight alternatives](/skylight-calendar-alternatives/).
 

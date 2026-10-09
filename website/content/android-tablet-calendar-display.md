@@ -1,8 +1,8 @@
 ---
 title: "Turn an Android Tablet Into a Family Calendar Display"
-seo_title: "Android Tablet Calendar Display: A Wall Calendar for $0"
+seo_title: "Android Tablet Calendar Display: An Old Tablet as a Wall Calendar"
 template: page.html
-description: A cheap or old Android tablet makes a proper wall-mounted family calendar — today's events, rotating chores and countdowns, on free open-source software with no subscription.
+description: A cheap or old Android tablet makes a proper wall-mounted family calendar — today's events, rotating chores and countdowns. Free to run yourself, or $39 a year if we host it.
 faq:
   - q: "Can I use an Android tablet as a wall calendar?"
     a: "Yes. Any Android tablet with a working screen and Chrome can show a family calendar full screen, permanently. You need the screen timeout set as long as it goes, or a kiosk browser app that overrides it, and the charger left plugged in."
@@ -13,7 +13,7 @@ faq:
   - q: "Do I need to install an app?"
     a: "No. DinkyDash is a web page, so Chrome is enough — add it to the home screen and it opens full screen. A kiosk browser is optional, and only worth it if you want the tablet locked down properly."
   - q: "How much does a tablet family calendar cost?"
-    a: "Nothing if the tablet is already in a drawer. A used Android tablet good enough for this costs about $50 to $80. The software is free and open source, and the only running cost is the AI headline at roughly $0.13 a month."
+    a: "Nothing if the tablet is already in a drawer. A used Android tablet good enough for this costs about $50 to $80. The software is free to run yourself, or $39 a year if we host it. If you run it yourself, the only running cost is the AI headline at roughly $0.13 a month."
 ---
 
 **Yes — and it's the cheapest good wall calendar you can build.** An Android tablet already
@@ -39,8 +39,7 @@ agenda and the chores into two columns.
 
 ## Set it up
 
-**1. Open the dashboard in Chrome.** On your own network the address looks like
-`http://192.168.1.50:5000` — the machine running DinkyDash.
+**1. Open the dashboard in Chrome.** If we host it, that's the screen link under **Settings → The screen**, where there's a QR code too, so you don't have to type it. If you run it yourself, it's the address of the machine serving it on your network, something like `http://192.168.1.50:5000`.
 
 **2. Add it to the home screen.** Chrome menu → **Add to Home screen**. Launched from there
 the dashboard runs **full screen**, with no address bar, and gets the DinkyDash icon and your
@@ -89,10 +88,11 @@ the wall follows.
 |---|---|
 | A tablet already in a drawer | **$0** |
 | A used Android tablet | ~$50–80 |
-| DinkyDash | Free, MIT licensed, no subscription |
+| DinkyDash | Free to run yourself (MIT); hosted $39 a year or $6 a month after a 14-day trial |
 | The AI headline | ~$0.13/month, and optional |
 
-A Skylight Calendar is $299.99 to $599.99 plus an optional $79 a year for the same wall. The
+A Skylight Calendar is $299.99 to $599.99 plus an optional $79 a year for the same wall.
+Prices checked 9 October 2026. The
 [best digital family calendar page](/best-digital-family-calendar/) puts them side by side.
 
 **Buying a tablet for this?** Screen size matters more than speed. The dashboard is a static page
@@ -102,7 +102,7 @@ inches or more, and check the screen is bright enough to read across a kitchen.
 ## Other screens
 
 - [iPad](/ipad-calendar-display/) — the same idea, with Guided Access to lock it properly
-- [Raspberry Pi](/raspberry-pi-family-calendar/) — the tidiest permanent panel, about $100
+- [Raspberry Pi](/raspberry-pi-family-calendar/) — the tidiest permanent panel, about $150
 - [Smart TV](/smart-tv-calendar-display/) — works, but the screensaver fights you
 - [Fire TV](/fire-tv-calendar-display/) — for the living-room television
 - [Echo Show](/echo-show-calendar-display/) — the one that doesn't work, and why

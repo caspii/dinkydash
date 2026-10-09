@@ -67,7 +67,7 @@ put it on, and both major platforms have a built-in way to lock it there:
   passcode, and Auto-Lock set to Never keeps the screen on. This is the best version.
 - **[An Android tablet](/android-tablet-calendar-display/)** — the same idea, and second-hand
   ones cost about $50–80.
-- **[A Raspberry Pi with a small screen](/raspberry-pi-family-calendar/)** — about $100 in
+- **[A Raspberry Pi with a small screen](/raspberry-pi-family-calendar/)** — about $150 in
   parts, and the tidiest permanent panel of the three.
 
 Keep the Echo Show for what it's good at: voice, timers, music and a glance at the calendar
@@ -77,7 +77,7 @@ Alexa already knows about.
 
 ![The DinkyDash dashboard on a tablet in portrait, stacked into one column: today's events, whose turn each chore is, and countdowns](/images/family-calendar-tablet-board.webp)
 
-[DinkyDash](/) is free, open-source software that turns that tablet into a family dashboard:
+[DinkyDash](/) is open-source software that turns that tablet into a family dashboard. It's free to run yourself, or $39 a year if we host it:
 
 - **Today's events**, merged from every calendar you add:
   [Google](/google-calendar-ical-link/), [iCloud](/icloud-calendar-link/),
@@ -95,7 +95,7 @@ without it.
 
 - [iPad](/ipad-calendar-display/) — the best cheap always-on panel
 - [Android tablet](/android-tablet-calendar-display/) — the same, cheaper second-hand
-- [Raspberry Pi](/raspberry-pi-family-calendar/) — the tidiest permanent panel, about $100
+- [Raspberry Pi](/raspberry-pi-family-calendar/) — the tidiest permanent panel, about $150
 - [Smart TV](/smart-tv-calendar-display/) — Samsung and LG have their own browsers
 - [Fire TV](/fire-tv-calendar-display/) — for the living-room television
 

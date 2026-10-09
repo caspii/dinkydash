@@ -2,14 +2,14 @@
 title: "Cozi Calendar Display: Put Your Cozi Calendar on a Wall Screen"
 seo_title: "Cozi Calendar Display: Put Cozi on a Wall Screen"
 template: page.html
-description: Cozi has no wall display of its own, but it does hand out a shareable calendar URL. Here's how to find it and put your family's Cozi calendar on a screen in the kitchen — free, on a screen you already own.
+description: Cozi has no wall display of its own, but it does hand out a shareable calendar URL. Here's how to find it and put your family's Cozi calendar on a screen in the kitchen — on a screen you already own.
 faq:
   - q: "Does Cozi have a wall display?"
     a: "No. Cozi is a phone and web app — there is no Cozi hardware and no TV or tablet display mode. What Cozi does give you is a shareable calendar URL, which any display that reads iCal feeds can subscribe to."
   - q: "How do I get my Cozi calendar URL?"
     a: "Sign in to Cozi on a computer, open Settings, and under the calendar section open 'Shared Cozi Calendars'. Switch the family member you want from Unshared to Shared, then use 'View or send Cozi URL' and copy it."
   - q: "Do I need Cozi Gold to share my calendar?"
-    a: "No. The shared calendar URL is part of the free Cozi account. Cozi Gold removes the adverts and adds features like the month view and birthday tracking, but the outbound calendar feed is not one of them."
+    a: "No. You don't need Cozi Gold for this; the shared calendar link is part of the free account."
   - q: "Can I edit events from the wall screen?"
     a: "No, and that is deliberate. The Cozi URL is a read-only feed, so a display can show your events but never change them. You keep editing in Cozi on your phone, exactly as you do now, and the screen follows."
   - q: "How quickly does the display pick up a change made in Cozi?"
@@ -35,12 +35,10 @@ Do this on a computer; the flow is easier to reach than in the app.
 5. Press **View or send Cozi URL**, then **Copy Cozi URL**.
 
 What you get is a long `https://` address on a `cozi.com` server, ending in `.ics`. The long
-random string in the middle of it's the part that matters — that's the bit standing in for
+random string in the middle is the part that matters — that's the bit standing in for
 a password.
 
-**You don't need Cozi Gold for this.** The shared calendar URL is part of the free account.
-Gold removes the adverts and adds the month view and birthday tracking; it doesn't gate the
-outbound feed.
+**You don't need Cozi Gold for this; the shared calendar link is part of the free account.**
 
 **Each family member is a separate feed.** If you want two children's calendars on the screen,
 share each of them and copy both URLs. Most displays merge several feeds into one agenda, so
@@ -53,7 +51,7 @@ chats.
 
 ## Part 2 — put it on a screen
 
-[DinkyDash](/) is free, open-source software that turns a screen you already own into a family
+[DinkyDash](/) is open-source software that does exactly that. We can host it for you ($39 a year after a 14-day free trial), or you can run it yourself for free. It turns a screen you already own into a family
 dashboard: today's events, a chore chart that rotates between people by itself, countdowns to
 birthdays and holidays, and a short line written fresh each day by AI. It runs in a
 browser, so an old tablet, a spare monitor, a TV or a Raspberry Pi will all do.
@@ -105,7 +103,7 @@ Nothing, if you have a spare screen. DinkyDash is MIT-licensed and free to run y
 
 - **A tablet or monitor you already own** — $0. The cheapest way to find out whether the
   family will look at it.
-- **A Raspberry Pi and a small touchscreen** — about $100 in parts, and the tidiest wall
+- **A Raspberry Pi and a small touchscreen** — about $150 in parts, and the tidiest wall
   panel. The [Raspberry Pi build guide](/raspberry-pi-family-calendar/) has the parts list.
 
 There's no subscription for the self-hosted version. The one running cost is the AI daily
@@ -113,7 +111,7 @@ line, which is a Claude API call once a day — roughly $0.13 a month — and th
 without it.
 
 Compare that with a dedicated display: a Skylight Calendar is $299.99 to $599.99 plus an
-optional $79 a year, and a Hearth is $699 plus $9 a month. Both are nicely made. Neither
+optional $79 a year, and a Hearth is $699 plus $9 a month. Prices checked 9 October 2026. Both are nicely made. Neither
 reads your Cozi calendar any better than a browser does. The full comparison is on the [best
 digital family calendar page](/best-digital-family-calendar/).
 
@@ -131,8 +129,6 @@ all merge into a single agenda on the screen:
 
 ## Start here
 
-The [setup guide](/getting-started/) walks the whole thing: run the dashboard on your own computer
-first, see your own family on it, then move it onto the screen that stays on the wall. Budget
-an evening for the Raspberry Pi version; a spare tablet takes about ten minutes.
+To skip the setup, [start a free 14-day hosted trial](https://app.dinkydash.co/login) and paste the link there. To run it yourself, the [full setup guide](/getting-started/) starts on your own computer.
 
 The code is on [GitHub](https://github.com/caspii/dinkydash) under an MIT licence.

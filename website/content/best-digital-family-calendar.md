@@ -11,7 +11,7 @@ Every "best digital family calendar" list starts from the same assumption: that 
 
 ## Path 1: Buy a dedicated calendar display
 
-You're paying for plug-and-play: unbox, connect Wi-Fi, done. As of September 2026:
+You're paying for plug-and-play: unbox, connect Wi-Fi, done. As of 9 October 2026:
 
 **Skylight Calendar 2 (15″, $299.99) / Calendar Max (27″, $599.99)** — the category leader and the safest pick. Best-in-class calendar view, meal planning and AI event import with the optional Plus plan ($79/yr). If you just want it to work, buy this. ([What the subscription does and doesn't cover →](/skylight-calendar-subscription/))
 
@@ -23,7 +23,7 @@ You're paying for plug-and-play: unbox, connect Wi-Fi, done. As of September 202
 
 ## Path 2: Use a screen you already own
 
-A family calendar display is, mechanically, a screen showing a web page. If a spare tablet, a TV, or a $100 Raspberry Pi is available, software gets you there:
+A family calendar display is, mechanically, a screen showing a web page. If a spare tablet, a TV, or a Raspberry Pi at about $150 is available, software gets you there:
 
 **DinkyDash (free to self-host, or $39/yr hosted)** — our project, and the reason this site exists. Any screen with a browser becomes a family calendar with automatic chore rotation, birthday countdowns, and a fresh headline every day, written around your own family. It reads [Google](/google-calendar-ical-link/), [Apple iCloud](/icloud-calendar-link/), [Outlook](/outlook-calendar-ics-link/) and [Cozi](/cozi-calendar-display/) calendars (paste each one's sharing link; there's no sign-in) and merges them into a single agenda. Self-hosting takes an afternoon and a bit of terminal comfort ([guide](/getting-started/)). Or [start a free 14-day hosted trial](https://app.dinkydash.co/login) with no card required, then $39 a year or $6 a month.
 
@@ -36,7 +36,7 @@ A family calendar display is, mechanically, a screen showing a web page. If a sp
 - **"I want zero setup and a beautiful object on the wall"** → Skylight (calendar-first) or Hearth (routines-first)
 - **"I refuse to pay a subscription"** → Cozyla (hardware) or DinkyDash self-hosted (software, free)
 - **"There's an unused iPad in the drawer"** → DinkyDash or Mango Display before spending $300+
-- **"I like tinkering"** → [The $100 Raspberry Pi build](/diy-skylight-calendar/) is a genuinely fun weekend project
+- **"I like tinkering"** → [The ~$150 Raspberry Pi build](/diy-skylight-calendar/) is a genuinely fun weekend project
 
 ## The comparison at a glance
 
@@ -50,6 +50,6 @@ A family calendar display is, mechanically, a screen showing a web page. If a sp
 | Mango Display | $0 (your screen) | $0–60/yr | Easiest BYO-screen |
 | DAKboard | $0 (your screen) | $0–120/yr | Deep customisation |
 
-*Prices checked 6 October 2026.*
+*Prices checked 9 October 2026.*
 
 Whichever path you take: the win isn't the gadget, it's the behaviour change — the family checking one shared screen instead of asking one exhausted parent. The cheapest way to test whether that works in your house is [the free one](/getting-started/).

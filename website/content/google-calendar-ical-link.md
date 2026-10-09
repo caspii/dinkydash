@@ -81,9 +81,7 @@ Two things hide it:
 
 ## Put it on a screen
 
-A calendar link on its own does nothing. The point of getting it's to show the calendar
-somewhere the family will actually look — a tablet in the hall, an old TV, a small screen on
-the kitchen wall.
+A calendar link on its own does nothing until the family can see it — a tablet in the hall, an old TV, or a small screen on the kitchen wall.
 
 Which screen? An [old iPad](/ipad-calendar-display/) or an [Android
 tablet](/android-tablet-calendar-display/) is the cheapest good panel, a [Raspberry
@@ -91,7 +89,7 @@ Pi](/raspberry-pi-family-calendar/) the tidiest, and a [smart TV](/smart-tv-cale
 or [Fire TV](/fire-tv-calendar-display/) will show it on the big screen. There's one device it
 doesn't work on, and [the Echo Show page](/echo-show-calendar-display/) says why.
 
-[DinkyDash](/) is free, open-source software that does exactly that: paste the link and it
+[DinkyDash](/) is open-source software that does exactly that. We can host it for you ($39 a year after a 14-day free trial), or you can run it yourself for free. Paste the link and it
 shows today's events on a wall screen, alongside a rotating chore chart, birthday countdowns
 and a headline written fresh each day. There's no Google sign-in — the link is the whole
 connection, and it can only read.
@@ -128,6 +126,4 @@ and it's the one you want.
   the ICS link
 - [Cozi](/cozi-calendar-display/) — Settings → Shared Cozi Calendars
 
-Any of them, or several at once, merge into one agenda. The [full setup
-guide](/getting-started/) takes it from here — running the dashboard on your computer first, then
-moving it onto a screen that stays on the wall.
+Any of them, or several at once, merge into one agenda. To skip the setup, [start a free 14-day hosted trial](https://app.dinkydash.co/login) and paste the link there. To run it yourself, the [full setup guide](/getting-started/) starts on your own computer.

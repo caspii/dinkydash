@@ -7,7 +7,7 @@ description: DinkyDash is an open-source family calendar for a screen you alread
 
 DinkyDash is a **family calendar for a screen you already own**. Open it on a TV, an old tablet or a Raspberry Pi, and your family gets one screen with today's calendar, whose turn each chore is, and countdowns to the big days. A short headline at the top is written fresh each day.
 
-It was built by [Caspar](https://casparwre.de), an indie developer in Berlin, for his own kids. It's been open source since 2021, because a family calendar shouldn't cost $600 plus a subscription.
+It was built by [Caspar](https://casparwre.de), an indie developer in Berlin, for his own kids. It's been open source since 2021, because a family calendar shouldn't cost a dedicated screen and a subscription.
 
 ## What the dashboard shows
 
@@ -35,6 +35,6 @@ Once a day, at a time you pick, Claude reads the day ahead and writes the headli
 ## Where to start
 
 - [Self-hosting guide](/getting-started/): from nothing to a dashboard on your wall
-- [The ~$100 DIY build](/diy-skylight-calendar/): the Raspberry Pi and touchscreen route
+- [The ~$150 DIY build](/diy-skylight-calendar/): the Raspberry Pi and touchscreen route
 - [How it compares to Skylight, Hearth and the rest](/skylight-calendar-alternatives/)
 - [The code, on GitHub](https://github.com/caspii/dinkydash)
