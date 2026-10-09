@@ -9,9 +9,9 @@ faq:
   - q: "Is DAKboard open source?"
     a: "No. DAKboard is a commercial hosted service. You can run its display on your own hardware, such as a Raspberry Pi, but the software runs on DAKboard's servers and the source is not published. DinkyDash, MagicMirror² and Home Assistant are open source."
   - q: "What are the limits of DAKboard's free tier?"
-    a: "As of September 2026, the free tier gives one predefined screen, up to two calendars, predefined layouts only, DAKboard branding on the screen and a 60-minute calendar refresh. Custom layouts start on Essential at $6 per month, or $5 per month billed annually."
+    a: "As of 9 October 2026, the free tier gives one predefined screen, up to two calendars, predefined layouts only, DAKboard branding on the screen and a 60-minute calendar refresh. Custom layouts start on Essential at $6 per month, or $5 per month billed annually."
   - q: "How much does DAKboard cost?"
-    a: "DAKboard has a free tier. Essential is $6 per month, or $5 per month billed annually, for two custom screens and five calendars. Plus is $10 per month, or $8 per month billed annually, for three screens and unlimited calendars. Checked September 2026."
+    a: "DAKboard has a free tier. Essential is $6 per month, or $5 per month billed annually, for two custom screens and five calendars. Plus is $10 per month, or $8 per month billed annually, for three screens and unlimited calendars. Checked 9 October 2026."
   - q: "What is the best DAKboard alternative for a Raspberry Pi?"
     a: "DinkyDash and MagicMirror² both run on a Raspberry Pi and are free and open source. DinkyDash is a family calendar with a chore rotation and countdowns and needs no modules to be useful. MagicMirror² is a general module platform, so it is more flexible and takes longer to set up."
   - q: "Can I keep my family's data on my own machine?"
@@ -36,7 +36,7 @@ This page compares six alternatives on the things that actually decide it: what 
 | **Hearth Display** | $86.40/yr required | $699 | No | No |
 | *DAKboard, for reference* | *Free tier; $5–10/mo* | *Bring your own, or their CPU from $99.95* | *No* | *No* |
 
-*Prices checked 6 October 2026. Always confirm current pricing before buying.*
+*Prices checked 9 October 2026. Always confirm current pricing before buying.*
 
 ## Why people look for a DAKboard alternative
 

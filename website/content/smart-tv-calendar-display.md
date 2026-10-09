@@ -44,7 +44,7 @@ On **LG**, it's **Web Browser**, in the launcher. On an **Android TV or Google T
 is usually no browser preinstalled — install Chrome, or use a [Fire TV
 stick](/fire-tv-calendar-display/) instead.
 
-**2. Type the address, once.** On your own network it looks like `http://192.168.1.50:5000`.
+**2. Type the address, once.** If we host it, that's the screen link under **Settings → The screen**, where there's a QR code too, so you don't have to type it. If you run it yourself, it's the address of the machine serving it on your network, something like `http://192.168.1.50:5000`.
 Typing that with a remote is the worst part of this whole page. Two ways to make it survivable:
 
 - Pair a **Bluetooth keyboard** to the TV for the one minute it takes.
@@ -102,7 +102,7 @@ Claude API call once a day, roughly $0.13 a month, and the dashboard works witho
 - [Fire TV](/fire-tv-calendar-display/) — if your TV has no browser, a Fire Stick gives it one
 - [iPad](/ipad-calendar-display/) — the best cheap always-on panel
 - [Android tablet](/android-tablet-calendar-display/) — the same, cheaper second-hand
-- [Raspberry Pi](/raspberry-pi-family-calendar/) — the tidiest permanent panel, about $100
+- [Raspberry Pi](/raspberry-pi-family-calendar/) — the tidiest permanent panel, about $150
 - [Echo Show](/echo-show-calendar-display/) — the one that doesn't work, and why
 
 ## Start here

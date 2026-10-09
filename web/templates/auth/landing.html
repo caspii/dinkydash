@@ -36,8 +36,8 @@
     <div>
         <div style="font-size:1.125rem;font-weight:800;">Sign in to DinkyDash</div>
         <div class="hint" style="margin-top:0.1875rem;">
-            You asked us for a link and here it is. Press the button and we will sign
-            you in — or start your dashboard, if this is your first time.
+            You asked us for a link and here it is. Press the button and we'll sign
+            you in, or start your dashboard if this is your first time.
         </div>
     </div>
     <form method="post" action="{{ url_for('auth.landing') }}"
@@ -47,8 +47,8 @@
         <button class="btn" type="submit">Sign me in</button>
     </form>
     <div class="hint">
-        Did not ask for this? Close this page and nothing happens — the link goes
-        stale on its own in fifteen minutes.
+        Didn't ask for this? Close this page and nothing happens. The link stops
+        working on its own in 15 minutes.
     </div>
 </div>
 {% endblock %}

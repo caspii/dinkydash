@@ -2,7 +2,7 @@
 title: "Turn an Old iPad Into a Family Calendar Display"
 seo_title: "iPad Calendar Display: Use an Old iPad as a Wall Calendar"
 template: page.html
-description: An old iPad makes the best cheap family calendar display there is — always on, always charged, wall-mounted. Here's how to set one up with free, open-source software and no App Store account.
+description: "An old iPad makes the best cheap family calendar display there is — always on, always charged, wall-mounted. The software's open source: free to run yourself, or $39 a year if we host it. No App Store account."
 faq:
   - q: "Can I use an old iPad as a family calendar display?"
     a: "Yes, and it is the best cheap option there is. Any iPad that still runs Safari can show a wall calendar full screen. You need three settings: Auto-Lock set to Never, Guided Access to stop anyone leaving the page, and the charger left plugged in."
@@ -21,7 +21,7 @@ screen, it charges over one cable, it already sits flat against a wall, and iOS 
 settings you need built in: a screen that never sleeps, and a lock that keeps everyone on one
 page.
 
-Here's the whole setup, with free and open-source software.
+Here's the whole setup. The software's open source: free to run yourself, or $39 a year if we host it.
 
 ## What you need
 
@@ -41,8 +41,7 @@ like the picture above and one lying on its side splits into two.
 
 ## Set it up
 
-**1. Open the dashboard in Safari.** Type the address DinkyDash is serving on. On your own
-network that looks like `http://192.168.1.50:5000` — the address of the machine running it.
+**1. Open the dashboard in Safari.** If we host it, that's the screen link under **Settings → The screen**, where there's a QR code too, so you don't have to type it. If you run it yourself, it's the address of the machine serving it on your network, something like `http://192.168.1.50:5000`.
 
 **2. Add it to the home screen.** Share button, then **Add to Home Screen**. This is the step
 that matters: launched from the home screen the dashboard runs **full screen**, with no address
@@ -94,13 +93,14 @@ calendar app, and the wall follows.
 subscription for the self-hosted version. The one running cost is the headline, which is a
 Claude API call once a day — roughly $0.13 a month — and the dashboard works without it.
 
-For comparison, a Skylight Calendar is $299.99 to $599.99 plus an optional $79 a year. The
+For comparison, a Skylight Calendar is $299.99 to $599.99 plus an optional $79 a year.
+Prices checked 9 October 2026. The
 [best digital family calendar page](/best-digital-family-calendar/) has the full comparison.
 
 ## Other screens
 
 - [Android tablet](/android-tablet-calendar-display/) — the same idea, and old ones are cheaper
-- [Raspberry Pi](/raspberry-pi-family-calendar/) — the tidiest permanent panel, about $100
+- [Raspberry Pi](/raspberry-pi-family-calendar/) — the tidiest permanent panel, about $150
 - [Smart TV](/smart-tv-calendar-display/) — works, but the screensaver fights you
 - [Fire TV](/fire-tv-calendar-display/) — for the living-room television
 - [Echo Show](/echo-show-calendar-display/) — the one that doesn't work, and why

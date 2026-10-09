@@ -23,9 +23,9 @@ The good news: you have real options — including some that cost nothing becaus
 | **Cozi** | $0 (phone app) | Free with ads | No wall display |
 | **Google Calendar on an old tablet** | $0 | None | Yes |
 
-*Prices checked 6 October 2026 — always confirm current pricing before buying. Dæly is sold in euros and ships from Germany.*
+*Prices checked 9 October 2026 — always confirm current pricing before buying. Dæly is sold in euros and ships from Germany.*
 
-## 1. DinkyDash — free, open source, and AI-powered
+## 1. DinkyDash — open source, free to self-host or $39 a year hosted
 
 Full disclosure: DinkyDash is our project, so we're biased — but it exists precisely because we wanted a Skylight without the hardware bill. DinkyDash turns any TV, tablet, Raspberry Pi, or spare monitor into a family calendar with a daily chore rotation, birthday countdowns, and something no other option here has: **a daily message written by AI, fresh every day**, written around your family's actual day.
 

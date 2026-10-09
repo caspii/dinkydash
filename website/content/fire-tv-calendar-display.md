@@ -13,7 +13,7 @@ faq:
   - q: "How do I type a web address on a Fire TV?"
     a: "Use the Alexa voice button on the remote to dictate it, or the Fire TV phone app, which gives you a real keyboard. Then bookmark the page so you never type it again."
   - q: "Do I need an Amazon subscription for this?"
-    a: "No. Silk is a free download, the calendar software is free and open source, and nothing here touches Prime."
+    a: "No. Silk is a free download, and nothing here touches Prime. DinkyDash is free to run yourself, or $39 a year if we host it."
 ---
 
 There's no good family calendar app for Fire TV. There is, though, a **browser** — Amazon's
@@ -42,7 +42,7 @@ screen. Nothing needs configuring for a particular set.
 "Silk", pick **Amazon Silk** and choose **Download**. It's free and it's Amazon's own, so
 there's no sideloading and no developer mode.
 
-**2. Type the address, once.** On your own network it looks like `http://192.168.1.50:5000`.
+**2. Type the address, once.** If we host it, that's the screen link under **Settings → The screen**, where there's a QR code too, so you don't have to type it. If you run it yourself, it's the address of the machine serving it on your network, something like `http://192.168.1.50:5000`.
 Typing that on an on-screen keyboard with a remote is the worst minute of this whole setup.
 Two ways round it:
 
@@ -103,7 +103,7 @@ line — a Claude API call once a day, roughly $0.13 a month, and the dashboard 
 - [Smart TV](/smart-tv-calendar-display/) — Samsung and LG have their own browsers
 - [iPad](/ipad-calendar-display/) — the best cheap always-on panel
 - [Android tablet](/android-tablet-calendar-display/) — the same, cheaper second-hand
-- [Raspberry Pi](/raspberry-pi-family-calendar/) — the tidiest permanent panel, about $100
+- [Raspberry Pi](/raspberry-pi-family-calendar/) — the tidiest permanent panel, about $150
 - [Echo Show](/echo-show-calendar-display/) — the one that doesn't work, and why
 
 ## Start here

@@ -101,7 +101,7 @@ Pi](/raspberry-pi-family-calendar/) the tidiest, and a [smart TV](/smart-tv-cale
 or [Fire TV](/fire-tv-calendar-display/) will show it on the big screen. There's one device it
 doesn't work on, and [the Echo Show page](/echo-show-calendar-display/) says why.
 
-[DinkyDash](/) is free, open-source software for exactly that: paste the link and today's
+[DinkyDash](/) is open-source software that does exactly that. We can host it for you ($39 a year after a 14-day free trial), or you can run it yourself for free. Paste the link and today's
 events appear on a wall screen, next to a chore chart that rotates by itself, countdowns to
 birthdays and holidays, and a headline written fresh each day. There's no Apple sign-in
 anywhere in it — the link is the entire connection, and it can only read.
@@ -117,7 +117,7 @@ To add it:
 
 If the calendar you're pasting also holds work meetings, fill in **Only show events shared
 with** and give the other parent's email address. Only events they are invited to reach the
-screen; the rest never leave iCloud. The [getting started
+screen; the rest are dropped as soon as the calendar is read, and are never stored or sent on. The [getting started
 guide](/getting-started/#personal-calendar) covers that properly.
 
 ## Other calendars
@@ -128,6 +128,4 @@ guide](/getting-started/#personal-calendar) covers that properly.
   the ICS link
 - [Cozi](/cozi-calendar-display/) — Settings → Shared Cozi Calendars
 
-Mix providers freely; they all end up as one agenda. The [full setup
-guide](/getting-started/) is the next step — it starts the dashboard on your own computer, then
-moves it onto a screen that lives on the wall.
+Mix providers freely; they all end up as one agenda. To skip the setup, [start a free 14-day hosted trial](https://app.dinkydash.co/login) and paste the link there. To run it yourself, the [full setup guide](/getting-started/) starts on your own computer.

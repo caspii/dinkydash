@@ -2,18 +2,18 @@
 title: "DAKboard vs Skylight vs DinkyDash (2026): Prices, Setup, and Which to Pick"
 seo_title: "DAKboard vs Skylight vs DinkyDash (2026) Compared"
 template: page.html
-description: DAKboard ($0–10/mo, bring your own screen) vs Skylight ($299.99–$599.99 plus optional $79/yr) vs DinkyDash (free and open source) — compared on hardware, subscription, setup effort, and what happens when it breaks.
+description: DAKboard ($0–10/mo, bring your own screen) vs Skylight ($299.99–$599.99 plus optional $79/yr) vs DinkyDash (free to self-host, or $39 a year hosted) — compared on hardware, subscription, setup effort, and what happens when it breaks.
 faq:
   - q: "What is the difference between DAKboard and Skylight?"
-    a: "DAKboard is software you point at a screen you already own; Skylight is a screen you buy with the software built in. DAKboard costs $0–10 per month and nothing up front. Skylight costs $299.99 for the 15-inch Calendar 2 or $599.99 for the 27-inch Calendar Max, with an optional Plus subscription at $79 per year. Checked September 2026."
+    a: "DAKboard is software you point at a screen you already own; Skylight is a screen you buy with the software built in. DAKboard costs $0–10 per month and nothing up front. Skylight costs $299.99 for the 15-inch Calendar 2 or $599.99 for the 27-inch Calendar Max, with an optional Plus subscription at $79 per year. Checked 9 October 2026."
   - q: "Is DAKboard cheaper than Skylight?"
     a: "Over three years, yes, if you already own a screen. DAKboard Essential is about $180 over three years and Plus is about $288. A 15-inch Skylight with Plus is about $537, and a 27-inch Calendar Max with Plus is about $837. If you need hardware to drive the screen, DAKboard's own CPU starts at $99.95."
   - q: "Which is better for a family calendar, DAKboard or Skylight?"
-    a: "Skylight, if you want a touchscreen your family taps and no setup at all. DAKboard, if you already own a screen and want control over the layout. DAKboard is a general information dashboard that has added a chore chart; Skylight is built as a family calendar from the start. DinkyDash is a third option: free, open source, family-shaped, and it needs an afternoon of setup."
+    a: "Skylight, if you want a touchscreen your family taps and no setup at all. DAKboard, if you already own a screen and want control over the layout. DAKboard is a general information dashboard that has added a chore chart; Skylight is built as a family calendar from the start. DinkyDash is a third option: open source and family-shaped. It's free if you run it yourself, which needs an afternoon of setup, or $39 a year if we host it."
   - q: "Do I need a subscription for DAKboard or Skylight?"
-    a: "Neither strictly requires one. DAKboard's free tier gives one predefined screen and two calendars with DAKboard branding and a 60-minute refresh; custom layouts start at $6 per month, or $5 billed annually. A Skylight works without Plus — Plus at $79 per year adds chore rewards, meal planning and Magic Import. DinkyDash self-hosted has no subscription at all."
+    a: "Neither strictly requires one. DAKboard's free tier gives one predefined screen and two calendars with DAKboard branding and a 60-minute refresh; custom layouts start at $6 per month, or $5 billed annually. A Skylight works without Plus — Plus at $79 per year adds chore rewards, meal planning and Magic Import. DinkyDash self-hosted has no subscription; the headline is about $0.13 a month on your own Anthropic key. Hosted is $39 a year or $6 a month."
   - q: "How does Mango Display compare to DAKboard?"
-    a: "Both are bring-your-own-screen software. Mango Display is more polished and needs no setup, but its free plan has no calendar at all — calendars start on Pro at $5.99 per month or $59.99 per year. DAKboard's free tier does include two calendars, and DAKboard goes much further on custom layouts. Checked September 2026."
+    a: "Both are bring-your-own-screen software. Mango Display is more polished and needs no setup, but its free plan has no calendar at all — calendars start on Pro at $5.99 per month or $59.99 per year. DAKboard's free tier does include two calendars, and DAKboard goes much further on custom layouts. Checked 9 October 2026."
   - q: "What happens if the company shuts down?"
     a: "With DAKboard, Skylight and Mango Display, the display depends on the company's servers, so the screen stops being useful. DinkyDash is MIT-licensed and runs on your own machine, so a copy you have already installed keeps working. That is the main practical argument for the open-source option."
 ---
@@ -22,26 +22,26 @@ Comparing the two best-known ways to put your family's calendar on a wall? Here'
 
 **DAKboard** is software you point at a screen you already own. **Skylight** is a screen you buy, with the software already in it. That single difference decides most of it: DAKboard costs nothing up front and $0–10 a month; Skylight costs $299.99–$599.99 once and $0–79 a year after that.
 
-**DinkyDash** — our project — is a third shape: free, open source, bring your own screen, and no subscription at all. We're obviously not neutral about that one, so this page is written to be useful even if you pick one of the other two.
+**DinkyDash** — our project — is a third shape: open source and bring your own screen. It's free if you run it yourself, or $39 a year if we host it. We're obviously not neutral about that one, so this page is written to be useful even if you pick one of the other two.
 
-*A word on what this page is. It compares published specifications and public prices, checked on 6 October 2026. It's not a review — we haven't lived with a Skylight on our kitchen wall, and we aren't going to pretend otherwise. For hands-on impressions of the hardware, go and read the people who actually bought one.*
+*A word on what this page is. It compares published specifications and public prices, checked on 9 October 2026. It's not a review — we haven't lived with a Skylight on our kitchen wall, and we aren't going to pretend otherwise. For hands-on impressions of the hardware, go and read the people who actually bought one.*
 
 ## Head to head
 
 | | DAKboard | Skylight Calendar | DinkyDash |
 |---|---|---|---|
 | **Screen** | Bring your own, or their CPU from $99.95 | Included — 15″ or 27″ touchscreen | Bring your own |
-| **Hardware cost** | $0–100 | **$299.99** (15″ Calendar 2) / **$599.99** (27″ Calendar Max) | $0, or ~$100–130 for a Raspberry Pi build |
+| **Hardware cost** | $0–100 | **$299.99** (15″ Calendar 2) / **$599.99** (27″ Calendar Max) | $0, or ~$120–185 for a Raspberry Pi build |
 | **Subscription** | Free tier; Essential **$6/mo** ($5 annually); Plus **$10/mo** ($8 annually) | Optional Plus, **$79/yr** | **None** self-hosted. Hosted trial free, then $39/yr or $6/mo |
 | **Calendars it reads** | Google, iCloud, Microsoft 365, Facebook Events, ICS files | Google, Apple and Outlook | Google, iCloud and Outlook — you paste a sharing link, there is no sign-in |
 | **Open source** | No | No | **Yes, MIT** |
-| **Runs on your own hardware** | The display does; the service does not | No | **Yes, entirely** |
+| **Runs on your own hardware** | The display does; the service does not | No | Self-hosted: yes, entirely. Hosted: runs on ours. |
 | **Chore chart** | Yes — on Essential and Plus, not free | Yes; rewards need Plus | Yes, free — rotates between kids automatically |
 | **Touchscreen** | Only if the screen you bring is one | Yes, built in | Only if the screen you bring is one |
 | **AI** | No | Magic Import on Plus — photograph a school newsletter, get events | A daily message written fresh each day |
-| **Setup** | About ten minutes | Out of the box | An afternoon, and some comfort with a terminal |
+| **Setup** | About ten minutes | Out of the box | Hosted: about five minutes. Self-hosted: an afternoon, and some comfort with a terminal. |
 
-*Prices checked 6 October 2026. Always confirm current pricing before buying.*
+*Prices checked 9 October 2026. Always confirm current pricing before buying.*
 
 ## What each one actually is
 
@@ -83,7 +83,7 @@ Annual billing where it's offered. The DAKboard and DinkyDash rows assume you al
 
 | | Hardware | 3 years of software | **3-year total** |
 |---|---|---|---|
-| **DinkyDash, self-hosted** | $0 (own screen) or ~$100–130 (Pi build) | ~$5 | **~$5–135** |
+| **DinkyDash, self-hosted** | $0 (own screen) or ~$120–185 (Pi build) | ~$5 | **~$5–190** |
 | DinkyDash, hosted | $0 | $117 at $39/year | **$117** |
 | DAKboard Essential | $0, or ~$100 for their CPU | ~$180 | **~$180–280** |
 | DAKboard Plus | $0, or ~$100 | ~$288 | **~$288–388** |
@@ -97,7 +97,7 @@ The interesting row is the fifth one. **A Skylight without Plus is a genuinely c
 
 - **Skylight: minutes.** Unbox, connect to Wi-Fi, sign in to your calendar accounts. This is the whole point of buying hardware.
 - **DAKboard: about ten minutes**, plus whatever time you spend fiddling with the layout, which for some people is the hobby rather than the cost. Point a browser at a URL and you're done.
-- **DinkyDash: an afternoon.** Install Python, edit a config file or use the settings page, get an Anthropic API key, set up a cron job. Nothing is hard, but it's a terminal, and if that sentence made you tired then this isn't your option. Our [DIY guide](/diy-skylight-calendar/) walks through the Raspberry Pi version.
+- **DinkyDash: five minutes, or an afternoon.** Hosted, you paste a calendar link and open the dashboard on your screen. Self-hosted, you install Python, get an Anthropic API key and set it to run on a schedule. Nothing is hard, but the self-hosted path is a terminal, and if that sentence made you tired then the hosted one is yours. Our [DIY guide](/diy-skylight-calendar/) walks through the Raspberry Pi version.
 
 ## What happens when it breaks
 
@@ -131,7 +131,7 @@ A comparison that only flatters its own product isn't worth reading, so:
 
 **Skylight wins on "it's finished".** A touchscreen your family taps, a solid companion app, a support line, and a setup measured in minutes. If the real goal is that everybody sees the calendar and nobody has to be the household IT department, buying the problem away is a legitimate answer — and without Plus it's not even expensive over three years.
 
-**DinkyDash wins on cost, ownership and the daily message.** Free, MIT-licensed, running on hardware you own, with a headline each day that neither of the others offers. It's the only one here you can read the source of, and the only one that can't be discontinued out from under you.
+**DinkyDash wins on cost, ownership and the daily message.** Free to self-host or $39 a year hosted, with a headline each day that neither of the others offers. It's the only one here you can read the source of, and the only one you can keep running yourself if we stop.
 
 ## Which should you pick?
 

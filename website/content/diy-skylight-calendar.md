@@ -1,11 +1,11 @@
 ---
-title: "DIY Skylight Calendar: Build a Digital Family Calendar for About $100"
-seo_title: "DIY Skylight Calendar: Build a Family Calendar for ~$100"
+title: "DIY Skylight Calendar: Build a Digital Family Calendar for $120–185"
+seo_title: "DIY Skylight Calendar: Build a Family Calendar for $120–185"
 template: page.html
-description: How to build your own Skylight-style digital family calendar with a Raspberry Pi or an old tablet — free, open-source software, no subscription, about $100 in hardware (or $0 if you have a spare screen).
+description: How to build your own Skylight-style digital family calendar with a Raspberry Pi or an old tablet — open-source software, about $120–185 in new parts (or $0 if you have a spare screen), plus about $0.13 a month for the headline.
 ---
 
-A Skylight Calendar Max costs $599.99, plus $79 a year if you want the Plus features. The thing is, a digital family calendar is fundamentally *a screen showing a web page* — and that's something you can build yourself for about $100 with a Raspberry Pi, or for **$0** with a tablet you already own.
+A Skylight Calendar Max costs $599.99, plus $79 a year if you want the Plus features. The thing is, a digital family calendar is fundamentally *a screen showing a web page* — and that's something you can build yourself for about $120–185 with a Raspberry Pi, or for **$0** with a tablet you already own.
 
 Here's exactly how, using [DinkyDash](https://github.com/caspii/dinkydash), our free and open-source family calendar software.
 
@@ -29,7 +29,7 @@ Want to see the countdown part before you build anything? Our [birthday countdow
 | Route | What you need | Cost |
 |---|---|---|
 | **Old tablet** | The iPad or Android tablet in your drawer + a stand or wall mount | ~$0 |
-| **Raspberry Pi build** | Pi 4 or 5, 7″ touchscreen, SD card, power supply | ~$100–130 |
+| **Raspberry Pi build** | Pi 4 or 5, 7″ touchscreen, SD card, power supply | ~$120–185 |
 | **Spare monitor or TV** | Any screen with a browser, or one connected to any computer | ~$0 |
 
 The Raspberry Pi route is the classic: it draws well under 10 watts, mounts cleanly on a wall or shelf, and boots straight into the dashboard in kiosk mode. Our [Raspberry Pi family calendar guide](/raspberry-pi-family-calendar/) covers which Pi and screen to buy, with a full parts list.
@@ -51,7 +51,7 @@ The [full getting-started guide](/getting-started/) has copy-paste commands for 
 1. **Install DinkyDash** — clone the repo, install Python dependencies (about 10 minutes).
 2. **Describe your family** — one config file with names, birthdays, chores, special dates, and your [Google Calendar's iCal link](/google-calendar-ical-link/) (or [iCloud's](/icloud-calendar-link/), or [Outlook's](/outlook-calendar-ics-link/)).
 3. **Add an Anthropic API key** — this powers the AI-written headline. It comes to about $0.13 a month.
-4. **Set the schedule** — one cron line checks every five minutes. Calendars refresh hourly, and the headline is written once a day at a time you pick (06:00 unless you change it).
+4. **Set it to run on its own**: one command from the setup guide has it check every five minutes.
 5. **Point your screen at it** — on a Pi, Chromium launches fullscreen at boot; on a tablet or TV, just open the dashboard URL in the browser.
 
 Realistically: an evening for the first build if you're comfortable in a terminal, and about ten minutes whenever you want to change a chore rotation afterwards.
@@ -74,14 +74,14 @@ A cheap tablet wall mount, a picture ledge, or a small easel stand all work. Non
 
 | | Skylight Calendar Max | DIY with DinkyDash |
 |---|---|---|
-| Hardware | $599.99 | $0–130 |
-| Subscription | $79/yr for Plus features | None |
-| Three-year cost | ~$837 | ~$0–130 |
+| Hardware | $599.99 | $0–185 |
+| Subscription | $79/yr for Plus features | None; about $0.13 a month for the headline |
+| Three-year cost | ~$837 | ~$5–190 |
 | Your data | Their cloud | Your device |
 | AI daily message | No | Yes |
 | Fixable/customizable | No | It's your code |
 
-*Skylight prices checked 6 October 2026; the Raspberry Pi part prices above are approximate and were last checked August 2026.*
+*Skylight prices checked 9 October 2026; the Raspberry Pi part prices above are approximate and were last checked August 2026.*
 
 ## Questions people ask
 
