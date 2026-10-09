@@ -42,7 +42,7 @@ screen. Nothing needs configuring for a particular set.
 "Silk", pick **Amazon Silk** and choose **Download**. It's free and it's Amazon's own, so
 there's no sideloading and no developer mode.
 
-**2. Type the address, once.** If we host it, that's the screen link under **Settings → The screen**, where there's a QR code too, so you don't have to type it. If you run it yourself, it's the address of the machine serving it on your network, something like `http://192.168.1.50:5000`.
+**2. Type the address, once.** If we host it, that's the screen link under **Settings → The screen**: `app.dinkydash.co/s/` and twelve characters, with no letters that are easy to confuse. If you run it yourself, it's the address of the machine serving it on your network, something like `http://192.168.1.50:5000`.
 Typing that on an on-screen keyboard with a remote is the worst minute of this whole setup.
 Two ways round it:
 

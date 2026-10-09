@@ -15,7 +15,7 @@ faq:
   - q: "How does Mango Display compare to DAKboard?"
     a: "Both are bring-your-own-screen software. Mango Display is more polished and needs no setup, but its free plan has no calendar at all — calendars start on Pro at $5.99 per month or $59.99 per year. DAKboard's free tier does include two calendars, and DAKboard goes much further on custom layouts. Checked 9 October 2026."
   - q: "What happens if the company shuts down?"
-    a: "With DAKboard, Skylight and Mango Display, the display depends on the company's servers, so the screen stops being useful. DinkyDash is MIT-licensed and runs on your own machine, so a copy you have already installed keeps working. That is the main practical argument for the open-source option."
+    a: "If you run DinkyDash yourself, it's MIT-licensed and on your own machine, so a copy you've installed keeps working. If we host it, you can download your data and set it up yourself; that's a fresh setup, not an import."
 ---
 
 Comparing the two best-known ways to put your family's calendar on a wall? Here's the short version.
@@ -41,7 +41,7 @@ Comparing the two best-known ways to put your family's calendar on a wall? Here'
 | **AI** | No | Magic Import on Plus — photograph a school newsletter, get events | A daily message written fresh each day |
 | **Setup** | About ten minutes | Out of the box | Hosted: about five minutes. Self-hosted: an afternoon, and some comfort with a terminal. |
 
-*Prices checked 9 October 2026. Always confirm current pricing before buying.*
+*Prices checked 9 October 2026; the Raspberry Pi build is approximate and was last priced August 2026. Always confirm current pricing before buying.*
 
 ## What each one actually is
 
@@ -63,7 +63,7 @@ The optional **Plus** subscription is $79/year. A Skylight works without it — 
 
 What you're paying for is that a family can walk up and tap it. No other option here gives you that unless the screen you already own happens to be a touchscreen.
 
-### DinkyDash — free, open source, family-shaped
+### DinkyDash — open source, free to self-host or $39 a year hosted
 
 DinkyDash turns any TV, tablet, Raspberry Pi or spare monitor into a family calendar: today's events, a chore chart that rotates between kids automatically, countdowns to birthdays and holidays, and a daily message written by AI each day around the family's actual day.
 
@@ -90,6 +90,8 @@ Annual billing where it's offered. The DAKboard and DinkyDash rows assume you al
 | Skylight 15″, no Plus | $299.99 | $0 | **~$300** |
 | Skylight 15″ + Plus | $299.99 | $237 | **~$537** |
 | Skylight Max + Plus | $599.99 | $237 | **~$837** |
+
+*Prices checked 9 October 2026; the Raspberry Pi build is approximate and was last priced August 2026. Always confirm current pricing before buying.*
 
 The interesting row is the fifth one. **A Skylight without Plus is a genuinely competitive three-year cost** — cheaper than DAKboard Plus, and you get a touchscreen for it. The $837 figure people quote is the 27″ model with the subscription, which is the most expensive way to buy Skylight rather than the only way.
 

@@ -81,9 +81,7 @@ Two things hide it:
 
 ## Put it on a screen
 
-A calendar link on its own does nothing. The point of getting it's to show the calendar
-somewhere the family will actually look — a tablet in the hall, an old TV, a small screen on
-the kitchen wall.
+A calendar link on its own does nothing until the family can see it — a tablet in the hall, an old TV, or a small screen on the kitchen wall.
 
 Which screen? An [old iPad](/ipad-calendar-display/) or an [Android
 tablet](/android-tablet-calendar-display/) is the cheapest good panel, a [Raspberry

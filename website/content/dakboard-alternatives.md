@@ -48,7 +48,7 @@ Three reasons come up repeatedly, and they point at different replacements.
 
 **It's a dashboard first, a family organiser second.** DAKboard does now market a chore chart — a column per family member, one tap to check something off, points that convert into rewards you set, and a child lock so siblings can't clear each other's lists. It is on Essential and Plus, not the free tier. But the product underneath is still a way of arranging many data sources on one screen, so "whose turn is it to feed the dog" means pointing a general tool at a specific job.
 
-## 1. DinkyDash — free, open source, family-shaped
+## 1. DinkyDash — open source, free to self-host or $39 a year hosted
 
 Full disclosure: DinkyDash is our project, so treat this entry accordingly — the rest of the page is written to be useful whether or not you pick it.
 

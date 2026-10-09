@@ -18,7 +18,7 @@ Comparing the two big family-calendar displays? Here's the short version: **Skyl
 | Chores | Chore chart; rewards need Plus | Routine and task system built in |
 | Realistic 3-year cost | $599.99 + $237 ≈ **$837** (Max with Plus) | $699 + $259 ≈ **$958** (annual membership) |
 
-*Prices checked 9 October 2026. Skylight also sells a smaller 10″ Calendar from $169.99.*
+*Prices checked 9 October 2026. Skylight also sells a smaller 10″ Calendar, $169.99 on its product page; Skylight's comparison chart says from $149.99.*
 
 One footnote on that last row: Hearth's membership is required to set the display up, but you can cancel it afterwards and keep the calendar and profiles. The routines, lists, rewards and meal planning go with it.
 

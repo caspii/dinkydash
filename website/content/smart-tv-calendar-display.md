@@ -44,7 +44,7 @@ On **LG**, it's **Web Browser**, in the launcher. On an **Android TV or Google T
 is usually no browser preinstalled — install Chrome, or use a [Fire TV
 stick](/fire-tv-calendar-display/) instead.
 
-**2. Type the address, once.** If we host it, that's the screen link under **Settings → The screen**, where there's a QR code too, so you don't have to type it. If you run it yourself, it's the address of the machine serving it on your network, something like `http://192.168.1.50:5000`.
+**2. Type the address, once.** If we host it, that's the screen link under **Settings → The screen**: `app.dinkydash.co/s/` and twelve characters, with no letters that are easy to confuse. If you run it yourself, it's the address of the machine serving it on your network, something like `http://192.168.1.50:5000`.
 Typing that with a remote is the worst part of this whole page. Two ways to make it survivable:
 
 - Pair a **Bluetooth keyboard** to the TV for the one minute it takes.
