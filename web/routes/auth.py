@@ -28,10 +28,10 @@ import logging
 import re
 
 from flask import (Blueprint, current_app, redirect, render_template, request,
-                   url_for)
+                   session, url_for)
 
 from dinkydash import accounts, mail
-from web import ratelimit, session as user_session, turnstile
+from web import fathom, ratelimit, session as user_session, turnstile
 from web.urls import absolute_url
 
 log = logging.getLogger(__name__)
@@ -59,8 +59,14 @@ NOT_CONVINCED = ("That did not look like a person filling in a form. Reload the 
                  "page and try again.")
 
 # The page carrying a live credential is not cached and not indexed, for the
-# reasons `routes/screen.py` gives about the dashboard's token.
+# reasons `routes/screen.py` gives about the dashboard's token. The one-shot
+# sign-up page uses it too: a cached copy would count the same account twice.
 UNCACHED = {"Cache-Control": "no-store, private", "X-Robots-Tag": "noindex, nofollow"}
+
+# Set after a new account is inserted, spent by the page that counts it.
+# A boolean, not an event name: the name is a constant, so nothing in the
+# session can choose what gets sent.
+_FATHOM_SIGNUP = "fathom_signup"
 
 MOST_PER_IP = 20
 PER_SECONDS = 3600
@@ -237,7 +243,34 @@ def landing():
     if user is None:
         return render_template("auth/login.html", problem=DEAD_LINK)
     user_session.sign_in(user[0], user[1])
+    # After sign_in, which clears the session. Only an account this call
+    # created, and only when counting is switched on — a returning sign-in
+    # goes straight to settings, and so does a new one when the counter is off.
+    if user[2] and fathom.site_id():
+        session[_FATHOM_SIGNUP] = True
+        return redirect(url_for("auth.welcome"))
     return redirect(url_for("settings.home"))
+
+
+@bp.get("/login/welcome")
+def welcome():
+    """Count a new account once, then open settings.
+
+    The flag is spent before the page is rendered, so a refresh is a redirect
+    and the event is not in it. Signed out, this is the ordinary sign-in page:
+    the route is not a way to learn that an account was just created.
+    """
+    if not user_session.signed_in():
+        return redirect(url_for("auth.login"))
+    created = session.pop(_FATHOM_SIGNUP, False) is True
+    if not created or not fathom.site_id():
+        return redirect(url_for("settings.home"))
+    page = render_template(
+        "auth/welcome.html",
+        fathom_event=fathom.SIGNUP,
+        fathom_next=url_for("settings.home"),
+    )
+    return page, 200, UNCACHED
 
 
 @bp.route("/logout", methods=["POST"])

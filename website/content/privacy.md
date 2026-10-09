@@ -5,7 +5,7 @@ template: page.html
 description: What DinkyDash stores, who it is sent to, how long it is kept, and how to get it back or delete it.
 ---
 
-*Last updated: 2 October 2026.*
+*Last updated: 9 October 2026.*
 
 DinkyDash puts a family's day on a screen. That means the things it holds are a
 household's names, dates of birth and movements — which is about as personal as
@@ -38,10 +38,13 @@ either something you typed or something the software produced.
 | **Subscription records** | Stripe, after you choose to pay | Customer/subscription identifiers, payment status, renewal and cancellation dates; no card details |
 
 **We do not use cookies for tracking.** The hosted app sets one cookie, and it
-is the session that keeps you signed in. There is no analytics on
-`app.dinkydash.co`, no advertising, and no third-party script on the dashboard or
-the settings pages. The marketing site at `dinkydash.co` uses Ahrefs Web
-Analytics, which is cookieless and collects no personal data.
+is the session that keeps you signed in. There is no advertising. The sign-in
+pages on `app.dinkydash.co` load Fathom Analytics, so we can see which sites
+and campaigns bring people to a new dashboard. Fathom is cookieless. It does
+not see your name, your email address, your family's details or your calendar,
+and it is not loaded on the dashboard, the settings pages or the screen. The
+marketing site at `dinkydash.co` uses Fathom the same way, and Ahrefs Web
+Analytics, which is also cookieless and collects no personal data.
 
 ## Where it goes
 
@@ -86,6 +89,17 @@ every few minutes that it is still running, which is how we find out when it is
 not, and Sentry checks from outside that the sign-in page answers. Neither
 carries anything about you.
 
+**Fathom counts visits to the sign-in pages, and a sign-up.** The pages where
+you ask for a link, check your email and press the button load Fathom
+Analytics. So does one page you see only once, just after a new account is
+created, which then opens your settings. Your browser tells Fathom which of
+those pages you opened, which site linked you here, and any campaign
+parameters on that link. Fathom uses your IP address to count the visit and
+sets no cookie. It doesn't see your name, your email address, your family's
+details or your calendar, and it isn't on the dashboard, the settings pages or
+the screen. A sign-up is counted once, when the account is created. Signing
+in again isn't counted. The marketing site uses Fathom in the same way.
+
 **Cloudflare checks that a person is asking for the sign-in link.** The sign-in
 page carries a Cloudflare Turnstile box, so your browser talks to Cloudflare
 when you ask us to email you a link. It is there to stop scripts having us send
@@ -106,6 +120,7 @@ API key at all, and simply goes without the headline.
 | **SendGrid** (Twilio) | Delivers sign-in emails, subscription notices and feedback | United States |
 | **Google** | The mailbox our support and feedback email arrives in | United States |
 | **Cloudflare** | DNS; website and app delivery through DigitalOcean's App Platform; the bot check on the sign-in page | Global (US company) |
+| **Fathom Analytics** (Conva Ventures) | Cookieless visit counts on the marketing site and the sign-in pages, and the sign-up event | Canada; EU visitors are processed in the EU |
 | **Sentry** (Functional Software) | Error reports, and the checks that the app and the worker are running | United States |
 | **Stripe** | Processes subscriptions and payments when you choose to pay | See [Stripe's privacy policy](https://stripe.com/privacy) for its entities and international processing |
 

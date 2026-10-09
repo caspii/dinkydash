@@ -57,8 +57,12 @@ def create_app(store=None, *, pool=None):
     # time, so pulling the mail key takes the form away without a rebuild — and
     # it is the same function the route is gated behind, so a button that could
     # not work is never shown.
-    from . import feedback
+    from . import feedback, fathom
     app.jinja_env.globals["feedback_enabled"] = feedback.enabled
+    # Read at render time, like the feedback gate: unset means the sign-in
+    # pages fetch nothing, which is what a self-hosted dashboard and the test
+    # suite get. The include that draws the script is not on the shell.
+    app.jinja_env.globals["fathom_site_id"] = fathom.site_id
 
     from .session import configure as configure_session
     configure_session(app)

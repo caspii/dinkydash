@@ -513,7 +513,7 @@ class TestThePrivacyPageNamesEverySubProcessor:
     """
 
     @pytest.mark.parametrize("who", ["Anthropic", "DigitalOcean", "SendGrid",
-                                     "Cloudflare", "Sentry"])
+                                     "Cloudflare", "Sentry", "Fathom"])
     def test_it_names(self, client, who):
         page = client.get("/privacy/").get_data(as_text=True)
         assert who in page

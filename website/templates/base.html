@@ -561,6 +561,49 @@
         });
     })();
 </script>
+{# Carry the visit across to the hosted sign-in page. The marketing site
+   sends no referrer, so a click would arrive as direct traffic. This copies
+   the campaign parameters already on this page, and the origin of the site
+   that sent the reader here — scheme and host, never the path or the query,
+   so an address in a referrer cannot come along. Nothing is written to a
+   cookie. The link's own referrer policy then tells the app it came from
+   this site, which the page-level no-referrer header would otherwise hide. #}
+<script>
+(function () {
+    var keys = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term"];
+    var safe = /^[A-Za-z0-9._~-]{1,80}$/;
+    var params = new URLSearchParams(window.location.search);
+    var carried = {};
+    keys.forEach(function (key) {
+        var value = params.get(key);
+        if (value && safe.test(value)) carried[key] = value;
+    });
+    var ref = "";
+    try {
+        if (document.referrer) {
+            var from = new URL(document.referrer);
+            if ((from.protocol === "https:" || from.protocol === "http:")
+                    && !from.username && from.origin !== window.location.origin) {
+                ref = from.origin;
+            }
+        }
+    } catch (error) {}
+    var links = document.querySelectorAll("a[href]");
+    for (var i = 0; i < links.length; i++) {
+        var link = links[i];
+        var url;
+        try { url = new URL(link.href, window.location.href); }
+        catch (error) { continue; }
+        if (!/^\/login\/?$/.test(url.pathname) || url.host === window.location.host) continue;
+        keys.forEach(function (key) {
+            if (carried[key] && !url.searchParams.has(key)) url.searchParams.set(key, carried[key]);
+        });
+        if (ref && !url.searchParams.has("ref")) url.searchParams.set("ref", ref);
+        link.href = url.toString();
+        link.referrerPolicy = "origin";
+    }
+})();
+</script>
 <!-- Fathom - beautiful, simple analytics -->
 <script src="https://cdn.usefathom.com/script.js" data-site="HLVHPKAZ" defer></script>
 <!-- / Fathom -->

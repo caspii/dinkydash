@@ -540,9 +540,15 @@ class TestOpeningTheLinkSpendsNothing:
         nothing = without_the_token(client.get("/login/link"))
         assert live == invented == nothing
 
-    def test_the_page_submits_itself_to_nobody(self, client, sent, pg_user):
+    def test_the_page_submits_itself_to_nobody(self, client, sent, pg_user, monkeypatch):
         """No script and no meta refresh, or a scanner that runs them is back
-        where we started."""
+        where we started.
+
+        `FATHOM_SITE_ID` adds a counter that does not touch the form; that case
+        is `tests/test_fathom.py`. With the variable unset the page is empty
+        of scripts, which is what a scanner gets on a deploy that has not set it.
+        """
+        monkeypatch.delenv("FATHOM_SITE_ID", raising=False)
         page = client.get(self._link(client, sent)).get_data(as_text=True)
         assert "<script" not in page
         assert "http-equiv" not in page.lower()

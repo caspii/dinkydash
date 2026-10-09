@@ -91,7 +91,11 @@ def _issue_link(pool, user_id, email, ttl, most):
 
 
 def consume_link(pool, token):
-    """Spend a token and return (user_id, family_id), or None for any invalid link.
+    """Spend a token and return (user_id, family_id, created), or None.
+
+    None covers every invalid link: expired, spent and never issued. `created`
+    is true only when this call inserted the account. A later sign-in is false,
+    and so is a sign-up that lost the race to an account already created.
 
     The token update and any family creation share a transaction. A failed signup
     therefore leaves the token usable.
@@ -120,7 +124,10 @@ def consume_link(pool, token):
                 "RETURNING id, family_id",
                 (user_id,),
             )
-            return cur.fetchone()
+            found = cur.fetchone()
+            if found is None:
+                return None
+            return (found[0], found[1], False)
 
 
 def _start_a_family(cur, email):
@@ -144,7 +151,7 @@ def _start_a_family(cur, email):
         made = cur.fetchone()
         if made is not None:
             log.info("Created a family for a %s address.", _domain(address))
-            return made
+            return (made[0], made[1], True)
         cur.execute("DELETE FROM families WHERE id = %s", (family_id,))
 
     cur.execute(
@@ -152,7 +159,10 @@ def _start_a_family(cur, email):
         "RETURNING id, family_id",
         (address,),
     )
-    return cur.fetchone()
+    found = cur.fetchone()
+    if found is None:
+        return None
+    return (found[0], found[1], False)
 
 
 def _new_family(cur):

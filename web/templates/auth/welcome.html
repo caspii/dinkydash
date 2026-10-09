@@ -1,0 +1,31 @@
+{# Shown once, after a new account is created, and then never again.
+
+   The sign-up event has to render somewhere the browser will run it, and it
+   cannot render on the settings page: that page stays free of the counter.
+   This one carries no family, no address and no calendar. It fires the event
+   and opens settings. A second visit finds the flag already spent and is
+   sent on without the script. #}
+{% extends "settings/base.html" %}
+{% block title %}Your dashboard is ready{% endblock %}
+{% block manifest %}{% endblock %}
+{% block feedback %}{% endblock %}
+{% block speculation %}{% endblock %}
+{% block interactions %}{% endblock %}
+
+{% block head %}{% include "_fathom.html" %}{% endblock %}
+
+{% block appbar %}
+<h1 style="padding-left:0.25rem;color:var(--accent);font-size:1.15rem;">DinkyDash</h1>
+{% endblock %}
+
+{% block content %}
+<div class="card pad" style="display:flex;flex-direction:column;gap:0.875rem;">
+    <div>
+        <div style="font-size:1.125rem;font-weight:800;">Your dashboard is ready</div>
+        <div class="hint" style="margin-top:0.1875rem;">
+            We'll open your settings now. If this page stays here, press the button.
+        </div>
+    </div>
+    <a class="btn" href="{{ url_for('settings.home') }}">Continue</a>
+</div>
+{% endblock %}

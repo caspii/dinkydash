@@ -1,0 +1,32 @@
+{# The counter for the public sign-in pages. Nothing here belongs on a page
+   that already knows who is signed in, and the include is how that is kept:
+   the settings shell does not pull this in.
+
+   `data-auto="false"` because the pageview URL has to be the path alone.
+   A magic-link token rides in the query string, and the automatic pageview
+   would hand Fathom the whole address. The snippet below sends the path,
+   and — when the marketing site passed one — a referrer that is only an
+   origin. Campaign parameters stay in the address bar, which is where
+   Fathom reads them, and the token's name is not one of those parameters. #}
+{% set site_id = fathom_site_id() %}
+{% if site_id %}
+<script src="https://cdn.usefathom.com/script.js" data-site="{{ site_id }}" data-auto="false" defer></script>
+<script>
+window.addEventListener("load", function () {
+    if (!window.fathom) {
+        {% if fathom_next %}location.replace({{ fathom_next|tojson }});{% endif %}
+        return;
+    }
+    {% if fathom_event %}
+    fathom.trackEvent({{ fathom_event|tojson }});
+    {% else %}
+    var params = new URLSearchParams(window.location.search);
+    var ref = params.get("ref") || "";
+    var options = {url: window.location.origin + window.location.pathname};
+    if (/^https?:\/\/[A-Za-z0-9.-]+(?::[0-9]{1,5})?$/.test(ref)) options.referrer = ref;
+    fathom.trackPageview(options);
+    {% endif %}
+    {% if fathom_next %}location.replace({{ fathom_next|tojson }});{% endif %}
+});
+</script>
+{% endif %}

@@ -192,10 +192,11 @@ mode is a different product on the same code.
   page with a button and reads nothing, and only its `POST` calls `consume_link`. Scanners follow
   links; they do not fill in forms. `consume_link` is unchanged by this and stays that way — single
   use is still one `UPDATE ... WHERE used_at IS NULL RETURNING` — and the landing page carries no
-  script, no meta refresh and nothing else that could press the button for a caller, because
-  automating the press restores the bug in a form that is harder to see. `tests/test_auth.py`
-  asserts a bare `GET` spends nothing, signs nobody in, creates no family and leaves the link
-  working.
+  meta refresh and nothing that presses the button for a caller, because automating the press
+  restores the bug in a form that is harder to see. With `FATHOM_SITE_ID` unset it carries no
+  script at all. With it set, the only script is the cookieless counter, which does not read the
+  form. `tests/test_auth.py` asserts a bare `GET` spends nothing, signs nobody in, creates no
+  family and leaves the link working.
 - **The sign-in form has a bot check in front of it, and it is off unless both keys are set.**
   `web/turnstile.py`, over Cloudflare Turnstile, because everything past that button costs
   money — an email on a shared SendGrid reputation, then a family and a trial — and neither rate
@@ -206,8 +207,16 @@ mode is a different product on the same code.
   whatever was typed, or it enumerates accounts like anything else here. A Cloudflare that
   *refused* is refused; a Cloudflare we could not *reach* is allowed through, the trade
   `ratelimit.client_ip` already makes — a bot check that stops every family signing in is an
-  outage wearing a control's clothes. It is also the one third-party request the signed-out area
-  makes, which is why the privacy page and `/settings/account` name it.
+  outage wearing a control's clothes. The privacy page and `/settings/account` name it.
+- **Fathom counts the public sign-in pages, and a new account, and nothing else.**
+  `web/fathom.py`. `FATHOM_SITE_ID` unset — a self-hosted dashboard, the test suite, a deploy
+  that has not set it — loads no script. Set, the same cookieless script the marketing site
+  uses is on `/login`, the "check your email" page and the magic-link confirmation, and the
+  pageview URL is the path alone so the token in the query string is not the URL that is sent.
+  A new account is counted once, on a page that shows no family and then opens settings. A
+  returning sign-in is not counted. The dashboard, the settings, billing and `/s/<token>` do
+  not load it. No cookie, and no address or name in the event. The privacy page and
+  `/settings/account` name Fathom, because a sub-processor list is a promise about who is called.
 - **Every form that writes carries a CSRF token**, in *both* modes — `web/session.py`, with no
   switch to turn it off. A test walks the templates and fails on a form without one.
 - **Screen tokens are bearer credentials**, and unlike a magic link they never expire — a wall panel
