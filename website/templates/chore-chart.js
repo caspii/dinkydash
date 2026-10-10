@@ -15,6 +15,10 @@
    same week. Next week every chore moves one child along. With the
    rotation switch off, a chore keeps the child it was given.
 
+   A rename changes the child's name or the chore's title and nothing
+   else. Ticks are stored against the chore's id, and the days, the
+   pinned child and the rotation switch stay as they were.
+
    Worked example, Monday weeks, kids Pip, Moss, Rue:
      week 0 (1 January 2024): chores 0, 1, 2 -> Pip, Moss, Rue
      week 1 (8 January 2024): chores 0, 1, 2 -> Moss, Rue, Pip
@@ -213,6 +217,25 @@ var DDChoreChart = (function () {
         return 'Next week ' + parts.join(', ') + ', and ' + last + '.';
     }
 
+    function renameKid(state, index, name) {
+        var cleaned = cleanText(name, MAX_NAME);
+        if (!cleaned || index < 0 || index >= state.kids.length) { return false; }
+        state.kids[index] = cleaned;
+        return true;
+    }
+
+    function renameChore(state, id, title) {
+        var cleaned = cleanText(title, MAX_TITLE);
+        if (!cleaned) { return false; }
+        for (var i = 0; i < state.chores.length; i++) {
+            if (state.chores[i].id === id) {
+                state.chores[i].title = cleaned;
+                return true;
+            }
+        }
+        return false;
+    }
+
     function nameList(kids) {
         if (!kids.length) { return ''; }
         if (kids.length === 1) { return kids[0]; }
@@ -239,6 +262,8 @@ var DDChoreChart = (function () {
         blankState: blankState,
         decodeState: decodeState,
         encodeState: encodeState,
+        renameKid: renameKid,
+        renameChore: renameChore,
         rotationSentence: rotationSentence,
         nameList: nameList
     };

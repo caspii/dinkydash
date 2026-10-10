@@ -79,7 +79,8 @@
         width: 100%;
     }
     .cc-field input:focus, .cc-tick:focus, .cc-day:focus, .cc-check input:focus,
-    .cc-start input:focus, .cc-who select:focus, .cc-text-btn:focus, .cc-actions .btn:focus {
+    .cc-start input:focus, .cc-who select:focus, .cc-text-btn:focus, .cc-actions .btn:focus,
+    .cc-rename:focus, .cc-rename-input:focus {
         outline: 2px solid var(--accent);
         outline-offset: 2px;
     }
@@ -93,6 +94,55 @@
         padding: 6px 8px 6px 12px;
         margin: 0 8px 8px 0;
         font-weight: 700;
+    }
+    .cc-rename {
+        -webkit-appearance: none;
+        appearance: none;
+        font-family: inherit;
+        font-size: inherit;
+        font-weight: 700;
+        line-height: 1.2;
+        color: inherit;
+        background: transparent;
+        border: none;
+        border-bottom: 1px dotted var(--text-muted);
+        border-radius: 4px;
+        padding: 8px 2px;
+        margin: 0;
+        min-height: 44px;
+        cursor: text;
+        text-align: left;
+    }
+    .cc-rename-input {
+        -webkit-appearance: none;
+        appearance: none;
+        box-sizing: border-box;
+        font-family: inherit;
+        font-size: 1rem;
+        font-weight: 700;
+        line-height: 1.2;
+        color: var(--text);
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 8px 10px;
+        margin: 0;
+        min-height: 44px;
+        min-width: 8rem;
+        max-width: 100%;
+    }
+    .cc-chips .cc-rename-input { width: 10rem; }
+    .cc-chore-top .cc-rename,
+    .cc-chore-top .cc-rename-input {
+        flex: 1;
+        min-width: 0;
+        margin-right: 8px;
+    }
+    .cc-grid .cc-name .cc-rename,
+    .cc-grid .cc-name .cc-rename-input {
+        display: block;
+        width: 100%;
+        min-width: 0;
     }
     .cc-text-btn {
         font-family: inherit;
@@ -147,7 +197,6 @@
         padding: 10px 0;
     }
     .cc-chore-top { display: flex; align-items: center; }
-    .cc-chore-title { font-weight: 800; flex: 1; min-width: 0; padding-right: 8px; }
     .cc-who { font-size: 0.9rem; font-weight: 700; margin: 6px 0; }
     .cc-who select {
         font-family: inherit;
@@ -285,6 +334,13 @@
         .cc-grid { min-width: 0; width: 100%; }
         .cc-grid th, .cc-grid td { border-color: #000; color: #000; background: #fff; }
         .cc-name { position: static; background: #fff; min-width: 0; }
+        .cc-rename {
+            border: none;
+            border-bottom: none;
+            min-height: 0;
+            padding: 0;
+            background: transparent;
+        }
         .cc-kicker, .cc-week, .cc-names, .cc-next { color: #000; }
         .cc-na { background: #fff; }
         .cc-tick { width: 7mm; height: 7mm; }
@@ -322,7 +378,7 @@
                 </div>
                 <button type="button" class="btn" id="cc-add-kid">Add child</button>
             </div>
-            <p class="cc-hint" id="cc-kid-hint">Up to six. Add yourself too, if you're in the rotation.</p>
+            <p class="cc-hint" id="cc-kid-hint">Up to six. Add yourself too, if you're in the rotation. Tap a name to change it.</p>
 
             <h2>Chores</h2>
             <div class="cc-row">
@@ -343,6 +399,7 @@
                 <button type="button" class="cc-day" data-bit="64" aria-pressed="true" aria-label="Sunday">Sun</button>
             </div>
             <ul class="cc-chores" id="cc-chores"></ul>
+            <p class="cc-hint" id="cc-chore-hint">Tap a chore's name, in the list or on the chart, to change it. The ticks and the days stay.</p>
             <p class="cc-error" id="cc-error" hidden></p>
 
             <fieldset class="cc-start">
@@ -449,26 +506,40 @@
         return mask;
     }
 
+    var renaming = false;
+
+    function nameButton(text, kind, key, root) {
+        var button = document.createElement('button');
+        button.type = 'button';
+        button.className = kind === 'chore' ? 'cc-rename cc-chore-title' : 'cc-rename';
+        button.textContent = text;
+        button.setAttribute('data-rename', kind);
+        button.setAttribute('data-rename-key', String(key));
+        button.setAttribute('data-root', root);
+        button.setAttribute('aria-label', kind === 'kid'
+            ? 'Change ' + text + "'s name"
+            : 'Change the chore ' + text);
+        return button;
+    }
+
     function renderKids() {
         var list = el('cc-kids');
         list.textContent = '';
         for (var i = 0; i < state.kids.length; i++) {
             var item = document.createElement('li');
-            var name = document.createElement('span');
-            name.textContent = state.kids[i];
             var remove = document.createElement('button');
             remove.type = 'button';
             remove.className = 'cc-text-btn';
             remove.setAttribute('data-remove-kid', String(i));
             remove.setAttribute('aria-label', 'Remove ' + state.kids[i]);
             remove.textContent = '\u00d7';
-            item.appendChild(name);
+            item.appendChild(nameButton(state.kids[i], 'kid', i, 'cc-kids'));
             item.appendChild(remove);
             list.appendChild(item);
         }
         el('cc-kid-hint').textContent = state.kids.length >= C.MAX_KIDS
-            ? 'Six children is the limit for one chart.'
-            : "Up to six. Add yourself too, if you're in the rotation.";
+            ? 'Six children is the limit for one chart. Tap a name to change it.'
+            : "Up to six. Add yourself too, if you're in the rotation. Tap a name to change it.";
     }
 
     function renderChores() {
@@ -482,16 +553,13 @@
 
             var top = document.createElement('div');
             top.className = 'cc-chore-top';
-            var title = document.createElement('span');
-            title.className = 'cc-chore-title';
-            title.textContent = chore.title;
             var remove = document.createElement('button');
             remove.type = 'button';
             remove.className = 'cc-text-btn';
             remove.setAttribute('data-remove-chore', String(chore.id));
             remove.setAttribute('aria-label', 'Remove ' + chore.title);
             remove.textContent = 'Remove';
-            top.appendChild(title);
+            top.appendChild(nameButton(chore.title, 'chore', chore.id, 'cc-chores'));
             top.appendChild(remove);
             item.appendChild(top);
 
@@ -609,7 +677,7 @@
                 var nameCell = document.createElement('th');
                 nameCell.scope = 'row';
                 nameCell.className = 'cc-name';
-                nameCell.textContent = chore.title;
+                nameCell.appendChild(nameButton(chore.title, 'chore', chore.id, 'cc-chart'));
                 row.appendChild(nameCell);
                 var child = whoIndex(chore, i);
                 if (state.kids.length) {
@@ -734,6 +802,129 @@
         el('cc-chore-name').focus();
     }
 
+    function focusRenamed(root, kind, key) {
+        var scope = document.getElementById(root);
+        if (!scope) { return; }
+        var button = scope.querySelector('[data-rename="' + kind + '"][data-rename-key="' + key + '"]');
+        if (button) { button.focus(); }
+    }
+
+    function readRename(input) {
+        return {
+            kind: input.getAttribute('data-rename'),
+            key: input.getAttribute('data-rename-key'),
+            root: input.getAttribute('data-root'),
+            original: input.getAttribute('data-original'),
+            value: input.value
+        };
+    }
+
+    /* Empty means keep the previous name. A rename writes the label only,
+       so the chore id, the days, the ticks and the rotation are untouched. */
+    function applyRename(snapshot) {
+        var cleaned = C.cleanText(snapshot.value, snapshot.kind === 'kid' ? C.MAX_NAME : C.MAX_TITLE);
+        if (!cleaned) { return 'empty'; }
+        if (cleaned === snapshot.original) { return 'same'; }
+        var ok = snapshot.kind === 'kid'
+            ? C.renameKid(state, parseInt(snapshot.key, 10), cleaned)
+            : C.renameChore(state, parseInt(snapshot.key, 10), cleaned);
+        return ok ? 'changed' : 'empty';
+    }
+
+    function finishEdit(input, save, restoreFocus) {
+        if (!input || !input.parentNode || renaming) { return; }
+        renaming = true;
+        var snapshot = readRename(input);
+        if (save) {
+            var result = applyRename(snapshot);
+            showError(result === 'empty'
+                ? (snapshot.kind === 'kid'
+                    ? "Type a child's name, or press Escape to keep this one."
+                    : 'Type a chore name, or press Escape to keep this one.')
+                : '');
+        } else {
+            showError('');
+        }
+        render();
+        renaming = false;
+        if (restoreFocus) { focusRenamed(snapshot.root, snapshot.kind, snapshot.key); }
+    }
+
+    function startRename(button) {
+        if (!button || !button.parentNode) { return; }
+        if (document.querySelector('input.cc-rename-input')) { return; }
+        var kind = button.getAttribute('data-rename');
+        var input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'cc-rename-input';
+        input.value = button.textContent;
+        input.maxLength = kind === 'kid' ? C.MAX_NAME : C.MAX_TITLE;
+        input.setAttribute('aria-label', kind === 'kid' ? "Child's name" : 'Chore name');
+        input.setAttribute('data-rename', kind);
+        input.setAttribute('data-rename-key', button.getAttribute('data-rename-key'));
+        input.setAttribute('data-root', button.getAttribute('data-root'));
+        input.setAttribute('data-original', button.textContent);
+        input.setAttribute('autocomplete', 'off');
+        input.setAttribute('autocapitalize', kind === 'kid' ? 'words' : 'sentences');
+        input.setAttribute('enterkeyhint', 'done');
+        button.parentNode.replaceChild(input, button);
+        input.focus();
+        if (input.setSelectionRange) {
+            input.setSelectionRange(0, input.value.length);
+        }
+        input.addEventListener('keydown', function (event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                finishEdit(input, true, true);
+            } else if (event.key === 'Escape') {
+                event.preventDefault();
+                finishEdit(input, false, true);
+            }
+        });
+        input.addEventListener('blur', function () {
+            if (renaming) { return; }
+            var snapshot = readRename(input);
+            setTimeout(function () {
+                if (renaming) { return; }
+                var result = applyRename(snapshot);
+                showError(result === 'empty'
+                    ? (snapshot.kind === 'kid'
+                        ? "Type a child's name, or press Escape to keep this one."
+                        : 'Type a chore name, or press Escape to keep this one.')
+                    : '');
+                if (input.parentNode) {
+                    renaming = true;
+                    render();
+                    renaming = false;
+                } else if (result === 'changed') {
+                    persist();
+                }
+            }, 0);
+        });
+    }
+
+    /* The name is written into the chart before the click under the cursor
+       redraws it, so a tap on a day or another name still lands. */
+    document.addEventListener('mousedown', function (event) {
+        var open = document.querySelector('input.cc-rename-input');
+        if (!open || renaming) { return; }
+        if (event.target === open || (open.contains && open.contains(event.target))) { return; }
+        var result = applyRename(readRename(open));
+        if (result !== 'empty') { showError(''); }
+    }, true);
+
+    function openRename(button) {
+        var kind = button.getAttribute('data-rename');
+        var key = button.getAttribute('data-rename-key');
+        var root = button.getAttribute('data-root');
+        var open = document.querySelector('input.cc-rename-input');
+        if (open) { finishEdit(open, true, false); }
+        var scope = document.getElementById(root);
+        var fresh = scope && scope.querySelector(
+            '[data-rename="' + kind + '"][data-rename-key="' + key + '"]');
+        if (fresh) { startRename(fresh); }
+    }
+
     function removeKid(index) {
         state.kids.splice(index, 1);
         for (var i = 0; i < state.chores.length; i++) {
@@ -800,7 +991,20 @@
         node.setAttribute('aria-pressed', on ? 'false' : 'true');
     });
 
+    function renameClick(event, root) {
+        var node = event.target;
+        while (node && node !== root) {
+            if (node.getAttribute && node.getAttribute('data-rename')) {
+                openRename(node);
+                return true;
+            }
+            node = node.parentNode;
+        }
+        return false;
+    }
+
     el('cc-kids').addEventListener('click', function (event) {
+        if (renameClick(event, el('cc-kids'))) { return; }
         var node = event.target;
         if (node.getAttribute && node.getAttribute('data-remove-kid') !== null) {
             removeKid(parseInt(node.getAttribute('data-remove-kid'), 10));
@@ -808,6 +1012,7 @@
     });
 
     el('cc-chores').addEventListener('click', function (event) {
+        if (renameClick(event, el('cc-chores'))) { return; }
         var node = event.target;
         if (!node.getAttribute) { return; }
         if (node.getAttribute('data-remove-chore')) {
@@ -845,6 +1050,7 @@
     });
 
     el('cc-chart').addEventListener('click', function (event) {
+        if (renameClick(event, el('cc-chart'))) { return; }
         var node = event.target;
         while (node && node !== el('cc-chart')) {
             if (node.getAttribute && node.getAttribute('data-tick')) {

@@ -24,6 +24,8 @@ faq:
 
 Each row is a chore. Each column is a day. A box means the chore happens that day, and a tick means it's done.
 
+Tap a name to change it. The ticks, the days and whose turn it is all stay put.
+
 All seven days start selected. Clear the ones that don't apply — the bins, if they only go out on Monday — and those squares stay empty.
 
 The week starts on Monday. Switch it to Sunday if that's how yours runs. The columns and the rotation both follow the day you pick.

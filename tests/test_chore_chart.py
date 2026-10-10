@@ -64,7 +64,72 @@ assert.strictEqual(c.rotationSentence(['Pip', 'Moss']),
 assert.strictEqual(c.encodeState(c.blankState()), '');
 """
 
+RENAME = r"""
+const assert = require('assert');
+const c = require('./website/templates/chore-chart.js');
+
+const state = {
+  kids: ['Pip', 'Moss', 'Rue'],
+  chores: [{id: 1, title: 'Set the table', mask: 127, who: 0},
+           {id: 2, title: 'Bins', mask: 1, who: 2}],
+  start: 'mon',
+  rotate: true,
+  week: '2026-10-05',
+  ticks: {'1.1': true, '1.2': true, '2.1': true}
+};
+
+assert.strictEqual(c.renameKid(state, 0, '  Pippa  '), true);
+assert.strictEqual(c.renameChore(state, 1, 'Lay the table'), true);
+assert.strictEqual(state.kids[0], 'Pippa');
+assert.deepStrictEqual(state.kids.slice(1), ['Moss', 'Rue']);
+assert.strictEqual(state.chores[0].id, 1);
+assert.strictEqual(state.chores[0].title, 'Lay the table');
+assert.strictEqual(state.chores[0].mask, 127);
+assert.strictEqual(state.chores[0].who, 0);
+assert.strictEqual(state.chores[1].title, 'Bins');
+assert.strictEqual(state.chores[1].mask, 1);
+assert.strictEqual(state.chores[1].who, 2);
+assert.strictEqual(state.rotate, true);
+assert.strictEqual(state.start, 'mon');
+assert.strictEqual(state.week, '2026-10-05');
+assert.deepStrictEqual(state.ticks, {'1.1': true, '1.2': true, '2.1': true});
+
+const again = c.decodeState(c.encodeState(state));
+assert.strictEqual(again.kids[0], 'Pippa');
+assert.strictEqual(again.chores[0].title, 'Lay the table');
+assert.strictEqual(again.chores[0].mask, 127);
+assert.strictEqual(again.chores[1].mask, 1);
+assert.strictEqual(again.rotate, true);
+assert.deepStrictEqual(again.ticks, state.ticks);
+
+assert.strictEqual(c.renameKid(state, 0, '   '), false);
+assert.strictEqual(state.kids[0], 'Pippa');
+assert.strictEqual(c.renameKid(state, 9, 'Ned'), false);
+assert.strictEqual(c.renameChore(state, 1, ''), false);
+assert.strictEqual(c.renameChore(state, 99, 'Sweep'), false);
+assert.strictEqual(state.chores[0].title, 'Lay the table');
+assert.deepStrictEqual(state.ticks, {'1.1': true, '1.2': true, '2.1': true});
+
+var longKid = '';
+for (var i = 0; i < 30; i++) { longKid += 'A'; }
+assert.strictEqual(c.renameKid(state, 1, longKid), true);
+assert.strictEqual(state.kids[1].length, c.MAX_NAME);
+var longChore = '';
+for (var j = 0; j < 50; j++) { longChore += 'B'; }
+assert.strictEqual(c.renameChore(state, 2, longChore), true);
+assert.strictEqual(state.chores[1].title.length, c.MAX_TITLE);
+assert.strictEqual(c.renameChore(state, 2, 'Wash|up'), true);
+assert.strictEqual(state.chores[1].title, 'Wash up');
+assert.strictEqual(state.chores[1].mask, 1);
+assert.deepStrictEqual(c.decodeState(c.encodeState(state)).ticks, {'1.1': true, '1.2': true, '2.1': true});
+"""
+
 
 @pytest.mark.skipif(shutil.which("node") is None, reason="node is not installed")
 def test_rotation_week_and_link_round_trip():
     subprocess.run(["node", "-e", NODE], cwd=ROOT, check=True)
+
+
+@pytest.mark.skipif(shutil.which("node") is None, reason="node is not installed")
+def test_renaming_keeps_ticks_days_and_rotation():
+    subprocess.run(["node", "-e", RENAME], cwd=ROOT, check=True)
