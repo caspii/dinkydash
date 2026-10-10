@@ -5,7 +5,7 @@ template: page.html
 description: What DinkyDash stores, who it is sent to, how long it is kept, and how to get it back or delete it.
 ---
 
-*Last updated: 9 October 2026.*
+*Last updated: 10 October 2026.*
 
 DinkyDash puts a family's day on a screen. That means the things it holds are a
 household's names, dates of birth and movements — which is about as personal as
@@ -44,7 +44,8 @@ and campaigns bring people to a new dashboard. Fathom is cookieless. It does
 not see your name, your email address, your family's details or your calendar,
 and it is not loaded on the dashboard, the settings pages or the screen. The
 marketing site at `dinkydash.co` uses Fathom on every page, also without a
-cookie, and Ahrefs Web Analytics, which is also cookieless and collects no
+cookie, and Ahrefs Web Analytics, which is also cookieless. Ahrefs is sent
+the page's address only, not the rest of the link, and it collects no
 personal data.
 
 ## Where it goes

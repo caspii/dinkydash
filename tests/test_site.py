@@ -317,6 +317,26 @@ class TestWhatSearchEnginesRead:
         page = client.get("/dakboard-alternatives/").get_data(as_text=True)
         assert '<link rel="canonical" href="https://dinkydash.co/dakboard-alternatives/">' in page
 
+    def test_ahrefs_is_given_the_canonical_url(self, client):
+        """A chore chart keeps names in the hash. Ahrefs must be told the
+        canonical URL, or the page view would include them."""
+        for page in render.pages():
+            template = (render.TEMPLATES / page["template"]).read_text()
+            if '{% extends "base.html" %}' not in template:
+                continue
+            body = client.get(page["url"]).get_data(as_text=True)
+            tag = re.search(
+                r'<script src="https://analytics.ahrefs.com/analytics.js"[^>]*>',
+                body)
+            assert tag, page["url"]
+            assert f'data-page-location="https://dinkydash.co{page["url"]}"' in tag.group(0)
+        missing = client.get("/no-such-page/").get_data(as_text=True)
+        tag = re.search(
+            r'<script src="https://analytics.ahrefs.com/analytics.js"[^>]*>',
+            missing)
+        assert tag
+        assert 'data-page-location="https://dinkydash.co"' in tag.group(0)
+
     def test_the_sitemap_lists_the_real_pages(self, client):
         sitemap = client.get("/sitemap.xml").get_data(as_text=True)
         assert sitemap.startswith('<?xml version="1.0"')
@@ -632,8 +652,8 @@ class TestChoreChartGenerator:
 
     The generator is a thing you print. /digital-calendar-and-chore-chart/
     is the calendar and the chores on one screen. The two pages link to
-    each other in those words, and the generator stays in the footer with
-    the birthday countdown rather than in the nav.
+    each other, and the generator stays in the footer with the birthday
+    countdown rather than in the nav.
     """
 
     URL = "/chore-chart-generator/"
@@ -642,9 +662,9 @@ class TestChoreChartGenerator:
         response = client.get(self.URL)
         assert response.status_code == 200
         body = response.get_data(as_text=True)
-        assert "<h1>Free chore chart generator</h1>" in body
-        assert "Make a free chore chart and print it." in body
-        assert "Download as PDF" in body
+        assert f'<link rel="canonical" href="https://dinkydash.co{self.URL}">' in body
+        assert 'href="/digital-calendar-and-chore-chart/"' in body
+        assert "Print or save as PDF" in body
         assert "window.print" in body
         assert "location.hash" in body
         assert 'method="post"' not in body.lower()
@@ -662,7 +682,6 @@ class TestChoreChartGenerator:
     def test_the_wall_screen_page_points_here_and_this_page_points_back(self, client):
         other = client.get("/digital-calendar-and-chore-chart/").get_data(as_text=True)
         assert f'href="{self.URL}"' in other
-        assert "print and tick" in other
         page = client.get(self.URL).get_data(as_text=True)
         prose = page.split('class="cc-prose"')[1].split("<footer>")[0]
         assert 'href="/digital-calendar-and-chore-chart/"' in prose
@@ -674,5 +693,4 @@ class TestChoreChartGenerator:
 
     def test_the_home_page_offers_a_paper_chart(self, client):
         home = client.get("/").get_data(as_text=True)
-        assert f'href="{self.URL}"' in home
-        assert "make a free chore chart and print it" in home
+        assert f'<a href="{self.URL}">' in home

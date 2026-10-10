@@ -6,7 +6,7 @@ description: Combine the family calendar and the kids' chore chart on one wall s
 
 Every family runs the same two systems: a calendar (who needs to be where) and a chore chart (who's doing what). And in most kitchens they live in different places — the calendar on someone's phone, the chore chart on paper that stops being true by Wednesday.
 
-If you want a chart to print and tick this week, that's a different page. The [chore chart generator](/chore-chart-generator/) makes a weekly grid, free, with no account. This page is the other job: the calendar and the chores on one screen that stays on.
+Want a chart to print and tick this week instead? The [chore chart generator](/chore-chart-generator/) makes a weekly grid, free, with no account.
 
 Putting both on one always-on screen changes the dynamic: **kids check the screen instead of asking you**, and the screen — not a parent — is the one saying whose turn it is.
 

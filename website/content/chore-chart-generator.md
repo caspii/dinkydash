@@ -9,7 +9,7 @@ faq:
   - q: Is this chore chart free?
     a: Yes. There's no account, and you can print it as often as you like. It's a small tool from DinkyDash.
   - q: Can I print the chore chart?
-    a: Yes. Download as PDF opens the print window. Save as PDF from there, or print on A4 or US Letter. The printed page is the chart, in black and white.
+    a: Yes. Print or save as PDF opens the print window. Save as PDF from there, or print on A4 or US Letter. The printed page is the chart, in black and white.
   - q: Does it work on a phone?
     a: Yes. On a narrow screen the week scrolls sideways, and the boxes are big enough to tap. Turning the phone sideways shows more of the week at once.
   - q: What does rotating chores do?
@@ -42,7 +42,7 @@ This is a chart for one week. Stuck to the fridge, it doesn't update itself.
 
 ## Print it, or tick it on a phone
 
-**Download as PDF** opens your browser's print window. Choose Save as PDF, or print onto A4 or US Letter. The paper is black and white, and it's the chart on its own — the rest of this page stays on the website.
+**Print or save as PDF** opens your browser's print window. Choose Save as PDF, or print onto A4 or US Letter. The paper is black and white, and it's the chart on its own — the rest of this page stays on the website.
 
 On a phone, swipe sideways for the later days. The boxes are sized to tap. Ticks are kept in the link and they clear when the week changes, so the next one starts blank.
 
@@ -56,7 +56,7 @@ A printed chart is the right tool for a week you can hold. It goes quiet the wee
 
 That's a different job from this page. Here you make a grid and print it. A [digital calendar and chore chart](/digital-calendar-and-chore-chart/) is the screen that holds the week and the chores together, and keeps the turns moving after you've stopped reprinting.
 
-Hosted is free for 14 days, no card, then $39 a year or $6 a month. The self-hosted version is free, on a computer you leave switched on.
+The hosted version is free for 14 days, no card, then $39 a year or $6 a month. The self-hosted version is free, on a computer you leave switched on. The daily headline is optional and costs about $0.13 a month on your own Anthropic key.
 
 [See the dashboard](/)
 
@@ -68,7 +68,7 @@ Hosted is free for 14 days, no card, then $39 a year or $6 a month. The self-hos
 Yes. There's no account, and you can print it as often as you like. It's a small tool from DinkyDash.
 
 **Can I print the chore chart?**
-Yes. Download as PDF opens the print window. Save as PDF from there, or print on A4 or US Letter. The printed page is the chart, in black and white.
+Yes. Print or save as PDF opens the print window. Save as PDF from there, or print on A4 or US Letter. The printed page is the chart, in black and white.
 
 **Does it work on a phone?**
 Yes. On a narrow screen the week scrolls sideways, and the boxes are big enough to tap. Turning the phone sideways shows more of the week at once.
