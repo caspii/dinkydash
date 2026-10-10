@@ -1,0 +1,891 @@
+{% extends "base.html" %}
+
+{% block title %}{{ seo_title or title ~ " — DinkyDash" }}{% endblock %}
+{% block description %}{{ description or "DinkyDash — the digital family calendar for screens you already own." }}{% endblock %}
+{% block og_title %}{{ seo_title or title ~ " — DinkyDash" }}{% endblock %}
+
+{% block schema %}
+{# WebApplication rather than Article: the page is the tool, and the prose
+   below it exists to explain the tool. #}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Chore chart generator",
+  "url": {{ canonical_url | tojson }},
+  "applicationCategory": "UtilitiesApplication",
+  "operatingSystem": "Any",
+  "browserRequirements": "Requires JavaScript",
+  "description": {{ (description or "") | tojson }},
+  {% if last_modified %}"dateModified": {{ last_modified | tojson }},
+  {% endif %}"offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "publisher": { "@id": "https://dinkydash.co/#org" }
+}
+</script>
+{% if faq_schema %}<script type="application/ld+json">
+{{ faq_schema | safe }}
+</script>{% endif %}
+{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* Lengths in px, matching the other free tool. Flex spacing is margin
+       rather than gap: gap in flexbox arrived in Safari 14, and a chart
+       someone opens on an old iPad should still have space between the
+       controls. No :has(), color-mix(), dvh or container queries. */
+
+    .cc-page { max-width: 920px; }
+    .cc-page .cc-lede, .cc-prose { max-width: 680px; }
+    .cc-page .cc-lede { font-size: 1.05rem; }
+
+    .cc-app { margin: 8px 0 28px; }
+    .cc-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 22px 18px;
+        margin-bottom: 16px;
+    }
+    .cc-page .cc-card h2 {
+        font-size: 1.05rem;
+        font-weight: 800;
+        margin: 18px 0 8px;
+        letter-spacing: -0.01em;
+    }
+    .cc-page .cc-card h2:first-child { margin-top: 0; }
+    .cc-page .cc-hint { font-size: 0.85rem; color: var(--text-muted); margin: 8px 0 0; }
+    .cc-page .cc-error { color: #c2410c; font-size: 0.85rem; font-weight: 700; margin: 10px 0 0; }
+
+    .cc-row { display: flex; flex-wrap: wrap; align-items: flex-end; }
+    .cc-row > * { margin: 0 8px 8px 0; }
+    .cc-field { display: flex; flex-direction: column; flex: 1 1 180px; }
+    .cc-field label, .cc-days-label, .cc-start legend {
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        margin-bottom: 5px;
+    }
+    .cc-field input {
+        font-family: inherit;
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text);
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 10px 12px;
+        width: 100%;
+    }
+    .cc-field input:focus, .cc-tick:focus, .cc-day:focus, .cc-check input:focus,
+    .cc-start input:focus, .cc-who select:focus, .cc-text-btn:focus, .cc-actions .btn:focus {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+    }
+
+    .cc-chips { list-style: none; padding: 0; margin: 0; }
+    .cc-chips li {
+        display: inline-block;
+        background: var(--surface-warm);
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        padding: 6px 8px 6px 12px;
+        margin: 0 8px 8px 0;
+        font-weight: 700;
+    }
+    .cc-text-btn {
+        font-family: inherit;
+        font-weight: 700;
+        background: transparent;
+        border: none;
+        color: var(--text-muted);
+        cursor: pointer;
+        padding: 8px;
+        font-size: 1rem;
+        line-height: 1;
+    }
+    .cc-text-btn:hover { color: #c2410c; }
+
+    .cc-days { margin-bottom: 8px; }
+    .cc-day {
+        font-family: inherit;
+        font-size: 0.82rem;
+        font-weight: 800;
+        min-width: 44px;
+        min-height: 44px;
+        margin: 0 6px 6px 0;
+        padding: 0 8px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: var(--bg);
+        color: var(--text-mid);
+        cursor: pointer;
+    }
+    .cc-day[aria-pressed="true"] {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #fff;
+    }
+
+    .cc-start {
+        border: none;
+        padding: 0;
+        margin: 8px 0 0;
+    }
+    .cc-start label { margin-right: 16px; font-weight: 700; }
+    .cc-check {
+        display: block;
+        margin-top: 12px;
+        font-weight: 700;
+    }
+    .cc-check input { margin-right: 8px; }
+
+    .cc-chores { list-style: none; padding: 0; margin: 8px 0 0; }
+    .cc-chore {
+        border-top: 1px solid var(--border);
+        padding: 10px 0;
+    }
+    .cc-chore-top { display: flex; align-items: center; }
+    .cc-chore-title { font-weight: 800; flex: 1; min-width: 0; padding-right: 8px; }
+    .cc-who { font-size: 0.9rem; font-weight: 700; margin: 6px 0; }
+    .cc-who select {
+        font-family: inherit;
+        font-size: 1rem;
+        font-weight: 700;
+        margin-left: 6px;
+        padding: 6px 8px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        background: var(--bg);
+        color: var(--text);
+    }
+
+    .cc-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .cc-scroll-hint { display: none; font-size: 0.85rem; color: var(--text-muted); margin: 8px 0 0; }
+    .cc-page .cc-kicker {
+        font-size: 0.78rem;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        margin: 0;
+    }
+    .cc-page .cc-week {
+        font-size: 1.45rem;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        margin: 2px 0 4px;
+        color: var(--text);
+    }
+    .cc-page .cc-names { margin: 0 0 12px; font-weight: 700; color: var(--text-mid); }
+    .cc-page .cc-empty { margin: 12px 0 0; color: var(--text-mid); }
+    .cc-page .cc-next { margin: 12px 0 0; font-size: 0.92rem; color: var(--text-mid); }
+    .cc-print-foot { display: none; }
+
+    .cc-grid { width: 100%; border-collapse: collapse; }
+    .cc-page .cc-grid caption {
+        caption-side: bottom;
+        text-align: left;
+        padding-top: 8px;
+        font-weight: 600;
+    }
+    .cc-grid th, .cc-grid td {
+        border: 1px solid var(--border);
+        padding: 4px;
+        text-align: center;
+        vertical-align: middle;
+        font-weight: 700;
+    }
+    .cc-grid th[scope="row"], .cc-grid .cc-name {
+        text-align: left;
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+    .cc-name {
+        position: sticky;
+        left: 0;
+        background: #fff;
+        z-index: 1;
+        min-width: 8rem;
+    }
+    .cc-grid abbr { text-decoration: none; }
+    .cc-na { background: var(--surface-warm); }
+    .cc-tick {
+        width: 44px;
+        height: 44px;
+        border: none;
+        background: transparent;
+        padding: 0;
+        cursor: pointer;
+    }
+    .cc-box {
+        display: inline-block;
+        width: 22px;
+        height: 22px;
+        line-height: 22px;
+        border: 2px solid #2d2319;
+        border-radius: 4px;
+        vertical-align: middle;
+    }
+    .cc-mark {
+        display: inline-block;
+        width: 6px;
+        height: 10px;
+        border: solid #2d2319;
+        border-width: 0 2px 2px 0;
+        -webkit-transform: rotate(45deg);
+        transform: rotate(45deg);
+        visibility: hidden;
+        margin-top: -2px;
+    }
+    .cc-tick[aria-pressed="true"] .cc-mark { visibility: visible; }
+
+    .cc-actions { margin-top: 16px; }
+    .cc-actions .btn { margin: 0 8px 8px 0; }
+    .cc-actions .btn[disabled],
+    .cc-actions .btn[disabled]:hover {
+        opacity: 0.45;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+    }
+
+    @media (max-width: 640px) {
+        .cc-card { padding: 18px 14px; }
+        .cc-field { flex: 1 1 100%; }
+        .cc-row .btn { width: 100%; text-align: center; }
+        .cc-scroll-hint { display: block; }
+        .cc-grid { min-width: 640px; }
+    }
+
+    /* A4 is 210mm by 297mm. US Letter is 216mm by 279mm. With 12mm margins
+       the shared safe width is 186mm (A4 is the narrower page) and Letter
+       is the shorter page, so the chart stays inside both. `size` is left
+       to the printer: forcing A4 would scale a Letter sheet, and the reverse. */
+    @page {
+        margin: 12mm;
+    }
+    @media print {
+        html { font-size: 11pt; }
+        body { background: #fff; color: #000; }
+        nav, footer, h1, .cc-lede, .cc-controls, .cc-actions, .cc-scroll-hint,
+        .cc-prose, .page-updated { display: none !important; }
+        .cc-page, .page-content { max-width: none; padding: 0; margin: 0; }
+        .cc-app { margin: 0; }
+        .cc-card, .cc-result {
+            border: none;
+            box-shadow: none;
+            padding: 0;
+            margin: 0;
+            background: #fff;
+        }
+        .cc-sheet { max-width: 186mm; }
+        .cc-scroll { overflow: visible; }
+        .cc-grid { min-width: 0; width: 100%; }
+        .cc-grid th, .cc-grid td { border-color: #000; color: #000; background: #fff; }
+        .cc-name { position: static; background: #fff; min-width: 0; }
+        .cc-kicker, .cc-week, .cc-names, .cc-next { color: #000; }
+        .cc-na { background: #fff; }
+        .cc-tick { width: 7mm; height: 7mm; }
+        .cc-box { width: 5mm; height: 5mm; border-color: #000; border-radius: 0; }
+        .cc-mark { border-color: #000; }
+        .cc-print-foot {
+            display: block;
+            margin-top: 6mm;
+            font-size: 9pt;
+            color: #000;
+        }
+        .cc-grid tr { page-break-inside: avoid; }
+        a { color: #000; text-decoration: none; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container page-content cc-page">
+    <h1>{{ title }}</h1>
+    <p class="cc-lede">Make a free chore chart and print it. Add the children and the chores, choose the days, and you get a weekly grid of tick boxes — tap them on a phone, or print the page and use a pen. No account. The chart stays in the link, so you can bookmark it or send it to the other parent.</p>
+
+    <div class="cc-app">
+        <noscript>
+            <p class="cc-error">This chart is built in your browser. JavaScript is off, so the grid can't be filled in. The rest of the page still explains how a chart works, and how a wall dashboard does the turns for you.</p>
+        </noscript>
+
+        <div class="cc-card cc-controls">
+            <h2>Children</h2>
+            <ul class="cc-chips" id="cc-kids"></ul>
+            <div class="cc-row">
+                <div class="cc-field">
+                    <label for="cc-kid-name">Name</label>
+                    <input type="text" id="cc-kid-name" maxlength="24" autocomplete="off" autocapitalize="words" placeholder="e.g. Pip">
+                </div>
+                <button type="button" class="btn" id="cc-add-kid">Add child</button>
+            </div>
+            <p class="cc-hint" id="cc-kid-hint">Up to six. Add yourself too, if you're in the rotation.</p>
+
+            <h2>Chores</h2>
+            <div class="cc-row">
+                <div class="cc-field">
+                    <label for="cc-chore-name">Chore</label>
+                    <input type="text" id="cc-chore-name" maxlength="40" autocomplete="off" autocapitalize="sentences" placeholder="e.g. Set the table">
+                </div>
+                <button type="button" class="btn" id="cc-add-chore">Add chore</button>
+            </div>
+            <div class="cc-days-label" id="cc-days-label">Days</div>
+            <div class="cc-days" id="cc-add-days">
+                <button type="button" class="cc-day" data-bit="1" aria-pressed="true" aria-label="Monday">Mon</button>
+                <button type="button" class="cc-day" data-bit="2" aria-pressed="true" aria-label="Tuesday">Tue</button>
+                <button type="button" class="cc-day" data-bit="4" aria-pressed="true" aria-label="Wednesday">Wed</button>
+                <button type="button" class="cc-day" data-bit="8" aria-pressed="true" aria-label="Thursday">Thu</button>
+                <button type="button" class="cc-day" data-bit="16" aria-pressed="true" aria-label="Friday">Fri</button>
+                <button type="button" class="cc-day" data-bit="32" aria-pressed="true" aria-label="Saturday">Sat</button>
+                <button type="button" class="cc-day" data-bit="64" aria-pressed="true" aria-label="Sunday">Sun</button>
+            </div>
+            <ul class="cc-chores" id="cc-chores"></ul>
+            <p class="cc-error" id="cc-error" hidden></p>
+
+            <fieldset class="cc-start">
+                <legend>Week starts on</legend>
+                <label><input type="radio" name="cc-start" value="mon" checked> Monday</label>
+                <label><input type="radio" name="cc-start" value="sun"> Sunday</label>
+            </fieldset>
+            <label class="cc-check">
+                <input type="checkbox" id="cc-rotate">
+                Rotate chores between the children each week
+            </label>
+            <p class="cc-hint" id="cc-rotate-hint"></p>
+        </div>
+
+        <div class="cc-card cc-result">
+            <div class="cc-scroll" id="cc-scroll">
+                <div class="cc-sheet" id="cc-chart">
+                    <p class="cc-kicker">Chore chart</p>
+                    <p class="cc-empty">Add a child and a chore, and the week appears here.</p>
+                </div>
+            </div>
+            <p class="cc-scroll-hint">Swipe sideways for the rest of the week.</p>
+            <p class="cc-print-foot">dinkydash.co/chore-chart-generator</p>
+            <div class="cc-actions">
+                <button type="button" class="btn" id="cc-pdf" disabled>Download as PDF</button>
+                <button type="button" class="btn btn-outline" id="cc-copy">Copy link</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="cc-prose">
+        {{ content | safe }}
+        {% if last_modified %}<p class="page-updated">Last updated {{ last_modified }}.</p>{% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+{% include "chore-chart.js" %}
+</script>
+<script>
+(function () {
+    'use strict';
+
+    var C = window.DDChoreChart;
+    var state = C.blankState();
+    var nextId = 1;
+
+    function el(id) { return document.getElementById(id); }
+
+    function showError(msg) {
+        var box = el('cc-error');
+        box.textContent = msg || '';
+        box.hidden = !msg;
+    }
+
+    function weekIdx() {
+        return C.weekIndex(new Date(), state.start);
+    }
+
+    function syncWeek() {
+        var key = C.iso(C.weekStart(new Date(), state.start));
+        if (state.week !== key) {
+            state.week = key;
+            state.ticks = {};
+        }
+    }
+
+    function whoIndex(chore, choreIndex) {
+        if (!state.kids.length) { return -1; }
+        if (state.rotate) { return C.assigneeIndex(state.kids.length, choreIndex, weekIdx()); }
+        if (chore.who >= 0 && chore.who < state.kids.length) { return chore.who; }
+        return C.mod(choreIndex, state.kids.length);
+    }
+
+    function persist() {
+        var hash = C.encodeState(state);
+        var url = window.location.pathname + window.location.search + (hash ? '#' + hash : '');
+        if (window.history && window.history.replaceState) {
+            window.history.replaceState(null, '', url);
+        } else if (hash) {
+            window.location.hash = hash;
+        }
+    }
+
+    function orderAddDays() {
+        var wrap = el('cc-add-days');
+        var order = C.dayOrder(state.start);
+        for (var i = 0; i < order.length; i++) {
+            var button = wrap.querySelector('[data-bit="' + C.DAY_BIT[order[i]] + '"]');
+            if (button) { wrap.appendChild(button); }
+        }
+    }
+
+    function addMask() {
+        var mask = 0;
+        var buttons = el('cc-add-days').getElementsByTagName('button');
+        for (var i = 0; i < buttons.length; i++) {
+            if (buttons[i].getAttribute('aria-pressed') === 'true') {
+                mask += parseInt(buttons[i].getAttribute('data-bit'), 10);
+            }
+        }
+        return mask;
+    }
+
+    function renderKids() {
+        var list = el('cc-kids');
+        list.textContent = '';
+        for (var i = 0; i < state.kids.length; i++) {
+            var item = document.createElement('li');
+            var name = document.createElement('span');
+            name.textContent = state.kids[i];
+            var remove = document.createElement('button');
+            remove.type = 'button';
+            remove.className = 'cc-text-btn';
+            remove.setAttribute('data-remove-kid', String(i));
+            remove.setAttribute('aria-label', 'Remove ' + state.kids[i]);
+            remove.textContent = '\u00d7';
+            item.appendChild(name);
+            item.appendChild(remove);
+            list.appendChild(item);
+        }
+        el('cc-kid-hint').textContent = state.kids.length >= C.MAX_KIDS
+            ? 'Six children is the limit for one chart.'
+            : "Up to six. Add yourself too, if you're in the rotation.";
+    }
+
+    function renderChores() {
+        var list = el('cc-chores');
+        list.textContent = '';
+        var order = C.dayOrder(state.start);
+        for (var i = 0; i < state.chores.length; i++) {
+            var chore = state.chores[i];
+            var item = document.createElement('li');
+            item.className = 'cc-chore';
+
+            var top = document.createElement('div');
+            top.className = 'cc-chore-top';
+            var title = document.createElement('span');
+            title.className = 'cc-chore-title';
+            title.textContent = chore.title;
+            var remove = document.createElement('button');
+            remove.type = 'button';
+            remove.className = 'cc-text-btn';
+            remove.setAttribute('data-remove-chore', String(chore.id));
+            remove.setAttribute('aria-label', 'Remove ' + chore.title);
+            remove.textContent = 'Remove';
+            top.appendChild(title);
+            top.appendChild(remove);
+            item.appendChild(top);
+
+            var days = document.createElement('div');
+            days.className = 'cc-days';
+            for (var d = 0; d < order.length; d++) {
+                var index = order[d];
+                var bit = C.DAY_BIT[index];
+                var button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'cc-day';
+                button.setAttribute('data-chore-day', String(chore.id));
+                button.setAttribute('data-bit', String(bit));
+                button.setAttribute('aria-pressed', (chore.mask & bit) === bit ? 'true' : 'false');
+                button.setAttribute('aria-label', chore.title + ', ' + C.DAY_LONG[index]);
+                button.textContent = C.DAY_SHORT[index];
+                days.appendChild(button);
+            }
+            item.appendChild(days);
+
+            var who = document.createElement('div');
+            who.className = 'cc-who';
+            if (!state.kids.length) {
+                who.textContent = 'Add a child to put a name on this chore.';
+            } else if (state.rotate) {
+                who.textContent = 'This week: ' + state.kids[whoIndex(chore, i)];
+            } else {
+                var label = document.createElement('label');
+                label.textContent = 'Who ';
+                var select = document.createElement('select');
+                select.setAttribute('data-who', String(chore.id));
+                select.setAttribute('aria-label', 'Who does ' + chore.title);
+                for (var k = 0; k < state.kids.length; k++) {
+                    var option = document.createElement('option');
+                    option.value = String(k);
+                    option.textContent = state.kids[k];
+                    if (k === whoIndex(chore, i)) { option.selected = true; }
+                    select.appendChild(option);
+                }
+                label.appendChild(select);
+                who.appendChild(label);
+            }
+            item.appendChild(who);
+            list.appendChild(item);
+        }
+    }
+
+    function renderChart() {
+        var sheet = el('cc-chart');
+        var focusTick = document.activeElement && document.activeElement.getAttribute
+            ? document.activeElement.getAttribute('data-tick') : null;
+        var scroll = el('cc-scroll').scrollLeft;
+        sheet.textContent = '';
+
+        var start = C.weekStart(new Date(), state.start);
+        var kicker = document.createElement('p');
+        kicker.className = 'cc-kicker';
+        kicker.textContent = 'Chore chart';
+        var week = document.createElement('p');
+        week.className = 'cc-week';
+        week.textContent = C.weekLabel(start);
+        sheet.appendChild(kicker);
+        sheet.appendChild(week);
+
+        if (state.kids.length) {
+            var names = document.createElement('p');
+            names.className = 'cc-names';
+            names.textContent = C.nameList(state.kids);
+            sheet.appendChild(names);
+        }
+
+        if (!state.chores.length) {
+            var empty = document.createElement('p');
+            empty.className = 'cc-empty';
+            empty.textContent = 'Add a chore, and the boxes for this week appear here.';
+            sheet.appendChild(empty);
+        } else {
+            var table = document.createElement('table');
+            table.className = 'cc-grid';
+            var caption = document.createElement('caption');
+            caption.className = 'cc-next';
+            caption.textContent = 'Tick each box when the chore is done.';
+            table.appendChild(caption);
+
+            var head = document.createElement('thead');
+            var headRow = document.createElement('tr');
+            var choreTh = document.createElement('th');
+            choreTh.scope = 'col';
+            choreTh.className = 'cc-name';
+            choreTh.textContent = 'Chore';
+            headRow.appendChild(choreTh);
+            if (state.kids.length) {
+                var whoTh = document.createElement('th');
+                whoTh.scope = 'col';
+                whoTh.textContent = 'Who';
+                headRow.appendChild(whoTh);
+            }
+            var order = C.dayOrder(state.start);
+            for (var d = 0; d < order.length; d++) {
+                var th = document.createElement('th');
+                th.scope = 'col';
+                var abbr = document.createElement('abbr');
+                abbr.title = C.DAY_LONG[order[d]];
+                abbr.textContent = C.DAY_SHORT[order[d]];
+                th.appendChild(abbr);
+                headRow.appendChild(th);
+            }
+            head.appendChild(headRow);
+            table.appendChild(head);
+
+            var body = document.createElement('tbody');
+            for (var i = 0; i < state.chores.length; i++) {
+                var chore = state.chores[i];
+                var row = document.createElement('tr');
+                var nameCell = document.createElement('th');
+                nameCell.scope = 'row';
+                nameCell.className = 'cc-name';
+                nameCell.textContent = chore.title;
+                row.appendChild(nameCell);
+                var child = whoIndex(chore, i);
+                if (state.kids.length) {
+                    var whoCell = document.createElement('td');
+                    whoCell.textContent = child < 0 ? '' : state.kids[child];
+                    row.appendChild(whoCell);
+                }
+                for (var n = 0; n < order.length; n++) {
+                    var bit = C.DAY_BIT[order[n]];
+                    var cell = document.createElement('td');
+                    if ((chore.mask & bit) !== bit) {
+                        cell.className = 'cc-na';
+                    } else {
+                        var pressed = !!state.ticks[chore.id + '.' + bit];
+                        var button = document.createElement('button');
+                        button.type = 'button';
+                        button.className = 'cc-tick';
+                        button.setAttribute('data-tick', chore.id + '.' + bit);
+                        button.setAttribute('aria-pressed', pressed ? 'true' : 'false');
+                        var whoName = child < 0 ? '' : state.kids[child] + ', ';
+                        button.setAttribute('aria-label', whoName + chore.title + ', ' +
+                            C.DAY_LONG[order[n]] + (pressed ? ', done' : ', not done'));
+                        var box = document.createElement('span');
+                        box.className = 'cc-box';
+                        var mark = document.createElement('span');
+                        mark.className = 'cc-mark';
+                        box.appendChild(mark);
+                        button.appendChild(box);
+                        cell.appendChild(button);
+                    }
+                    row.appendChild(cell);
+                }
+                body.appendChild(row);
+            }
+            table.appendChild(body);
+            sheet.appendChild(table);
+        }
+
+        if (state.rotate && state.kids.length >= 2) {
+            var note = document.createElement('p');
+            note.className = 'cc-next';
+            note.textContent = C.rotationSentence(state.kids);
+            sheet.appendChild(note);
+        }
+
+        el('cc-pdf').disabled = state.chores.length === 0;
+        el('cc-scroll').scrollLeft = scroll;
+        if (focusTick) {
+            var again = sheet.querySelector('[data-tick="' + focusTick + '"]');
+            if (again) { again.focus(); }
+        }
+
+        var hint = el('cc-rotate-hint');
+        if (state.kids.length < 2) {
+            hint.textContent = state.rotate
+                ? 'Add another child and the chores will start moving between them.'
+                : 'Add at least two children, then turn this on to share the chores out.';
+        } else if (state.rotate) {
+            hint.textContent = "Each new week, every chore moves to the next child. This week is worked out from today's date.";
+        } else {
+            hint.textContent = 'Each chore stays with the child you pick.';
+        }
+    }
+
+    function render() {
+        syncWeek();
+        renderKids();
+        renderChores();
+        renderChart();
+        persist();
+    }
+
+    function bumpId() {
+        var max = 0;
+        for (var i = 0; i < state.chores.length; i++) {
+            if (state.chores[i].id > max) { max = state.chores[i].id; }
+        }
+        nextId = max + 1;
+    }
+
+    function addKid() {
+        var name = C.cleanText(el('cc-kid-name').value, C.MAX_NAME);
+        if (!name) {
+            showError('Add a name first.');
+            return;
+        }
+        if (state.kids.length >= C.MAX_KIDS) {
+            showError('Six children is the limit for one chart.');
+            return;
+        }
+        showError('');
+        state.kids.push(name);
+        el('cc-kid-name').value = '';
+        render();
+        el('cc-kid-name').focus();
+    }
+
+    function addChore() {
+        var title = C.cleanText(el('cc-chore-name').value, C.MAX_TITLE);
+        if (!title) {
+            showError('Name the chore first.');
+            return;
+        }
+        if (state.chores.length >= C.MAX_CHORES) {
+            showError('Twelve chores is the limit, so the chart still fits on one page.');
+            return;
+        }
+        var mask = addMask();
+        if (!mask) {
+            showError('A chore has to fall on at least one day.');
+            return;
+        }
+        showError('');
+        state.chores.push({
+            id: nextId++,
+            title: title,
+            mask: mask,
+            who: state.kids.length ? C.mod(state.chores.length, state.kids.length) : -1
+        });
+        el('cc-chore-name').value = '';
+        render();
+        el('cc-chore-name').focus();
+    }
+
+    function removeKid(index) {
+        state.kids.splice(index, 1);
+        for (var i = 0; i < state.chores.length; i++) {
+            var who = state.chores[i].who;
+            if (who === index) { state.chores[i].who = state.kids.length ? 0 : -1; }
+            else if (who > index) { state.chores[i].who = who - 1; }
+        }
+        render();
+    }
+
+    function removeChore(id) {
+        var kept = [];
+        for (var i = 0; i < state.chores.length; i++) {
+            if (state.chores[i].id !== id) { kept.push(state.chores[i]); }
+        }
+        state.chores = kept;
+        for (var key in state.ticks) {
+            if (state.ticks.hasOwnProperty(key) && key.indexOf(id + '.') === 0) {
+                delete state.ticks[key];
+            }
+        }
+        render();
+    }
+
+    function toggleChoreDay(id, bit) {
+        for (var i = 0; i < state.chores.length; i++) {
+            if (state.chores[i].id !== id) { continue; }
+            var mask = state.chores[i].mask;
+            if ((mask & bit) === bit) {
+                if (mask === bit) {
+                    showError('A chore has to fall on at least one day.');
+                    return;
+                }
+                mask -= bit;
+                delete state.ticks[id + '.' + bit];
+            } else {
+                mask += bit;
+            }
+            state.chores[i].mask = mask;
+            showError('');
+            render();
+            return;
+        }
+    }
+
+    el('cc-add-kid').addEventListener('click', addKid);
+    el('cc-kid-name').addEventListener('keydown', function (event) {
+        if (event.key === 'Enter') { event.preventDefault(); addKid(); }
+    });
+    el('cc-add-chore').addEventListener('click', addChore);
+    el('cc-chore-name').addEventListener('keydown', function (event) {
+        if (event.key === 'Enter') { event.preventDefault(); addChore(); }
+    });
+
+    el('cc-add-days').addEventListener('click', function (event) {
+        var node = event.target;
+        if (!node.getAttribute || !node.getAttribute('data-bit')) { return; }
+        var on = node.getAttribute('aria-pressed') === 'true';
+        if (on && addMask() === parseInt(node.getAttribute('data-bit'), 10)) {
+            showError('A chore has to fall on at least one day.');
+            return;
+        }
+        showError('');
+        node.setAttribute('aria-pressed', on ? 'false' : 'true');
+    });
+
+    el('cc-kids').addEventListener('click', function (event) {
+        var node = event.target;
+        if (node.getAttribute && node.getAttribute('data-remove-kid') !== null) {
+            removeKid(parseInt(node.getAttribute('data-remove-kid'), 10));
+        }
+    });
+
+    el('cc-chores').addEventListener('click', function (event) {
+        var node = event.target;
+        if (!node.getAttribute) { return; }
+        if (node.getAttribute('data-remove-chore')) {
+            removeChore(parseInt(node.getAttribute('data-remove-chore'), 10));
+            return;
+        }
+        if (node.getAttribute('data-chore-day')) {
+            toggleChoreDay(parseInt(node.getAttribute('data-chore-day'), 10),
+                parseInt(node.getAttribute('data-bit'), 10));
+        }
+    });
+    el('cc-chores').addEventListener('change', function (event) {
+        var node = event.target;
+        if (!node.getAttribute || node.getAttribute('data-who') === null) { return; }
+        var id = parseInt(node.getAttribute('data-who'), 10);
+        for (var i = 0; i < state.chores.length; i++) {
+            if (state.chores[i].id === id) { state.chores[i].who = parseInt(node.value, 10); }
+        }
+        render();
+    });
+
+    var starts = document.getElementsByName('cc-start');
+    for (var s = 0; s < starts.length; s++) {
+        starts[s].addEventListener('change', function () {
+            if (!this.checked) { return; }
+            state.start = this.value === 'sun' ? 'sun' : 'mon';
+            state.week = '';
+            orderAddDays();
+            render();
+        });
+    }
+    el('cc-rotate').addEventListener('change', function () {
+        state.rotate = this.checked;
+        render();
+    });
+
+    el('cc-chart').addEventListener('click', function (event) {
+        var node = event.target;
+        while (node && node !== el('cc-chart')) {
+            if (node.getAttribute && node.getAttribute('data-tick')) {
+                var key = node.getAttribute('data-tick');
+                syncWeek();
+                if (state.ticks[key]) { delete state.ticks[key]; }
+                else { state.ticks[key] = true; }
+                render();
+                return;
+            }
+            node = node.parentNode;
+        }
+    });
+
+    el('cc-pdf').addEventListener('click', function () {
+        if (state.chores.length) { window.print(); }
+    });
+    el('cc-copy').addEventListener('click', function () {
+        var button = el('cc-copy');
+        var url = window.location.href;
+        var done = function () {
+            button.textContent = 'Link copied';
+            setTimeout(function () { button.textContent = 'Copy link'; }, 2000);
+        };
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(url).then(done, function () {
+                window.prompt('Copy this link:', url);
+            });
+        } else {
+            window.prompt('Copy this link:', url);
+        }
+    });
+
+    state = C.decodeState(window.location.hash);
+    bumpId();
+    for (var r = 0; r < starts.length; r++) {
+        starts[r].checked = starts[r].value === state.start;
+    }
+    el('cc-rotate').checked = state.rotate;
+    orderAddDays();
+    render();
+})();
+</script>
+{% endblock %}

@@ -625,3 +625,54 @@ class TestOurPriceIsTheSameEverywhere:
         for page in render.pages():
             body = client.get(page["url"]).get_data(as_text=True)
             assert not re.search(r"\$29(?![\d.])", body), page["url"]
+
+
+class TestChoreChartGenerator:
+    """A free weekly chart, separate from the wall-screen article.
+
+    The generator is a thing you print. /digital-calendar-and-chore-chart/
+    is the calendar and the chores on one screen. The two pages link to
+    each other in those words, and the generator stays in the footer with
+    the birthday countdown rather than in the nav.
+    """
+
+    URL = "/chore-chart-generator/"
+
+    def test_the_page_renders_and_is_in_the_sitemap(self, client):
+        response = client.get(self.URL)
+        assert response.status_code == 200
+        body = response.get_data(as_text=True)
+        assert "<h1>Free chore chart generator</h1>" in body
+        assert "Make a free chore chart and print it." in body
+        assert "Download as PDF" in body
+        assert "window.print" in body
+        assert "location.hash" in body
+        assert 'method="post"' not in body.lower()
+        assert "A4" in body and "Letter" in body
+        sitemap = client.get("/sitemap.xml").get_data(as_text=True)
+        assert f"<loc>https://dinkydash.co{self.URL}</loc>" in sitemap
+
+    def test_it_is_linked_from_the_footer_and_not_the_nav(self, client):
+        body = client.get("/").get_data(as_text=True)
+        nav = body.split("<nav>")[1].split("</nav>")[0]
+        footer = body.split("<footer>")[1].split("</footer>")[0]
+        assert f'href="{self.URL}"' not in nav
+        assert f'href="{self.URL}"' in footer
+
+    def test_the_wall_screen_page_points_here_and_this_page_points_back(self, client):
+        other = client.get("/digital-calendar-and-chore-chart/").get_data(as_text=True)
+        assert f'href="{self.URL}"' in other
+        assert "print and tick" in other
+        page = client.get(self.URL).get_data(as_text=True)
+        prose = page.split('class="cc-prose"')[1].split("<footer>")[0]
+        assert 'href="/digital-calendar-and-chore-chart/"' in prose
+        assert 'href="/"' in prose
+        assert "diy-skylight" not in prose
+        assert "getting-started" not in prose
+        assert "$39 a year" in prose and "$6 a month" in prose
+        assert "14 days" in prose and "no card" in prose
+
+    def test_the_home_page_offers_a_paper_chart(self, client):
+        home = client.get("/").get_data(as_text=True)
+        assert f'href="{self.URL}"' in home
+        assert "make a free chore chart and print it" in home
