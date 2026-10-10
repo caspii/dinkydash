@@ -82,9 +82,16 @@
 
         /* Everything below is sized in rem off this one value. The script at
            the foot raises it until the dashboard fills the screen, and lowers
-           it again when a busy day would overflow. This clamp is the size a
-           browser with scripting off gets. */
-        html { font-size: clamp(12px, 3.2vh, 40px); }
+           it again when a busy day would overflow. A browser with scripting
+           off gets the same bound three ways: 3.2vh where math functions are
+           missing, max(min()) where clamp() is missing, and clamp() itself
+           where that is supported. At a tablet's height, 3.2vh already sits
+           inside 12px–40px, so the three agree. */
+        html { font-size: 3.2vh; }
+        html { font-size: max(12px, min(3.2vh, 40px)); }
+        @supports (font-size: clamp(1px, 1px, 1px)) {
+            html { font-size: clamp(12px, 3.2vh, 40px); }
+        }
 
         body {
             font-family: 'Nunito', system-ui, -apple-system, sans-serif;
@@ -102,14 +109,21 @@
             min-height: 0;
             display: flex;
             flex-direction: column;
-            gap: 1rem;
             padding: 1.45rem 2.2rem 1.5rem;
         }
+        /* Flex gap shipped in the same Safari as the `inset` property. Older
+           engines still lay this page out, including the two-column landscape
+           below, and `@supports (gap)` cannot tell them apart: it is true
+           wherever grid gutters exist. A margin on each flex child after the
+           first does not collapse, so it is the same rhythm; the block at the
+           end clears it wherever gap itself applies, and the two never add.
+           Text nodes are not elements — a banner icon, a chore emoji and the
+           offline dot — so those keep the margin on the element before the text. */
+        .board > * + * { margin-top: 1rem; }
 
         .banner {
             display: flex;
             align-items: center;
-            gap: 0.7rem;
             background: var(--warn-bg);
             color: var(--warn-fg);
             padding: 0.7rem 2.8rem;
@@ -118,15 +132,15 @@
             flex-shrink: 0;
         }
         .banner + .board { padding-top: 1.6rem; }
-        .banner svg { flex-shrink: 0; width: 1.05rem; height: 1.05rem; }
+        .banner svg { flex-shrink: 0; width: 1.05rem; height: 1.05rem; margin-right: 0.7rem; }
 
         .head {
             display: flex;
             align-items: baseline;
             justify-content: space-between;
-            gap: 1rem;
             flex-shrink: 0;
         }
+        .head > * + * { margin-left: 1rem; }
         .family {
             font-size: 0.95rem;
             font-weight: 800;
@@ -153,10 +167,10 @@
         .body {
             display: flex;
             flex-direction: column;
-            gap: 1.35rem;
             flex-grow: 1;
             min-height: 0;
         }
+        .body > * + * { margin-top: 1.35rem; }
         .agenda, .side { min-width: 0; min-height: 0; }
         /* Basis is the content height, then any leftover is shared. A zero
            basis would split a stacked portrait page by ratio and let the side
@@ -167,9 +181,15 @@
                 display: grid;
                 grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
                 grid-template-rows: minmax(0, 1fr);
+                /* One gutter. `grid-column-gap` is an alias of `column-gap`,
+                   so a browser that only has the alias still separates the
+                   columns, and a browser that has both does not add them.
+                   The stacked margin above would drop the side column. */
+                grid-column-gap: 2.2rem;
                 column-gap: 2.2rem;
                 align-items: stretch;
             }
+            .body > * + * { margin-top: 0; }
             .agenda { grid-column: 1; height: 100%; }
             .side { grid-column: 2; height: 100%; }
         }
@@ -188,11 +208,12 @@
             display: flex;
             flex-direction: column;
             justify-content: space-evenly;
-            gap: 0.65rem;
             flex: 1;
             min-height: 0;
         }
-        .event { display: flex; gap: 0.9rem; align-items: baseline; min-width: 0; }
+        .events > * + * { margin-top: 0.65rem; }
+        .event { display: flex; align-items: baseline; min-width: 0; }
+        .event > * + * { margin-left: 0.9rem; }
         .event-time {
             font-size: 1.9rem;
             font-weight: 800;
@@ -215,7 +236,8 @@
            today — smaller and muted — so a time is never taken for today's. The
            time column keeps its full width, so both days share a left edge. */
         .tomorrow { margin-top: 0.9rem; flex-shrink: 0; }
-        .tomorrow .events { gap: 0.4rem; flex: 0; justify-content: flex-start; }
+        .tomorrow .events { flex: 0; justify-content: flex-start; }
+        .tomorrow .events > * + * { margin-top: 0.4rem; }
         .tomorrow .event-time { font-size: 1.28rem; color: var(--text-muted); }
         .tomorrow .event-time.all-day { font-size: 0.95rem; }
         .tomorrow .event-title { font-size: 1.28rem; color: var(--text-mid); }
@@ -227,10 +249,10 @@
             display: flex;
             flex-direction: column;
             justify-content: center;
-            gap: 0.45rem;
             flex: 1;
             min-height: 0;
         }
+        .empty > * + * { margin-top: 0.45rem; }
         .empty-head { font-size: 1.7rem; font-weight: 800; color: var(--text-mid); overflow-wrap: break-word; }
         .empty-sub { font-size: 1.15rem; color: var(--text-muted); }
 
@@ -238,15 +260,15 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            gap: 1.35rem;
             flex: 1 1 auto;
         }
+        .side > * + * { margin-top: 1.35rem; }
 
-        .chores { display: flex; flex-direction: column; align-items: flex-start; gap: 0.7rem; }
+        .chores { display: flex; flex-direction: column; align-items: flex-start; }
+        .chores > * + * { margin-top: 0.7rem; }
         .chore {
             display: flex;
             align-items: center;
-            gap: 0.6rem;
             max-width: 100%;
             padding: 0.55rem 1.15rem 0.55rem 0.65rem;
             border-radius: 1.15rem;
@@ -258,18 +280,19 @@
             color: var(--chore-1-fg);
         }
         .chore:nth-child(even) { background: var(--chore-2-bg); color: var(--chore-2-fg); }
-        .chore-emoji { font-size: 1.6rem; flex-shrink: 0; }
+        .chore-emoji { font-size: 1.6rem; flex-shrink: 0; margin-right: 0.6rem; }
 
-        .countdowns { display: flex; flex-direction: column; gap: 0.7rem; }
+        .countdowns { display: flex; flex-direction: column; }
+        .countdowns > * + * { margin-top: 0.7rem; }
         .countdown {
             display: flex;
             align-items: flex-start;
-            gap: 0.7rem;
             font-size: 1.4rem;
             line-height: 1.25;
             color: var(--text-mid);
             min-width: 0;
         }
+        .countdown > * + * { margin-left: 0.7rem; }
         .countdown span { min-width: 0; overflow-wrap: break-word; }
         .countdown strong { color: var(--text); font-weight: 800; }
         .countdown.today strong { color: var(--accent); }
@@ -282,10 +305,10 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 1.4rem;
             text-align: center;
             padding: 2rem;
         }
+        .waiting > * + * { margin-top: 1.4rem; }
         .waiting .family { font-size: 1.1rem; }
         .waiting-head { font-size: 2.4rem; font-weight: 800; letter-spacing: -0.02em; }
         .waiting-sub { font-size: 1.05rem; color: var(--text-mid); max-width: 32rem; line-height: 1.6; }
@@ -300,7 +323,6 @@
         .offline {
             display: flex;
             align-items: center;
-            gap: 0.7rem;
             background: var(--warn-bg);
             color: var(--warn-fg);
             padding: 0.55rem 2.8rem;
@@ -316,6 +338,46 @@
             border-radius: 50%;
             background: currentColor;
             flex-shrink: 0;
+            margin-right: 0.7rem;
+        }
+
+        /* Flex gap, where it exists. The shorthand on `.body` also sets the
+           grid's column gutter, so the landscape query puts `column-gap` back
+           afterwards. Margins cleared here are the fallbacks above. */
+        @supports (inset: 0) {
+            .board { gap: 1rem; }
+            .board > * + * { margin-top: 0; }
+            .banner { gap: 0.7rem; }
+            .banner svg { margin-right: 0; }
+            .head { gap: 1rem; }
+            .head > * + * { margin-left: 0; }
+            .body { gap: 1.35rem; }
+            .body > * + * { margin-top: 0; }
+            .events { gap: 0.65rem; }
+            .events > * + * { margin-top: 0; }
+            .event { gap: 0.9rem; }
+            .event > * + * { margin-left: 0; }
+            .tomorrow .events { gap: 0.4rem; }
+            .tomorrow .events > * + * { margin-top: 0; }
+            .empty { gap: 0.45rem; }
+            .empty > * + * { margin-top: 0; }
+            .side { gap: 1.35rem; }
+            .side > * + * { margin-top: 0; }
+            .chores { gap: 0.7rem; }
+            .chores > * + * { margin-top: 0; }
+            .chore { gap: 0.6rem; }
+            .chore-emoji { margin-right: 0; }
+            .countdowns { gap: 0.7rem; }
+            .countdowns > * + * { margin-top: 0; }
+            .countdown { gap: 0.7rem; }
+            .countdown > * + * { margin-left: 0; }
+            .waiting { gap: 1.4rem; }
+            .waiting > * + * { margin-top: 0; }
+            .offline { gap: 0.7rem; }
+            .offline::before { margin-right: 0; }
+            @media (min-aspect-ratio: 5/4) and (min-width: 640px) {
+                .body { column-gap: 2.2rem; }
+            }
         }
     </style>
 </head>
@@ -458,7 +520,8 @@
 /* Two jobs in one script, because the second has to call the first.
 
    1. Fitting. One root value still drives every size — it is just measured now
-   instead of guessed. The CSS clamp above stays as the no-JS fallback. Body is
+   instead of guessed. The font-size in the stylesheet stays as the no-JS
+   fallback. Body is
    height:100vh;overflow:hidden, so nothing ever reports an overflow. To find
    the content's natural height we let it lay out freely for one measurement,
    then put it back.
@@ -490,7 +553,7 @@
         var room = window.innerHeight;
         // High on purpose. The search below keeps the largest size that still
         // fits, so a quiet day grows until it fills the screen and a busy day
-        // shrinks instead of being clipped. The clamp in the stylesheet is
+        // shrinks instead of being clipped. The stylesheet font-size is
         // only what a browser with scripting off gets.
         var lo = 11, hi = Math.min(120, room / 9);
         root.style.fontSize = hi + "px";
