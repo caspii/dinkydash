@@ -70,6 +70,20 @@ def _prepare(conn):
     conn.prepare_threshold = None
 
 
+# libpq client parameters on every pooled connection. Keepalives are a
+# client-side TCP socket option: they are not a startup parameter and not a
+# session setting, so a transaction-mode pooler does not pin them onto a
+# server connection. libpq ignores them on a Unix-domain socket, which is how
+# a database on this machine is reached. `connect_timeout` is seconds.
+_CONNECT_KWARGS = {
+    "keepalives": 1,
+    "keepalives_idle": 30,
+    "keepalives_interval": 10,
+    "keepalives_count": 3,
+    "connect_timeout": 10,
+}
+
+
 def pool(conninfo=None, min_size=1, max_size=3, **kwargs):
     """A bounded pool for one process.
 
@@ -77,13 +91,32 @@ def pool(conninfo=None, min_size=1, max_size=3, **kwargs):
     connections running out; this one only saves a TCP and TLS handshake per
     request, so its size is a latency knob rather than a safety one.
 
-    `max_lifetime` (1 hour) and `max_idle` (10 minutes) keep their psycopg
-    defaults: a pooled connection handed out after the far end has quietly gone
-    away is the "SSL connection has been closed unexpectedly" class of failure.
+    Before a connection is lent, `ConnectionPool.check_connection` runs an
+    empty query and restores autocommit. The probe holds no session state, so
+    it is safe through DigitalOcean's transaction-mode pooler and through a
+    direct connection. A `SELECT 1` would leave a transaction open, and the
+    pooler would pin a server connection to this client for as long as it
+    stayed open.
+
+    TCP keepalives mark a socket the far end has dropped while it sits idle
+    in the pool, and `connect_timeout` bounds a new handshake. `max_lifetime`
+    (1 hour) and `max_idle` (10 minutes) stay at the psycopg defaults.
+
+    Arguments a caller passes still apply. Pool arguments are forwarded as
+    they stand. A `kwargs` dict of further connect parameters is merged over
+    the client parameters above, so an explicit `connect_timeout` is the one
+    that is used.
     """
     conninfo = conninfo or require("DATABASE_URL")
+    connect_kwargs = dict(_CONNECT_KWARGS)
+    connect_kwargs.update(kwargs.pop("kwargs", None) or {})
+    # True starts connecting. False builds the pool without dialling, so the
+    # configuration can be read where no database is reachable.
+    open_pool = kwargs.pop("open", True)
     return ConnectionPool(conninfo, min_size=min_size, max_size=max_size,
-                          configure=_prepare, open=True, **kwargs)
+                          configure=_prepare,
+                          check=ConnectionPool.check_connection,
+                          open=open_pool, kwargs=connect_kwargs, **kwargs)
 
 
 # How long a starting process waits for its first connection before it refuses
