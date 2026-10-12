@@ -225,6 +225,18 @@ fail with `prepared statement "..." does not exist` — intermittently, under lo
 looked fine in testing. psycopg2 never auto-prepares, so a clean record on it elsewhere says nothing
 about psycopg 3 here.
 
+**A pooled connection is checked before it is lent**, with `ConnectionPool.check_connection`. The
+check is an empty query and it restores autocommit, so it leaves no session state and no open
+transaction. That is what makes the same probe safe through DigitalOcean's transaction-mode pooler
+and through a direct connection: a `SELECT 1` would leave a transaction open, and the pooler would
+pin a server connection to this client until it ended. TCP keepalives (`keepalives=1`, idle 30
+seconds, interval 10, three misses) and `connect_timeout=10` are libpq client parameters on that
+same pool. A socket the far end has dropped is noticed while the connection sits idle, and a new
+handshake is bounded. libpq ignores the keepalive parameters on a Unix-domain socket, which is how a
+database on this machine is reached. `max_lifetime` and `max_idle` stay at the psycopg defaults.
+Arguments passed to `pool()` still apply, and a `kwargs` dict of further connect parameters is
+merged over those client parameters. `tests/test_db.py` is where that is held.
+
 **And never a session-level `SET` through `DATABASE_URL`.** The pooler hands a server connection to
 its next client exactly as the last one left it, so the setting lands on the worker or on somebody's
 request. `SET LOCAL` inside a transaction is the safe form, because it ends with the transaction.
