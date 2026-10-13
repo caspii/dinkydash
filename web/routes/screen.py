@@ -17,9 +17,11 @@ a person.
 of a magic link's defences — no expiry, no single use — so the ones it does have
 have to be kept working:
 
-* **it reaches nothing but a dashboard.** No settings, no email address, nothing
-  that writes. Both routes here are GETs, and both read through a
-  `PostgresStore` scoped to the one family the token named;
+* **it reaches nothing but a dashboard.** No settings and no email address.
+  Both routes are GETs and read through a `PostgresStore` scoped to the one
+  family the token named. The board GET records one further thing when a
+  refresh sends it: the screen's size (`X-Viewport`), throttled to an hour,
+  ignored when the header is not a size, and never written with the token;
 * **rotation is the revocation**, on the settings page, and it is the whole of
   it;
 * **it must not end up written down.** `Referrer-Policy: no-referrer` is on
@@ -42,6 +44,8 @@ do the looking.
 """
 
 import logging
+import re
+from decimal import Decimal, InvalidOperation
 
 from flask import (Blueprint, current_app, make_response, render_template,
                    request, url_for)
@@ -60,6 +64,72 @@ bp = Blueprint("screen", __name__)
 # small enough that a scan is not free.
 MOST_MISSES = 30
 PER_SECONDS = 3600
+
+# CSS pixels. A phone is a few hundred; an 8K panel's CSS size still fits.
+# The same numbers are the CHECK constraints on `screen_sizes`.
+MIN_EDGE = 1
+MAX_EDGE = 10000
+
+# devicePixelRatio. 1 is one device pixel per CSS pixel; phones sit around 2
+# or 3. Below a quarter or above 8 is a zoom or a lie, and is ignored.
+MIN_RATIO = Decimal("0.25")
+MAX_RATIO = Decimal("8")
+
+# `[0-9]` rather than `\d`, which would accept digits from other scripts.
+_VIEWPORT = re.compile(
+    r"\A([0-9]{1,5})x([0-9]{1,5})@([0-9]{1,2}(?:\.[0-9]{1,3})?)\Z")
+
+
+def parse_viewport(header):
+    """The screen's CSS size, or None when the header is not one.
+
+    `1280x800@2` is width, height and devicePixelRatio. A missing header, a
+    size outside the bounds, a ratio with more than three decimal places, and
+    anything else are ignored, so the table only ever holds a size.
+    """
+    if not isinstance(header, str):
+        return None
+    header = header.strip()
+    # The longest accepted value is `10000x10000@8.000`.
+    if not header or len(header) > 24:
+        return None
+    match = _VIEWPORT.fullmatch(header)
+    if match is None:
+        return None
+    width = _edge(match.group(1))
+    height = _edge(match.group(2))
+    ratio = _ratio(match.group(3))
+    if width is None or height is None or ratio is None:
+        return None
+    return width, height, ratio
+
+
+def _edge(text):
+    """A CSS edge length, or None. A leading zero is a second spelling of the
+    same size, and the row is keyed on the number, so it is refused."""
+    if text.startswith("0"):
+        return None
+    value = int(text)
+    if MIN_EDGE <= value <= MAX_EDGE:
+        return value
+    return None
+
+
+def _ratio(text):
+    """A device pixel ratio inside the bounds, or None."""
+    whole, dot, _frac = text.partition(".")
+    if whole.startswith("0") and (not dot or whole != "0"):
+        return None
+    try:
+        ratio = Decimal(text)
+    except InvalidOperation:
+        return None
+    if ratio != ratio.quantize(Decimal("0.001")):
+        return None
+    if MIN_RATIO <= ratio <= MAX_RATIO:
+        return ratio
+    return None
+
 
 # What a screen response always carries, whatever it is.
 SCREEN_HEADERS = {
@@ -94,6 +164,7 @@ def board(token):
     store = store_for_token(token)
     if store is None:
         return _refused()
+    _remember_viewport(store)
     return _screen(render_board(
         store, manifest_url=url_for("screen.manifest", token=token),
         access=access_for(current_app.config["POOL"], store.family_id)))
@@ -114,6 +185,22 @@ def manifest(token):
         return _refused()
     return _screen(
         manifest_for(store.load_config(), url_for("screen.board", token=token)))
+
+
+def _remember_viewport(store):
+    """Record the size a refresh reported. A failure still shows the dashboard.
+
+    The first load sends no header. A header that is not a size is ignored.
+    The log names the family and not the token, and not the header: a token
+    pasted into either would otherwise be a token in a log.
+    """
+    report = parse_viewport(request.headers.get("X-Viewport"))
+    if report is None:
+        return
+    try:
+        store.record_viewport(*report, request.headers.get("User-Agent"))
+    except Exception:
+        log.warning("Could not record a screen size for family %s", store.family_id)
 
 
 def _refused():

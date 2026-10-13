@@ -225,7 +225,9 @@ class TestTheCounter:
             mine = listed[1]
             assert mine.activated_at is not None and mine.status == "trialing"
             assert mine._fields == ("email", "created_at", "activated_at", "status",
-                                    "trial_ends_at", "lapsed_at", "last_login_at")
+                                    "trial_ends_at", "lapsed_at", "last_login_at",
+                                    "screens")
+            assert mine.screens == ()
             assert growth.roster(pg_pool, most=1) == listed[:1]
         finally:
             forget(pg_pool, newer)

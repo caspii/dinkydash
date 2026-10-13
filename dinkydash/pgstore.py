@@ -40,6 +40,15 @@ from .store import AGENDA_KEYS, calendar_config, invalidated_agenda
 
 log = logging.getLogger(__name__)
 
+# The browser's own description of itself, clipped. A user-agent string is
+# short in practice; the cap is what keeps a hostile one from being a document.
+USER_AGENT_LIMIT = 300
+
+# A panel asks for its dashboard every few minutes. The size is recorded at
+# most once an hour per family and size, so the refresh cadence is not a write
+# cadence.
+VIEWPORT_QUIET_FOR = "1 hour"
+
 # What `generations` holds in real columns rather than inside `brief`.
 GENERATION_COLUMNS = ("generated_for_date", "generated_at", "model",
                       "input_tokens", "output_tokens")
@@ -235,6 +244,41 @@ class PostgresStore:
                     )
         except Exception as exc:
             log.warning("Could not write the note history: %s", exc)
+
+    # -- the screen ---------------------------------------------------------
+
+    def record_viewport(self, width, height, pixel_ratio, user_agent):
+        """Remember one screen size for this family, at most once an hour.
+
+        One row per family and size. A later report of the same size leaves
+        the row untouched until `last_seen_at` is more than an hour old, so a
+        panel refreshing every few minutes does not write every few minutes.
+        `user_agent` is clipped. The screen token is not stored.
+
+        Returns whether a row was inserted or its last-seen stamp moved.
+        Scoped to `self.family_id`, like every other write in this file.
+        """
+        agent = _user_agent(user_agent)
+        with self.pool.connection() as conn, conn.transaction():
+            with conn.cursor() as cur:
+                cur.execute(
+                    """INSERT INTO screen_sizes
+                           (family_id, width, height, pixel_ratio, user_agent)
+                       VALUES (%s, %s, %s, %s, %s)
+                       ON CONFLICT (family_id, width, height, pixel_ratio)
+                       DO UPDATE SET user_agent = EXCLUDED.user_agent,
+                                     last_seen_at = now()
+                       WHERE screen_sizes.last_seen_at < now() - %s::interval""",
+                    (self.family_id, width, height, pixel_ratio, agent,
+                     VIEWPORT_QUIET_FOR),
+                )
+                return cur.rowcount > 0
+
+
+def _user_agent(value):
+    """A browser description that fits the column, or an empty string."""
+    text = " ".join(str(value or "").replace("\x00", " ").split())
+    return text[:USER_AGENT_LIMIT]
 
 
 def _brief(payload):

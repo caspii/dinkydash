@@ -195,7 +195,7 @@ class TestExport:
 
 class TestDelete:
     TABLES = ("agendas", "generations", "content_history", "calendar_health",
-              "model_spend")
+              "model_spend", "screen_sizes")
 
     def test_typing_the_address_deletes_the_family(self, parent, pg_pool, family):
         parent.post("/settings/account", data={"confirm": ADDRESS})
@@ -335,3 +335,10 @@ class TestWhereItGoes:
     def test_it_names(self, parent, who):
         page = parent.get("/settings/account").get_data(as_text=True)
         assert who in page
+
+    def test_it_says_the_screen_size_and_browser_are_recorded(self, parent):
+        """A sub-processor list is a promise, and so is a sentence about what
+        we keep ourselves (DIN-149)."""
+        page = parent.get("/settings/account").get_data(as_text=True).lower()
+        assert "screen's size and browser" in page
+        assert "used only to tune the layout" in page
