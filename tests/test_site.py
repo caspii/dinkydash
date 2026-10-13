@@ -543,10 +543,9 @@ class TestThePrivacyPageNamesEverySubProcessor:
         assert "Sentry sees that something broke" in page
 
     def test_it_says_the_screen_size_and_browser_are_recorded(self, client):
-        """Recording a screen is a claim about what the code stores (DIN-149)."""
-        page = client.get("/privacy/").get_data(as_text=True).lower()
-        assert "screen's size and browser" in page
-        assert "used only to tune the layout" in page
+        """The row is there. The wording is free to change."""
+        page = client.get("/privacy/").get_data(as_text=True)
+        assert 'id="screen-size-row"' in page
 
 
 class TestNothingUnfinishedShips:

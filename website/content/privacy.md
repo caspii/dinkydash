@@ -35,12 +35,16 @@ of a screen showing your dashboard.
 | **Sign-in links** | Generated when you ask for one | Hashed, never stored as a working link |
 | **Counts of model calls** | Recorded when the dashboard is written | So one account cannot run up an unbounded bill |
 | **Counts of sign-ups and first calendar connections** | Recorded when a family is created, and the first time it saves a calendar link | So we can see whether the product is being used, without looking at anyone's account |
-| **Your screen's size and browser** | Sent by the dashboard when it refreshes | Used only to tune the layout |
+| <span id="screen-size-row">**Your screen's size and browser**</span> | Sent by the dashboard when it refreshes | Used only to tune the layout |
 | **Anything you send us** | You write it in the feedback form, or email us | So we can answer it and fix what you told us about. It is not stored in the app — it arrives as an email |
 | **Subscription records** | Stripe, after you choose to pay | Customer/subscription identifiers, payment status, monthly or yearly billing, renewal and cancellation dates; no card details |
 
 The size is the browser window the dashboard fits itself to, not the panel's
 own resolution. We record it, and the browser, only to tune the layout.
+
+## Lawful basis
+
+- Screen size and browser: our legitimate interest in making the dashboard fit the screens it actually runs on (Art. 6(1)(f) GDPR).
 
 **We do not use cookies for tracking.** The hosted app sets one cookie, and it
 is the session that keeps you signed in. There is no advertising. The sign-in
@@ -205,7 +209,8 @@ for up to seven days before it ages out.
 Both are buttons, not requests, and both are on your settings page.
 
 - **Export** gives you your family's details, calendar links, stored agenda,
-  all retained daily messages and recent rewrite history as one JSON file.
+  all retained daily messages, recent rewrite history, and each recorded
+  screen size and browser as one JSON file.
 - **Delete** removes your family, your account, your calendar links, the stored
   agenda, every written line, every sign-in link, and the record of your
   screen's size and browser. It cannot be undone and we
