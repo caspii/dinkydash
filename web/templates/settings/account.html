@@ -37,7 +37,7 @@
     <div class="card pad" style="display:flex;flex-direction:column;gap:0.875rem;">
         <div class="hint">
             Your family's details, calendar links, last fetched agenda, all retained daily
-            messages and recent rewrite history in one file.
+            messages, recent rewrite history, and recorded screen sizes in one file.
         </div>
         <a class="btn outline" href="{{ url_for('settings.export_account') }}">Download my data</a>
     </div>
@@ -77,6 +77,12 @@
             <strong>Fathom</strong> counts visits to the sign-in pages and a sign-up, with
             no cookie. It isn't on the dashboard or these settings pages, and it never
             sees your name, your email address or your calendar.
+        </div>
+        <div class="hint" id="screen-size-note">
+            <strong>Your screen.</strong> When the dashboard refreshes, we record
+            your screen's size and browser. The size is the browser window the
+            layout fits to. It's used only to tune the layout, and it's deleted
+            with your account.
         </div>
         <div class="hint">
             The full list is in the <a href="https://dinkydash.co/privacy/">privacy policy</a>.

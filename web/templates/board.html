@@ -598,6 +598,26 @@
         timer = setTimeout(refresh, seconds * 1000);
     }
 
+    // CSS width x height @ devicePixelRatio. The first load is the navigation
+    // itself and sends nothing; this runs on the refresh, which the timer
+    // below schedules. A dashboard inside a frame is a preview, not a screen
+    // on a wall, so it sends nothing — a cross-origin frame can throw on the
+    // comparison, and that is framed too.
+    function viewport() {
+        try {
+            if (window.top !== window.self) { return null; }
+            var width = Math.round(window.innerWidth);
+            var height = Math.round(window.innerHeight);
+            var ratio = window.devicePixelRatio || 1;
+            if (!(width > 0 && height > 0 && ratio > 0)) { return null; }
+            var text = (Math.round(ratio * 1000) / 1000).toFixed(3);
+            text = text.replace(/0+$/, "").replace(/\.$/, "");
+            return width + "x" + height + "@" + text;
+        } catch (e) {
+            return null;
+        }
+    }
+
     function refresh() {
         // One attempt at a time — but one that has outlived its deadline is
         // abandoned, not waited for. On a browser whose fetch cannot be
@@ -605,6 +625,7 @@
         // refreshing.
         if (started && Date.now() - started < TIMEOUT_MS) { return; }
         started = Date.now();
+        var size = viewport();
         var controller = window.AbortController ? new AbortController() : null;
         var expiry = null;
         // The deadline is a promise of its own rather than the abort alone.
@@ -620,6 +641,7 @@
         var attempt = fetch(location.href, {
             cache: "no-store",
             credentials: "same-origin",
+            headers: size ? {"X-Viewport": size} : {},
             signal: controller ? controller.signal : undefined
         }).then(function (response) {
             if (response.status >= 500) { throw new Error("server error"); }

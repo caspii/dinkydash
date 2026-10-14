@@ -925,7 +925,8 @@ def export_account():
     * all retained daily generations and recent rewrites. `recent_notes` returns note *text* and
       nothing else, because it exists to stop the model repeating itself — an
       export needs the date and the headline with it, and widening the store's
-      operation to suit one caller would make every other caller carry it.
+      operation to suit one caller would make every other caller carry it;
+    * recorded screen sizes. The store writes one and does not list them.
 
     `Cache-Control: no-store` because this is the most concentrated copy of a
     family's data the app ever produces, and a shared cache holding it is worse
@@ -944,6 +945,7 @@ def export_account():
         "generations": _generations(),
         # Recent rewrites can differ from the final brief saved for that date.
         "written_lines": _written_lines(),
+        "screen_sizes": _screen_sizes(),
     }
     body = json.dumps(export, indent=2, ensure_ascii=False, default=str)
     return body, 200, {
@@ -982,6 +984,28 @@ def _written_lines():
             (current_family_id(),),
         )
         keys = ("date", "headline", "note", "note_kind", "created_at")
+        return [dict(zip(keys, row)) for row in cur.fetchall()]
+
+
+def _screen_sizes():
+    """Each recorded screen size for this family.
+
+    Read directly, like the generations: the store records a size and does
+    not list them. Scoped to the session's family, which never comes from
+    the request. The screen token is not a column, and the family id stays
+    out of the file.
+    """
+    with current_app.config["POOL"].connection() as conn, conn.cursor() as cur:
+        cur.execute(
+            """SELECT width, height, pixel_ratio, user_agent,
+                      first_seen_at, last_seen_at
+               FROM screen_sizes
+               WHERE family_id = %s
+               ORDER BY first_seen_at, width, height, pixel_ratio""",
+            (current_family_id(),),
+        )
+        keys = ("width", "height", "pixel_ratio", "user_agent",
+                "first_seen_at", "last_seen_at")
         return [dict(zip(keys, row)) for row in cur.fetchall()]
 
 

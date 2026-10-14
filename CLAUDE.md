@@ -167,9 +167,11 @@ mode is a different product on the same code.
   one bare `count(*)`, and a count of paying families: lifecycle `status` and Stripe
   `subscription_status` both `active`, split by the stored plan interval. That paying count is
   still an aggregate. It reads no address and no config, and the page does not call Stripe. The
-  roster reads each family's address and the platform's bookkeeping
-  (created, activated, status, deadlines, last sign-in) and **never the config**: no name, no
-  calendar, no child's date of birth. No family id is rendered or taken from anywhere, so nothing
+  roster reads each family's address, the platform's bookkeeping
+  (created, activated, status, deadlines, last sign-in) and the sizes its screens have reported,
+  and **never the config**: no name, no
+  calendar, no child's date of birth. The size table is a count per size and when one was last
+  seen, with no family id. No family id is rendered or taken from anywhere, so nothing
   on the page reaches one family. `tests/test_admin.py` asserts each of those, including that a
   family's name and calendar label do not appear.
 - **`web/__init__.py` falls back to a hardcoded `app.secret_key`.** Harmless with no auth; in cloud

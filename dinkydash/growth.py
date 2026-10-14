@@ -4,7 +4,8 @@ Cloud only.
     history(pool)                -> every day with a signup or an activation
     families_now(pool)           -> how many families exist right now
     paying(pool)                 -> active paid subscriptions, and the plan split
-    roster(pool, most)           -> the newest families: address and bookkeeping
+    roster(pool, most)           -> the newest families: address, bookkeeping, screen sizes
+    screen_sizes(pool)           -> each reported size, how many screens, when last seen
     by_week(rows, weeks, today)  -> the last `weeks` weeks, gaps filled (pure)
     totals(rows)                 -> all-time signups and activations (pure)
 
@@ -21,13 +22,15 @@ narrowest read there is — `growth_by_day` carries no family identifier,
 `families_now` is a bare `count(*)`, and `paying` counts rows by lifecycle
 status, Stripe subscription status and plan interval. No address and no
 config in that count. The roster is wider, and deliberately only so wide:
-the address on each account and the platform's own bookkeeping about it
+the address on each account, the platform's own bookkeeping about it
 (when it was created, when it activated, its status and deadlines, when it
-last signed in). **Never the config.** Names, dates of birth and calendars
-are the family's content, and no operator page needs them. No family id
-leaves this module in either direction, because nothing on the page links
-to one family — so a bug in the page can show an operator an address, which
-the operator can already see in the mailbox that sent it, and nothing else.
+last signed in), and the sizes its screens have reported. **Never the config.**
+Names, dates of birth and calendars are the family's content, and no operator
+page needs them. `screen_sizes` is a count per size and a time, with no family
+id in the result. No family id leaves this module in either direction, because
+nothing on the page links to one family — so a bug in the page can show an
+operator an address, which the operator can already see in the mailbox that
+sent it, and a screen size, and nothing else.
 
 Like `accounts.py`, this imports no driver: it is handed a pool and asks it for
 connections.
@@ -35,15 +38,25 @@ connections.
 
 from collections import namedtuple
 from datetime import timedelta
+from decimal import Decimal
 
 # One week on the chart. `start` is the Monday, as a date.
 Week = namedtuple("Week", "start signups activations")
 Totals = namedtuple("Totals", "signups activations")
 Paying = namedtuple("Paying", "total monthly yearly unrecorded")
 
-# One account on the roster: the address and the bookkeeping, nothing of the config.
+# One reported size on the roster. `pixel_ratio` is a Decimal.
+Size = namedtuple("Size", "width height pixel_ratio")
+
+# One size across every family: how many screens reported it, and when one last did.
+Viewport = namedtuple("Viewport", "width height pixel_ratio count last_seen_at")
+
+# One account on the roster: the address, the bookkeeping, and the sizes its
+# screens have reported. Nothing of the config. `screens` defaults to none so a
+# caller building an account for the words on the page can leave it off.
 Account = namedtuple("Account", "email created_at activated_at status trial_ends_at "
-                                "lapsed_at last_login_at")
+                                "lapsed_at last_login_at screens",
+                     defaults=((),))
 
 # How many the roster shows. A page listing every address there has ever been
 # is a leak amplifier as well as a slow page; the newest are the ones an
@@ -103,24 +116,67 @@ def paying(pool):
     return Paying(total, monthly, yearly, total - monthly - yearly)
 
 
+def screen_sizes(pool):
+    """Every reported size, with how many screens use it and when one last did.
+
+    One row in `screen_sizes` is one family at one size, so the count is how
+    many families have reported that size. A family with two screens of the
+    same size has one row and counts once. No family id leaves with the numbers.
+    """
+    with pool.connection() as conn, conn.cursor() as cur:
+        cur.execute(
+            """SELECT width, height, pixel_ratio, count(*)::int, max(last_seen_at)
+               FROM screen_sizes
+               GROUP BY width, height, pixel_ratio
+               ORDER BY count(*) DESC, max(last_seen_at) DESC,
+                        width, height, pixel_ratio""",
+        )
+        return [Viewport(*row) for row in cur.fetchall()]
+
+
 def roster(pool, most=MOST_IN_ROSTER):
     """The newest `most` families, newest first, with the address on each.
 
     A LEFT JOIN, because a family made by hand has no parent row yet and should
     still be on the list rather than silently missing from it. One parent per
     family at MVP; a second would be a second line, which is the right answer.
+
+    Screen sizes ride along, most recently seen first. The join stays inside
+    the query so no family id has to come out to attach them afterwards.
     """
     with pool.connection() as conn, conn.cursor() as cur:
         cur.execute(
             """SELECT u.email, f.created_at, f.activated_at, f.status,
-                      f.trial_ends_at, f.lapsed_at, u.last_login_at
+                      f.trial_ends_at, f.lapsed_at, u.last_login_at,
+                      COALESCE((
+                          SELECT string_agg(
+                                     s.width::text || 'x' || s.height::text || '@' ||
+                                     trim(trailing '.' FROM
+                                          trim(trailing '0' FROM s.pixel_ratio::text)),
+                                     ',' ORDER BY s.last_seen_at DESC,
+                                              s.width, s.height, s.pixel_ratio)
+                          FROM screen_sizes AS s
+                          WHERE s.family_id = f.id
+                      ), '')
                FROM families AS f
                LEFT JOIN users AS u ON u.family_id = f.id
                ORDER BY f.created_at DESC, u.id
                LIMIT %s""",
             (max(1, int(most)),),
         )
-        return [Account(*row) for row in cur.fetchall()]
+        return [Account(*row[:-1], _sizes(row[-1])) for row in cur.fetchall()]
+
+
+def _sizes(text):
+    """The roster's packed sizes as `Size`s, most recently seen first."""
+    if not text:
+        return ()
+    sizes = []
+    for piece in text.split(","):
+        width, _, rest = piece.partition("x")
+        height, _, ratio = rest.partition("@")
+        sizes.append(Size(int(width), int(height), Decimal(ratio)))
+    return tuple(sizes)
 
 
 def week_of(day):

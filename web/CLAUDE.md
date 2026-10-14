@@ -131,7 +131,8 @@ release back. It is also the only route that reads nothing, so it needs no famil
 **`web/routes/screen.py` is the other exemption, and it is a separate blueprint for that reason.**
 `/s/<token>` has no session by design — a wall panel cannot sign in — so it is not behind `guard()`
 and never should be. What replaces the session is the token, resolved by `family.store_for_token`;
-what replaces the guard is that the two routes there are GETs that reach a dashboard and nothing else.
+what replaces the guard is that the two routes there are GETs that reach a dashboard. The board
+GET also records a screen size when a refresh sends `X-Viewport` (DIN-149); the manifest stays a read.
 Registered only in cloud mode, like `auth`. **In cloud mode `/` is a redirect**, so anything that
 used to link to `url_for('board.index')` for a dashboard — the "View dashboard" button, `/preview`'s
 iframes — uses `web.urls.board_path()`. Build absolute credential URLs with
@@ -149,7 +150,8 @@ then `family.is_admin()`, which compares the signed-in account's address with
 Everything on it comes from `dinkydash/growth.py`: signup and activation counts that read no
 family row, a paying count that aggregates lifecycle status, Stripe subscription status and the
 stored plan interval, and a roster
-that reads the address and bookkeeping columns and never the config — `tests/test_admin.py` puts a
+that reads the address, the bookkeeping columns and the sizes that family's screens have reported,
+and never the config — `tests/test_admin.py` puts a
 named child and a labelled calendar on a family and asserts neither reaches the page. The chart is
 inline SVG drawn from numbers the route works out (`admin.chart`), because arithmetic in a
 template is arithmetic nobody tests. Its
@@ -243,7 +245,9 @@ request that stalls would otherwise hold the in-flight guard for ever; the guard
 the same reason. The `<meta http-equiv="refresh">` survives only
 inside `<noscript>`: a browser running the script must never see it, or the two race and the tag's
 reload lands the error page the script exists to avoid. `tests/test_board_refresh.py` pins that
-contract; the swap and the badge themselves are checked in a browser, below. What this does *not*
+contract; the swap and the badge themselves are checked in a browser, below. The same fetch
+sends `X-Viewport` (CSS width, height and `devicePixelRatio`) unless the page is framed, and
+`/s/<token>` stores it; the first navigation sends no header. What this does *not*
 cover is a reboot while offline — the browser then has nothing to show, and only a service worker
 would change that, which DIN-60 keeps open.
 

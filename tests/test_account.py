@@ -7,9 +7,10 @@ keep the two in step:
   reaches — a sign-up token has no user to hang off;
 * **delete is hard to do by accident** and impossible to do to somebody else;
 * **export is everything.** The family's own data comes from the store, which is
-  the only thing that knows what it is; the two things the store deliberately
-  cannot answer — the platform's bookkeeping, and the *full* written history
-  rather than the note text the prompt needs — are read directly and named;
+  the only thing that knows what it is; the things the store deliberately
+  cannot answer — the platform's bookkeeping, the *full* written history
+  rather than the note text the prompt needs, and the recorded screen sizes —
+  are read directly and named;
 * **export carries no live credential.** It is a file that gets emailed to
   somebody and forgotten;
 * **a self-hoster sees none of it.** There is no account to delete and their
@@ -177,6 +178,43 @@ class TestExport:
         assert export["family"]["plan"] == "standard"
         assert export["family"]["status"] == "trialing"
 
+    def test_it_includes_this_familys_screen_sizes(self, parent, pg_pool, family):
+        """The download is the copy of what we hold, so a recorded size is in
+        it, and the next family's is not."""
+        from decimal import Decimal
+
+        from dinkydash import config as config_module
+        from dinkydash.pgstore import PostgresStore
+
+        before = json.loads(parent.get("/settings/account/export").get_data())
+        assert before["screen_sizes"] == []
+
+        store = PostgresStore(pg_pool, family[0])
+        assert store.record_viewport(1280, 800, Decimal("2"), "DinkyDashTestBrowser/149")
+
+        with pg_pool.connection() as conn, conn.transaction(), conn.cursor() as cur:
+            cur.execute("INSERT INTO families (screen_token) VALUES (%s) RETURNING id",
+                        (config_module.new_screen_token(),))
+            other = cur.fetchone()[0]
+        try:
+            neighbour = PostgresStore(pg_pool, other)
+            assert neighbour.record_viewport(390, 844, Decimal("3"), "NeighbourTablet/1")
+            body = parent.get("/settings/account/export").get_data(as_text=True)
+            exported = json.loads(body)
+            sizes = exported["screen_sizes"]
+            assert len(sizes) == 1
+            assert sizes[0]["width"] == 1280
+            assert sizes[0]["height"] == 800
+            assert sizes[0]["user_agent"] == "DinkyDashTestBrowser/149"
+            assert "pixel_ratio" in sizes[0]
+            assert "first_seen_at" in sizes[0]
+            assert "last_seen_at" in sizes[0]
+            assert "family_id" not in sizes[0]
+            assert "NeighbourTablet/1" not in body
+            assert screens.token_for(pg_pool, family[0]) not in body
+        finally:
+            accounts.delete_family(pg_pool, other)
+
     def test_but_never_the_screen_token(self, parent, pg_pool, family):
         """A live credential must not ride along in a file that gets emailed to
         somebody and forgotten. It is on the screen page, where reading it and
@@ -195,7 +233,7 @@ class TestExport:
 
 class TestDelete:
     TABLES = ("agendas", "generations", "content_history", "calendar_health",
-              "model_spend")
+              "model_spend", "screen_sizes")
 
     def test_typing_the_address_deletes_the_family(self, parent, pg_pool, family):
         parent.post("/settings/account", data={"confirm": ADDRESS})
@@ -335,3 +373,8 @@ class TestWhereItGoes:
     def test_it_names(self, parent, who):
         page = parent.get("/settings/account").get_data(as_text=True)
         assert who in page
+
+    def test_it_says_the_screen_size_and_browser_are_recorded(self, parent):
+        """The note is there. The wording is free to change."""
+        page = parent.get("/settings/account").get_data(as_text=True)
+        assert 'id="screen-size-note"' in page

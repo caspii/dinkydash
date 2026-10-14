@@ -5,7 +5,7 @@ template: page.html
 description: What DinkyDash stores, who it is sent to, how long it is kept, and how to get it back or delete it.
 ---
 
-*Last updated: 10 October 2026.*
+*Last updated: 13 October 2026.*
 
 DinkyDash puts a family's day on a screen. That means the things it holds are a
 household's names, dates of birth and movements — which is about as personal as
@@ -22,7 +22,8 @@ them. We hold nothing. This page describes the **hosted** version at
 ## What we collect
 
 Nothing is bought, sold, or gathered from anywhere else. Everything below is
-either something you typed or something the software produced.
+something you typed, something the software produced, or the size and browser
+of a screen showing your dashboard.
 
 | What | Where it comes from | Why |
 |---|---|---|
@@ -34,8 +35,16 @@ either something you typed or something the software produced.
 | **Sign-in links** | Generated when you ask for one | Hashed, never stored as a working link |
 | **Counts of model calls** | Recorded when the dashboard is written | So one account cannot run up an unbounded bill |
 | **Counts of sign-ups and first calendar connections** | Recorded when a family is created, and the first time it saves a calendar link | So we can see whether the product is being used, without looking at anyone's account |
+| <span id="screen-size-row">**Your screen's size and browser**</span> | Sent by the dashboard when it refreshes | Used only to tune the layout |
 | **Anything you send us** | You write it in the feedback form, or email us | So we can answer it and fix what you told us about. It is not stored in the app — it arrives as an email |
 | **Subscription records** | Stripe, after you choose to pay | Customer/subscription identifiers, payment status, monthly or yearly billing, renewal and cancellation dates; no card details |
+
+The size is the browser window the dashboard fits itself to, not the panel's
+own resolution. We record it, and the browser, only to tune the layout.
+
+## Lawful basis
+
+- Screen size and browser: our legitimate interest in making the dashboard fit the screens it actually runs on (Art. 6(1)(f) GDPR).
 
 **We do not use cookies for tracking.** The hosted app sets one cookie, and it
 is the session that keeps you signed in. There is no advertising. The sign-in
@@ -178,6 +187,8 @@ We would rather hold less, so most of this expires on its own.
 - **Daily counts of sign-ups and of families that first connected a calendar**:
   kept without an account identifier, including after account deletion. Like the
   model-call totals, these hold a date and a count and nothing else.
+- **Your screen's size and browser**: kept while the account exists, and
+  deleted with it. Used only to tune the layout.
 - **Our subscription records, processed payment-event identifiers and notification
   delivery records**: kept while the account exists and deleted with it. We do
   not store webhook bodies or copies of your billing address or card details.
@@ -198,9 +209,11 @@ for up to seven days before it ages out.
 Both are buttons, not requests, and both are on your settings page.
 
 - **Export** gives you your family's details, calendar links, stored agenda,
-  all retained daily messages and recent rewrite history as one JSON file.
+  all retained daily messages, recent rewrite history, and each recorded
+  screen size and browser as one JSON file.
 - **Delete** removes your family, your account, your calendar links, the stored
-  agenda, every written line and every sign-in link. It cannot be undone and we
+  agenda, every written line, every sign-in link, and the record of your
+  screen's size and browser. It cannot be undone and we
   cannot restore it for you.
   If you have started billing, deletion first cancels your subscriptions and
   deletes the Stripe customer. If Stripe cannot confirm this, we keep the account

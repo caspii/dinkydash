@@ -542,6 +542,11 @@ class TestThePrivacyPageNamesEverySubProcessor:
         page = client.get("/privacy/").get_data(as_text=True)
         assert "Sentry sees that something broke" in page
 
+    def test_it_says_the_screen_size_and_browser_are_recorded(self, client):
+        """The row is there. The wording is free to change."""
+        page = client.get("/privacy/").get_data(as_text=True)
+        assert 'id="screen-size-row"' in page
+
 
 class TestNothingUnfinishedShips:
     """The publishing gate in doc/content-process.md, as far as a test can hold it.

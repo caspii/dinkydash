@@ -1,7 +1,8 @@
-{# The operator's page: signups and activations by week (DIN-37). Cloud mode
-   only, and only for the addresses in DINKYDASH_ADMIN_EMAILS — everyone else
-   gets a 404 before this renders. Nothing here belongs to any one family:
-   the numbers are counts, and the page takes no id from anywhere. #}
+{# The operator's page: signups and activations by week (DIN-37), and the
+   sizes screens have reported (DIN-149). Cloud mode only, and only for the
+   addresses in DINKYDASH_ADMIN_EMAILS — everyone else gets a 404 before this
+   renders. The numbers are counts. The roster carries an address and those
+   sizes, and the page takes no id from anywhere. #}
 {% extends "settings/base.html" %}
 {% block title %}Growth{% endblock %}
 {% set back_href = url_for('settings.home') %}
@@ -175,9 +176,37 @@
     </div>
 </div>
 
-{# The newest accounts: the address and the platform's bookkeeping, and never
-   anything from the family's config. Nothing here links to one family, so no
-   id is rendered. #}
+{# Reported viewport sizes. A count per size, and when one was last seen.
+   No family id, and not the browser string — that stays in the table. #}
+<div>
+    <div class="label">Screen sizes</div>
+    <div class="card">
+        <table class="numbers">
+            <thead>
+                <tr><th>Size</th><th>Screens</th><th>Last seen</th></tr>
+            </thead>
+            <tbody>
+                {% for size in sizes %}
+                <tr>
+                    <td>{{ size.label }}</td>
+                    <td>{{ size.count }}</td>
+                    <td>{{ size.seen }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="3">No screen has reported a size yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <div class="hint" style="padding:0.75rem 0.875rem;">
+            One row per size. A family with two screens of the same size counts once.
+            The size is the browser window, which is what the layout fits to. Times are UTC.
+        </div>
+    </div>
+</div>
+
+{# The newest accounts: the address, the platform's bookkeeping, and the
+   sizes that family's screens have reported — never anything from the
+   config. Nothing here links to one family, so no id is rendered. #}
 <div>
     <div class="label">
         Families{% if families_now > most_in_roster %} · newest {{ most_in_roster }} of {{ families_now }}{% endif %}
@@ -188,6 +217,7 @@
             <div class="row-main">
                 <div class="row-title">{{ account.email or "No address on file" }}</div>
                 <div class="row-sub">{{ account.detail }}</div>
+                <div class="row-sub">{{ account.screens }}</div>
             </div>
             <span class="pill {{ account.tone }}">{{ account.status }}</span>
         </div>

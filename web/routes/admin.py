@@ -23,10 +23,12 @@ aggregate of lifecycle status, Stripe subscription status and plan interval
 subscription. It does not ask Stripe, and it returns no address and no
 config. The roster below them is the one read that returns a family's row,
 and it takes the address and the platform's bookkeeping — created, activated,
-status, deadlines, last sign-in — and never the config (`growth.roster`).
-Nothing in this file takes an id from the request, the session or the URL,
-and none is rendered, so there is no id to check and no way to reach one
-family from here.
+status, deadlines, last sign-in — the sizes its screens have reported, and
+never the config (`growth.roster`). The size table above the roster is a
+count per size and when one was last seen (`growth.screen_sizes`): no
+address and no family id. Nothing in this file takes an id from the request,
+the session or the URL, and none is rendered, so there is no id to check and
+no way to reach one family from here.
 
 The chart is inline SVG drawn from numbers worked out below, with no script
 and no third-party request — the settings shell's own rules. Its two colours
@@ -36,11 +38,13 @@ white: adjacent CVD ΔE 24.7, both above 3:1 against the surface.
 
 import math
 from datetime import datetime, timezone
+from decimal import Decimal
 
 from flask import (Blueprint, abort, current_app, make_response, render_template,
                    request)
 
 from dinkydash import growth
+from dinkydash.clock import format_time
 from web.family import is_admin
 from web.session import guard
 
@@ -105,6 +109,7 @@ def growth_page():
         # the counter in a way the backfill could not see.
         deleted=max(0, total.signups - families),
         chart=chart(weekly),
+        sizes=[describe_viewport(row) for row in growth.screen_sizes(pool)],
         roster=[describe(account, today) for account in growth.roster(pool)],
         most_in_roster=growth.MOST_IN_ROSTER,
     ))
@@ -144,7 +149,39 @@ def describe(account, today):
     facts.append(f"last sign-in {_day(account.last_login_at)}" if account.last_login_at
                  else "never signed in")
     return {"email": account.email, "status": status, "tone": tone,
-            "detail": " · ".join(facts)}
+            "detail": " · ".join(facts), "screens": _screens(account.screens)}
+
+
+def describe_viewport(row):
+    """One size as the table shows it: the dimensions, the count, when last seen."""
+    return {"label": format_size(row.width, row.height, row.pixel_ratio),
+            "count": row.count, "seen": _seen(row.last_seen_at)}
+
+
+def format_ratio(ratio):
+    """`2` and `2.625`, never `2.000`. The stored scale is three decimal places."""
+    text = format(Decimal(ratio), "f")
+    if "." in text:
+        text = text.rstrip("0").rstrip(".")
+    return text
+
+
+def format_size(width, height, ratio):
+    """A viewport as the operator's page writes it: `1280×800 @2`."""
+    return f"{width}×{height} @{format_ratio(ratio)}"
+
+
+def _screens(screens):
+    if not screens:
+        return "no screen size yet"
+    return ", ".join(format_size(size.width, size.height, size.pixel_ratio)
+                     for size in screens)
+
+
+def _seen(stamp):
+    """When a size was last reported, as a UTC date and 24-hour time."""
+    moment = stamp.astimezone(timezone.utc)
+    return f"{_day(stamp)}, {format_time(moment)}"
 
 
 def _status(account, today):

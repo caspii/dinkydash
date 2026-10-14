@@ -151,6 +151,17 @@ class TestDescribingAnAccount:
         assert lapsed["status"] == "Lapsed 3 Sep 2026"
         assert lapsed["tone"] == "muted"
 
+    def test_a_family_with_no_report_says_so(self):
+        assert admin.describe(an_account(), self.TODAY)["screens"] == "no screen size yet"
+
+    def test_screen_sizes_are_named_with_the_ratio_trimmed(self):
+        from decimal import Decimal
+        shown = admin.describe(an_account(screens=(
+            growth.Size(1280, 800, Decimal("2.000")),
+            growth.Size(390, 844, Decimal("2.625")),
+        )), self.TODAY)
+        assert shown["screens"] == "1280×800 @2, 390×844 @2.625"
+
     def test_dates_are_utc_days(self):
         from datetime import datetime, timezone, timedelta
         # 23:30 in UTC-2 is 01:30 the next day in UTC; the page writes UTC.

@@ -90,6 +90,20 @@ class TestOneReloadNotTwo:
         for external in ("http://", "https://"):
             assert external not in script
 
+    def test_the_first_load_sends_no_size_and_a_frame_sends_none(self, ready):
+        """The size rides on the refresh fetch, as a header, and only when the
+        page is the top window. A preview frame is not a screen on a wall, and
+        the navigation that first drew the page is not a refresh (DIN-149)."""
+        script = script_of(ready)
+        assert script.count("X-Viewport") == 1
+        assert 'headers: size ? {"X-Viewport": size} : {}' in script
+        assert "window.top !== window.self" in script
+        assert "return null" in script
+        # `function refresh()` is the definition. Nothing calls it on the way in;
+        # the timer passes the function to setTimeout.
+        assert "setTimeout(refresh," in script
+        assert re.search(r"(?<!function )refresh\(\)", script) is None
+
 
 class TestWhatTheBadgeCanSay:
     def test_it_is_in_every_page_and_hidden_until_needed(self, ready, waiting):

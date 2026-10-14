@@ -85,8 +85,9 @@ because there is no family to scope *to*:
   `active`, which is an active paid subscription, split by the plan interval billing stored
   with that snapshot. Trials, `past_due`, `canceled` and `lapsed` are left out, and the page
   does not call Stripe. Its `roster` is wider, and
-  deliberately only so wide — the address and the platform's bookkeeping columns on the newest
-  families, never `config`, and no id in or out.
+  deliberately only so wide — the address, the platform's bookkeeping columns and the reported
+  screen sizes on the newest families, never `config`, and no id in or out. `screen_sizes` on
+  the same page is a count per size and a time, and carries no family id either.
 
 Each of the first three hands its result to a `PostgresStore` built for exactly one family, and the
 fourth never reaches one family at all, so the rule that matters is untouched. `web/family.py`
