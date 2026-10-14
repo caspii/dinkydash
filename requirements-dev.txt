@@ -6,6 +6,12 @@
 # The test suite.
 pytest==9.1.1
 
+# Drives the dashboard fit check (tests/test_board_fit.py). The wheel does not
+# include a browser; CI installs Chromium with
+# `python -m playwright install --with-deps chromium`. Without that browser
+# the fit tests skip, and the rest of the suite does not need one.
+playwright==1.64.0
+
 # The marketing site generator: website/build.py (jinja2, markdown, pyyaml) and
 # the two one-off image scripts, website/generate_favicon.py and
 # website/generate_social_preview.py (Pillow — the latter also wants Chrome,

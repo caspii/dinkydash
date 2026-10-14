@@ -223,11 +223,17 @@ sizes at `/preview` rather than just the one you are looking at.
 
 That root value is *measured*, not guessed. The script at the foot of `board.html` binary-
 searches the largest `html { font-size }` whose content still fits the viewport, capped at
-`min(120px, innerHeight / 9)`. A quiet day therefore grows until it fills the screen, and a
-busy day shrinks instead of being clipped. The CSS `clamp()` is the no-JS fallback and is
-deliberately smaller. Because `body` is `height:100vh;overflow:hidden`, nothing ever reports
-an overflow — so the script lets the page lay out freely for one measurement (`height:auto`)
-and puts it straight back.
+`min(120px, innerHeight / 9)`. A quiet day therefore grows until it fills the screen. A busy
+day shrinks only as far as a readable floor (13px). If it still overflows there, the script
+adds `.tight` to hide locations, then `.drop-tomorrow` to hide the tomorrow section, and
+searches again after each step so the type can grow back. Today's events stay. If they
+alone still overflow, the ones that do not fit are removed whole and a `+N more` line
+takes their place. Labels never go below 12px (`max(0.82rem, 12px)`). On a panel shorter
+than 520px, tomorrow's addresses are hidden even when the day otherwise fits, because a
+wrapped address is what pushes a short panel over. The CSS `clamp()` is the no-JS fallback
+and is deliberately smaller. Because `body` is `height:100vh;overflow:hidden`, nothing ever
+reports an overflow — so the script lets the page lay out freely for one measurement
+(`height:auto`) and puts it straight back.
 
 **The same script is what refreshes the dashboard, and it never reloads the page** (DIN-60). Every
 `view.reload_seconds` it fetches `location.href`, parses the copy, and swaps the `<body>` in — then
@@ -281,7 +287,8 @@ times in the old column until something forces a real reload. The times themselv
 Today fills it first; tomorrow tops up whatever is left, capped again at `MAX_TOMORROW = 3` so it
 stays a footnote even on an empty day. A five-event day therefore renders exactly as it did before
 tomorrow existed. This is what "if there is space" means in code — a fixed row count, decided by a
-pure function, rather than a layout measurement.
+pure function, rather than a layout measurement. The fit script may still hide tomorrow, or the
+tail of today, when a short panel cannot hold the rows that budget already allowed.
 
 What those rows cost depends on which column is taller, so measure against a real config rather
 than `config.example.yaml`. In two-column mode the side column (chores plus countdowns) usually

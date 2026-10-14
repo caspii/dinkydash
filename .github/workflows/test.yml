@@ -60,6 +60,12 @@ jobs:
       # either — a Pi has no database and should not carry a driver for one.
       - run: pip install -r requirements-dev.txt -r requirements-cloud.txt
 
+      # The dashboard fit test lays the page out in a real browser. The
+      # Playwright wheel does not ship Chromium, and a self-hoster's run
+      # skips the test when it is absent — CI is where it has to run.
+      - name: Install Chromium for the dashboard fit test
+        run: python -m playwright install --with-deps chromium
+
       # The password is the service container's own, invented above and
       # reachable only from this job — but it goes in PGPASSWORD rather than
       # inline in the URL, because `user:pass@host` is the shape a secret
