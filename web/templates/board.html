@@ -82,11 +82,12 @@
 
         /* Everything below is sized in rem off this one value. The script at
            the foot raises it until the dashboard fills the screen, and lowers
-           it again when a busy day would overflow. A browser with scripting
-           off gets the same bound three ways: 3.2vh where math functions are
-           missing, max(min()) where clamp() is missing, and clamp() itself
-           where that is supported. At a tablet's height, 3.2vh already sits
-           inside 12px–40px, so the three agree. */
+           it again when a busy day would overflow, down to a readable floor.
+           Past that floor it drops rows rather than type. A browser with
+           scripting off gets the same bound three ways: 3.2vh where math
+           functions are missing, max(min()) where clamp() is missing, and
+           clamp() itself where that is supported. At a tablet's height, 3.2vh
+           already sits inside 12px–40px, so the three agree. */
         html { font-size: 3.2vh; }
         html { font-size: max(12px, min(3.2vh, 40px)); }
         @supports (font-size: clamp(1px, 1px, 1px)) {
@@ -196,6 +197,10 @@
 
         .label {
             font-size: 0.82rem;
+            /* A root near the fit floor would otherwise draw this at about
+               11px. 12px is the smallest that still reads as a label across
+               a room; the rem size wins once the root is large enough. */
+            font-size: max(0.82rem, 12px);
             font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 0.1em;
@@ -231,6 +236,25 @@
             overflow-wrap: break-word;
         }
         .event-where { color: var(--text-muted); font-weight: 600; }
+        /* A wrapped address is several lines. On a short panel it goes even
+           when the rest of the day fits; the script hides every address, and
+           then tomorrow, only once the readable floor still overflows. */
+        @media (max-height: 520px) {
+            .tomorrow .event-where { display: none; }
+        }
+        .tight .event-where { display: none; }
+        .drop-tomorrow .tomorrow { display: none; }
+        .event.shed { display: none; }
+        .more {
+            margin-left: calc(var(--time-column) + 0.9rem);
+            font-size: 0.95rem;
+            font-size: max(0.95rem, 12px);
+            font-weight: 800;
+            line-height: 1.2;
+            color: var(--text-muted);
+            flex-shrink: 0;
+        }
+        .more[hidden] { display: none; }
 
         /* Tomorrow only appears when today left room. It reads a step back from
            today — smaller and muted — so a time is never taken for today's. The
@@ -453,6 +477,7 @@
             <div class="label">Today</div>
             <div class="events">
                 {% for event in view.events %}{{ event_row(event) }}{% endfor %}
+                <div class="more" hidden></div>
             </div>
             {% else %}
             <div class="empty">
@@ -524,7 +549,9 @@
    fallback. Body is
    height:100vh;overflow:hidden, so nothing ever reports an overflow. To find
    the content's natural height we let it lay out freely for one measurement,
-   then put it back.
+   then put it back. A day that still overflows at the readable floor drops
+   locations, then tomorrow, then the tail of today — today's rows are never
+   cut in half, and a "+N more" line counts the ones that would not fit.
 
    2. Refreshing. The page fetches its next copy and swaps the body in, rather
    than reloading. A reload that fails — the Wi-Fi dropped, the hosted app is
@@ -547,24 +574,86 @@
         return n;
     }
 
+    // Smallest root that still reads on a wall: today's titles stay near 25px
+    // and a tomorrow row near 17px. Below this, rows are dropped instead of
+    // the type. The first search still starts at 11px, and a day that fits at
+    // or above the floor keeps the root that search finds.
+    var FLOOR = 13;
+
+    function fitSize(room, floor) {
+        var lo = floor, hi = Math.min(120, room / 9);
+        if (!(hi > lo)) {
+            root.style.fontSize = lo + "px";
+            return naturalHeight() <= room;
+        }
+        root.style.fontSize = hi + "px";
+        if (naturalHeight() <= room) return true;
+        for (var i = 0; i < 14; i++) {          // ~0.001px, imperceptible cost
+            var mid = (lo + hi) / 2;
+            root.style.fontSize = mid + "px";
+            if (naturalHeight() > room) { hi = mid; } else { lo = mid; }
+        }
+        root.style.fontSize = lo + "px";
+        return naturalHeight() <= room;
+    }
+
+    function clearShed() {
+        var board = document.querySelector(".board");
+        if (board) {
+            board.classList.remove("tight");
+            board.classList.remove("drop-tomorrow");
+        }
+        var shed = document.querySelectorAll(".shed");
+        for (var i = 0; i < shed.length; i++) { shed[i].classList.remove("shed"); }
+        var more = document.querySelector(".agenda > .events > .more");
+        if (more) { more.hidden = true; more.textContent = ""; }
+    }
+
+    // Hide today's events from the bottom until the page fits at the floor.
+    // The first event stays: a day with one thing still shows that thing.
+    // Each hidden event is counted on the "+N more" line, so a row is never
+    // left cut in half.
+    function trimToday(room) {
+        var list = document.querySelector(".agenda > .events");
+        if (!list) return;
+        var events = list.querySelectorAll(".event");
+        var more = list.querySelector(".more");
+        root.style.fontSize = FLOOR + "px";
+        var hidden = 0;
+        var last = events.length - 1;
+        while (hidden < last && naturalHeight() > room) {
+            events[last - hidden].classList.add("shed");
+            hidden = hidden + 1;
+            if (more) {
+                more.hidden = false;
+                more.textContent = "+" + hidden + " more";
+            }
+        }
+    }
+
     function fit() {
         // Let a phone viewer enlarge the dashboard without shrinking it back.
         if (window.visualViewport && window.visualViewport.scale > 1) return;
         var room = window.innerHeight;
-        // High on purpose. The search below keeps the largest size that still
-        // fits, so a quiet day grows until it fills the screen and a busy day
-        // shrinks instead of being clipped. The stylesheet font-size is
-        // only what a browser with scripting off gets.
-        var lo = 11, hi = Math.min(120, room / 9);
-        root.style.fontSize = hi + "px";
-        if (naturalHeight() > room) {
-            for (var i = 0; i < 14; i++) {          // ~0.001px, imperceptible cost
-                var mid = (lo + hi) / 2;
-                root.style.fontSize = mid + "px";
-                if (naturalHeight() > room) { hi = mid; } else { lo = mid; }
-            }
-            root.style.fontSize = lo + "px";
+        clearShed();
+        // A comfortable day fits at or above the floor and stops here. The
+        // stylesheet font-size is only what a browser with scripting off gets.
+        if (fitSize(room, 11)) {
+            var settled = parseFloat(root.style.fontSize);
+            if (!document.querySelector(".board") || settled >= FLOOR) return;
         }
+        var board = document.querySelector(".board");
+        if (!board) return;
+        // Still over, or only by going below the floor. Locations go first
+        // (they wrap), then the whole of tomorrow, and the search runs again
+        // after each so the type can grow back. Today is never the thing that
+        // is removed as a block.
+        board.classList.add("tight");
+        if (fitSize(room, FLOOR)) return;
+        board.classList.add("drop-tomorrow");
+        if (fitSize(room, FLOOR)) return;
+        trimToday(room);
+        if (!fitSize(room, FLOOR)) fitSize(room, 11);
     }
 
     fit();
