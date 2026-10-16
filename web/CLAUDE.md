@@ -275,13 +275,15 @@ looks right because it re-measures when the font arrives.
 
 **The agenda's time column is a token, because a family can choose a 12-hour clock.** It does not
 shrink, so it is sized for the widest time that clock can write — `--time-column`, 5.2rem for
-`12:00` and 7.4rem for `12:00 pm`, selected by `data-clock` on `<html>` beside `data-theme`.
-Measured rather than guessed: at 800x480 the widest 12-hour time is 89.2px in a 99.1px column, and
-the wider column costs no type size at any of the three sizes (the root stays 13.40 / 20.10 /
-13.99px). **`data-clock` is on `<html>`, which a refresh keeps**, so `swap()` carries it across by
+`12:00` and 7.35rem for `12:00` plus a smaller `pm`, selected by `data-clock` on `<html>` beside
+`data-theme`. The suffix is a `<span class="meridiem">` at 0.65em; at full size it is wider than
+the column and wraps under the digits, which is the gap beside the title. Twelve-hour times are
+right-aligned in that column, so a one-digit hour ends on the same edge as `12:00`. Tomorrow's
+type is 1.28rem against today's 1.9rem, and its column is `calc(var(--time-column) * 1.28 / 1.9)`,
+so the footnote does not keep a gap sized for the larger row. **`data-clock` is on `<html>`, which a refresh keeps**, so `swap()` carries it across by
 hand the way it already did the theme; forget that and a family who changes the setting gets the new
 times in the old column until something forces a real reload. The times themselves are written in
-`dinkydash/clock.py` — see the root `CLAUDE.md`.
+`dinkydash/clock.py` — see the root `CLAUDE.md`. The span is added in the dashboard template only.
 
 **The agenda's row budget.** `MAX_EVENTS = 5` is the budget for the whole agenda, not today's cap.
 Today fills it first; tomorrow tops up whatever is left, capped again at `MAX_TOMORROW = 3` so it
@@ -310,7 +312,10 @@ written.
 In two-column mode the body is a grid of agenda and side column, and both stretch to the
 height left under the headline. The breakpoint is `min-aspect-ratio: 5/4` and `min-width:
 640px`, so a 4:3 landscape tablet stays in two columns and a portrait tablet stacks the
-side column under the agenda. Stacked, each column's flex basis is its content height and
+side column under the agenda. An empty today puts `day-empty` on `.body` — a class, because
+`:has()` is not in the oldest browser this page still lays out in — and that row gives the
+side column the wider share (`1fr` / `1.35fr`), which is what keeps a countdown on one line.
+The empty box is `flex: 0 0 auto`, the height of its words, so tomorrow sits under it. Stacked, each column's flex basis is its content height and
 leftover space is shared — a zero basis would split that page by ratio and let the side
 column shrink shorter than its text. There is no note on the dashboard. Long event titles,
 chore pills and countdowns wrap (`overflow-wrap: break-word`, `min-width: 0` on the flex item).

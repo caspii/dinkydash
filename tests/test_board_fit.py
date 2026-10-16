@@ -36,11 +36,11 @@ def event(time_, title, location):
     return {"title": title, "time": time_, "all_day": False, "location": location}
 
 
-def view(events, tomorrow, headline):
+def view(events, tomorrow, headline, clock="24h", theme="light", countdowns=None):
     return {
         "family_name": "The Wilsons",
-        "theme": "light",
-        "clock": "24h",
+        "theme": theme,
+        "clock": clock,
         "date_display": "Wednesday, 14 October",
         "headline": headline,
         "events": [event(*row) for row in events],
@@ -49,7 +49,7 @@ def view(events, tomorrow, headline):
             {"emoji": "🍽", "title": "Set the table", "assigned_to": "Mia"},
             {"emoji": "🦴", "title": "Feed Biscuit", "assigned_to": "Theo"},
         ],
-        "countdowns": [
+        "countdowns": countdowns or [
             {"days": 12, "emoji": "🎄", "title": "Christmas"},
             {"days": 2, "emoji": "🎂", "title": "Mia's birthday"},
             {"days": 40, "emoji": "☀️", "title": "Summer holidays"},
@@ -91,6 +91,30 @@ LIGHT = view(
     [("14:15", "Dentist", None)],
     "Swimming, then a quiet afternoon.",
 )
+# Long enough that the narrow side column wraps them; a wider column holds
+# each on one line. The words are not what the assertions check.
+LONG_COUNTS = [
+    {"days": 64, "emoji": "🎂", "title": "Jack's birthday"},
+    {"days": 12, "emoji": "🎄", "title": "Christmas"},
+    {"days": 40, "emoji": "☀️", "title": "Summer holidays"},
+]
+EMPTY = view(
+    [],
+    [("8:00 am", "Swimming lesson", "Stadtbad"), ("12:00 pm", "Lunch with Grandma", None)],
+    "Nothing booked in all day.",
+    clock="12h",
+    countdowns=LONG_COUNTS,
+)
+TWELVE = view(
+    [("12:00 pm", "Swimming lesson", "Stadtbad"), ("8:00 am", "School run", None)],
+    [
+        ("12:00 pm", "Lunch with Grandma", None),
+        ("3:45 pm", "Piano lesson", None),
+    ],
+    "Swimming, then a quiet afternoon.",
+    clock="12h",
+    countdowns=LONG_COUNTS,
+)
 
 # CSS pixels, and the device pixel ratio a real panel reported. The ratio does
 # not change the layout; it is part of the size being held steady.
@@ -131,19 +155,90 @@ MEASURE = """
   const tomorrow = document.querySelector(".tomorrow");
   const label = document.querySelector(".label");
   const more = document.querySelector(".agenda > .events > .more");
+  const root = parseFloat(getComputedStyle(document.documentElement).fontSize);
+  const empty = document.querySelector(".empty");
+  let emptySlack = null;
+  let tomorrowGap = null;
+  if (empty) {
+    const kids = empty.children;
+    const first = kids[0].getBoundingClientRect();
+    const last = kids[kids.length - 1].getBoundingClientRect();
+    const style = getComputedStyle(empty);
+    const expected = (last.bottom - first.top)
+      + parseFloat(style.paddingTop) + parseFloat(style.paddingBottom)
+      + (parseFloat(getComputedStyle(kids[0]).marginTop) || 0)
+      + (parseFloat(getComputedStyle(kids[kids.length - 1]).marginBottom) || 0);
+    emptySlack = empty.getBoundingClientRect().height - expected;
+    if (tomorrow) tomorrowGap = tomorrow.getBoundingClientRect().top - empty.getBoundingClientRect().bottom;
+  }
+  const agendaBox = document.querySelector(".agenda");
+  const sideBox = document.querySelector(".side");
+  const body = document.querySelector(".body");
+  const grid = body ? getComputedStyle(body).gridTemplateColumns : "none";
+  let sideShare = null;
+  if (agendaBox && sideBox) {
+    const a = agendaBox.getBoundingClientRect().width;
+    const s = sideBox.getBoundingClientRect().width;
+    if (a + s > 0) sideShare = s / (a + s);
+  }
+  const countdownLines = [];
+  const counts = document.querySelectorAll(".countdown span:last-child");
+  for (let i = 0; i < counts.length; i++) {
+    const lh = parseFloat(getComputedStyle(counts[i]).lineHeight);
+    if (lh) countdownLines.push(counts[i].getBoundingClientRect().height / lh);
+  }
+  let timeColumnRem = 0;
+  let tomorrowColumnRem = 0;
+  let timeOverflow = 0;
+  let meridiemSmaller = false;
+  const times = document.querySelectorAll(".event-time");
+  for (let i = 0; i < times.length; i++) {
+    const el = times[i];
+    if (el.getBoundingClientRect().width === 0) continue;
+    const copy = el.cloneNode(true);
+    copy.style.width = "max-content";
+    copy.style.position = "absolute";
+    el.parentElement.appendChild(copy);
+    const natural = copy.getBoundingClientRect().width;
+    copy.parentElement.removeChild(copy);
+    const box = el.getBoundingClientRect();
+    const rem = box.width / root;
+    const inTomorrow = !!(el.closest && el.closest(".tomorrow"));
+    if (inTomorrow) {
+      if (rem > tomorrowColumnRem) tomorrowColumnRem = rem;
+    } else if (rem > timeColumnRem) {
+      timeColumnRem = rem;
+    }
+    if (natural - box.width > timeOverflow) timeOverflow = natural - box.width;
+    const suffix = el.querySelector(".meridiem");
+    if (suffix) {
+      meridiemSmaller = parseFloat(getComputedStyle(suffix).fontSize)
+        < parseFloat(getComputedStyle(el).fontSize) - 0.5;
+    }
+  }
   return {
     width: roomW,
     height: roomH,
-    fontSize: parseFloat(getComputedStyle(document.documentElement).fontSize),
+    fontSize: root,
     labelSize: label ? parseFloat(getComputedStyle(label).fontSize) : 0,
     today: today.length,
     hidden: hidden,
     firstHidden: firstHidden,
     tomorrowShown: !!(tomorrow && getComputedStyle(tomorrow).display !== "none"),
     boardClass: (document.querySelector(".board") || {}).className || "",
+    bodyClass: body ? body.className : "",
     more: more ? more.textContent : "",
     moreHidden: more ? more.hidden : true,
-    over: over
+    over: over,
+    emptySlack: emptySlack,
+    tomorrowGap: tomorrowGap,
+    twoColumn: grid !== "none",
+    sideShare: sideShare,
+    countdownLines: countdownLines,
+    timeColumnRem: timeColumnRem,
+    tomorrowColumnRem: tomorrowColumnRem,
+    timeOverflow: timeOverflow,
+    meridiemSmaller: meridiemSmaller
   };
 }
 """
@@ -181,7 +276,7 @@ def origin(tmp_path_factory):
     config = folder / "config.yaml"
     config.write_text('family_name: "The Wilsons"\ntimezone: "Europe/Berlin"\ntheme: light\n')
     app = create_app(FileStore(config))
-    pages = {"busy": BUSY, "packed": PACKED, "light": LIGHT}
+    pages = {"busy": BUSY, "packed": PACKED, "light": LIGHT, "empty": EMPTY, "twelve": TWELVE}
 
     @app.route("/fixture/<name>")
     def fixture(name):
@@ -281,3 +376,43 @@ class TestALightDayIsUnchanged:
         # would take over from 0.82rem, so the type is the size the search found.
         assert data["fontSize"] > 16, label
         assert data["labelSize"] == pytest.approx(data["fontSize"] * 0.82, abs=0.2)
+        assert "day-empty" not in data["bodyClass"], label
+        if data["twoColumn"]:
+            # Agenda keeps the wider share when today has events.
+            assert data["sideShare"] == pytest.approx(1 / 2.55, abs=0.02), label
+
+
+class TestAnEmptyDay:
+    """A quiet today is the height of its words, and the side column is wider."""
+
+    @pytest.mark.parametrize("label,width,height,scale", LIGHT_SIZES)
+    def test_the_empty_box_hugs_its_words_and_countdowns_stay_one_line(
+        self, browser, origin, label, width, height, scale
+    ):
+        data = open_at(browser, origin, "empty", width, height, scale)
+        assert data["width"] == width and data["height"] == height, label
+        assert data["over"] == [], label
+        assert data["tomorrowShown"] is True, label
+        assert data["boardClass"] == "board", label
+        assert "day-empty" in data["bodyClass"], label
+        # The box is the words, the padding and the gap. A flex-grow would
+        # add a tall blank and push tomorrow down by that much.
+        assert data["emptySlack"] == pytest.approx(0, abs=4), label
+        assert 0 <= data["tomorrowGap"] < data["fontSize"] * 1.3, label
+        assert data["countdownLines"], label
+        assert max(data["countdownLines"]) < 1.4, label
+        if data["twoColumn"]:
+            assert data["sideShare"] > 0.52, label
+
+
+class TestTheTwelveHourColumn:
+    """The suffix is smaller, so the column comes in under a full-size one."""
+
+    def test_the_column_fits_the_widest_time_and_is_narrower(self, browser, origin):
+        data = open_at(browser, origin, "twelve", 1024, 744, 2)
+        assert data["over"] == []
+        # Under the full-size suffix column, and the widest time still fits.
+        assert data["timeColumnRem"] < 7.4
+        assert data["timeOverflow"] <= 1
+        assert data["tomorrowColumnRem"] < data["timeColumnRem"] - 0.5
+        assert data["meridiemSmaller"] is True
