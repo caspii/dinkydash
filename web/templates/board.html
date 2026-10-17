@@ -1,6 +1,16 @@
 {% macro event_row(event) %}
 <div class="event">
-    <div class="event-time{{ ' all-day' if event.all_day }}">{{ "All day" if event.all_day else event.time }}</div>
+    <div class="event-time{{ ' all-day' if event.all_day }}">
+        {%- if event.all_day -%}
+            All day
+        {%- elif event.time and event.time.endswith(' am') -%}
+            {{ event.time[:-3] }}<span class="meridiem">am</span>
+        {%- elif event.time and event.time.endswith(' pm') -%}
+            {{ event.time[:-3] }}<span class="meridiem">pm</span>
+        {%- else -%}
+            {{ event.time }}
+        {%- endif -%}
+    </div>
     <div class="event-title">
         {{ event.title }}
         {% if event.location %}<span class="event-where">&mdash; {{ event.location }}</span>{% endif %}
@@ -73,10 +83,13 @@
             --stale-box: #221b16;
         }
 
-        /* "12:00 pm" is three characters longer than "12:00", so the column it
-           has to fit is wider. A token rather than a second set of agenda
-           rules: only the width differs. */
-        [data-clock="12h"] { --time-column: 7.4rem; }
+        /* The suffix is a smaller span, so the column is the width of "12:00"
+           plus that span. A full-size suffix is wider than this and wraps
+           under the digits, which is the gap beside the title. Short hours
+           sit on the same right edge, so "8:00" does not leave a hole in
+           front of the title. Tomorrow scales the token with its type. */
+        [data-clock="12h"] { --time-column: 7.35rem; }
+        [data-clock="12h"] .event-time { text-align: right; }
 
         *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -193,6 +206,13 @@
             .body > * + * { margin-top: 0; }
             .agenda { grid-column: 1; height: 100%; }
             .side { grid-column: 2; height: 100%; }
+            /* An empty today is a short agenda, so the side column takes
+               the wider share. That is what keeps a countdown on one line.
+               A class, because :has() is not available in the oldest browser
+               that still lays this page out. */
+            .body.day-empty {
+                grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr);
+            }
         }
 
         .label {
@@ -226,7 +246,11 @@
             color: var(--accent);
             width: var(--time-column);
             flex-shrink: 0;
+            white-space: nowrap;
         }
+        /* "am" / "pm" read as part of the time, a step down from the digits,
+           so the column does not have to be as wide as the suffix at full size. */
+        .event-time .meridiem { font-size: 0.65em; margin-left: 0.2em; }
         .event-time.all-day { font-size: 1.25rem; line-height: 1.25; }
         .event-title {
             font-size: 1.9rem;
@@ -257,12 +281,17 @@
         .more[hidden] { display: none; }
 
         /* Tomorrow only appears when today left room. It reads a step back from
-           today — smaller and muted — so a time is never taken for today's. The
-           time column keeps its full width, so both days share a left edge. */
+           today — smaller and muted — so a time is never taken for today's.
+           1.28rem against today's 1.9rem; the column scales by that ratio so a
+           12-hour time does not keep a gap sized for the larger row. */
         .tomorrow { margin-top: 0.9rem; flex-shrink: 0; }
         .tomorrow .events { flex: 0; justify-content: flex-start; }
         .tomorrow .events > * + * { margin-top: 0.4rem; }
-        .tomorrow .event-time { font-size: 1.28rem; color: var(--text-muted); }
+        .tomorrow .event-time {
+            font-size: 1.28rem;
+            color: var(--text-muted);
+            width: calc(var(--time-column) * 1.28 / 1.9);
+        }
         .tomorrow .event-time.all-day { font-size: 0.95rem; }
         .tomorrow .event-title { font-size: 1.28rem; color: var(--text-mid); }
 
@@ -273,8 +302,9 @@
             display: flex;
             flex-direction: column;
             justify-content: center;
-            flex: 1;
-            min-height: 0;
+            /* The height of its words. Growing to fill the agenda on a quiet
+               day would leave tomorrow below a tall blank. */
+            flex: 0 0 auto;
         }
         .empty > * + * { margin-top: 0.45rem; }
         .empty-head { font-size: 1.7rem; font-weight: 800; color: var(--text-mid); overflow-wrap: break-word; }
@@ -317,7 +347,14 @@
             min-width: 0;
         }
         .countdown > * + * { margin-left: 0.7rem; }
-        .countdown span { min-width: 0; overflow-wrap: break-word; }
+        .countdown span {
+            min-width: 0;
+            overflow-wrap: break-word;
+            /* When a line does wrap, the two lines share the words instead of
+               leaving one of them short. An engine that does not know this
+               keeps the ordinary wrap. */
+            text-wrap: balance;
+        }
         .countdown strong { color: var(--text); font-weight: 800; }
         .countdown.today strong { color: var(--accent); }
         .countdown-emoji { font-size: 1.55rem; flex-shrink: 0; line-height: 1.15; }
@@ -471,7 +508,7 @@
     <div class="headline">{{ view.headline }}</div>
     {% endif %}
 
-    <div class="body">
+    <div class="body{% if not view.events %} day-empty{% endif %}">
         <div class="agenda">
             {% if view.events %}
             <div class="label">Today</div>
