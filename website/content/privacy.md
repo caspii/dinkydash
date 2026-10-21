@@ -137,9 +137,11 @@ API key at all, and simply goes without the headline.
 | **Google** | The mailbox our support and feedback email arrives in | United States |
 | **Cloudflare** | DNS; website and app delivery through DigitalOcean's App Platform; the bot check on the sign-in page | Global (US company) |
 | **Fathom Analytics** (Conva Ventures) | Cookieless visit counts on the marketing site and the sign-in pages, and the sign-up event | Canadian company. EU and UK visitors are processed in Germany and Finland, other visitors in the United States, and the counts are stored in the United States |
-| **Ahrefs** (Ahrefs Pte. Ltd.) | Cookieless visit counts on the marketing site | Singapore, under Standard Contractual Clauses |
+| **Ahrefs** | Cookieless visit counts on the marketing site | See [Ahrefs' privacy policy](https://ahrefs.com/legal/privacy-policy) for its entities and international processing |
 | **Sentry** (Functional Software) | Error reports, and the checks that the app and the worker are running | United States |
 | **Stripe** | Processes subscriptions and payments when you choose to pay | See [Stripe's privacy policy](https://stripe.com/privacy) for its entities and international processing |
+
+<!-- Source: https://ahrefs.com/legal/privacy-policy, checked 2026-10-22 -->
 
 The app and the database run on DigitalOcean in **Frankfurt**. Cloudflare
 provides our DNS and, as one of
