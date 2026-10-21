@@ -246,6 +246,20 @@ class TestTimezone:
         assert config_module.tzinfo_for(config).key == "UTC"
 
 
+class TestFamilyNameDefault:
+    def test_the_default_string_is_the_default(self):
+        assert config_module.family_name_is_default({"family_name": "Our family"}) is True
+
+    def test_missing_counts_as_the_default(self):
+        assert config_module.family_name_is_default({}) is True
+
+    def test_blank_counts_as_the_default(self):
+        assert config_module.family_name_is_default({"family_name": ""}) is True
+
+    def test_a_chosen_name_is_not_the_default(self):
+        assert config_module.family_name_is_default({"family_name": "The Wilsons"}) is False
+
+
 class TestTheInventedHousehold:
     """`starter_config` marks what it invents, and set-up is "the marks are gone".
 

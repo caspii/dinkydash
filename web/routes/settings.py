@@ -331,6 +331,7 @@ def home():
         setup=setup, setting_up=setting_up, screen=screen,
         calendars_on=any(c.get("enabled") for c in calendars if isinstance(c, dict)),
         board_link=board_path(),
+        family_name_is_default=config_module.family_name_is_default(config),
         # Who is signed in, for the app bar. None self-hosted, where nobody is;
         # `admin` is the one place the operator's page is linked from.
         address=current_address(), admin=is_admin(),

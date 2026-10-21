@@ -59,6 +59,17 @@
     <a href="{{ url_for('billing.home') }}">Open Subscription to resume updates.</a>
 </div>
 {% endif %}
+{% if family_name_is_default %}
+{# Nothing to dismiss: it leaves on its own, the moment `settings.system` saves
+   a real name — the same way the set-up checklist above it does. #}
+<div class="card pad" id="family-name-nudge" data-marker="family-name-nudge">
+    <div class="hint">
+        Still called &ldquo;Our family&rdquo;?
+        <a href="{{ url_for('settings.system') }}#family_name">Give it your family's name</a>
+        — it's what shows at the top of the dashboard.
+    </div>
+</div>
+{% endif %}
 {% if setting_up %}
 {# **The checklist.** Shown until the family is set up and its first dashboard is
    written, in place of the daily controls — "Refresh calendars" with no

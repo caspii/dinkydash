@@ -338,6 +338,17 @@ def timezone_is_set(config):
     return (config.get("timezone") or DEFAULTS["timezone"]) != DEFAULTS["timezone"]
 
 
+def family_name_is_default(config):
+    """True while the dashboard is still called "Our family".
+
+    Nobody's family is actually called that, so a config carrying it has
+    either never had the name changed or had it cleared back to blank — both
+    read the same to a visitor looking at the dashboard, which is why the
+    settings home nudges towards `settings.system` while this holds.
+    """
+    return (config.get("family_name") or DEFAULTS["family_name"]) == DEFAULTS["family_name"]
+
+
 def is_set_up(config):
     """Is this a real family's dashboard yet?
 
