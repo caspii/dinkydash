@@ -8,6 +8,9 @@ Cloud only.
     screen_sizes(pool)           -> each reported size, how many screens, when last seen
     by_week(rows, weeks, today)  -> the last `weeks` weeks, gaps filled (pure)
     totals(rows)                 -> all-time signups and activations (pure)
+    spend_by_day(pool, days)     -> the last `days` days' charged calls, newest first
+    trial_health(pool, within)   -> trialling, lapsing within `within` days, and lapsed
+    calendar_health(pool)        -> feeds by their last fetch result
 
 A **signup** is a family created — the click on the emailed link, never the
 address being submitted (DIN-41). An **activation** is the first time that
@@ -31,6 +34,13 @@ id in the result. No family id leaves this module in either direction, because
 nothing on the page links to one family — so a bug in the page can show an
 operator an address, which the operator can already see in the mailbox that
 sent it, and a screen size, and nothing else.
+
+`spend_by_day`, `trial_health` and `calendar_health` (DIN-71) hold the same
+line: each is one or more `count(*)` or a daily total from a table with no
+family id in it (`global_model_spend`, `families.status`, `calendar_health`'s
+own `last_fetch_status`), and none of the three takes a family id or returns
+one. A family on trial, lapsing soon, or with a feed that has been failing is
+a count the operator's page adds to, never a row it can click through to.
 
 Like `accounts.py`, this imports no driver: it is handed a pool and asks it for
 connections.
@@ -62,6 +72,22 @@ Account = namedtuple("Account", "email created_at activated_at status trial_ends
 # is a leak amplifier as well as a slow page; the newest are the ones an
 # operator is looking for, and the counts above the list are about everyone.
 MOST_IN_ROSTER = 100
+
+# One day's charged calls, summed over every family. No family id.
+SpendDay = namedtuple("SpendDay", "day calls")
+
+# How many families are trialling, how many of those lapse soon, and how many
+# have already lapsed. Counts, never which family is in which bucket.
+TrialHealth = namedtuple("TrialHealth", "trialing lapsing_soon lapsed")
+
+# Feeds by their last fetch result. `longest_run` is the worst current run of
+# consecutive failures, or `None` until something has actually counted past
+# the column's default of zero.
+CalendarHealth = namedtuple("CalendarHealth", "ok failed paused unchecked longest_run")
+
+# "Lapsing soon" on the operator's page: a trial due, or already overdue and
+# not yet swept, within this many days.
+LAPSING_SOON_DAYS = 7
 
 
 def history(pool):
@@ -205,3 +231,62 @@ def by_week(rows, weeks, today):
 def totals(rows):
     """All-time signups and activations, whatever span the chart shows."""
     return Totals(sum(row[1] for row in rows), sum(row[2] for row in rows))
+
+
+def spend_by_day(pool, days=14):
+    """The last `days` days with a charged call, newest first.
+
+    Reads `global_model_spend`: one row per UTC day, summed over every family
+    by the trigger that writes it, with no family id in the table at all.
+    `model_spend` itself — one row per family per day — is never read here.
+    """
+    with pool.connection() as conn, conn.cursor() as cur:
+        cur.execute(
+            """SELECT day, calls FROM global_model_spend
+               ORDER BY day DESC LIMIT %s""",
+            (max(1, int(days)),),
+        )
+        return [SpendDay(*row) for row in cur.fetchall()]
+
+
+def trial_health(pool, within_days=LAPSING_SOON_DAYS):
+    """How many families are trialling, how many lapse within `within_days`,
+    and how many have already lapsed.
+
+    An aggregate of `families.status` and `trial_ends_at`: three counts, and
+    no way to tell from them which family is in which.
+    """
+    with pool.connection() as conn, conn.cursor() as cur:
+        cur.execute(
+            """SELECT
+                   count(*) FILTER (WHERE status = 'trialing'),
+                   count(*) FILTER (WHERE status = 'trialing' AND trial_ends_at
+                                     <= now() + %s * interval '1 day'),
+                   count(*) FILTER (WHERE status = 'lapsed')
+               FROM families""",
+            (within_days,),
+        )
+        return TrialHealth(*cur.fetchone())
+
+
+def calendar_health(pool):
+    """Feeds counted by their last fetch result.
+
+    `consecutive_failures` defaults to zero, which reads exactly like "nothing
+    has ever failed" until something actually increments it — so `longest_run`
+    stays `None` until a row's count is above zero, and the page then shows the
+    last result per feed as aggregate counts only. Nothing here reads
+    `family_id` or `calendar_id`.
+    """
+    with pool.connection() as conn, conn.cursor() as cur:
+        cur.execute(
+            """SELECT
+                   count(*) FILTER (WHERE last_fetch_status = 'ok'),
+                   count(*) FILTER (WHERE last_fetch_status = 'failed'),
+                   count(*) FILTER (WHERE last_fetch_status = 'paused'),
+                   count(*) FILTER (WHERE last_fetch_status IS NULL),
+                   max(consecutive_failures) FILTER (WHERE consecutive_failures > 0)
+               FROM calendar_health""",
+        )
+        ok, failed, paused, unchecked, worst = cur.fetchone()
+        return CalendarHealth(ok, failed, paused, unchecked, worst)

@@ -31,8 +31,8 @@ sys.path.insert(0, os.path.dirname(__file__))
 from dinkydash import budget as budget_module      # noqa: E402
 from dinkydash import runner                       # noqa: E402
 from dinkydash.budget import (FAMILY_CALLS_A_DAY, GLOBAL_FLOOR,  # noqa: E402
-                              GLOBAL_PER_FAMILY, NoBudget, OverBudget,
-                              PostgresBudget)
+                              GLOBAL_PER_FAMILY, BreakerStatus, NoBudget,
+                              OverBudget, PostgresBudget, today_status)
 from dinkydash.claude_client import GenerationError  # noqa: E402
 from dinkydash.store import FileStore              # noqa: E402
 from test_generate import FakeClient               # noqa: E402
@@ -395,6 +395,59 @@ class TestARefusalKeepsTheBoard:
             runner.run(config, store, today=date(2026, 9, 3),
                        client=FakeClient(), budget=self.Broke())
         assert store.load_payload(config).get("calendars_fetched_at")
+
+
+# -- today's status, for the operator's page (DIN-71) ------------------------
+
+class TestTodayStatus:
+    """What `/admin` shows: today's charged total against the ceiling
+    `allow()` is currently measuring it against. Read, not enforced — and
+    read fresh, so a raised environment variable shows at once."""
+
+    def test_reads_the_global_total_at_the_current_caps(
+            self, pg_pool, pg_family, clean, monkeypatch):
+        monkeypatch.setenv("DINKYDASH_GLOBAL_CALL_FLOOR", "2")
+        monkeypatch.setenv("DINKYDASH_GLOBAL_CALLS_PER_FAMILY", "0")
+        caps = {"family_a_day": 1000, "global_floor": 2, "global_per_family": 0}
+        PostgresBudget(pg_pool, pg_family, **caps).allow()
+        PostgresBudget(pg_pool, pg_family, **caps).allow()
+        assert today_status(pg_pool) == BreakerStatus(2, 2)
+
+    def test_the_ceiling_scales_with_non_lapsed_families(
+            self, pg_pool, pg_family, monkeypatch):
+        from dinkydash import config as config_module
+
+        monkeypatch.setenv("DINKYDASH_GLOBAL_CALL_FLOOR", "10")
+        monkeypatch.setenv("DINKYDASH_GLOBAL_CALLS_PER_FAMILY", "5")
+        before = today_status(pg_pool).ceiling
+        with pg_pool.connection() as conn, conn.transaction(), conn.cursor() as cur:
+            cur.execute("INSERT INTO families (screen_token) VALUES (%s) RETURNING id",
+                        (config_module.new_screen_token(),))
+            extra = cur.fetchone()[0]
+        try:
+            assert today_status(pg_pool).ceiling == before + 5
+        finally:
+            with pg_pool.connection() as conn, conn.transaction(), conn.cursor() as cur:
+                cur.execute("DELETE FROM families WHERE id = %s", (extra,))
+
+    def test_a_lapsed_family_does_not_count_toward_the_ceiling(
+            self, pg_pool, monkeypatch):
+        from dinkydash import config as config_module
+
+        monkeypatch.setenv("DINKYDASH_GLOBAL_CALL_FLOOR", "0")
+        monkeypatch.setenv("DINKYDASH_GLOBAL_CALLS_PER_FAMILY", "5")
+        before = today_status(pg_pool).ceiling
+        with pg_pool.connection() as conn, conn.transaction(), conn.cursor() as cur:
+            cur.execute(
+                """INSERT INTO families (screen_token, status, lapsed_at)
+                   VALUES (%s, 'lapsed', now()) RETURNING id""",
+                (config_module.new_screen_token(),))
+            lapsed = cur.fetchone()[0]
+        try:
+            assert today_status(pg_pool).ceiling == before
+        finally:
+            with pg_pool.connection() as conn, conn.transaction(), conn.cursor() as cur:
+                cur.execute("DELETE FROM families WHERE id = %s", (lapsed,))
 
 
 # -- and the browser path, which was the unbounded one ----------------------

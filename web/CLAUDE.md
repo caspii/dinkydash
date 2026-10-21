@@ -160,6 +160,16 @@ white with the dataviz palette validator (CVD ΔE 24.7, both above 3:1); a third
 running it again, not picking a colour. `tests/test_admin.py` covers the gate, the bounds on
 `?weeks=` and the drawing.
 
+**Three more panels hold the same bound** (DIN-71): a daily total of calls charged against the
+breaker (`growth.spend_by_day`, `global_model_spend`, no family id) beside today's count against
+the ceiling `PostgresBudget.allow` is currently enforcing (`budget.today_status`); counts of
+families trialling, lapsing within `growth.LAPSING_SOON_DAYS` days and already lapsed
+(`growth.trial_health`, from `families.status` and `trial_ends_at`); and `calendar_health` rows
+counted by `last_fetch_status` (`growth.calendar_health`), with the worst current run of
+consecutive failures shown only once something has counted one above zero — until then the panel
+is the last result per feed as aggregate counts, nothing about duration. None of the three takes
+or renders a family id, a calendar id, or a calendar's URL.
+
 **The settings home's app bar says who is signed in, and is the one place `/admin` is linked
 from.** Under the title sits the account's address — hosted only, there is nobody signed in on a
 Pi — and for an address on `DINKYDASH_ADMIN_EMAILS` a "View admin" action beside "Dashboard".
