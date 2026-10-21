@@ -54,8 +54,10 @@ not see your name, your email address, your family's details or your calendar,
 and it is not loaded on the dashboard, the settings pages or the screen. The
 marketing site at `dinkydash.co` uses Fathom on every page, also without a
 cookie, and Ahrefs Web Analytics, which is also cookieless. Ahrefs is sent
-the page's address only, not the rest of the link, and it collects no
-personal data.
+the page's address without anything after the # in the link, and it does
+not set a cookie or receive your name, your email address or the names on a
+chart. Fathom sees any campaign parameters on the link that brought you
+here; Ahrefs no longer does.
 
 ## Where it goes
 
@@ -135,6 +137,7 @@ API key at all, and simply goes without the headline.
 | **Google** | The mailbox our support and feedback email arrives in | United States |
 | **Cloudflare** | DNS; website and app delivery through DigitalOcean's App Platform; the bot check on the sign-in page | Global (US company) |
 | **Fathom Analytics** (Conva Ventures) | Cookieless visit counts on the marketing site and the sign-in pages, and the sign-up event | Canadian company. EU and UK visitors are processed in Germany and Finland, other visitors in the United States, and the counts are stored in the United States |
+| **Ahrefs** (Ahrefs Pte. Ltd.) | Cookieless visit counts on the marketing site | Singapore, under Standard Contractual Clauses |
 | **Sentry** (Functional Software) | Error reports, and the checks that the app and the worker are running | United States |
 | **Stripe** | Processes subscriptions and payments when you choose to pay | See [Stripe's privacy policy](https://stripe.com/privacy) for its entities and international processing |
 
