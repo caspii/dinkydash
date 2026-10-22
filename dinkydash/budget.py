@@ -3,6 +3,7 @@
     NoBudget()                        single mode: no ceiling, and no database
     PostgresBudget(pool, family_id)   cloud mode: the breaker
     for_family(pool, family_id)       the same, with the caps read from the environment
+    today_status(pool)                today's charged calls against the global ceiling
 
     budget.allow()                    charge one call, or raise OverBudget
     budget.record(input, output)      what that call actually used
@@ -54,6 +55,7 @@ like `accounts.py` and `screens.py`.
 
 import logging
 import os
+from collections import namedtuple
 from datetime import datetime, timezone
 
 from .claude_client import DEFAULT_MAX_TOKENS, DEFAULT_MODEL, GenerationError
@@ -223,6 +225,31 @@ class PostgresBudget:
                 (self.family_id, day, day),
             )
             return cur.fetchone()
+
+
+# Today's charged calls against the ceiling `allow()` is currently measuring
+# them against. For the operator's page (DIN-71), not for enforcement.
+BreakerStatus = namedtuple("BreakerStatus", "calls_today ceiling")
+
+
+def today_status(pool):
+    """How close today is to tripping the global breaker.
+
+    Worked out the same way `allow()` does — the environment's current floor
+    and per-family allowance, over a fresh count of non-lapsed families — so a
+    raised variable shows here at once rather than after the next deploy.
+    Reads `global_model_spend`, which carries no family id, and a `count(*)`
+    on `families`; no family's own spend is read.
+    """
+    floor = _number("DINKYDASH_GLOBAL_CALL_FLOOR", GLOBAL_FLOOR)
+    per_family = _number("DINKYDASH_GLOBAL_CALLS_PER_FAMILY", GLOBAL_PER_FAMILY)
+    day = _today()
+    with pool.connection() as conn, conn.cursor() as cur:
+        cur.execute("SELECT count(*) FROM families WHERE status <> 'lapsed'")
+        families = cur.fetchone()[0]
+        cur.execute("SELECT calls FROM global_model_spend WHERE day = %s", (day,))
+        row = cur.fetchone()
+    return BreakerStatus(row[0] if row else 0, floor + per_family * families)
 
 
 def for_family(pool, family_id):
