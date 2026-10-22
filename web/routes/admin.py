@@ -30,6 +30,21 @@ address and no family id. Nothing in this file takes an id from the request,
 the session or the URL, and none is rendered, so there is no id to check and
 no way to reach one family from here.
 
+**Three operational panels hold the same bound** (DIN-71). Spend is a daily
+total of charged calls from `global_model_spend`, which has no family id in
+it, beside today's count against the global breaker's current ceiling
+(`budget.today_status`) — the same floor, per-family allowance and
+non-lapsed family count `PostgresBudget.allow` itself checks, read rather
+than enforced. Trials are three counts of `families.status` and
+`trial_ends_at` — trialling, lapsing within `growth.LAPSING_SOON_DAYS` days,
+and lapsed (`growth.trial_health`) — never which family is in which bucket.
+Calendar health is `calendar_health` rows counted by `last_fetch_status`,
+with the worst current run of consecutive failures shown only once
+something has counted one above the column's default of zero
+(`growth.calendar_health`); until then the panel shows the last result per
+feed as aggregate counts and nothing about duration. None of the three
+reads or renders a family id, a calendar id, or a calendar's URL.
+
 The chart is inline SVG drawn from numbers worked out below, with no script
 and no third-party request — the settings shell's own rules. Its two colours
 are the shell's accent and purple tokens, checked as a pair on the card's
@@ -43,7 +58,7 @@ from decimal import Decimal
 from flask import (Blueprint, abort, current_app, make_response, render_template,
                    request)
 
-from dinkydash import growth
+from dinkydash import budget, growth
 from dinkydash.clock import format_time
 from web.family import is_admin
 from web.session import guard
@@ -112,6 +127,11 @@ def growth_page():
         sizes=[describe_viewport(row) for row in growth.screen_sizes(pool)],
         roster=[describe(account, today) for account in growth.roster(pool)],
         most_in_roster=growth.MOST_IN_ROSTER,
+        spend=growth.spend_by_day(pool),
+        breaker=budget.today_status(pool),
+        trials=growth.trial_health(pool),
+        lapsing_within=growth.LAPSING_SOON_DAYS,
+        calendars=growth.calendar_health(pool),
     ))
     # Counts, not anybody's data — but it is the business's own page, and a
     # shared cache has no business holding it.

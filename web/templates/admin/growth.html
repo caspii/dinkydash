@@ -204,6 +204,88 @@
     </div>
 </div>
 
+{# Model spend: a daily total with no family id in it (global_model_spend),
+   and today's count against the global breaker's current ceiling. #}
+<div id="panel-spend">
+    <div class="label">Model spend</div>
+    <div class="tiles">
+        <div class="card tile wide">
+            <div class="name">Calls today</div>
+            <div class="value" data-metric="breaker-calls-today">{{ breaker.calls_today }}</div>
+            <div class="sub">of <span data-metric="breaker-ceiling">{{ breaker.ceiling }}</span> before the global breaker refuses a call</div>
+        </div>
+    </div>
+    <div class="card">
+        <table class="numbers" data-table="spend">
+            <thead>
+                <tr><th>Day</th><th>Calls</th></tr>
+            </thead>
+            <tbody>
+                {% for row in spend %}
+                <tr data-day="{{ row.day.isoformat() }}">
+                    <td>{{ row.day.strftime('%-d %b %Y') }}</td>
+                    <td data-field="calls" class="{{ 'zero' if not row.calls }}">{{ row.calls }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="2">No charged calls yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <div class="hint" style="padding:0.75rem 0.875rem;">
+            Calls charged against the shared daily cap, summed over every family. Days are UTC.
+        </div>
+    </div>
+</div>
+
+{# Trials: counts of families.status and trial_ends_at, never which family. #}
+<div id="panel-trials">
+    <div class="label">Trials</div>
+    <div class="tiles">
+        <div class="card tile">
+            <div class="name">Trialling</div>
+            <div class="value" data-metric="trial-trialing">{{ trials.trialing }}</div>
+        </div>
+        <div class="card tile">
+            <div class="name">Lapsing within {{ lapsing_within }} days</div>
+            <div class="value" data-metric="trial-lapsing-soon">{{ trials.lapsing_soon }}</div>
+        </div>
+        <div class="card tile">
+            <div class="name">Lapsed</div>
+            <div class="value" data-metric="trial-lapsed">{{ trials.lapsed }}</div>
+        </div>
+    </div>
+</div>
+
+{# Calendar health: calendar_health rows counted by last_fetch_status. No
+   family id and no calendar id; see growth.calendar_health for the fallback
+   when consecutive_failures has never been counted past zero. #}
+<div id="panel-calendar-health">
+    <div class="label">Calendar health</div>
+    <div class="tiles">
+        <div class="card tile">
+            <div class="name">OK</div>
+            <div class="value" data-metric="calendar-ok">{{ calendars.ok }}</div>
+        </div>
+        <div class="card tile">
+            <div class="name">Failing</div>
+            <div class="value" data-metric="calendar-failed">{{ calendars.failed }}</div>
+        </div>
+        <div class="card tile">
+            <div class="name">Paused</div>
+            <div class="value" data-metric="calendar-paused">{{ calendars.paused }}</div>
+        </div>
+        <div class="card tile">
+            <div class="name">Never checked</div>
+            <div class="value" data-metric="calendar-unchecked">{{ calendars.unchecked }}</div>
+        </div>
+    </div>
+    {% if calendars.longest_run %}
+    <div class="hint">Longest run of consecutive failures on one feed:
+        <span data-metric="calendar-longest-run">{{ calendars.longest_run }}</span>
+    </div>
+    {% endif %}
+</div>
+
 {# The newest accounts: the address, the platform's bookkeeping, and the
    sizes that family's screens have reported — never anything from the
    config. Nothing here links to one family, so no id is rendered. #}

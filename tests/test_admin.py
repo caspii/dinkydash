@@ -12,18 +12,28 @@
   subscription status and the stored plan interval — no address and no config.
   The roster reads the address and the platform's bookkeeping on the newest
   families and never the config — no name, no calendar, no child's date of
-  birth — and no family id is rendered or taken from anywhere.
+  birth — and no family id is rendered or taken from anywhere;
+* **spend, trials and calendar health are the same shape** (DIN-71): a daily
+  total of charged calls with no family id in it, beside today's count
+  against the global breaker's current ceiling; counts of trialling, soon-to-
+  lapse and already-lapsed families; and calendar feeds counted by their last
+  fetch result. None of the three takes or renders a family id or a
+  calendar id.
 
 The chart's arithmetic is tested with no database. The rest skips without
 `DINKYDASH_TEST_DATABASE_URL`.
+
+No assertion below pins page copy: every check of what the new panels show
+reads an element id or a `data-metric`/`data-field` marker, never English words.
 """
 
 import re
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta, timezone
 
 import pytest
 
 from dinkydash import growth
+from dinkydash.budget import BreakerStatus, PostgresBudget
 from dinkydash.store import FileStore
 from tests.conftest import client_for
 from web import create_app
@@ -545,3 +555,228 @@ class TestPayingFamilies:
         monkeypatch.setattr("dinkydash.billing.Billing.prices", refuse)
         monkeypatch.setattr("dinkydash.billing.Billing.sync", refuse)
         assert admin_client.get("/admin").status_code == 200
+
+
+# -- spend, trials and calendar health: the same bound (DIN-71) -------------
+#
+# Every assertion of what these panels show reads an element id or a
+# `data-metric`/`data-field` marker, never pinned English copy.
+
+def metric(html, name):
+    """The number behind `data-metric="name"` on the page, or `None`."""
+    found = re.search(rf'data-metric="{re.escape(name)}">(-?\d+)<', html)
+    return int(found.group(1)) if found else None
+
+
+def spend_rows_on_page(html):
+    """(day, calls) for every row of the spend table, in the order shown."""
+    return [(day, int(calls)) for day, calls in re.findall(
+        r'data-day="([0-9-]+)">\s*<td>[^<]*</td>\s*'
+        r'<td data-field="calls"[^>]*>(\d+)</td>', html)]
+
+
+def _calls_on(rows, day):
+    """How many calls `growth.spend_by_day` reports for one UTC day."""
+    return next((row.calls for row in rows if row.day == day), 0)
+
+
+@pytest.fixture
+def clean_spend(pg_pool):
+    """`model_spend` cleared after the test, the way `tests/test_budget.py`'s
+    own `clean` fixture does — `pg_family`'s teardown clears the global table
+    but not the per-family one."""
+    yield
+    with pg_pool.connection() as conn, conn.transaction(), conn.cursor() as cur:
+        cur.execute("DELETE FROM model_spend")
+
+
+class TestSpendByDay:
+    """`growth.spend_by_day` reads `global_model_spend`: one row a UTC day,
+    summed over every family by the trigger that writes it, with no family
+    id in that table at all."""
+
+    def test_reads_the_daily_total_not_a_family_row(self, pg_pool, pg_family, clean_spend):
+        caps = {"family_a_day": 1000, "global_floor": 1000, "global_per_family": 0}
+        today = datetime.now(timezone.utc).date()
+        before = _calls_on(growth.spend_by_day(pg_pool), today)
+        PostgresBudget(pg_pool, pg_family, **caps).allow()
+        PostgresBudget(pg_pool, pg_family, **caps).allow()
+        rows = growth.spend_by_day(pg_pool)
+        assert _calls_on(rows, today) == before + 2
+        assert str(pg_family) not in str(rows)
+
+    def test_the_window_is_bounded_to_the_requested_number_of_days(self, pg_pool):
+        assert len(growth.spend_by_day(pg_pool, days=3)) <= 3
+
+    def test_the_page_lists_the_charged_days(self, admin_client, monkeypatch):
+        monkeypatch.setattr(growth, "spend_by_day", lambda pool, days=14: [
+            growth.SpendDay(date(2026, 10, 20), 5),
+            growth.SpendDay(date(2026, 10, 19), 0),
+        ])
+        html = admin_client.get("/admin").get_data(as_text=True)
+        assert spend_rows_on_page(html) == [("2026-10-20", 5), ("2026-10-19", 0)]
+
+
+class TestTheBreakerTile:
+    def test_shows_the_charged_total_against_the_current_ceiling(
+            self, admin_client, monkeypatch):
+        monkeypatch.setattr("dinkydash.budget.today_status",
+                            lambda pool: BreakerStatus(5, 62))
+        html = admin_client.get("/admin").get_data(as_text=True)
+        assert metric(html, "breaker-calls-today") == 5
+        assert metric(html, "breaker-ceiling") == 62
+
+
+class TestTrialHealth:
+    """Counts of `families.status` and `trial_ends_at`, never which family is
+    on trial, lapsing soon or lapsed."""
+
+    def test_counts_trialling_lapsing_soon_and_lapsed(self, pg_pool):
+        from dinkydash import config as config_module
+
+        now = datetime.now(timezone.utc)
+        before = growth.trial_health(pg_pool)
+        rows = [
+            ("trialing", now + timedelta(days=20)),   # not lapsing soon
+            ("trialing", now + timedelta(days=3)),    # lapsing soon
+            ("trialing", now - timedelta(days=1)),    # overdue, not yet swept
+            ("lapsed", None),
+        ]
+        ids = []
+        with pg_pool.connection() as conn, conn.transaction(), conn.cursor() as cur:
+            for status, trial_ends_at in rows:
+                cur.execute(
+                    """INSERT INTO families (screen_token, status, trial_ends_at)
+                       VALUES (%s, %s, %s) RETURNING id""",
+                    (config_module.new_screen_token(), status, trial_ends_at))
+                ids.append(cur.fetchone()[0])
+        try:
+            after = growth.trial_health(pg_pool)
+            assert after.trialing == before.trialing + 3
+            assert after.lapsing_soon == before.lapsing_soon + 2
+            assert after.lapsed == before.lapsed + 1
+            assert not any(str(i) in str(after) for i in ids)
+        finally:
+            delete_families(pg_pool, ids)
+
+    def test_the_window_is_configurable(self, pg_pool):
+        from dinkydash import config as config_module
+
+        due_in_ten_days = datetime.now(timezone.utc) + timedelta(days=10)
+        before_7 = growth.trial_health(pg_pool, within_days=7).lapsing_soon
+        before_30 = growth.trial_health(pg_pool, within_days=30).lapsing_soon
+        with pg_pool.connection() as conn, conn.transaction(), conn.cursor() as cur:
+            cur.execute(
+                """INSERT INTO families (screen_token, status, trial_ends_at)
+                   VALUES (%s, 'trialing', %s) RETURNING id""",
+                (config_module.new_screen_token(), due_in_ten_days))
+            family_id = cur.fetchone()[0]
+        try:
+            assert growth.trial_health(pg_pool, within_days=7).lapsing_soon == before_7
+            assert growth.trial_health(pg_pool, within_days=30).lapsing_soon == before_30 + 1
+        finally:
+            delete_families(pg_pool, [family_id])
+
+    def test_the_page_shows_the_three_counts(self, admin_client, monkeypatch):
+        monkeypatch.setattr(growth, "trial_health",
+                            lambda pool, within_days=growth.LAPSING_SOON_DAYS:
+                            growth.TrialHealth(4, 2, 1))
+        html = admin_client.get("/admin").get_data(as_text=True)
+        assert metric(html, "trial-trialing") == 4
+        assert metric(html, "trial-lapsing-soon") == 2
+        assert metric(html, "trial-lapsed") == 1
+
+
+class TestCalendarHealthCounts:
+    """`calendar_health` rows counted by `last_fetch_status`, never a
+    family's row or a calendar's id."""
+
+    def test_counts_by_last_result(self, pg_pool, pg_family):
+        before = growth.calendar_health(pg_pool)
+        with pg_pool.connection() as conn, conn.transaction(), conn.cursor() as cur:
+            cur.execute(
+                """INSERT INTO calendar_health (family_id, calendar_id, last_fetch_status)
+                   VALUES (%s, %s, 'ok'), (%s, %s, 'failed'), (%s, %s, 'paused')""",
+                (pg_family, "cal-a", pg_family, "cal-b", pg_family, "cal-c"))
+        after = growth.calendar_health(pg_pool)
+        assert after.ok == before.ok + 1
+        assert after.failed == before.failed + 1
+        assert after.paused == before.paused + 1
+
+    def test_a_row_with_no_fetch_yet_counts_as_unchecked(self, pg_pool, pg_family):
+        before = growth.calendar_health(pg_pool)
+        with pg_pool.connection() as conn, conn.transaction(), conn.cursor() as cur:
+            cur.execute("INSERT INTO calendar_health (family_id, calendar_id) VALUES (%s, %s)",
+                        (pg_family, "cal-never"))
+        after = growth.calendar_health(pg_pool)
+        assert after.unchecked == before.unchecked + 1
+
+    def test_the_longest_run_stays_unset_while_nothing_has_counted_past_zero(
+            self, pg_pool, pg_family):
+        with pg_pool.connection() as conn, conn.transaction(), conn.cursor() as cur:
+            cur.execute(
+                """INSERT INTO calendar_health (family_id, calendar_id, last_fetch_status)
+                   VALUES (%s, %s, 'failed')""",
+                (pg_family, "cal-zero"))
+        assert growth.calendar_health(pg_pool).longest_run is None
+
+    def test_the_longest_run_appears_once_something_counts_above_zero(
+            self, pg_pool, pg_family):
+        with pg_pool.connection() as conn, conn.transaction(), conn.cursor() as cur:
+            cur.execute(
+                """INSERT INTO calendar_health
+                       (family_id, calendar_id, last_fetch_status, consecutive_failures)
+                   VALUES (%s, %s, 'failed', 5)""",
+                (pg_family, "cal-failing"))
+        assert growth.calendar_health(pg_pool).longest_run == 5
+
+    def test_no_family_or_calendar_id_survives_into_the_result(self, pg_pool, pg_family):
+        with pg_pool.connection() as conn, conn.transaction(), conn.cursor() as cur:
+            cur.execute(
+                """INSERT INTO calendar_health (family_id, calendar_id, last_fetch_status)
+                   VALUES (%s, %s, 'failed')""",
+                (pg_family, "private-a-secret-calendar-id"))
+        result = growth.calendar_health(pg_pool)
+        assert str(pg_family) not in str(result)
+        assert "private-a-secret-calendar-id" not in str(result)
+
+    def test_the_page_shows_the_counts_and_the_run_only_once_populated(
+            self, admin_client, monkeypatch):
+        monkeypatch.setattr(growth, "calendar_health",
+                            lambda pool: growth.CalendarHealth(10, 2, 1, 3, None))
+        html = admin_client.get("/admin").get_data(as_text=True)
+        assert metric(html, "calendar-ok") == 10
+        assert metric(html, "calendar-failed") == 2
+        assert metric(html, "calendar-paused") == 1
+        assert metric(html, "calendar-unchecked") == 3
+        assert 'data-metric="calendar-longest-run"' not in html
+
+        monkeypatch.setattr(growth, "calendar_health",
+                            lambda pool: growth.CalendarHealth(10, 2, 1, 3, 7))
+        html = admin_client.get("/admin").get_data(as_text=True)
+        assert metric(html, "calendar-longest-run") == 7
+
+
+class TestTheNewPanelsLeakNothing:
+    """The same guarantee the roster already holds (`test_no_family_id_is_rendered`,
+    `test_nothing_from_the_config_is_on_the_page`), extended to the new reads."""
+
+    def test_no_family_id_or_calendar_id_reaches_the_page(
+            self, admin_client, pg_pool, pg_family, clean_spend):
+        caps = {"family_a_day": 1000, "global_floor": 1000, "global_per_family": 0}
+        PostgresBudget(pg_pool, pg_family, **caps).allow()
+        with pg_pool.connection() as conn, conn.transaction(), conn.cursor() as cur:
+            cur.execute(
+                """INSERT INTO calendar_health (family_id, calendar_id, last_fetch_status)
+                   VALUES (%s, %s, 'failed')""",
+                (pg_family, "private-a-secret-calendar-id"))
+        html = admin_client.get("/admin").get_data(as_text=True)
+        assert str(pg_family) not in html
+        assert "private-a-secret-calendar-id" not in html
+        assert not re.search(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", html)
+
+    def test_the_page_makes_no_third_party_request_with_the_new_panels_on_it(
+            self, admin_client):
+        html = admin_client.get("/admin").get_data(as_text=True)
+        assert not re.search(r'(src|href)="https?://', html.replace("https://dinkydash.co", ""))
+        assert "<script" not in html
