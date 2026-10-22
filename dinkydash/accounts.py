@@ -228,6 +228,24 @@ def delete_family(pool, family_id, *, billing=None):
     return gone
 
 
+def set_first_touch(pool, family_id, first_touch):
+    """Attach first-touch attribution to a family, once, and never overwrite it.
+
+    Called only right after `consume_link` creates a brand new family, so the
+    column is still `NULL`; the `WHERE` guards it anyway, the way a bare
+    `UPDATE` elsewhere in this file would not need to.
+    """
+    if not first_touch:
+        return
+    with pool.connection() as conn, conn.transaction():
+        with conn.cursor() as cur:
+            cur.execute(
+                "UPDATE families SET first_touch = %s::jsonb "
+                "WHERE id = %s AND first_touch IS NULL",
+                (json.dumps(first_touch), family_id),
+            )
+
+
 def sweep(pool):
     """Delete expired tokens, including used ones, and return the count."""
     with pool.connection() as conn, conn.transaction():

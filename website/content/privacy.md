@@ -5,7 +5,7 @@ template: page.html
 description: What DinkyDash stores, who it is sent to, how long it is kept, and how to get it back or delete it.
 ---
 
-*Last updated: 13 October 2026.*
+*Last updated: 22 October 2026.*
 
 DinkyDash puts a family's day on a screen. That means the things it holds are a
 household's names, dates of birth and movements — which is about as personal as
@@ -46,8 +46,8 @@ own resolution. We record it, and the browser, only to tune the layout.
 
 - Screen size and browser: our legitimate interest in making the dashboard fit the screens it actually runs on (Art. 6(1)(f) GDPR).
 
-**We do not use cookies for tracking.** The hosted app sets one cookie, and it
-is the session that keeps you signed in. There is no advertising. The sign-in
+**We use a small number of cookies for tracking, described below.** The
+hosted app sets a session cookie that keeps you signed in. The sign-in
 pages on `app.dinkydash.co` load Fathom Analytics, so we can see which sites
 and campaigns bring people to a new dashboard. Fathom is cookieless. It does
 not see your name, your email address, your family's details or your calendar,
@@ -58,6 +58,11 @@ the page's address without anything after the # in the link, and it does
 not set a cookie or receive your name, your email address or the names on a
 chart. Fathom sees any campaign parameters on the link that brought you
 here; Ahrefs no longer does.
+<!-- Source: https://business.safety.google/privacy/ -->
+We also use Google Ads tags on the marketing site, the sign-in pages and the
+page shown after you subscribe, to measure sign-ups and subscriptions, and we
+store the campaign details — such as a utm or gclid value — that first
+brought you here on your account.
 
 ## Where it goes
 
@@ -134,7 +139,7 @@ API key at all, and simply goes without the headline.
 | **Anthropic** | Writes the headline from the day's agenda | United States |
 | **DigitalOcean** | Runs the app and the database | Frankfurt, Germany (US company) |
 | **SendGrid** (Twilio) | Delivers sign-in emails, subscription notices and feedback | United States |
-| **Google** | The mailbox our support and feedback email arrives in | United States |
+| **Google** | The mailbox our support and feedback email arrives in, and the Google Ads tags on the marketing site and sign-in pages | United States |
 | **Cloudflare** | DNS; website and app delivery through DigitalOcean's App Platform; the bot check on the sign-in page | Global (US company) |
 | **Fathom Analytics** (Conva Ventures) | Cookieless visit counts on the marketing site and the sign-in pages, and the sign-up event | Canadian company. EU and UK visitors are processed in Germany and Finland, other visitors in the United States, and the counts are stored in the United States |
 | **Ahrefs** | Cookieless visit counts on the marketing site | See [Ahrefs' privacy policy](https://ahrefs.com/legal/privacy-policy) for its entities and international processing |
@@ -163,10 +168,11 @@ an EU adequacy decision. Under its
 a visitor in the EU is hashed on servers in the EU before anything reaches its
 US infrastructure, and it keeps no personal data for longer than 24 hours.
 
-**Google Fonts is not on that list, and that is deliberate.** The only Google
-service here is the mailbox above. The typeface is served from our own servers,
-so no page of DinkyDash — not the dashboard, not the settings, not this site —
-asks Google for anything or tells them you were here.
+**Google Fonts is not on that list, and that is deliberate.** The typeface is
+served from our own servers, not Google's, so no page of DinkyDash — not the
+dashboard, not the settings, not this site — asks Google for a font or tells
+them you were here just to render one. The mailbox above and the Google Ads
+tags described earlier are the only other times this service is involved.
 
 ## How long it is kept
 

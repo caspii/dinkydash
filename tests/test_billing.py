@@ -591,6 +591,49 @@ def test_worker_recovers_missing_webhook_and_export_excludes_checkout_credential
     assert "cs_example" not in json.dumps(export)
 
 
+def test_the_return_page_fires_the_subscription_conversion_once_a_payment_is_confirmed(
+        parent, service, pg_pool, pg_family, monkeypatch):
+    monkeypatch.setenv("GOOGLE_ADS_ID", "AW-123456789")
+    monkeypatch.setenv("GOOGLE_ADS_PAID_LABEL", "paidLabel")
+    start(service, pg_pool, pg_family)
+    now = int(time.time())
+    subscription(service, pg_family, items={"data": [{
+        "current_period_end": now + 2592000,
+        "price": {"recurring": {"interval": "year", "interval_count": 1}},
+    }]})
+    assert webhook(parent, service, pg_family).status_code == 204
+    assert state(pg_pool, pg_family)["subscription_interval"] == "year"
+
+    body = parent.get("/settings/billing?checkout=returned").get_data(as_text=True)
+    assert "AW-123456789/paidLabel" in body
+    assert '"value": 39.0' in body
+    assert '"currency": "USD"' in body
+    assert '"transaction_id": "sub_example"' in body
+
+    # The ordinary billing page, with no `?checkout=returned`, never carries it.
+    plain = parent.get("/settings/billing").get_data(as_text=True)
+    assert "googletagmanager" not in plain
+
+
+def test_the_return_page_fires_nothing_before_a_subscription_exists(
+        parent, service, pg_pool, pg_family, monkeypatch):
+    monkeypatch.setenv("GOOGLE_ADS_ID", "AW-123456789")
+    monkeypatch.setenv("GOOGLE_ADS_PAID_LABEL", "paidLabel")
+    start(service, pg_pool, pg_family)  # Checkout started; no webhook landed yet.
+    body = parent.get("/settings/billing?checkout=returned").get_data(as_text=True)
+    assert "googletagmanager" not in body
+
+
+def test_the_return_page_fires_nothing_with_the_env_unset(
+        parent, service, pg_pool, pg_family, monkeypatch):
+    monkeypatch.delenv("GOOGLE_ADS_ID", raising=False)
+    start(service, pg_pool, pg_family)
+    subscription(service, pg_family)
+    assert webhook(parent, service, pg_family).status_code == 204
+    body = parent.get("/settings/billing?checkout=returned").get_data(as_text=True)
+    assert "googletagmanager" not in body
+
+
 def test_single_mode_never_imports_stripe(monkeypatch, tmp_path):
     import builtins
     from dinkydash.store import FileStore

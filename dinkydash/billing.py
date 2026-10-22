@@ -97,6 +97,9 @@ class Billing:
                 "id": price_id, "amount": f"${price['unit_amount'] / 100:g}",
                 "tax_included": price["tax_behavior"] == "inclusive",
                 "product": price["product"],
+                # The raw figures, for `dinkydash.ads.subscription_conversion` --
+                # never a number written in ads.py itself.
+                "unit_amount": price["unit_amount"], "currency": price["currency"],
             }
         if prices["month"]["product"] != prices["year"]["product"]:
             raise BillingError("Subscription pricing is being updated. Please try again later.")

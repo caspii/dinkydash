@@ -2,6 +2,7 @@
 
 from flask import Blueprint, abort, current_app, flash, redirect, render_template, request, url_for
 
+from dinkydash import ads
 from dinkydash.billing import BillingError, family
 from web.family import current_family_id
 from web.session import guard
@@ -36,8 +37,16 @@ def home():
         prices = current_app.config["BILLING"].prices()
     except BillingError as exc:
         error = str(exc)
+    returned = request.args.get("checkout") == "returned"
+    # Only on the page Checkout redirects back to, and only once a subscription
+    # exists to attribute the payment to -- a webhook that has not landed yet
+    # means nothing fires here; the next visit that finds one still reports it,
+    # because `transaction_id` is what keeps a repeat from double-counting.
+    ads_event = (ads.subscription_conversion(prices, row["subscription_interval"],
+                                             row["stripe_subscription_id"])
+                if returned else None)
     return render_template("settings/billing.html", account=row, prices=prices, error=error,
-                           returned=request.args.get("checkout") == "returned")
+                           returned=returned, ads_event=ads_event)
 
 
 @bp.post("/settings/billing/checkout")
