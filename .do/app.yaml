@@ -68,6 +68,9 @@
 #
 # No Dockerfile: App Platform's Python buildpack reads .python-version and
 # installs what `build_command` says (DIN-30, reversed).
+# .python-version names a patch release, not just `3.11`: a bare minor resolves
+# to the newest upstream release, and the buildpack's own download mirror can
+# lag behind it, which fails every build. Bump it to a release the mirror has.
 #
 # One service serves both hostnames. `wsgi.py` routes on the `Host` header —
 # dinkydash.co to the marketing site, app.dinkydash.co to the dashboard — because
