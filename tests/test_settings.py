@@ -1016,3 +1016,50 @@ class TestTheControlsUnderAPointer:
     def test_a_persons_name_toggles_their_box(self, client):
         page = client.get("/settings/recurring/new").get_data(as_text=True)
         assert '<label for="p-1">Mia</label>' in page
+
+
+class TestTheFamilyNameNudge:
+    """A dismiss-free nudge on the settings home, for as long as the dashboard
+    is still called "Our family" — two of four live dashboards checked still
+    were. Nothing is remembered: it leaves on its own the moment a real name
+    is saved, the same way the set-up checklist above it does."""
+
+    DEFAULT_NAME_SET_UP = """\
+family_name: "Our family"
+timezone: "Europe/Berlin"
+
+people:
+  - name: "Mia"
+    date_of_birth: "2017-03-15"
+"""
+
+    @pytest.fixture
+    def default_name_client(self, tmp_path):
+        path = tmp_path / "config.yaml"
+        path.write_text(self.DEFAULT_NAME_SET_UP)
+        return client_for(create_app(FileStore(path)))
+
+    def home(self, a_client):
+        return a_client.get("/settings/").get_data(as_text=True)
+
+    def test_shown_once_the_dashboard_is_set_up_with_the_default_name(self, default_name_client):
+        assert 'id="family-name-nudge"' in self.home(default_name_client)
+
+    def test_not_shown_once_a_custom_name_is_saved(self, client):
+        assert 'id="family-name-nudge"' not in self.home(client)
+
+    def test_shown_during_the_set_up_checklist_too(self, tmp_path):
+        path = tmp_path / "config.yaml"
+        path.write_text(STARTER_CONFIG)
+        a_client = client_for(create_app(FileStore(path)))
+        assert 'id="family-name-nudge"' in self.home(a_client)
+
+    def test_it_links_to_the_field_that_sets_the_name(self, default_name_client):
+        page = self.home(default_name_client)
+        assert 'href="/settings/system#family_name"' in page
+
+    def test_blank_counts_as_the_default_too(self, tmp_path):
+        path = tmp_path / "config.yaml"
+        path.write_text('family_name: ""\ntimezone: "Europe/Berlin"\n')
+        a_client = client_for(create_app(FileStore(path)))
+        assert 'id="family-name-nudge"' in self.home(a_client)
