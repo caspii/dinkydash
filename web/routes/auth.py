@@ -30,8 +30,8 @@ import re
 from flask import (Blueprint, current_app, redirect, render_template, request,
                    session, url_for)
 
-from dinkydash import accounts, mail
-from web import fathom, ratelimit, session as user_session, turnstile
+from dinkydash import accounts, ads, mail
+from web import attribution, fathom, ratelimit, session as user_session, turnstile
 from web.urls import absolute_url
 
 log = logging.getLogger(__name__)
@@ -66,7 +66,7 @@ UNCACHED = {"Cache-Control": "no-store, private", "X-Robots-Tag": "noindex, nofo
 # Set after a new account is inserted, spent by the page that counts it.
 # A boolean, not an event name: the name is a constant, so nothing in the
 # session can choose what gets sent.
-_FATHOM_SIGNUP = "fathom_signup"
+_NEW_ACCOUNT = "new_account"
 
 MOST_PER_IP = 20
 PER_SECONDS = 3600
@@ -138,6 +138,7 @@ def _pool():
 def login():
     if user_session.signed_in():
         return redirect(url_for("settings.home"))
+    attribution.capture(request, session)
     if request.method == "GET":
         return render_template("auth/login.html")
 
@@ -239,15 +240,18 @@ def landing():
         page = render_template("auth/landing.html", token=request.args.get("t", ""))
         return page, 200, UNCACHED
 
+    first_touch = attribution.capture(request, session)
     user = accounts.consume_link(_pool(), request.form.get("t"))
     if user is None:
         return render_template("auth/login.html", problem=DEAD_LINK)
     user_session.sign_in(user[0], user[1])
+    if user[2]:
+        accounts.set_first_touch(_pool(), user[1], first_touch)
     # After sign_in, which clears the session. Only an account this call
-    # created, and only when counting is switched on — a returning sign-in
-    # goes straight to settings, and so does a new one when the counter is off.
-    if user[2] and fathom.site_id():
-        session[_FATHOM_SIGNUP] = True
+    # created, and only when there is a tracker to show it to — a returning
+    # sign-in goes straight to settings, and so does a new one when both are off.
+    if user[2] and (fathom.site_id() or ads.signup_conversion()):
+        session[_NEW_ACCOUNT] = True
         return redirect(url_for("auth.welcome"))
     return redirect(url_for("settings.home"))
 
@@ -257,18 +261,22 @@ def welcome():
     """Count a new account once, then open settings.
 
     The flag is spent before the page is rendered, so a refresh is a redirect
-    and the event is not in it. Signed out, this is the ordinary sign-in page:
+    and neither event is in it. Signed out, this is the ordinary sign-in page:
     the route is not a way to learn that an account was just created.
     """
     if not user_session.signed_in():
         return redirect(url_for("auth.login"))
-    created = session.pop(_FATHOM_SIGNUP, False) is True
-    if not created or not fathom.site_id():
+    created = session.pop(_NEW_ACCOUNT, False) is True
+    fathom_ready = created and bool(fathom.site_id())
+    ads_event = ads.signup_conversion() if created else None
+    if not fathom_ready and not ads_event:
         return redirect(url_for("settings.home"))
     page = render_template(
         "auth/welcome.html",
-        fathom_event=fathom.SIGNUP,
+        fathom_event=fathom.SIGNUP if fathom_ready else None,
         fathom_next=url_for("settings.home"),
+        ads_event=ads_event,
+        ads_next=url_for("settings.home") if ads_event else None,
     )
     return page, 200, UNCACHED
 

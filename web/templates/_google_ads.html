@@ -1,0 +1,44 @@
+{# The Google Ads tag: the marketing site's base template includes the same
+   markup directly, since it has its own template folder. Keep the two in
+   step.
+
+   Consent Mode v2's two defaults run before the tag's own config call, so
+   nothing it does is granted by default in the EEA, the UK or Switzerland;
+   `ads_data_redaction` and `url_passthrough` are set for the same reason --
+   neither ad data nor PII leaves in a cookieless region. No banner: a region
+   outside that list defaults to granted, which is what "elsewhere" means
+   below. #}
+{% set gid = google_ads_id() %}
+{% if gid %}
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('consent', 'default', {
+    'ad_storage': 'denied', 'ad_user_data': 'denied', 'ad_personalization': 'denied',
+    'analytics_storage': 'denied',
+    'region': {{ google_ads_consent_regions()|tojson }}
+});
+gtag('consent', 'default', {
+    'ad_storage': 'granted', 'ad_user_data': 'granted', 'ad_personalization': 'granted',
+    'analytics_storage': 'granted'
+});
+gtag('set', 'ads_data_redaction', true);
+gtag('set', 'url_passthrough', true);
+gtag('config', {{ gid|tojson }});
+{% if ads_event %}
+(function () {
+    var done = false;
+    function next() {
+        if (done) return;
+        done = true;
+        {% if ads_next %}location.replace({{ ads_next|tojson }});{% endif %}
+    }
+    var conversion = {{ ads_event|tojson }};
+    conversion.event_callback = next;
+    gtag('event', 'conversion', conversion);
+    {% if ads_next %}setTimeout(next, 1000);{% endif %}
+})();
+{% endif %}
+</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id={{ gid }}"></script>
+{% endif %}

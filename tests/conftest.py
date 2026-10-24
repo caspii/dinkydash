@@ -127,11 +127,25 @@ CSRF_FIELD = "csrf_token"
 
 
 class SigningClient(FlaskClient):
-    """A client that carries this session's CSRF token on every write."""
+    """A client that carries this session's CSRF token on every write.
+
+    A caller-supplied `headers={"Cookie": ...}` is folded into this client's
+    own cookie jar first, rather than left on the request: `session_transaction`
+    below reads and re-saves that jar for the CSRF token, and Werkzeug builds
+    a request's `Cookie` header from the jar alone once it holds anything,
+    silently dropping a cookie passed as a plain header instead of merging it.
+    """
 
     WRITES = {"POST", "PUT", "PATCH", "DELETE"}
 
     def open(self, *args, **kwargs):
+        headers = kwargs.get("headers")
+        extra_cookie = headers.pop("Cookie", None) if headers else None
+        if extra_cookie:
+            for part in extra_cookie.split(";"):
+                name, _, value = part.strip().partition("=")
+                if name:
+                    self.set_cookie(name, value)
         if kwargs.get("method", "GET").upper() in self.WRITES:
             with self.session_transaction() as stored:
                 token = stored.get(CSRF_KEY)

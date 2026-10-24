@@ -612,6 +612,56 @@
 <!-- Ahrefs analytics -->
 <script src="https://analytics.ahrefs.com/analytics.js" data-key="NInZX5cjFNqKC44BBPaEBA" data-page-location="{{ canonical_url }}" async></script>
 <!-- / Ahrefs analytics -->
+{# The first-touch cookie: whatever campaign parameters are on the address
+   that first brought this browser here, kept for 90 days so a sign-up on
+   `app.dinkydash.co` days later can still read them (`dinkydash/attribution.py`).
+   Set once — a later visit with different parameters must not overwrite the
+   first one — and only on this domain, so a local checkout of the site does
+   not fail trying to set a cookie for `dinkydash.co`. #}
+<script>
+(function () {
+    if (document.cookie.indexOf("dd_ft=") !== -1) return;
+    var keys = ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content",
+                "gclid", "gbraid", "wbraid"];
+    var safe = /^[A-Za-z0-9._~-]{1,200}$/;
+    var params = new URLSearchParams(window.location.search);
+    var touch = {};
+    keys.forEach(function (key) {
+        var value = params.get(key);
+        if (value && safe.test(value)) touch[key] = value;
+    });
+    if (!Object.keys(touch).length) return;
+    var expires = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toUTCString();
+    var domain = /(^|\.)dinkydash\.co$/.test(location.hostname) ? "; domain=.dinkydash.co" : "";
+    var secure = location.protocol === "https:" ? "; secure" : "";
+    document.cookie = "dd_ft=" + encodeURIComponent(JSON.stringify(touch)) +
+        "; expires=" + expires + "; path=/; samesite=lax" + domain + secure;
+})();
+</script>
+{# The Google Ads tag: `web/templates/_google_ads.html` carries the same
+   markup for the app's own pages, which have a separate template folder.
+   Consent Mode v2's two defaults run before the tag's config call, so
+   nothing here is granted by default in the EEA, the UK or Switzerland. #}
+{% set google_ads = google_ads_id() %}
+{% if google_ads %}
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('consent', 'default', {
+    'ad_storage': 'denied', 'ad_user_data': 'denied', 'ad_personalization': 'denied',
+    'analytics_storage': 'denied',
+    'region': {{ google_ads_consent_regions()|tojson }}
+});
+gtag('consent', 'default', {
+    'ad_storage': 'granted', 'ad_user_data': 'granted', 'ad_personalization': 'granted',
+    'analytics_storage': 'granted'
+});
+gtag('set', 'ads_data_redaction', true);
+gtag('set', 'url_passthrough', true);
+gtag('config', {{ google_ads|tojson }});
+</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id={{ google_ads }}"></script>
+{% endif %}
 {% block extra_js %}{% endblock %}
 </body>
 </html>

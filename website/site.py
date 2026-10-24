@@ -26,6 +26,8 @@ import os
 
 from flask import Flask, Response, abort, redirect, render_template, request
 
+from dinkydash import ads
+
 from . import render
 
 # What `copy_static` used to copy to the site root: the files a browser asks
@@ -48,6 +50,11 @@ def create_site_app(site_url=None, app_url=None):
     app.config["SITE_URL"] = site_url or os.environ.get("DINKYDASH_SITE_URL",
                                                         render.SITE_URL)
     app.config["APP_URL"] = _app_url(app_url)
+
+    # Read at render time, the way `web/__init__.py` reads it for the app:
+    # unset means every page renders the tag's markup as nothing.
+    app.jinja_env.globals["google_ads_id"] = ads.ads_id
+    app.jinja_env.globals["google_ads_consent_regions"] = lambda: ads.CONSENT_REGIONS
 
     # Read every page once, at start-up. The site redeploys when its content
     # changes, so re-reading Markdown per request would buy nothing and cost a
