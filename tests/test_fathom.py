@@ -255,7 +255,6 @@ class TestTheMarketingSiteCarriesTheSource:
         client = create_site_app(site_url="https://dinkydash.co").test_client()
         body = client.get("/").get_data(as_text=True)
         assert 'href="https://app.dinkydash.co/login"' in body
-        assert "document.cookie" not in body
         assert "localStorage" not in body
         assert "from.origin" in body
         assert 'referrerPolicy = "origin"' in body

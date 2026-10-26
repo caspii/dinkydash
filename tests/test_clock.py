@@ -9,6 +9,7 @@ agrees with every other, including the line the model writes.
 import json
 import pathlib
 from datetime import date, datetime, time
+from zoneinfo import ZoneInfo
 
 import pytest
 
@@ -238,11 +239,12 @@ class TestTheSettingsPage:
             "family_name": "The Wilsons", "timezone": "Europe/Berlin",
             "location": "", "clock": "12h"})
         today = config_module.today_for(config_module.load_config(config_path))
+        # 06:07 in Berlin, written with whichever offset Berlin has today.
+        written = datetime.combine(today, time(6, 7), ZoneInfo("Europe/Berlin"))
         (tmp_path / "dashboard_data.json").write_text(json.dumps({
             "generated_for_date": today.isoformat(),
-            "generated_at": f"{today}T04:07:00+00:00",
+            "generated_at": written.isoformat(),
             "headline": "Hi", "note": "There", "events": []}))
-        # 04:07 UTC is 06:07 in Berlin in September.
         assert "written 6:07 am" in client.get("/settings/").get_data(as_text=True)
 
 

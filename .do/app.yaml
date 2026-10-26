@@ -284,6 +284,20 @@ services:
       - key: GIT_SHA
         scope: RUN_TIME
         value: ${_self.COMMIT_HASH}
+      # The Google Ads tag and its two conversions (`dinkydash/ads.py`), on
+      # the marketing site and the app's sign-in pages — both served by this
+      # component, so the worker and the migration job do without them.
+      # Public by design: the tag writes all three into the page. Unset means
+      # those pages load nothing, which is what a self-hosted dashboard gets.
+      - key: GOOGLE_ADS_ID
+        scope: RUN_TIME
+        value: AW-935106259
+      - key: GOOGLE_ADS_SIGNUP_LABEL
+        scope: RUN_TIME
+        value: HkO2CKebyKUdENOt8r0D
+      - key: GOOGLE_ADS_PAID_LABEL
+        scope: RUN_TIME
+        value: fBiICKqbyKUdENOt8r0D
 
     # 1 GB, not 0.5. Two gunicorn workers each keep ~250 MB after parsing an
     # 8 MB personal calendar, which is more than a 512 MB container and shows

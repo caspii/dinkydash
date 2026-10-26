@@ -2,6 +2,11 @@
 {% block title %}Subscription{% endblock %}
 {% set back_href = url_for('settings.home') %}
 {% set back_label = 'Settings' %}
+{# The Google Ads tag, loaded only when there is a `subscription_started`
+   conversion to report — never on an ordinary visit to this page, and not on
+   a return from Checkout before the webhook that confirms payment has
+   landed. `web/routes/billing.py` decides `ads_event`. #}
+{% block head %}{% if ads_event %}{% include "_google_ads.html" %}{% endif %}{% endblock %}
 {% block content %}
 {% if returned %}
 <div class="note-box">Thanks for visiting Checkout. Payment confirmation can take a moment; your current access is shown below.</div>

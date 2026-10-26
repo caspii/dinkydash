@@ -58,11 +58,17 @@ def create_app(store=None, *, pool=None):
     # it is the same function the route is gated behind, so a button that could
     # not work is never shown.
     from . import feedback, fathom
+    from dinkydash import ads
     app.jinja_env.globals["feedback_enabled"] = feedback.enabled
     # Read at render time, like the feedback gate: unset means the sign-in
     # pages fetch nothing, which is what a self-hosted dashboard and the test
     # suite get. The include that draws the script is not on the shell.
     app.jinja_env.globals["fathom_site_id"] = fathom.site_id
+    # Same shape, for the Google Ads tag: unset means `_google_ads.html`
+    # renders nothing, on the sign-in pages and on the one billing page that
+    # includes it.
+    app.jinja_env.globals["google_ads_id"] = ads.ads_id
+    app.jinja_env.globals["google_ads_consent_regions"] = lambda: ads.CONSENT_REGIONS
 
     from .session import configure as configure_session
     configure_session(app)
