@@ -103,6 +103,26 @@ class TestTheSignupConversion:
         finally:
             forget(pg_pool, RETURNING)
 
+    def test_with_fathom_too_settings_waits_for_both(
+            self, client, sent, pg_pool, monkeypatch):
+        """Only the page's gate navigates, and only once both have reported.
+
+        A tracker that opened settings itself would cancel whatever the other
+        one still had to send.
+        """
+        monkeypatch.setenv("FATHOM_SITE_ID", "ABCDEFGH")
+        try:
+            client.post("/login", data={"email": NEWCOMER})
+            open_the_link(client, link_in(sent[-1]))
+            body = client.get("/login/welcome").get_data(as_text=True)
+            assert "var waiting = 2;" in body
+            assert body.count("location.replace(") == 1
+            assert body.count("trackerDone();") == 3
+            assert 'fathom.trackEvent("signup")' in body
+            assert f'"send_to": "{ADS_ID}/{LABEL}"' in body
+        finally:
+            forget(pg_pool, NEWCOMER)
+
 
 class TestWhenItIsOff:
     @pytest.fixture

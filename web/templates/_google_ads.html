@@ -31,12 +31,12 @@ gtag('config', {{ gid|tojson }});
     function next() {
         if (done) return;
         done = true;
-        {% if ads_next %}location.replace({{ ads_next|tojson }});{% endif %}
+        {% if then_open %}trackerDone();{% endif %}
     }
     var conversion = {{ ads_event|tojson }};
     conversion.event_callback = next;
     gtag('event', 'conversion', conversion);
-    {% if ads_next %}setTimeout(next, 1000);{% endif %}
+    {% if then_open %}setTimeout(next, 1000);{% endif %}
 })();
 {% endif %}
 </script>

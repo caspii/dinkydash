@@ -12,7 +12,21 @@
 {% block speculation %}{% endblock %}
 {% block interactions %}{% endblock %}
 
-{% block head %}{% include "_fathom.html" %}{% include "_google_ads.html" %}{% endblock %}
+{# Settings opens when every tracker on the page has reported, not when the
+   first one has: whichever navigates first cancels whatever the other still
+   had to send. Each tracker reports once — Fathom after its event, Google
+   Ads on its callback or after a second — so the page always moves on. #}
+{% block head %}
+<script>
+window.trackerDone = (function () {
+    var waiting = {{ trackers }};
+    return function () {
+        if (--waiting === 0) location.replace({{ then_open|tojson }});
+    };
+})();
+</script>
+{% include "_fathom.html" %}{% include "_google_ads.html" %}
+{% endblock %}
 
 {% block appbar %}
 <h1 style="padding-left:0.25rem;color:var(--accent);font-size:1.15rem;">DinkyDash</h1>
