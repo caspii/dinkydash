@@ -14,7 +14,7 @@
 <script>
 window.addEventListener("load", function () {
     if (!window.fathom) {
-        {% if fathom_next %}location.replace({{ fathom_next|tojson }});{% endif %}
+        {% if then_open %}trackerDone();{% endif %}
         return;
     }
     {% if fathom_event %}
@@ -26,7 +26,7 @@ window.addEventListener("load", function () {
     if (/^https?:\/\/[A-Za-z0-9.-]+(?::[0-9]{1,5})?$/.test(ref)) options.referrer = ref;
     fathom.trackPageview(options);
     {% endif %}
-    {% if fathom_next %}location.replace({{ fathom_next|tojson }});{% endif %}
+    {% if then_open %}trackerDone();{% endif %}
 });
 </script>
 {% endif %}

@@ -274,9 +274,9 @@ def welcome():
     page = render_template(
         "auth/welcome.html",
         fathom_event=fathom.SIGNUP if fathom_ready else None,
-        fathom_next=url_for("settings.home"),
         ads_event=ads_event,
-        ads_next=url_for("settings.home") if ads_event else None,
+        trackers=int(fathom_ready) + int(bool(ads_event)),
+        then_open=url_for("settings.home"),
     )
     return page, 200, UNCACHED
 
