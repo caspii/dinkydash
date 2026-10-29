@@ -8,33 +8,34 @@ python3 -m venv venv
 venv/bin/pip install -r requirements-dev.txt -r requirements-cloud.txt
 createdb dinkydash_dev
 export DINKYDASH_SECRET_KEY="$(venv/bin/python -c 'import secrets; print(secrets.token_hex(32))')"
-venv/bin/python migrate.py
 venv/bin/python dev.py
 ```
 
-`dinkydash_dev` is what both commands use when nothing names a database, so
-there is no `DATABASE_URL` to export and every workspace opens on a schema that
-is already applied. **`migrate.py` reads no `.env`**: that file carries the live
+`dinkydash_dev` is what the launcher uses when nothing names a database, so
+there is no `DATABASE_URL` to export. **The launcher applies outstanding
+migrations before it serves**, so a branch that adds one starts on its next run.
+It does that only to a database on this machine (see below), which is
+disposable: if a migration fails, drop and recreate the database and run again.
+
+`migrate.py` is for every other database. **It reads no `.env`**: that file carries the live
 cluster under production's own key `DATABASE_URL_DIRECT`, and a schema tool that
 loaded it would migrate the running service on a bare `migrate.py` — without
 saying so, because an up-to-date schema reports the same either way.
 
 Give a branch its own database when its migrations would disturb the others.
 Name it in the run environment rather than in `.env`, which is copied into each
-new workspace under the keys production uses, and name it on `migrate.py`'s
-command line as well — that tool never reads `DATABASE_URL`, which in production
-is the pooler and the wrong end for schema work:
+new workspace under the keys production uses. The launcher migrates it on start:
 
 ```bash
+createdb dinkydash_scratch
 export DATABASE_URL=postgresql:///dinkydash_scratch
-venv/bin/python migrate.py --database-url "$DATABASE_URL"
+venv/bin/python dev.py
 ```
 
 `DINKYDASH_SECRET_KEY` does belong in `.env`, because it cannot be defaulted. A
 terminal export alone does not change Conductor's environment. Explicit
 environment values override `.env`; check which database you selected before
-migrating or signing in. The launcher never applies migrations or creates sample
-accounts.
+starting or signing in. The launcher creates no sample accounts.
 
 **The launcher only accepts a database on this machine**: a loopback address or a
 Unix socket, with no override. A workspace's `.env` can carry a remote

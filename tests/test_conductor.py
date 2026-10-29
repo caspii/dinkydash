@@ -52,14 +52,14 @@ def test_preview_preserves_explicit_environment_and_never_prints_the_database(
         expected = DEV_DATABASE_URL
     captured = {}
 
-    def validate():
+    def prepare():
         captured['database'] = os.environ['DATABASE_URL']
 
     def supervise(ports):
         captured.update(mode=os.environ['DINKYDASH_MODE'], ports=ports)
         return 0
 
-    monkeypatch.setattr(dev, 'validate_database', validate)
+    monkeypatch.setattr(dev, 'prepare_database', prepare)
     monkeypatch.setattr(dev, 'supervise', supervise)
     result = dev.main()
     output = capsys.readouterr()

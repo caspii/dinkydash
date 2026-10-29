@@ -485,9 +485,9 @@ generated files beside it.
 venv/bin/python dev.py              # also Conductor's default dev run action
 ```
 Requires a development `DATABASE_URL` **on this machine** — loopback or a Unix socket; a remote
-database is refused before anything connects, because a workspace's `.env` can carry one — with
-migrations applied, and a
-`DINKYDASH_SECRET_KEY`. See [doc/development.md](doc/development.md) for setup,
+database is refused before anything connects, because a workspace's `.env` can carry one — and a
+`DINKYDASH_SECRET_KEY`. Outstanding migrations are applied on start, because that database is
+disposable. See [doc/development.md](doc/development.md) for setup,
 port overrides, sign-in and Conductor configuration pickup. Both processes stop
 together; the launcher always selects cloud mode and refuses invalid setup.
 

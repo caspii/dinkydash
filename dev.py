@@ -11,9 +11,11 @@ that is not loopback or a Unix socket, before a connection is opened.
 
 **And it does not have to be named at all.** `db.DEV_DATABASE_URL` is the
 default, so `.env` needs no `DATABASE_URL` entry and a development value does
-not sit under the name production uses for its pooled connection. `migrate.py`
-defaults to the same constant, so the database this serves is the database that
-has the schema.
+not sit under the name production uses for its pooled connection.
+
+**It applies outstanding migrations before serving**, and only because the
+database is on this machine and therefore disposable. Every other database is
+migrated with `migrate.py`.
 """
 
 import logging
@@ -106,74 +108,37 @@ def require_local_database(url):
             "a copied .env may be pointing it at the hosted pool.")
 
 
-def validate_database():
-    """Reachable database with every repository migration applied, and nothing else.
+def prepare_database():
+    """Reachable, with every repository migration applied.
 
-    `require_local_database` has already refused a remote one. This is what runs
-    when the check goes ahead, so it has to be safe through a transaction-mode
-    pooler as well: see `applied_migrations`.
+    Outstanding migrations are applied here rather than reported, so a branch
+    that adds one starts on the next run instead of failing it. That is safe
+    only because `require_local_database` has already refused anything that is
+    not on this machine: a development database is disposable, and recreating
+    it is the remedy for a migration that went wrong. `migrate.py` stays the
+    tool for every other database.
     """
     from dinkydash import db
     from psycopg.conninfo import make_conninfo
 
     try:
         conninfo = make_conninfo(os.environ["DATABASE_URL"], connect_timeout=5)
-        with db.connect(conninfo) as conn:
-            applied = applied_migrations(conn)
+        conn = db.connect(conninfo)
     except Exception as exc:
         # Driver exceptions can contain credentials or connection details.
         raise RuntimeError(
-            f"Database validation failed ({type(exc).__name__}). Check DATABASE_URL, "
-            f"then apply the schema with: {migrate_command()}"
-        ) from None
-    if any(path.name not in applied for path in db.migrations()):
-        raise RuntimeError(
-            f"Database migrations are missing. Apply them with: {migrate_command()}")
-
-
-def migrate_command():
-    """A command to migrate the database this launcher is about to serve.
-
-    Written to be pasted into a fresh terminal, which is where somebody reading
-    this will be, so it can assume nothing that terminal does not have. Not
-    `$DATABASE_URL`: this process was given that by `.env` or by the run
-    environment, and a shell somewhere else has neither. Not a bare `python`
-    either — `sys.executable` is the interpreter that has the dependencies
-    installed, written relative to the repository when it lives there, which is
-    the `venv/bin/python` the rest of the documentation uses.
-
-    `migrate.py` has a default of its own and never reads `DATABASE_URL`, which
-    in production is the pooler and the wrong end for schema work. So a database
-    other than the default has to be named again here, with its password taken
-    out: a message like this is pasted into terminals and chat windows.
-    """
-    from dinkydash import db
-
-    interpreter = Path(sys.executable)
-    if interpreter.is_relative_to(ROOT):
-        interpreter = interpreter.relative_to(ROOT)
-    url = os.environ.get("DATABASE_URL", "")
-    if url == db.DEV_DATABASE_URL:
-        return f"{interpreter} migrate.py"
+            f"Database connection failed ({type(exc).__name__}). Check DATABASE_URL "
+            "and that Postgres is running.") from None
     try:
-        return f'{interpreter} migrate.py --database-url "{db.without_password(url)}"'
-    except Exception:
-        # An unparseable URL is the failure being reported, not a thing to quote.
-        return f"{interpreter} migrate.py --database-url <the database DATABASE_URL names>"
-
-
-def applied_migrations(conn):
-    """The migration names the database records, read in one short read-only transaction.
-
-    `SET LOCAL`, never `SET`. A session-level setting outlives this connection
-    on a transaction-mode pooler and lands on whichever client is handed the
-    server connection next. Both settings end with the transaction, and
-    `tests/test_dev.py` asserts the session is left exactly as it was found.
-    """
-    with conn.transaction():
-        conn.execute("SET LOCAL transaction_read_only = on")
-        conn.execute("SET LOCAL statement_timeout = '5s'")
-        return {row[0] for row in conn.execute("SELECT name FROM schema_migrations")}
+        applied = db.migrate(conn)
+    except Exception as exc:
+        raise RuntimeError(
+            f"Applying migrations failed ({type(exc).__name__}). This is a local "
+            "development database: drop and recreate it, then run this again.") from None
+    finally:
+        conn.close()
+    for name in applied:
+        print(f"Applied migration {name}.", flush=True)
 
 
 def serve(name, port, ready):
@@ -268,7 +233,7 @@ def supervise(ports):
 def main():
     try:
         ports = configure()
-        validate_database()
+        prepare_database()
         return supervise(ports)
     except ImportError as exc:
         print(f"Development dependency missing ({exc.name}); install requirements-cloud.txt.", file=sys.stderr)
