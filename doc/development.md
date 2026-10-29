@@ -95,9 +95,11 @@ session cookie `Secure`, which Safari refuses to send to `http://127.0.0.1`;
 loopback, and sets it on the app object so that no environment variable can
 lift it anywhere else.
 
-Email delivery from `/login` still requires `SENDGRID_API_KEY`. For an existing
-account in some other database, `login_link.py` mints a link without starting
-anything (substitute the printed dashboard port):
+The launcher never sends email: each message, sign-in links included, is
+printed to its output as `Email not sent (development) to ...`, whatever
+`SENDGRID_API_KEY` says. Typing an address into the form above and opening the
+link from the run output works too. For an existing account you can also mint a
+link without the form (substitute the printed dashboard port):
 
 ```bash
 venv/bin/python login_link.py you@example.com \
@@ -113,7 +115,7 @@ just fetch the URL. `tests/conftest.py::open_the_link` is the one-line version.
 Turnstile is off unless `TURNSTILE_SITE_KEY` and `TURNSTILE_SECRET_KEY` are
 both set, so the sign-in form reaches Cloudflare for nothing locally.
 
-Neither an email key nor an Anthropic key is required to start the servers.
+An Anthropic key is not required to start the servers.
 Generation still requires an Anthropic key when you request it.
 
 Conductor reads shared `.conductor/settings.toml` from the remote default branch.

@@ -64,6 +64,32 @@ def test_a_named_database_still_wins(monkeypatch):
     assert os.environ["DATABASE_URL"] == "postgresql:///somebody_elses_dev"
 
 
+def test_the_production_mail_key_never_reaches_the_children(monkeypatch, tmp_path):
+    (tmp_path / ".env").write_text("SENDGRID_API_KEY=SG.a-real-looking-key\n")
+    monkeypatch.delenv("SENDGRID_API_KEY")
+    dev.configure()
+    assert os.environ["SENDGRID_API_KEY"] == dev.DEV_MAIL_KEY
+
+
+def test_mail_is_printed_and_nothing_is_posted(monkeypatch, capsys):
+    """A sign-in link lands in the run output, and SendGrid is never called."""
+    from dinkydash import mail
+
+    def post(*args, **kwargs):
+        pytest.fail("the launcher posted an email")
+
+    monkeypatch.setattr(mail.requests, "post", post)
+    monkeypatch.setattr(mail, "send", mail.send)  # restored after the test
+    dev.use_terminal_mail()
+    mail.send("Someone@Example.test", "Your sign-in link",
+              "Open https://127.0.0.1:5000/login/link?t=abc", html="<p>link</p>")
+    out = capsys.readouterr().out
+    assert "Email not sent (development) to Someone@Example.test: Your sign-in link" in out
+    assert "Open http://127.0.0.1:5000/login/link?t=abc" in out  # the launcher serves HTTP
+    with pytest.raises(mail.MailRefused):
+        mail.send("not-an-address", "Subject", "Body")
+
+
 def test_the_default_is_a_database_on_this_machine(monkeypatch):
     """The default goes through the same refusal as anything else would."""
     from dinkydash.db import DEV_DATABASE_URL
