@@ -251,7 +251,10 @@ class TestASelfHostedDashboard:
 
 
 class TestTheMarketingSiteCarriesTheSource:
-    def test_the_login_links_stay_put_and_the_script_passes_the_source(self):
+    def test_the_login_links_stay_put_and_the_script_passes_the_source(self, monkeypatch):
+        # Either variable points the login links at a local dashboard instead.
+        monkeypatch.delenv("DINKYDASH_APP_URL", raising=False)
+        monkeypatch.delenv("CONDUCTOR_PORT", raising=False)
         client = create_site_app(site_url="https://dinkydash.co").test_client()
         body = client.get("/").get_data(as_text=True)
         assert 'href="https://app.dinkydash.co/login"' in body
