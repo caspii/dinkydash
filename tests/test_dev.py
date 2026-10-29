@@ -281,38 +281,47 @@ def test_missing_config_starts_neither(launch):
 def test_unreachable_database_starts_neither(ports, launch):
     process, log = launch({"DATABASE_URL": f"postgresql://127.0.0.1:{ports[0]}/missing"})
     assert process.wait(timeout=10) == 1
-    assert "Database validation failed" in log.read_text()
+    assert "Database connection failed" in log.read_text()
     assert "Starting " not in log.read_text()
 
 
-def test_unmigrated_database_starts_neither(pg_pool, launch):
+@pytest.fixture
+def empty_schema(pg_pool):
+    """A schema with no tables in the scratch database, and a URL that only sees it."""
+    from psycopg.conninfo import make_conninfo
+
+    with pg_pool.connection() as conn:
+        conn.execute("DROP SCHEMA IF EXISTS dev_launcher CASCADE")
+        conn.execute("CREATE SCHEMA dev_launcher")
+    yield make_conninfo(os.environ["DINKYDASH_TEST_DATABASE_URL"],
+                        options="-csearch_path=dev_launcher")
+    with pg_pool.connection() as conn:
+        conn.execute("DROP SCHEMA dev_launcher CASCADE")
+
+
+def test_an_unmigrated_database_is_migrated_and_starts(empty_schema, ports, launch):
+    """A branch that adds a migration starts on its next run instead of failing it."""
+    from dinkydash import db
+
+    process, log = launch({"DATABASE_URL": empty_schema, "CONDUCTOR_PORT": str(ports[0])})
+    wait_ready(process, log)
+    for path in db.migrations():
+        assert f"Applied migration {path.name}." in log.read_text()
+    with db.connect(empty_schema) as conn:
+        applied = {row[0] for row in conn.execute("SELECT name FROM schema_migrations")}
+    assert applied == {path.name for path in db.migrations()}
+
+
+def test_a_failed_migration_starts_neither(pg_pool, launch):
+    """A schema that cannot be written to: the migration fails, and nothing serves."""
     from psycopg.conninfo import make_conninfo
 
     url = make_conninfo(os.environ["DINKYDASH_TEST_DATABASE_URL"],
                         options="-csearch_path=missing_schema")
     process, log = launch({"DATABASE_URL": url})
     assert process.wait(timeout=10) == 1
-    assert "Database validation failed" in log.read_text()
+    assert "Applying migrations failed" in log.read_text()
     assert "Starting " not in log.read_text()
-
-
-def test_validation_leaves_the_session_as_it_found_it(pg_pool):
-    """What the check sets must end with its transaction.
-
-    Through a transaction-mode pooler a session-level SET outlives the
-    connection and lands on the next client. So the session is checked
-    before and after, and then written to.
-    """
-    from dinkydash import db
-
-    settings = ("transaction_read_only", "default_transaction_read_only", "statement_timeout")
-    with db.connect(os.environ["DINKYDASH_TEST_DATABASE_URL"]) as conn:
-        before = [conn.execute(f"SHOW {name}").fetchone()[0] for name in settings]
-        applied = dev.applied_migrations(conn)
-        after = [conn.execute(f"SHOW {name}").fetchone()[0] for name in settings]
-        conn.execute("CREATE TEMP TABLE still_writable (x int)")  # refused in a read-only session
-    assert after == before
-    assert {path.name for path in db.migrations()} <= applied
 
 
 def lifecycle_worker(name, port, ready):

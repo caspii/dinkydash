@@ -46,78 +46,10 @@ def test_nothing_named_means_the_development_database():
     assert "development" in where
 
 
-def test_the_launcher_and_the_migration_tool_agree(monkeypatch):
-    """One constant, or a migrated schema still fails the launcher's check."""
-    import dev
-    from dinkydash.db import DEV_DATABASE_URL
-
-    monkeypatch.setenv("DATABASE_URL", DEV_DATABASE_URL)
-    assert dev.migrate_command().endswith(" migrate.py")  # nothing left to name
-    assert target()[0] == DEV_DATABASE_URL
-
-
-def test_another_database_has_to_be_named_on_both_sides(monkeypatch):
+def test_it_never_reads_database_url(monkeypatch):
     """`migrate.py` never reads `DATABASE_URL`: in production that is the pooler."""
-    import dev
-
     monkeypatch.setenv("DATABASE_URL", "postgresql:///somebody_elses_dev")
-    assert "--database-url" in dev.migrate_command()
-    assert "somebody_elses_dev" in dev.migrate_command()
     assert target()[0] != "postgresql:///somebody_elses_dev"
-
-
-class TestTheCommandTheLauncherPrints:
-    """It is read in a terminal that has none of this process's environment."""
-
-    def test_it_names_an_interpreter_that_exists(self, monkeypatch):
-        """A bare `python` is not on every developer's PATH; this venv is."""
-        import dev
-
-        monkeypatch.setenv("DATABASE_URL", "postgresql:///scratch")
-        interpreter = dev.migrate_command().split()[0]
-        assert (ROOT / interpreter).exists()
-        assert interpreter != "python"
-
-    def test_an_interpreter_outside_the_repository_is_named_in_full(self, monkeypatch):
-        """A venv kept elsewhere, or CI's own Python: a relative path would miss."""
-        import dev
-
-        monkeypatch.setattr(sys, "executable", "/usr/local/bin/python3.11")
-        monkeypatch.setenv("DATABASE_URL", "postgresql:///scratch")
-        assert dev.migrate_command().startswith("/usr/local/bin/python3.11 migrate.py")
-
-    def test_it_expands_the_database_rather_than_naming_a_variable(self, monkeypatch):
-        """`$DATABASE_URL` comes from `.env` or the run environment, not a shell."""
-        import dev
-
-        monkeypatch.setenv("DATABASE_URL", "postgresql:///scratch")
-        assert "$DATABASE_URL" not in dev.migrate_command()
-        assert "scratch" in dev.migrate_command()
-
-    def test_it_leaves_the_password_out(self, monkeypatch):
-        """Somebody pastes this into a terminal, a ticket or a chat window."""
-        import dev
-
-        monkeypatch.setenv("DATABASE_URL", "postgresql://someone:letmein@127.0.0.1/scratch")
-        printed = dev.migrate_command()
-        assert "letmein" not in printed
-        assert "scratch" in printed
-
-    def test_an_unreadable_url_still_leaves_a_usable_sentence(self, monkeypatch):
-        import dev
-
-        monkeypatch.setenv("DATABASE_URL", "not a connection string")
-        assert "migrate.py" in dev.migrate_command()
-
-    def test_what_it_prints_is_a_database_migrate_would_accept(self, monkeypatch):
-        """The quoted string has to survive the round trip, not merely read well."""
-        import dev
-        from psycopg.conninfo import conninfo_to_dict
-
-        monkeypatch.setenv("DATABASE_URL", "postgresql://someone@127.0.0.1:5432/scratch")
-        quoted = dev.migrate_command().split('--database-url ', 1)[1].strip('"')
-        assert conninfo_to_dict(quoted)["dbname"] == "scratch"
-        assert target(quoted)[0] == quoted
 
 
 @pytest.mark.parametrize("variable", ["PGHOST", "PGHOSTADDR"])
