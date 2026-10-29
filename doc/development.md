@@ -74,9 +74,11 @@ action after Python, template or Markdown changes; there is no automatic reloade
 or interactive debugger.
 
 Use Chrome or Firefox for local sign-in. Hosted sessions retain their Secure
-cookie policy; Safari does not support this HTTP loopback workflow. Email delivery
-requires `SENDGRID_API_KEY`. For an existing account in your development database,
-you can instead mint a link without email (substitute the printed dashboard port):
+cookie policy; Safari does not support this HTTP loopback workflow. The launcher
+never sends email: each message, sign-in links included, is printed to its output
+as `Email not sent (development) to ...`, whatever `SENDGRID_API_KEY` says. Type any
+address into `/login` and open the link from the run output. For an existing
+account you can also mint a link without the form (substitute the printed dashboard port):
 
 ```bash
 venv/bin/python login_link.py you@example.com \
@@ -92,7 +94,7 @@ just fetch the URL. `tests/conftest.py::open_the_link` is the one-line version.
 Turnstile is off unless `TURNSTILE_SITE_KEY` and `TURNSTILE_SECRET_KEY` are
 both set, so the sign-in form reaches Cloudflare for nothing locally.
 
-Neither an email key nor an Anthropic key is required to start the servers.
+An Anthropic key is not required to start the servers.
 Generation still requires an Anthropic key when you request it.
 
 Conductor reads shared `.conductor/settings.toml` from the remote default branch.
