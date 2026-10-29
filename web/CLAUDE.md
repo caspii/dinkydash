@@ -106,9 +106,12 @@ built for this request from the family on the session, cached on `g`, over the p
 A route that reads `app.config["STORE"]` directly works in single mode and serves `None` in cloud
 mode, which is the failure that looks like a bug in something else.
 
-**Poking at cloud mode locally: the session cookie is `Secure`, and every client disagrees about
-what that means over `http://localhost`.** Cloud mode is https-only, so the cookie is marked
-`Secure` and a laptop serving plain http is the odd case. Four different answers:
+**Poking at cloud mode locally: `dev.py` serves a session cookie without `Secure`; anything else
+serves it with, and every client disagrees about what that means over `http://localhost`.** Cloud
+mode is https-only, so `create_app` marks the cookie `Secure`. `dev.py` clears that flag on its own
+dashboard process, which binds to loopback, so every client below signs in there — Safari
+included — and its `/login` page has a **DEV ONLY** sign-in box that needs no email. A cloud
+app started any other way keeps the flag, and gets four different answers:
 
 | Client | Sends a `Secure` cookie to `http://localhost`? |
 |---|---|
@@ -119,7 +122,7 @@ what that means over `http://localhost`.** Cloud mode is https-only, so the cook
 
 The failure looks identical in all the failing cases and looks nothing like a cookie problem: GETs
 redirect to `/login` and POSTs come back 400 from the CSRF check, because there is no session to
-hold a token. **Use Chrome or Firefox for the Conductor preview**, and drive `app.test_client()` in
+hold a token. **Run the preview through `dev.py`**, and drive `app.test_client()` in
 process for anything scripted — it has no cookie policy and exercises the same code. An hour went
 into the `requests` half of that.
 

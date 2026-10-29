@@ -37,7 +37,8 @@ def test_preview_preserves_explicit_environment_and_never_prints_the_database(
         tmp_path, monkeypatch, capsys, exported, file_value, expected):
     if file_value is not None:
         (tmp_path / '.env').write_text(f'DATABASE_URL="{file_value}"\nDINKYDASH_MODE=single\n')
-    for key in ('DATABASE_URL', 'DINKYDASH_MODE', 'DINKYDASH_APP_URL', 'DINKYDASH_APP_HOST'):
+    for key in ('DATABASE_URL', 'DINKYDASH_MODE', 'DINKYDASH_APP_URL', 'DINKYDASH_APP_HOST',
+                'DINKYDASH_DEV_EMAIL'):
         # Record absent keys too, so configure's environment changes are undone.
         monkeypatch.setenv(key, '')
         monkeypatch.delenv(key)
@@ -55,8 +56,8 @@ def test_preview_preserves_explicit_environment_and_never_prints_the_database(
     def prepare():
         captured['database'] = os.environ['DATABASE_URL']
 
-    def supervise(ports):
-        captured.update(mode=os.environ['DINKYDASH_MODE'], ports=ports)
+    def supervise(ports, email):
+        captured.update(mode=os.environ['DINKYDASH_MODE'], ports=ports, email=email)
         return 0
 
     monkeypatch.setattr(dev, 'prepare_database', prepare)
@@ -68,5 +69,5 @@ def test_preview_preserves_explicit_environment_and_never_prints_the_database(
     assert result == 0, output.err
     assert captured == {
         'database': expected, 'mode': 'cloud',
-        'ports': {'Dashboard': 5123, 'Website': 5124},
+        'ports': {'Dashboard': 5123, 'Website': 5124}, 'email': None,
     }
