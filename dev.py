@@ -16,6 +16,13 @@ not sit under the name production uses for its pooled connection.
 **It applies outstanding migrations before serving**, and only because the
 database is on this machine and therefore disposable. Every other database is
 migrated with `migrate.py`.
+
+**Email is printed, never sent.** A workspace's `.env` carries the production
+SendGrid key, and a sign-in form typed into locally would otherwise mail
+whatever address was typed from the shared sending account. The dashboard's
+`mail.send` writes each message to this terminal instead, so the sign-in link
+is in the run output, and the key in the children's environment is replaced
+with a placeholder that SendGrid would refuse.
 """
 
 import logging
@@ -28,6 +35,10 @@ import time
 
 ROOT = Path(__file__).resolve().parent
 HOST = "127.0.0.1"
+
+# Not a key. Set so that what offers mail (the feedback form) still appears,
+# and so that a send that got past `print_mail` would be refused by SendGrid.
+DEV_MAIL_KEY = "dev-launcher-prints-mail"
 
 START_TIMEOUT = 15
 STOP_TIMEOUT = 5
@@ -76,6 +87,7 @@ def configure():
         DINKYDASH_APP_URL=f"http://{HOST}:{dashboard}",
         # Let dashboard URLs use the local request host, not a production .env value.
         DINKYDASH_APP_HOST="",
+        SENDGRID_API_KEY=DEV_MAIL_KEY,
     )
     return {"Dashboard": dashboard, "Website": website}
 
@@ -141,6 +153,28 @@ def prepare_database():
         print(f"Applied migration {name}.", flush=True)
 
 
+def print_mail(to, subject, text, html=None, **_):
+    """`mail.send` under the launcher: the message on this terminal, and nothing sent.
+
+    The address is checked the way `mail.send` checks it, so a refusal behaves
+    the same locally. The plain-text body carries the sign-in link, and this
+    terminal is the only place it goes; it opens this machine's dashboard.
+    The app puts every link on HTTPS and this server speaks plain HTTP, so
+    links to it are printed as HTTP.
+    """
+    from dinkydash import mail
+
+    recipient = mail._clean_address(to)
+    text = text.replace(f"https://{HOST}:", f"http://{HOST}:")
+    print(f"Email not sent (development) to {recipient}: {subject}\n\n{text}\n", flush=True)
+
+
+def use_terminal_mail():
+    from dinkydash import mail
+
+    mail.send = print_mail
+
+
 def serve(name, port, ready):
     """Signal readiness only after the real app has initialized and bound its port."""
     signal.signal(signal.SIGINT, signal.SIG_IGN)  # the supervisor handles Ctrl-C
@@ -152,6 +186,7 @@ def serve(name, port, ready):
         if name == "Dashboard":
             from web import create_app
 
+            use_terminal_mail()
             app = create_app()
             pool = app.config["POOL"]
             pool.wait(timeout=5)
