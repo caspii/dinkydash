@@ -8,7 +8,9 @@ import socket
 import subprocess
 import sys
 import time
-from urllib.request import urlopen
+from http.cookiejar import CookieJar
+from urllib.parse import urlencode
+from urllib.request import HTTPCookieProcessor, build_opener, urlopen
 
 import pytest
 
@@ -241,9 +243,13 @@ def test_start_links_and_shutdown(pg_pool, ports, launch, shutdown):
         "CONDUCTOR_PORT": str(dashboard),
         "DINKYDASH_MODE": "single",
         "DINKYDASH_APP_URL": "https://app.example.test",
+        "DINKYDASH_DEV_EMAIL": "",
     })
     wait_ready(process, log)
     assert f"Dashboard: http://127.0.0.1:{dashboard}/login" in log.read_text()
+    with urlopen(f"http://{dev.HOST}:{dashboard}/login") as response:
+        # No DINKYDASH_DEV_EMAIL here, so the instant box offers the default.
+        assert f'value="{dev.DEV_EMAIL}"' in response.read().decode()
     # Both the homepage templates and Markdown links must lead to this run.
     for path in ("/", "/about/", "/ipad-calendar-display/"):
         with urlopen(f"http://{dev.HOST}:{website}{path}") as response:
@@ -253,12 +259,95 @@ def test_start_links_and_shutdown(pg_pool, ports, launch, shutdown):
     with urlopen(f"http://{dev.HOST}:{dashboard}/") as response:
         assert response.url.endswith("/login")  # cloud auth, never single mode
         assert response.status == 200
+        # Safari drops a Secure cookie on http://127.0.0.1; the launcher must not set one.
+        cookie = response.headers["Set-Cookie"]
+        assert "HttpOnly" in cookie and "Secure" not in cookie
     if shutdown == signal.SIGTERM:
         os.killpg(process.pid, shutdown)  # Conductor can stop the whole group
     else:
         process.send_signal(shutdown)  # stopping only the supervisor works too
     assert process.wait(timeout=10) == 0, log.read_text()
     assert_stopped(ports, log)
+
+
+@pytest.fixture
+def dev_account(pg_pool):
+    """An address for the launcher to sign in, and its family deleted afterwards.
+
+    The launched app creates the account in another process, so nothing else
+    cleans it up, and a family left behind is one more for every later test
+    that counts them.
+    """
+    from dinkydash import accounts
+
+    address = "dev-sign-in@example.com"
+    yield address
+    user = accounts.user_for(pg_pool, address)
+    if user:
+        accounts.delete_family(pg_pool, user[1])
+
+
+def test_sign_in_link_opens_a_session(pg_pool, ports, launch, dev_account):
+    """`DINKYDASH_DEV_EMAIL` ends in a signed-in session with no email sent.
+
+    The address has no account, so this is the sign-up path: spending the link
+    creates the family. `BROWSER=true` makes `webbrowser` run `true <url>`
+    instead of opening a window.
+    """
+    dashboard, _ = ports
+    process, log = launch({
+        "DATABASE_URL": os.environ["DINKYDASH_TEST_DATABASE_URL"],
+        "CONDUCTOR_PORT": str(dashboard),
+        "DINKYDASH_DEV_EMAIL": dev_account,
+        "BROWSER": "true",
+    })
+    deadline = time.monotonic() + 20
+    while not (found := re.search(r"Sign in:\s+(\S+)", log.read_text())):
+        assert process.poll() is None and time.monotonic() < deadline, log.read_text()
+        time.sleep(0.05)
+    url = found.group(1)
+    assert url.startswith(f"http://{dev.HOST}:{dashboard}/login/link?t=")
+
+    browser = build_opener(HTTPCookieProcessor(CookieJar()))
+    with browser.open(url) as response:
+        page = response.read().decode()
+    csrf = re.search(r'name="csrf_token" value="([^"]+)"', page).group(1)
+    token = url.split("t=", 1)[1]
+    form = urlencode({"csrf_token": csrf, "t": token}).encode()
+    with browser.open(f"http://{dev.HOST}:{dashboard}/login/link", data=form) as response:
+        assert response.status == 200
+        assert "/settings" in response.url or "/login/welcome" in response.url
+    with browser.open(f"http://{dev.HOST}:{dashboard}/settings/") as response:
+        assert response.url.endswith("/settings/")  # still signed in on the next page
+
+
+def test_the_instant_button_signs_in_without_a_link(pg_pool, ports, launch, dev_account):
+    """The local /login page offers the address, and one POST is a session."""
+    dashboard, _ = ports
+    process, log = launch({
+        "DATABASE_URL": os.environ["DINKYDASH_TEST_DATABASE_URL"],
+        "CONDUCTOR_PORT": str(dashboard),
+        "DINKYDASH_DEV_EMAIL": dev_account,
+        "BROWSER": "true",
+    })
+    wait_ready(process, log)
+    origin = f"http://{dev.HOST}:{dashboard}"
+    browser = build_opener(HTTPCookieProcessor(CookieJar()))
+
+    def post(path, page, **fields):
+        csrf = re.search(r'name="csrf_token" value="([^"]+)"', page).group(1)
+        return browser.open(origin + path, data=urlencode({"csrf_token": csrf, **fields}).encode())
+
+    # Several presses in a row: the ordinary three-links limit does not apply here.
+    for _ in range(4):
+        with browser.open(origin + "/login") as response:
+            page = response.read().decode()
+        assert 'action="/dev/sign-in"' in page
+        assert f'value="{dev_account}"' in page
+        with post("/dev/sign-in", page, email=dev_account) as response:
+            assert response.url.endswith("/settings/")
+            settings = response.read().decode()
+        post("/logout", settings).close()
 
 
 @pytest.mark.parametrize("failed", ["Dashboard", "Website"])

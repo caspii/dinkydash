@@ -73,12 +73,33 @@ zero), the launcher stops the other and exits with an error. Restart the run
 action after Python, template or Markdown changes; there is no automatic reloader
 or interactive debugger.
 
-Use Chrome or Firefox for local sign-in. Hosted sessions retain their Secure
-cookie policy; Safari does not support this HTTP loopback workflow. The launcher
-never sends email: each message, sign-in links included, is printed to its output
-as `Email not sent (development) to ...`, whatever `SENDGRID_API_KEY` says. Type any
-address into `/login` and open the link from the run output. For an existing
-account you can also mint a link without the form (substitute the printed dashboard port):
+**To sign in without email, press the button.** The local `/login` page has a
+dashed **DEV ONLY** box under the form, with an address field and a **sign in →**
+button. It signs that address in at once and opens settings. An address with no
+account gets one, the same as a link from the form above would make it. The
+route behind it is added by `dev.py` to its own app, never by `create_app`, so
+no deployment has it.
+
+The field offers `dev@example.com` unless `DINKYDASH_DEV_EMAIL=you@example.com`
+in `.env` names another address, so signing in is one press either way. With
+that variable set, the launcher also prints a sign-in link for the address once
+both apps are up and opens it in your default browser;
+`venv/bin/python dev.py --sign-in you@example.com` does the same for one run.
+Against the local database a single address may hold a hundred live links
+rather than the ordinary three, so restarting and pressing often never locks
+you out.
+
+This works in Safari as well as Chrome and Firefox. Hosted mode marks its
+session cookie `Secure`, which Safari refuses to send to `http://127.0.0.1`;
+`dev.py` lifts that flag on its own dashboard process only, which binds to
+loopback, and sets it on the app object so that no environment variable can
+lift it anywhere else.
+
+The launcher never sends email: each message, sign-in links included, is
+printed to its output as `Email not sent (development) to ...`, whatever
+`SENDGRID_API_KEY` says. Typing an address into the form above and opening the
+link from the run output works too. For an existing account you can also mint a
+link without the form (substitute the printed dashboard port):
 
 ```bash
 venv/bin/python login_link.py you@example.com \

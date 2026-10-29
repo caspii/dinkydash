@@ -23,8 +23,19 @@ whatever address was typed from the shared sending account. The dashboard's
 `mail.send` writes each message to this terminal instead, so the sign-in link
 is in the run output, and the key in the children's environment is replaced
 with a placeholder that SendGrid would refuse.
+
+**Signing in without email, in any browser.** The local `/login` page carries
+a DEV ONLY box that signs an address in at once: `DINKYDASH_DEV_EMAIL`, or
+`dev@example.com` when that is unset. With the variable (or `--sign-in EMAIL`)
+set, the launcher also opens a sign-in link once both apps are up. Either way
+the address gets an account on first use, exactly as if a link had been
+emailed. The route exists only in the app this launcher builds, never in
+`web/`, so no deployment can serve it. The dashboard's session cookie drops
+`Secure` here, and only here, because Safari will not send a `Secure` cookie
+over `http://127.0.0.1` the way Chrome and Firefox do.
 """
 
+import argparse
 import logging
 import multiprocessing
 import os
@@ -32,6 +43,7 @@ from pathlib import Path
 import signal
 import sys
 import time
+import webbrowser
 
 ROOT = Path(__file__).resolve().parent
 HOST = "127.0.0.1"
@@ -42,6 +54,15 @@ DEV_MAIL_KEY = "dev-launcher-prints-mail"
 
 START_TIMEOUT = 15
 STOP_TIMEOUT = 5
+
+# Live links per address, against a local database only. The ordinary limit
+# of three would lock out a developer who restarts or signs in a few times in
+# fifteen minutes; here a link is spent the moment it is minted.
+DEV_LINK_LIMIT = 100
+
+# What the instant sign-in box offers when DINKYDASH_DEV_EMAIL is unset. A
+# reserved domain, so nothing is ever delivered to it.
+DEV_EMAIL = "dev@example.com"
 
 
 def configure():
@@ -175,6 +196,102 @@ def use_terminal_mail():
     mail.send = print_mail
 
 
+def dashboard_app():
+    """The hosted dashboard, plus what only a developer's copy of it may have.
+
+    Cloud mode marks the session cookie `Secure`, and Safari will not send a
+    `Secure` cookie to `http://127.0.0.1`, so every sign-in there would be
+    forgotten by the next page. Lifting the flag is safe in this one process:
+    it binds to loopback, so the cookie never crosses a network.
+
+    The instant sign-in route is the other addition. Both are made on the app
+    object rather than through an environment variable, so there is nothing a
+    production `.env` could carry that turns either on.
+    """
+    from web import create_app
+
+    app = create_app()
+    app.config["SESSION_COOKIE_SECURE"] = False
+    app.add_url_rule("/dev/sign-in", "dev_sign_in", instant_sign_in, methods=["POST"])
+
+    @app.context_processor
+    def offer_instant_sign_in():
+        # login.html shows the button when this is defined, and only then.
+        email = os.environ.get("DINKYDASH_DEV_EMAIL", "").strip() or DEV_EMAIL
+        return {"dev_sign_in": {"email": email}}
+
+    return app
+
+
+def instant_sign_in():
+    """Sign the posted address in now: mint a link and spend it in one request.
+
+    The account, the family and the session come from the same functions an
+    emailed link reaches, so what this produces is what a real sign-in does.
+    The CSRF check applies to it like any other form.
+    """
+    from flask import current_app, redirect, render_template, request, url_for
+
+    from dinkydash import accounts
+    from web import session as user_session
+
+    pool = current_app.config["POOL"]
+    token = mint_link(pool, request.form.get("email", ""))
+    user = accounts.consume_link(pool, token) if token else None
+    if user is None:
+        return render_template(
+            "auth/login.html", email=request.form.get("email", ""),
+            problem="That address could not be signed in. Check it and try again."), 400
+    user_session.sign_in(user[0], user[1])
+    return redirect(url_for("settings.home"))
+
+
+def mint_link(pool, email):
+    """A login token for an existing account or a sign-up token for a new one."""
+    from dinkydash import accounts
+
+    user = accounts.user_for(pool, email)
+    if user:
+        return accounts.issue_link(pool, user[0], most=DEV_LINK_LIMIT)
+    return accounts.issue_signup_link(pool, email, most=DEV_LINK_LIMIT)
+
+
+def sign_in_link(email, dashboard_port):
+    """A sign-in link for this address on the local dashboard, or None if refused.
+
+    An address with no account gets a sign-up link, which creates its family
+    when it is spent, the same as one sent by email. `configure` has already
+    refused a database that is not local.
+    """
+    from dinkydash import db
+
+    pool = db.pool(os.environ["DATABASE_URL"])
+    try:
+        token = mint_link(pool, email)
+    finally:
+        pool.close()
+    if token is None:
+        return None
+    return f"http://{HOST}:{dashboard_port}/login/link?t={token}"
+
+
+def offer_sign_in(email, dashboard_port):
+    """Print a fresh sign-in link and open it. A failure here leaves both apps running."""
+    try:
+        url = sign_in_link(email, dashboard_port)
+    except Exception as exc:
+        # Driver exceptions can contain credentials or connection details.
+        print(f"Could not make a sign-in link ({type(exc).__name__}).", flush=True)
+        return
+    if url is None:
+        print(f"No sign-in link for {email}: it is invalid, or has "
+              f"{DEV_LINK_LIMIT} live links already.", flush=True)
+        return
+    print(f"Sign in:   {url}", flush=True)
+    print("Opening it in your browser. Press Sign me in.", flush=True)
+    webbrowser.open(url)
+
+
 def serve(name, port, ready):
     """Signal readiness only after the real app has initialized and bound its port."""
     signal.signal(signal.SIGINT, signal.SIG_IGN)  # the supervisor handles Ctrl-C
@@ -184,10 +301,8 @@ def serve(name, port, ready):
         from werkzeug.serving import make_server
 
         if name == "Dashboard":
-            from web import create_app
-
             use_terminal_mail()
-            app = create_app()
+            app = dashboard_app()
             pool = app.config["POOL"]
             pool.wait(timeout=5)
         else:
@@ -208,7 +323,7 @@ def serve(name, port, ready):
             pool.close()
 
 
-def supervise(ports):
+def supervise(ports, email=None):
     context = multiprocessing.get_context("spawn")
     children = []
     stopping = False
@@ -244,8 +359,10 @@ def supervise(ports):
                     if not pending:
                         print(f"Dashboard: http://{HOST}:{ports['Dashboard']}/login", flush=True)
                         print(f"Website:   http://{HOST}:{ports['Website']}/", flush=True)
-                        print("Use Chrome or Firefox for local sign-in (Secure cookies). "
-                              "Restart this command after code/content changes. Ctrl-C stops both apps.", flush=True)
+                        print("Restart this command after code/content changes. "
+                              "Ctrl-C stops both apps.", flush=True)
+                        if email:
+                            offer_sign_in(email, ports["Dashboard"])
             if pending and time.monotonic() >= deadline:
                 raise RuntimeError(f"Startup timed out: {', '.join(sorted(pending))}; stopping both apps.")
             time.sleep(0.1)
@@ -265,11 +382,17 @@ def supervise(ports):
             signal.signal(sig, handler)
 
 
-def main():
+def main(argv=()):
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument("--sign-in", metavar="EMAIL",
+                        help="open a sign-in link for this address once both apps are up "
+                             "(default: DINKYDASH_DEV_EMAIL)")
+    args = parser.parse_args(argv)
     try:
         ports = configure()
         prepare_database()
-        return supervise(ports)
+        email = (args.sign_in or os.environ.get("DINKYDASH_DEV_EMAIL", "")).strip()
+        return supervise(ports, email or None)
     except ImportError as exc:
         print(f"Development dependency missing ({exc.name}); install requirements-cloud.txt.", file=sys.stderr)
     except (RuntimeError, OSError) as exc:
@@ -280,4 +403,4 @@ def main():
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(main(sys.argv[1:]))

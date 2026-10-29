@@ -346,6 +346,11 @@ class TestAskingForALink:
     def test_the_form_is_there(self, client):
         assert "Email me a link" in client.get("/login").get_data(as_text=True)
 
+    def test_there_is_no_instant_sign_in(self, client):
+        """`dev.py` adds a no-email sign-in to its own app; `create_app` never has it."""
+        assert "/dev/sign-in" not in client.get("/login").get_data(as_text=True)
+        assert client.post("/dev/sign-in", data={"email": ADDRESS}).status_code == 404
+
     def test_a_known_address_gets_an_email(self, client, sent, pg_user):
         client.post("/login", data={"email": ADDRESS})
         assert len(sent) == 1
