@@ -76,7 +76,7 @@ payment recovery settings. Dashboard updates pause seven days after the unpaid
 invoice was created, or sooner if the subscription ends. Successful payment
 restores access.
 
-When your trial or subscription ends, calendar fetches and new daily messages
+When your trial or subscription ends, calendar fetches and new daily headlines
 stop. The screen keeps the last saved dashboard with an ended-access message for
 30 days, then shows only the message. You can still sign in to manage, export
 or delete your data.

@@ -85,7 +85,7 @@ Not in another page of copy, which may have the same fault. The usual places:
 
 Three claims that are wrong in ways that read as right:
 
-- **"Every morning."** The daily message is written once a day at a time the family sets.
+- **"Every morning."** The daily headline is written once a day at a time the family sets.
   The calendars refresh on their own, separate, much shorter cycle. "The morning job" is
   neither of those things.
 - **"Backed up."** There is an **Export** button. Infrastructure snapshots are a deletion

@@ -38,7 +38,7 @@ def test_preview_preserves_explicit_environment_and_never_prints_the_database(
     if file_value is not None:
         (tmp_path / '.env').write_text(f'DATABASE_URL="{file_value}"\nDINKYDASH_MODE=single\n')
     for key in ('DATABASE_URL', 'DINKYDASH_MODE', 'DINKYDASH_APP_URL', 'DINKYDASH_APP_HOST',
-                'DINKYDASH_DEV_EMAIL'):
+                'DINKYDASH_DEV_EMAIL', 'SENDGRID_API_KEY'):
         # Record absent keys too, so configure's environment changes are undone.
         monkeypatch.setenv(key, '')
         monkeypatch.delenv(key)

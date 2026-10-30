@@ -163,11 +163,13 @@ class TestTheBannerWaitsUntilTheBriefIsDue:
         old = payload("2026-08-30", [event("2026-09-03", "08:20", "School run")])
         assert self.view_at(1, 30, data=old)["overdue"] is True
 
-    def test_an_agenda_with_no_brief_at_all_is_late_at_any_hour(self):
-        # Nothing to be a day behind from, so there is no grace to give.
+    def test_an_agenda_with_no_brief_at_all_is_never_late(self):
+        # No brief has been written, so there is no line to be behind: the
+        # dashboard is the first one, under a headline worked out from the day.
         agenda = {"events": [event("2026-09-03", "08:20", "School run")],
                   "calendars_fetched_at": "2026-09-03T00:10:00+00:00"}
-        assert self.view_at(1, 30, data=agenda)["overdue"] is True
+        for hour in (1, 7, 23):
+            assert self.view_at(hour, 30, data=agenda)["overdue"] is False
 
     def test_todays_dashboard_is_never_late(self):
         assert self.view_at(1, 30, data=payload("2026-09-03"))["overdue"] is False
@@ -245,14 +247,16 @@ class TestTomorrow:
 
 
 class TestEmptyStates:
-    def test_no_payload_at_all_is_the_waiting_screen(self):
+    def test_no_payload_at_all_is_already_a_dashboard(self):
         view = build_view(CONFIG, None, TODAY)
-        assert view["state"] == "waiting"
+        assert view["state"] == "first"
         assert view["events"] == []
         assert view["tomorrow"] == []
-        # Chores and countdowns still work — they never needed the model.
+        # Chores and countdowns never needed the model.
         assert view["chores"]
         assert view["countdowns"]
+        assert view["headline"] == "Nothing booked in today."
+        assert view["overdue"] is False
 
     def test_a_quiet_day_keeps_everything_else(self):
         view = build_view(CONFIG, payload("2026-09-03"), TODAY)
@@ -260,57 +264,54 @@ class TestEmptyStates:
         assert view["state"] == "ready"
         assert view["chores"]
 
-    def test_an_agenda_with_no_brief_yet_still_shows_the_day(self):
+    def test_an_agenda_with_no_brief_yet_shows_the_day_without_a_banner(self):
         # A `--tick` that refreshed the calendars before the brief leaves a
-        # payload with events and no words — after a first brief that failed,
-        # say. For a set-up family the right answer is today's agenda under the
-        # amber banner rather than the first-run screen.
+        # payload with events and no words — between the two halves of a first
+        # tick, or after a first brief that failed. No brief was ever written,
+        # so there is nothing to call late.
         agenda = {"events": [event("2026-09-03", "08:20", "School run")],
                   "calendars_fetched_at": "2026-09-03T03:00:00+00:00"}
         view = build_view(CONFIG, agenda, TODAY)
-        assert view["state"] == "stale"
+        assert view["state"] == "first"
         assert [e["title"] for e in view["events"]] == ["School run"]
         assert view["headline"] == "1 thing on today, starting at 08:20."
-        assert view["note"] == ""
-        assert view["stale_days"] is None
+        assert view["overdue"] is False
+        assert view["stale"] is False
+
+    def test_it_asks_again_sooner_than_a_written_one(self):
+        # The model's line should reach the wall within a minute of being written.
+        assert build_view(CONFIG, None, TODAY)["reload_seconds"] == 60
+        assert build_view(CONFIG, payload("2026-09-03"), TODAY)["reload_seconds"] == 300
 
 
 class TestStillSettingUp:
-    """A family that is not set up yet gets the waiting screen, and it says why.
+    """A family that is not set up yet sees the dashboard it is setting up.
 
     `config.is_set_up` is false while the household is still the invented
     starter or the timezone is unset. Nothing is being written for such a
-    family (`schedule.brief_due`), so the dashboard must not say "writing your
-    first dashboard" — and it must not show the invented household's turns under
-    an amber banner either.
+    family (`schedule.brief_due`), but the turns, countdowns and agenda are
+    worked out from the config, so the settings home can preview the real
+    thing from the first second — invented household and all — rather than a
+    screen saying "nearly there".
     """
 
     STARTER = {**CONFIG, "timezone": "UTC"}
 
-    def test_no_payload_is_waiting_and_says_it_is_not_set_up(self):
-        view = build_view(self.STARTER, None, TODAY)
-        assert view["state"] == "waiting"
-        assert view["set_up"] is False
+    def test_no_payload_is_the_starter_dashboard(self):
+        from dinkydash import config as config_module
+        starter = config_module.starter_config()
+        view = build_view(starter, None, TODAY)
+        assert view["state"] == "first"
+        assert [c["assigned_to"] for c in view["chores"]]
+        assert view["countdowns"]
 
-    def test_a_set_up_family_with_no_payload_is_waiting_for_the_first_board(self):
-        view = build_view(CONFIG, None, TODAY)
-        assert view["state"] == "waiting"
-        assert view["set_up"] is True
-
-    def test_an_agenda_with_no_brief_is_still_the_waiting_screen(self):
-        # The calendars have been fetched — that half is free and runs
-        # regardless — but no brief was attempted, so no amber banner.
+    def test_an_agenda_with_no_brief_shows_the_agenda(self):
         agenda = {"events": [event("2026-09-03", "08:20", "School run")],
                   "calendars_fetched_at": "2026-09-03T03:00:00+00:00"}
         view = build_view(self.STARTER, agenda, TODAY)
-        assert view["state"] == "waiting"
-        assert view["events"] == []
-
-    def test_an_invented_household_is_not_set_up_whatever_the_timezone(self):
-        from dinkydash import config as config_module
-        starter = config_module.starter_config()
-        starter["timezone"] = "Europe/Berlin"
-        assert build_view(starter, None, TODAY)["set_up"] is False
+        assert view["state"] == "first"
+        assert [e["title"] for e in view["events"]] == ["School run"]
+        assert view["overdue"] is False
 
     def test_a_written_brief_renders_as_usual(self):
         # A brief that already exists is shown, set up or not: the family
@@ -360,53 +361,45 @@ class TestReloadInterval:
         assert build_view(config, payload("2026-09-03"), TODAY)["reload_seconds"] == 300
 
 
-class TestTheWaitingScreen:
-    """What a family reads before their first dashboard arrives.
+class TestTheFirstDashboard:
+    """What a screen shows before the first brief arrives: the dashboard.
 
     `board.html` is rendered from the same file in both modes and
-    `tests/test_cloud_mode.py` asserts the two are byte-identical, so anything
-    written here has to be true of a Raspberry Pi *and* of a wall panel in a
-    kitchen. It used to say "Run `python generate.py`", which was a Pi's
-    instruction on a hosted family's screen and, since DIN-45, the wrong advice
-    on the Pi too — the next tick writes it either way.
+    `tests/test_cloud_mode.py` asserts the two are byte-identical, so this has
+    to be true of a Raspberry Pi *and* of a wall panel in a kitchen. There is
+    no waiting screen: the turns and countdowns are worked out from the config,
+    and the model's line replaces the stand-in headline when it is written.
     """
 
-    @pytest.fixture
-    def page(self, tmp_path):
+    def page(self, tmp_path, config):
         from dinkydash.store import FileStore
         from tests.conftest import client_for
         from web import create_app
 
         path = tmp_path / "config.yaml"
-        path.write_text('family_name: "The Wilsons"\ntimezone: "Europe/Berlin"\n')
-        client = client_for(create_app(FileStore(path)))
-        return client.get("/").get_data(as_text=True)
+        path.write_text(config)
+        return client_for(create_app(FileStore(path))).get("/").get_data(as_text=True)
 
-    def test_it_is_the_waiting_screen(self, page):
-        assert "first dashboard" in page
+    def test_a_set_up_family_sees_its_dashboard(self, tmp_path):
+        page = self.page(tmp_path, 'family_name: "The Wilsons"\ntimezone: "Europe/Berlin"\n')
+        assert '<div class="board">' in page
+        assert "The Wilsons" in page
+        assert "Nothing booked in today." in page
+        assert "first dashboard" not in page
 
-    def test_it_names_no_command(self, page):
-        # A parent reading this has no shell, and after DIN-45 nobody needs one.
+    def test_it_names_no_command(self, tmp_path):
+        # A parent reading this has no shell, and nobody needs one.
+        page = self.page(tmp_path, 'family_name: "The Wilsons"\ntimezone: "Europe/Berlin"\n')
         assert "generate.py" not in page
 
-    def test_it_names_the_button_the_settings_page_actually_has(self, page):
-        assert "Write first daily message" in page
-
-    def test_a_family_still_setting_up_is_told_that_instead(self, tmp_path):
-        # The example file's household is invented, so nothing is being
-        # written and the screen must not claim it is.
-        from dinkydash.store import FileStore
-        from tests.conftest import client_for
-        from web import create_app
-
-        path = tmp_path / "config.yaml"
-        path.write_text('family_name: "The Wilsons"\ntimezone: "Europe/Berlin"\n'
-                        'people:\n  - name: "Mia"\n    date_of_birth: "2017-03-15"\n'
-                        '    invented: true\n')
-        page = client_for(create_app(FileStore(path))).get("/").get_data(as_text=True)
-        assert "Nearly there" in page
-        assert "first dashboard" not in page.split("Nearly there")[0]
-        assert "Writing" not in page
+    def test_so_does_a_family_still_setting_up(self, tmp_path):
+        # The example household is what the settings home previews.
+        page = self.page(tmp_path, 'family_name: "The Wilsons"\ntimezone: "Europe/Berlin"\n'
+                                   'people:\n  - name: "Mia"\n    date_of_birth: "2017-03-15"\n'
+                                   '    invented: true\n')
+        assert '<div class="board">' in page
+        assert "Mia" in page
+        assert "Nearly there" not in page
 
 
 class TestTheBannerOnTheDashboard:
@@ -454,12 +447,12 @@ class TestTheBannerOnTheDashboard:
         assert "Older note" not in page
         assert "Yesterday" not in page
 
-    def test_an_agenda_with_no_brief_still_says_the_headline_is_missing(self, tmp_path, monkeypatch):
+    def test_an_agenda_with_no_brief_shows_no_banner(self, tmp_path, monkeypatch):
         agenda = {"events": [event("2026-09-03", "08:20", "School run")],
                   "calendars_fetched_at": "2026-09-03T00:10:00+00:00"}
         page = self.page_at(tmp_path, monkeypatch, 7, 0, data=agenda)
-        assert self.BANNER in page
-        assert "older one below" not in page
+        assert self.BANNER not in page
+        assert "School run" in page
 
 
 class TestTheFactOfTheDayIsNotShown:

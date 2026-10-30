@@ -78,13 +78,13 @@ because there is no family to scope *to*:
 - **`dinkydash/screens.py`**, which resolves a screen token to a family. A wall panel has no session
   to scope to and never will — that is what the token is for;
 - **`dinkydash/growth.py`**, which feeds the operator's page (DIN-37). Its counts are the narrowest
-  read there is: `growth_by_day` is a date and two counts with no family identifier to scope by,
-  kept by a trigger on `families` (migration 006) so that it survives deletion the way
-  `global_model_spend` does, and `families_now` is a bare `count(*)`. `paying` is the same
-  kind of read: rows whose lifecycle `status` and Stripe `subscription_status` are both
-  `active`, which is an active paid subscription, split by the plan interval billing stored
-  with that snapshot. Trials, `past_due`, `canceled` and `lapsed` are left out, and the page
-  does not call Stripe. Its `roster` is wider, and
+  read there is: `growth_by_day` is a date and three counts with no family identifier to scope
+  by, kept by triggers on `families` and `screen_sizes` (migrations 006 and 011) so that it
+  survives deletion the way `global_model_spend` does, and `families_now` is a bare
+  `count(*)`. `paying` is the same kind of read: rows whose lifecycle `status` and Stripe
+  `subscription_status` are both `active`, which is an active paid subscription, split by the
+  plan interval billing stored with that snapshot. Trials, `past_due`, `canceled` and `lapsed`
+  are left out, and the page does not call Stripe. Its `roster` is wider, and
   deliberately only so wide — the address, the platform's bookkeeping columns and the reported
   screen sizes on the newest families, never `config`, and no id in or out. `screen_sizes` on
   the same page is a count per size and a time, and carries no family id either.
@@ -320,7 +320,7 @@ clocks, chosen by the family:
 `refresh_minutes` (default 60) and `brief_time` (default `"06:00"`, on the family's clock) are
 ordinary config keys, so they migrate through `with_defaults` and will survive as a `jsonb` column.
 `runner.run` is still both halves in order, which is what a plain `python generate.py` and the
-settings page's **Rewrite daily message** do — the old `0 6 * * *` line keeps working, it just never sees a
+settings page's **Rewrite daily headline** do — the old `0 6 * * *` line keeps working, it just never sees a
 same-day change. **Refresh calendars**, beside it, is `refresh_calendars` alone: no key needed, no
 money spent, and the thing most people pressing the other button actually wanted.
 
@@ -351,8 +351,8 @@ These rules hold this together:
   family** (`config.is_set_up`: no person or pet still marked `invented`, and a timezone other
   than the UTC default). The starter household and the untouched example file are not one, and a
   brief about them would be a paid call for invented children; the tick writes nothing until the
-  answers are real, and the dashboard says "nearly there" rather than "writing". Calendar-only
-  payloads still qualify once set up.
+  answers are real. The dashboard is shown regardless, under a headline worked out from the day
+  (`board.build_view`, state `first`). Calendar-only payloads still qualify once set up.
 - **A refresh must not touch `headline`, `note` or `generated_for_date`**, and it now cannot: it
   writes through `store.save_agenda`, which only accepts `store.AGENDA_KEYS`. A fresh agenda under
   yesterday's brief is exactly the amber-banner state `board.build_view` already handles, and the
@@ -390,7 +390,7 @@ one is already writing. A tick can outlive its five-minute slot — several feed
 a slow model call — and the next one would find the brief still unwritten, pay for it a second time,
 write a second history entry, and race the first over the payload. The overlapping tick exits 0
 instead: whatever is owed is still owed five minutes later. It is deliberately only around the tick.
-**Rewrite daily message** is a person asking for something, and should do it.
+**Rewrite daily headline** is a person asking for something, and should do it.
 
 ## The guest list on a calendar
 

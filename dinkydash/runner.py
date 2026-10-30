@@ -6,7 +6,7 @@ on their own clocks, so an appointment added at 09:00 reaches the wall the
 same day (`generate.py --tick`, and `dinkydash.schedule.due`).
 
 `run` is still both, in order, which is what `python generate.py` means and
-what the settings page's "Rewrite daily message" does.
+what the settings page's "Rewrite daily headline" does.
 
 All three take a `store` and read and write only through it, so nothing here
 knows whether the dashboard it is replacing is a file on a Pi or a row belonging to

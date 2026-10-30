@@ -36,7 +36,7 @@
     },
     {
         "q": "Where do my children's names and birthdays go?",
-        "a": "They're stored so we can build your dashboard each day, and the day's agenda goes to Anthropic so Claude can write the daily line. Nothing is sold, there are no adverts, and there's no camera and no microphone anywhere in this. If the calendar you connect also holds work and private appointments, you can limit it to the events shared with your partner, and the rest is never stored and never sent.",
+        "a": "They're stored so we can build your dashboard each day, and the day's agenda goes to Anthropic so Claude can write the daily headline. Nothing is sold, there are no adverts, and there's no camera and no microphone anywhere in this. If the calendar you connect also holds work and private appointments, you can limit it to the events shared with your partner, and the rest is never stored and never sent.",
         "href": "/privacy/",
         "link": "The privacy policy names every company involved",
     },
@@ -321,7 +321,7 @@
        card grids either side of it. */
     .privacy .lede { max-width: 660px; text-align: left; }
 
-    /* THE DAILY LINE */
+    /* THE DAILY HEADLINE */
     .samples-grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
@@ -755,7 +755,7 @@
     </div>
 </section>
 
-<!-- THE DAILY LINE -->
+<!-- THE DAILY HEADLINE -->
 <section class="band samples">
     <div class="container">
         <div class="section-head">
@@ -822,7 +822,7 @@
                 <div class="tier-sub">Or $6 a month. Free for 14 days, and we don't ask for a card.</div>
                 <ul>
                     <li>Nothing to install, nothing to keep alive</li>
-                    <li>We fetch your calendars and write the daily message</li>
+                    <li>We fetch your calendars and write the daily headline</li>
                     <li>The AI bill is ours, not yours</li>
                     <li>One link, and every screen in the house can use it</li>
                     <li>Change anything from your phone</li>
@@ -866,7 +866,7 @@ python3 -m venv venv &amp;&amp; source venv/bin/activate
 pip install -r requirements.txt
 cp config.example.yaml config.yaml
 python sample_board.py &amp;&amp; python app.py</code></pre>
-            <p>That serves the dashboard on <code>localhost:5000</code>, with an invented family and a canned daily line. Add your own calendar links from <code>/settings</code>, and an Anthropic key when you want the real one &mdash; it runs once a day and costs well under a dollar a month.</p>
+            <p>That serves the dashboard on <code>localhost:5000</code>, with an invented family and a canned daily headline. Add your own calendar links from <code>/settings</code>, and an Anthropic key when you want the real one &mdash; it runs once a day and costs well under a dollar a month.</p>
 
             <h3>What to know before you do</h3>
             <p>Setting up a Raspberry Pi is an afternoon rather than five minutes: systemd, kiosk mode, a screen schedule. <strong>There's no login</strong> &mdash; the dashboard and the settings page are both served without authentication, on the assumption they sit on your home network like a printer, so keep the port off the public internet. And self-hosting is community-supported: issues and pull requests are welcome, but there's no support commitment.</p>

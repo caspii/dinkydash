@@ -2,6 +2,7 @@
 Cloud only.
 
     history(pool)                -> every day with a signup or an activation
+    calendars_added(pool)        -> how many families have ever saved a calendar link
     families_now(pool)           -> how many families exist right now
     paying(pool)                 -> active paid subscriptions, and the plan split
     roster(pool, most)           -> the newest families: address, bookkeeping, screen sizes
@@ -13,11 +14,14 @@ Cloud only.
     calendar_health(pool)        -> feeds by their last fetch result
 
 A **signup** is a family created — the click on the emailed link, never the
-address being submitted (DIN-41). An **activation** is the first time that
-family's settings carry a calendar link, which `config.starter_config` calls
-the parent's first real act. Both are counted per UTC day by a trigger on
-`families` (migration 006) into `growth_by_day`, a table with a date and two
-counts in it and nothing else.
+address being submitted (DIN-41). An **activation** is the first time one of
+that family's screens keeps the dashboard open long enough to refresh it, on a
+screen at least 480 CSS pixels on its short side so that the parent's phone
+does not count (migration 011). Between the two sits the first **calendar**
+link saved, the step that puts the family's own plans on the dashboard.
+All three are counted per UTC day into `growth_by_day`, a table with a date
+and three counts in it and nothing else: signups and calendars by a trigger
+on `families`, activations by a trigger on `screen_sizes`.
 
 **This is the fourth deliberately unscoped read in the product**, after
 `worker.family_ids`, `accounts.py` and `screens.py`. The counts are the
@@ -99,6 +103,13 @@ def history(pool):
     with pool.connection() as conn, conn.cursor() as cur:
         cur.execute("SELECT day, signups, activations FROM growth_by_day ORDER BY day")
         return cur.fetchall()
+
+
+def calendars_added(pool):
+    """How many families have ever saved a calendar link. A sum, no family id."""
+    with pool.connection() as conn, conn.cursor() as cur:
+        cur.execute("SELECT coalesce(sum(calendars), 0)::int FROM growth_by_day")
+        return cur.fetchone()[0]
 
 
 def families_now(pool):

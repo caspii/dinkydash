@@ -52,13 +52,13 @@ Three reasons come up repeatedly, and they point at different replacements.
 
 Full disclosure: DinkyDash is our project, so treat this entry accordingly — the rest of the page is written to be useful whether or not you pick it.
 
-DinkyDash turns any TV, tablet, Raspberry Pi or spare monitor into a family calendar. It shows today's events from any iCal link, a chore chart that rotates between kids automatically, countdowns to birthdays and holidays, and **a daily message written by AI, fresh every day** — a greeting written around your family's actual day. No other option on this page does that last one.
+DinkyDash turns any TV, tablet, Raspberry Pi or spare monitor into a family calendar. It shows today's events from any iCal link, a chore chart that rotates between kids automatically, countdowns to birthdays and holidays, and **a daily headline written by AI, fresh every day** — a greeting written around your family's actual day. No other option on this page does that last one.
 
 ![The DinkyDash dashboard showing today's agenda, whose turn each chore is, countdowns to birthdays and holidays, and the AI-written headline](/images/family-dashboard-board.webp)
 
-It is MIT-licensed, and self-hosting it is free forever, with no paid tier and no screen limit. Run it yourself and your config — names, birthdays, calendar links — stays on your own machine. To be precise about the one thing that does leave: the day's agenda is sent to Anthropic once a day to write the headline. You can try the whole thing without an API key first — there is a no-key preview in the [setup guide](/getting-started/) — but the daily message is the part that needs one.
+It is MIT-licensed, and self-hosting it is free forever, with no paid tier and no screen limit. Run it yourself and your config — names, birthdays, calendar links — stays on your own machine. To be precise about the one thing that does leave: the day's agenda is sent to Anthropic once a day to write the headline. You can try the whole thing without an API key first — there is a no-key preview in the [setup guide](/getting-started/) — but the daily headline is the part that needs one.
 
-The trade-off is real: self-hosting means an afternoon and some comfort with a terminal. Our [getting started guide](/getting-started/) has copy-paste commands. The only running cost is your own Anthropic key for the daily message — about $0.13 a month, and well under $1.
+The trade-off is real: self-hosting means an afternoon and some comfort with a terminal. Our [getting started guide](/getting-started/) has copy-paste commands. The only running cost is your own Anthropic key for the daily headline — about $0.13 a month, and well under $1.
 
 You can also [start a free 14-day hosted trial](https://app.dinkydash.co/login), with no card required. After that it's **$39 a year or $6 a month**, and nothing is charged unless you choose to subscribe.
 
@@ -108,7 +108,7 @@ Software only, assuming you already own a screen. Annual billing where offered.
 
 | | Three-year software cost |
 |---|---|
-| **DinkyDash (self-hosted)** | **~$5** — your own Anthropic key for the daily message, about $0.13/month |
+| **DinkyDash (self-hosted)** | **~$5** — your own Anthropic key for the daily headline, about $0.13/month |
 | **MagicMirror² / Home Assistant** | **$0** |
 | DinkyDash (hosted) | $117 at $39/year |
 | DAKboard Essential | ~$180 |

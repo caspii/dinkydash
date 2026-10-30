@@ -151,6 +151,12 @@
 
     <button class="btn" type="submit" name="action" value="save">{{ "Save calendar" if section_name == 'calendars' else "Save" }}</button>
 </form>
+{% if email_steps %}
+{# What "Email me the steps" in the calendar help submits. #}
+<form id="calendar-steps" method="post" action="{{ url_for('settings.email_calendar_steps') }}" hidden>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+</form>
+{% endif %}
 
 {% if emoji_field %}
 {% include "settings/_emoji_picker.html" %}

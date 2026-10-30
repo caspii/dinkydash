@@ -4,6 +4,16 @@
     <a class="btn outline" href="https://www.icloud.com/calendar/" target="_blank" rel="noopener noreferrer">Apple Calendar (iCloud) ↗</a>
     <a class="btn outline" href="https://outlook.live.com/calendar/" target="_blank" rel="noopener noreferrer">Outlook ↗</a>
 </div>
+{# Said before the button is pressed, not inside the steps below: on a phone the
+   Google button opens the app, and the app has no such link. The email button
+   submits a form drawn after the edit form, because forms cannot nest. #}
+<div class="note-box calendar-google-note">
+    <div><strong>Google only shows this link on a computer.</strong> The Google Calendar app
+    doesn't have it, so on a phone you'll need to finish this step at a computer.</div>
+    {% if email_steps %}
+    <button class="btn outline small phone-only" type="submit" form="calendar-steps">Email me the steps</button>
+    {% endif %}
+</div>
 <details class="note-box calendar-help" {{ 'open' if checked and checked.link_help }}>
     <summary>Where do I find my calendar link?</summary>
     <ol>

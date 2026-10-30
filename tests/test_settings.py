@@ -245,7 +245,10 @@ class TestHomeScreen:
 
     def test_the_settings_page_points_at_its_icon_and_manifest(self, client):
         page = client.get("/settings/").get_data(as_text=True)
-        assert '<link rel="manifest" href="/settings/manifest.webmanifest">' in page
+        # With cookies: hosted, the manifest is behind the session, and a
+        # browser asks for one without cookies unless the link says otherwise.
+        assert ('<link rel="manifest" href="/settings/manifest.webmanifest" '
+                'crossorigin="use-credentials">') in page
         # iOS reads none of the manifest; this link and the title meta are all
         # it has to go on.
         assert 'rel="apple-touch-icon"' in page
@@ -298,27 +301,27 @@ class TestTheClockOnTheStatusLine:
         board({"calendars_fetched_at": f"{today}T05:00:00+00:00", "events": []})
         page = client.get("/settings/").get_data(as_text=True)
         assert "dashboard is up" not in page
-        assert "Rewrite daily message" not in page
+        assert "Rewrite daily headline" not in page
         assert "from None" not in page
 
     def test_the_button_offers_a_first_board_rather_than_a_rewrite(self, client, board, today):
         """The waiting screen points at this button by name, so they must agree.
 
-        "Rewrite daily message" is the wrong word for a dashboard nobody has written, and
+        "Rewrite daily headline" is the wrong word for a dashboard nobody has written, and
         `board.html` — which is byte-identical in both modes — tells a family
-        to press "Write first daily message" (DIN-45).
+        to press "Write first daily headline" (DIN-45).
         """
         board({"calendars_fetched_at": f"{today}T05:00:00+00:00", "events": []})
         page = client.get("/settings/").get_data(as_text=True)
-        assert "Write first daily message" in page
-        assert "Rewrite daily message" not in page
+        assert "Write first daily headline" in page
+        assert "Rewrite daily headline" not in page
 
     def test_and_goes_back_to_a_rewrite_once_there_is_one(self, client, board, today):
         board({"generated_for_date": today, "generated_at": f"{today}T04:00:00+00:00",
                "headline": "Hi", "note": "There", "events": []})
         page = client.get("/settings/").get_data(as_text=True)
-        assert "Rewrite daily message" in page
-        assert "Write first daily message" not in page
+        assert "Rewrite daily headline" in page
+        assert "Write first daily headline" not in page
 
     def test_an_unreadable_stamp_does_not_break_the_page(self, client, board, today):
         board({"generated_for_date": today, "generated_at": "who knows",
@@ -435,8 +438,8 @@ class TestTheSetUpChecklist:
     def test_it_replaces_the_daily_controls(self, client):
         page = self.home(client)
         assert "Set up your dashboard" in page
-        for button in ("Refresh calendars", "View dashboard", "Rewrite daily message",
-                       "Write first daily message", ">Dashboard<"):
+        for button in ("Refresh calendars", "View dashboard", "Rewrite daily headline",
+                       "Write first daily headline", ">Dashboard<"):
             assert button not in page
 
     def test_step_one_names_what_is_invented(self, client):
@@ -507,29 +510,68 @@ class TestTheSetUpChecklist:
         client.post("/settings/timezone", data={"timezone": "Europe/Berlin"})
         page = self.home(client)
         assert "Once the first two steps are done" in page
-        assert "Write first daily message" not in page
+        assert "Write first daily headline" not in page
 
-    def test_then_the_link_and_the_button_arrive(self, client):
+    def add_a_calendar(self, client, monkeypatch):
+        monkeypatch.setattr("web.routes.settings.check_feed", lambda *a, **kw: None)
+        return client.post("/settings/calendars/new", data={
+            "label": "Family", "url": "https://example.com/private-xxxx/basic.ics",
+            "enabled": "on", "action": "save"})
+
+    def test_then_the_calendar_comes_before_the_link(self, client):
         self.make_it_theirs(client)
         page = self.home(client)
+        assert "Add a calendar first" in page
+        assert "Anna" in page  # step one, done, names who is here
+        # The link is there, but behind a choice the parent makes on purpose.
+        assert '<details class="card skip-calendar">' in page
+        assert "No calendar? Put it on a screen without one" in page
+        assert page.index("<details") < page.index("http://localhost/") \
+            < page.index("</details>")
+
+    def test_the_calendar_step_opens_the_form(self, client):
+        assert 'href="/settings/calendars/new"' in self.home(client)
+
+    def test_with_a_calendar_the_link_and_the_button_lead(self, client, monkeypatch):
+        self.make_it_theirs(client)
+        landed = self.add_a_calendar(client, monkeypatch)
+        # Saving the first calendar goes back to the checklist, where the
+        # next step is, and points at no button this page does not have.
+        assert landed.headers["Location"].endswith("/settings/")
+        page = self.home(client)
+        assert "Its events reach the dashboard within a few minutes." in page
+        assert "Refresh calendars" not in page
         assert "Open the link below" in page
+        assert "skip-calendar" not in page.split("</style>", 1)[1]
         assert "http://localhost/" in page  # single mode: the dashboard is at /
         assert "Copy link" in page  # and a button to get it onto the other device
-        assert "Write first daily message" in page
-        assert "Anna" in page  # step one, done, names who is here
+        assert "Write first daily headline" in page
 
     def test_a_calendar_is_not_required_to_finish(self, client):
         self.make_it_theirs(client)
         page = self.home(client)
-        assert "None yet. The dashboard works without one" in page
-        assert "Write first daily message" in page
+        assert "None yet. Paste a link" in page
+        assert "Write first daily headline" in page
+
+    def test_the_dashboard_is_previewed_from_the_first_second(self, client):
+        page = self.home(client)
+        assert '<div class="dash-preview">' in page
+        assert '<iframe src="/"' in page  # single mode: the dashboard is at /
+        assert "preview.js" in page
+
+    def test_and_not_once_set_up_is_over(self, client, tmp_path):
+        self.make_it_theirs(client)
+        (tmp_path / "dashboard_data.json").write_text(json.dumps({
+            "generated_for_date": "2026-09-03", "headline": "Hi", "note": "There",
+            "events": []}))
+        assert 'class="dash-preview"' not in self.home(client)
 
     def test_writing_the_first_board_says_so(self, client, monkeypatch):
         self.make_it_theirs(client)
         monkeypatch.setattr("web.routes.settings.run_generation",
                             lambda config, store, **kw: {"headline": "Hello, Anna"})
         landed = client.post("/settings/generate", follow_redirects=True).get_data(as_text=True)
-        assert "Your first daily message is written — “Hello, Anna”" in landed
+        assert "Your first daily headline is written — “Hello, Anna”" in landed
 
     def test_it_leaves_once_the_first_board_is_written(self, client, tmp_path):
         self.make_it_theirs(client)
@@ -538,7 +580,7 @@ class TestTheSetUpChecklist:
             "events": []}))
         page = self.home(client)
         assert "Set up your dashboard" not in page
-        assert "Rewrite daily message" in page and "View dashboard" in page
+        assert "Rewrite daily headline" in page and "View dashboard" in page
         assert "Add a calendar" in page  # still no calendar, so not "Refresh"
 
     def test_a_written_board_alone_does_not_end_set_up(self, client, tmp_path):
@@ -646,13 +688,13 @@ class TestTheCadenceOnTheHomePage:
 
     def test_the_row_says_both_cadences(self, client):
         page = client.get("/settings/").get_data(as_text=True)
-        assert "Calendars every hour · daily message at 06:00" in page
+        assert "Calendars every hour · daily headline at 06:00" in page
         assert 'href="/settings/refresh"' in page
 
     def test_it_follows_what_was_saved(self, client):
         client.post("/settings/refresh", data={"refresh_minutes": "1440", "brief_time": "07:30"})
         page = client.get("/settings/").get_data(as_text=True)
-        assert "Calendars once a day · daily message at 07:30" in page
+        assert "Calendars once a day · daily headline at 07:30" in page
 
 
 CALENDAR_CONFIG = """\
@@ -919,7 +961,7 @@ class TestSavingACalendarForgetsWhatItFetched:
 
 
 class TestRefreshingTheCalendarsByHand:
-    """The cheap half of "Rewrite daily message": fetch the feeds, ask Claude nothing."""
+    """The cheap half of "Rewrite daily headline": fetch the feeds, ask Claude nothing."""
 
     @pytest.fixture
     def config_path(self, tmp_path):
@@ -957,7 +999,7 @@ class TestRefreshingTheCalendarsByHand:
         assert "Refresh calendars" not in page
         assert "Add a calendar" in page
         assert 'href="/settings/calendars/new"' in page
-        assert "Rewrite daily message" in page and "View dashboard" in page
+        assert "Rewrite daily headline" in page and "View dashboard" in page
 
     def test_it_reports_what_it_found(self, client, refreshed):
         page = client.post("/settings/refresh-now", follow_redirects=True)

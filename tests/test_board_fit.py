@@ -55,7 +55,6 @@ def view(events, tomorrow, headline, clock="24h", theme="light", countdowns=None
             {"days": 40, "emoji": "☀️", "title": "Summer holidays"},
         ],
         "state": "ready",
-        "set_up": True,
         "overdue": False,
         "stale": False,
         "reload_seconds": 300,

@@ -288,7 +288,7 @@ class TestTheDashboardsOwnChrome:
 
 
 class TestTheCadenceLine:
-    """The settings home says when the daily message is written, in prose."""
+    """The settings home says when the daily headline is written, in prose."""
 
     @pytest.fixture
     def config_path(self, tmp_path):
@@ -301,7 +301,7 @@ class TestTheCadenceLine:
         return client_for(create_app(FileStore(config_path)))
 
     def test_the_prose_follows_the_setting(self, client):
-        assert "daily message at 6:00 am" in client.get("/settings/").get_data(as_text=True)
+        assert "daily headline at 6:00 am" in client.get("/settings/").get_data(as_text=True)
 
     def test_the_form_still_posts_the_wire_format(self, client):
         # `<input type="time">` takes "HH:MM" whatever the reader sees; it is

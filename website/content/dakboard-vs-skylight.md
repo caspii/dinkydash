@@ -38,7 +38,7 @@ Comparing the two best-known ways to put your family's calendar on a wall? Here'
 | **Runs on your own hardware** | The display does; the service does not | No | Self-hosted: yes, entirely. Hosted: runs on ours. |
 | **Chore chart** | Yes — on Essential and Plus, not free | Yes; rewards need Plus | Yes, free — rotates between kids automatically |
 | **Touchscreen** | Only if the screen you bring is one | Yes, built in | Only if the screen you bring is one |
-| **AI** | No | Magic Import on Plus — photograph a school newsletter, get events | A daily message written fresh each day |
+| **AI** | No | Magic Import on Plus — photograph a school newsletter, get events | A daily headline written fresh each day |
 | **Setup** | About ten minutes | Out of the box | Hosted: about five minutes. Self-hosted: an afternoon, and some comfort with a terminal. |
 
 *Prices checked 9 October 2026; the Raspberry Pi build is approximate and was last priced August 2026. Always confirm current pricing before buying.*
@@ -65,7 +65,7 @@ What you're paying for is that a family can walk up and tap it. No other option 
 
 ### DinkyDash — open source, free to self-host or $39 a year hosted
 
-DinkyDash turns any TV, tablet, Raspberry Pi or spare monitor into a family calendar: today's events, a chore chart that rotates between kids automatically, countdowns to birthdays and holidays, and a daily message written by AI each day around the family's actual day.
+DinkyDash turns any TV, tablet, Raspberry Pi or spare monitor into a family calendar: today's events, a chore chart that rotates between kids automatically, countdowns to birthdays and holidays, and a daily headline written by AI each day around the family's actual day.
 
 It reads the calendars you already keep — **Google Calendar, Apple iCloud and Outlook** all publish a sharing link, and DinkyDash merges as many as you like into one agenda in time order. That's a link, not a login: it never signs in to your Google, Apple or Microsoft account, and it can only read. The [getting started guide](/getting-started/#find-your-calendar-link) has the steps for each of the three.
 
@@ -73,7 +73,7 @@ It reads the calendars you already keep — **Google Calendar, Apple iCloud and 
 
 It's MIT-licensed and free forever if you run it yourself — no paid tier, no screen limit. Your config, the names and the birthdays stay on your own machine. To be precise about the one thing that leaves: the day's agenda is sent to Anthropic once a day to write the headline, and that's the only outbound call besides fetching your calendars.
 
-The honest cost is time, not money. Setup is an afternoon and some copy-paste in a terminal — the [getting started guide](/getting-started/) has the commands. The only running cost is your own Anthropic key for the daily message, about **$0.13 a month**.
+The honest cost is time, not money. Setup is an afternoon and some copy-paste in a terminal — the [getting started guide](/getting-started/) has the commands. The only running cost is your own Anthropic key for the daily headline, about **$0.13 a month**.
 
 For the same dashboard without the terminal, [start a free 14-day hosted trial](https://app.dinkydash.co/login), with no card required. After that it's **$39 a year or $6 a month**, and nothing is charged unless you choose to subscribe.
 
@@ -133,7 +133,7 @@ A comparison that only flatters its own product isn't worth reading, so:
 
 **Skylight wins on "it's finished".** A touchscreen your family taps, a solid companion app, a support line, and a setup measured in minutes. If the real goal is that everybody sees the calendar and nobody has to be the household IT department, buying the problem away is a legitimate answer — and without Plus it's not even expensive over three years.
 
-**DinkyDash wins on cost, ownership and the daily message.** Free to self-host or $39 a year hosted, with a headline each day that neither of the others offers. It's the only one here you can read the source of, and the only one you can keep running yourself if we stop.
+**DinkyDash wins on cost, ownership and the daily headline.** Free to self-host or $39 a year hosted, with a headline each day that neither of the others offers. It's the only one here you can read the source of, and the only one you can keep running yourself if we stop.
 
 ## Which should you pick?
 

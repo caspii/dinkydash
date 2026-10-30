@@ -131,7 +131,7 @@ Relative links like `[CLAUDE.md](CLAUDE.md)` break once a document is in Linear.
   validates again. Calendar fetches use direct connections because an environment proxy could
   resolve the hostname elsewhere. `tests/test_feed_transport.py` exercises this with changing DNS
   answers and real TLS on an isolated local server.
-- **Calendar contents leave the machine.** They go to Anthropic to write the daily line. A fair
+- **Calendar contents leave the machine.** They go to Anthropic to write the daily headline. A fair
   trade, and it *is* said now (DIN-44): in `website/content/privacy.md`, in the sub-processor list
   on it, on `/settings/account`, and — the one that matters — in the blurb beside the field where
   somebody pastes a calendar link. **Those pages are claims about what this code does.** A retention
@@ -162,8 +162,11 @@ mode is a different product on the same code.
 - **The operator's page is behind a list of addresses, and a miss is a 404.** `/admin` (DIN-37)
   shows signups and activations by week and the newest accounts, and only to a signed-in account
   whose address is in `DINKYDASH_ADMIN_EMAILS`. Anybody else gets the same answer as a URL that does
-  not exist, and an unset list means nobody. The counts read `growth_by_day` — a date and two
-  counts, kept by a trigger on `families` and surviving deletion the way `global_model_spend` does —
+  not exist, and an unset list means nobody. The counts read `growth_by_day` — a date and three
+  counts (signups, calendars, activations), kept by triggers on `families` and `screen_sizes` and
+  surviving deletion the way `global_model_spend` does. **An activation is a screen keeping the
+  dashboard up long enough to refresh it**, on something bigger than a phone, not a saved calendar
+  link (migration 011) —
   one bare `count(*)`, and a count of paying families: lifecycle `status` and Stripe
   `subscription_status` both `active`, split by the stored plan interval. That paying count is
   still an aggregate. It reads no address and no config, and the page does not call Stripe. The
@@ -521,7 +524,7 @@ how to check a countdown or a quiet day. It still costs one API call. To exercis
 call at all, run `python sample_board.py`, which writes a plausible payload for today and calls no
 API. It refuses to overwrite a real one, so delete `dashboard_data.json` first if that is what you
 want. Then edit the file by hand — change `generated_for_date` to an older date to see the stale
-state, or move it aside entirely to see the first-run screen.
+state, or move it aside entirely to see the dashboard before its first brief.
 
 **Local data in a new workspace.** `config.yaml`, `dashboard_data.json` and `content_history.json`
 are gitignored, so a new Conductor workspace only receives them through Files to copy, which reads

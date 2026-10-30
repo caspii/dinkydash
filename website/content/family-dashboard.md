@@ -12,13 +12,13 @@ It's a dashboard for a small screen somewhere your family walks past — the kit
 
 Worth being precise about, because most of the dashboard isn't AI at all.
 
-Claude writes **one thing**: the headline. That's the daily message, and it's written around your family's real day. Everything else works itself out from the date:
+Claude writes **one thing**: the daily headline, written around your family's real day. Everything else works itself out from the date:
 
 - **The countdowns** recalculate every time the page loads, so they can't drift.
 - **The chore rota** moves to the next person when the date changes. Nothing to tick.
 - **The agenda** comes straight from your calendars, merged into one list in time order.
 
-That split is the whole trick. If the daily message fails to write one day, the times, turns and countdowns are still today's. The headline is one worked out from the day, and the dashboard says so.
+That split is the whole trick. If the daily headline fails to write one day, the times, turns and countdowns are still today's. The headline is one worked out from the day, and the dashboard says so.
 
 ## A Tuesday in November
 

@@ -221,11 +221,11 @@ The settings page adds a short `id` to each person, pet, chore, date and calenda
 
 Everything on the dashboard is editable at `/settings`. Two things worth knowing:
 
-- **A saved dashboard is from the last run.** Editing a chore or a person shows up on the next page load, but the headline is only rewritten once a day. Press **Rewrite daily message** on the settings home page to get fresh copy immediately. Each press is one API call.
+- **A saved dashboard is from the last run.** Editing a chore or a person shows up on the next page load, but the headline is only rewritten once a day. Press **Rewrite daily headline** on the settings home page to get fresh copy immediately. Each press is one API call.
 - **Adding a calendar checks the link.** Paste an iCal address and press **Test calendar link**. It tells you how many events it found and what the next one is, so you are not left guessing whether the URL works.
 - **A personal calendar can keep its private side.** Fill in **Only show events shared with** on that calendar, and only the events the other parent is on reach the dashboard. See [a personal calendar with work in it](#personal-calendar) above.
 
-The dashboard can be in one of three states: the normal dashboard, a first-run "waiting" screen before anything is generated, or a stale state after a failed or missing run. When the headline is late, the times, turns and countdowns are still today's. The headline is one worked out from the day, and the dashboard says so.
+The dashboard shows up straight away, before anything is generated: until the first headline's written, it uses one worked out from the day. After that it's either today's dashboard or a stale one after a failed or missing run. When the headline is late, the times, turns and countdowns are still today's. The headline is one worked out from the day, and the dashboard says so.
 
 ---
 
@@ -463,7 +463,7 @@ The old `lcd_rotate` and `display_rotate` lines in `config.txt` no longer apply 
 
 **"localhost refused to connect" at boot.** Chromium started before the dashboard was ready. The `run.sh` above waits up to 60 seconds; make sure your autostart calls it rather than launching Chromium directly.
 
-**The dashboard is a day behind.** A generation run failed. Look at `generate.log` in the project folder. The usual causes are an expired API key, no network at 6am, or a calendar link that stopped working. Fix it, then press **Rewrite daily message** on the settings page.
+**The dashboard is a day behind.** A generation run failed. Look at `generate.log` in the project folder. The usual causes are an expired API key, no network at 6am, or a calendar link that stopped working. Fix it, then press **Rewrite daily headline** on the settings page.
 
 **Times are off by an hour.** The timezone under Settings → Family & system is what the engine uses, not the machine clock. Set it even if the clock is already local.
 

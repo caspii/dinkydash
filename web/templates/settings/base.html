@@ -10,8 +10,11 @@
     <!-- Saved to a phone's home screen this opens like an app. The manifest is
          what Android reads; iOS ignores it and goes by the four lines below.
          A block, because the login page is behind no session and the manifest
-         is: fetching it there would only ever be a redirect. -->
-    {% block manifest %}<link rel="manifest" href="{{ url_for('settings.manifest') }}">{% endblock %}
+         is: fetching it there would only ever be a redirect. And
+         `use-credentials`, because a browser fetches a manifest without
+         cookies unless told otherwise — hosted, that request has no session
+         and gets the sign-in page instead of the manifest. -->
+    {% block manifest %}<link rel="manifest" href="{{ url_for('settings.manifest') }}" crossorigin="use-credentials">{% endblock %}
     {# For the rare page with a rule of its own. Everything shared belongs in
        the stylesheet below, not here. #}
     {% block head %}{% endblock %}
@@ -323,6 +326,10 @@
         .calendar-intro { font-size: 0.875rem; color: var(--text-mid); }
         .calendar-providers { display: flex; flex-wrap: wrap; gap: 0.5rem; }
         .calendar-providers .btn { flex: 1 1 auto; min-height: 2.75rem; height: auto; padding: 0.625rem; font-size: 0.8125rem; }
+        .calendar-google-note { display: flex; flex-direction: column; gap: 0.625rem; align-items: flex-start; }
+        /* Offered where Google's app is what a tap opens. A mouse means a computer,
+           where the steps are already in reach. */
+        @media (hover: hover) and (pointer: fine) { .phone-only { display: none; } }
         .calendar-help { margin-top: 0.375rem; }
         .calendar-help summary { cursor: pointer; font-weight: 800; padding: 0.25rem 0; }
         .calendar-help ol { padding-left: 1.125rem; margin-top: 0.5rem; }
