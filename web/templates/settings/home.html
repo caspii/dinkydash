@@ -43,7 +43,7 @@
    the bar also carries the one link there is to the operator's page;
    `tests/test_admin.py` asserts nobody else is shown it. #}
 <div class="identity">
-    <h1 style="padding-left:0.25rem;color:var(--accent);font-size:1.15rem;">DinkyDash</h1>
+    <h1 class="wordmark">DinkyDash</h1>
     {% if address %}<div class="who">{{ address }}</div>{% endif %}
 </div>
 {% if admin %}<a class="action muted" href="{{ url_for('admin.growth_page') }}">View admin</a>{% endif %}
@@ -80,7 +80,7 @@
    the page and the tick cannot disagree. Nothing to dismiss and nothing
    remembered: it leaves on its own. #}
 <div class="card pad" style="display:flex;flex-direction:column;gap:0.1875rem;">
-    <div style="font-size:1.125rem;font-weight:800;">Set up your dashboard</div>
+    <div class="card-title">Set up your dashboard</div>
     <div class="hint">
         Three steps, then a screen to put it on. The dashboard writes itself as soon as
         the first two are done.
@@ -153,7 +153,7 @@
 {% else %}
 <div class="card pad" style="display:flex;flex-direction:column;gap:0.875rem;">
     <div>
-        <div style="font-size:1.125rem;font-weight:800;">{{ config.family_name or "Your dashboard" }}</div>
+        <div class="card-title">{{ config.family_name or "Your dashboard" }}</div>
         <div style="display:flex;align-items:center;gap:0.4375rem;margin-top:0.1875rem;">
             <span class="dot {{ status.state }}"></span>
             <span style="font-size:0.8125rem;color:var(--text-mid);">{{ status.detail }}</span>

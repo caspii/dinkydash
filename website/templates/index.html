@@ -71,6 +71,7 @@
     .hero {
         padding: 56px 0;
         text-align: center;
+        background: radial-gradient(55% 60% at 50% 0%, rgba(232, 93, 36, 0.07), transparent 70%);
     }
     .hero-copy { max-width: 720px; margin: 0 auto; }
     .hero-pill {
@@ -84,6 +85,7 @@
         font-size: 0.82rem;
         font-weight: 700;
         margin-bottom: 20px;
+        box-shadow: inset 0 0 0 1px rgba(232, 93, 36, 0.14);
     }
     .hero-pill .dot {
         width: 7px; height: 7px;
@@ -91,19 +93,21 @@
         background: var(--accent);
     }
     .hero h1 {
+        font-family: var(--display);
         font-size: clamp(2.1rem, 4.5vw, 3rem);
-        font-weight: 800;
-        letter-spacing: -0.03em;
+        font-weight: 700;
+        letter-spacing: -0.035em;
+        text-wrap: balance;
         line-height: 1.12;
         margin-bottom: 18px;
         color: var(--text);
     }
     .hero .subtitle {
-        font-size: 1.1rem;
+        font-size: 1.12rem;
         color: var(--text-mid);
         margin: 0 auto 26px;
-        line-height: 1.7;
-        max-width: 600px;
+        line-height: 1.6;
+        max-width: 34em;
     }
     .hero-buttons {
         display: flex;
@@ -155,7 +159,8 @@
     .hero-board {
         margin: 40px auto 0;
         border: 10px solid #23201c;
-        box-shadow: 0 22px 54px rgba(45, 35, 25, 0.2);
+        border-radius: 18px;
+        box-shadow: var(--lift-lg);
     }
     .hero .shot-caption { text-align: center; }
 
@@ -172,7 +177,7 @@
     .shot {
         border-radius: var(--radius);
         overflow: hidden;
-        box-shadow: 0 18px 44px rgba(45, 35, 25, 0.16);
+        box-shadow: var(--lift-lg);
         background: var(--surface);
     }
     .shot img { display: block; width: 100%; height: auto; }
@@ -191,19 +196,21 @@
     .band {
         margin-top: 72px;
         padding: 64px 0;
-        background: var(--surface-warm);
-        border-top: 1px solid var(--border);
-        border-bottom: 1px solid var(--border);
+        background: linear-gradient(180deg, #fff4ea 0%, #fff8f2 100%);
+        border-top: 1px solid var(--hair);
+        border-bottom: 1px solid var(--hair);
     }
     .band.how { margin-top: 0; }   /* the hero's bottom padding is the gap */
 
     /* SHARED SECTION FURNITURE */
     .section-head h2 {
+        font-family: var(--display);
         font-size: 2rem;
-        font-weight: 800;
+        font-weight: 700;
+        text-wrap: balance;
         text-align: center;
         margin-bottom: 12px;
-        letter-spacing: -0.02em;
+        letter-spacing: -0.03em;
     }
     .section-head > p {
         text-align: center;
@@ -274,10 +281,11 @@
         gap: 20px;
     }
     .card {
-        background: var(--surface);
+        background: var(--card-fill);
         border-radius: var(--radius);
         padding: 28px;
-        border: 1px solid var(--border);
+        border: 1px solid var(--hair);
+        box-shadow: var(--sheen), var(--lift-md);
     }
     .card h3 { font-size: 1rem; font-weight: 800; margin-bottom: 6px; }
     /* The failure the card survives, above the heading that survives it.
@@ -286,9 +294,9 @@
     .card .failure {
         display: block;
         font-size: 0.74rem;
-        font-weight: 800;
+        font-weight: 700;
         text-transform: uppercase;
-        letter-spacing: 0.07em;
+        letter-spacing: 0.14em;
         color: var(--text-muted);
         margin-bottom: 8px;
     }
@@ -320,16 +328,18 @@
         gap: 20px;
     }
     .sample-card {
-        background: var(--surface);
-        border: 1px solid var(--border);
+        background: var(--card-fill);
+        border: 1px solid var(--hair);
+        box-shadow: var(--sheen), var(--lift-md);
         border-left: 4px solid var(--accent);
         border-radius: var(--radius);
         padding: 24px;
     }
     .sample-headline {
+        font-family: var(--display);
         font-size: 1.05rem;
-        font-weight: 800;
-        letter-spacing: -0.01em;
+        font-weight: 650;
+        letter-spacing: -0.015em;
         margin-bottom: 8px;
         line-height: 1.35;
     }
@@ -338,9 +348,9 @@
         display: block;
         margin-top: 12px;
         font-size: 0.72rem;
-        font-weight: 800;
+        font-weight: 700;
         text-transform: uppercase;
-        letter-spacing: 0.08em;
+        letter-spacing: 0.14em;
         color: var(--text-muted);
     }
 
@@ -360,8 +370,9 @@
         gap: 16px;
     }
     .screen-tile {
-        background: var(--surface);
-        border: 1px solid var(--border);
+        background: var(--card-fill);
+        border: 1px solid var(--hair);
+        box-shadow: var(--sheen), var(--lift-md);
         border-radius: var(--radius);
         padding: 22px 20px;
     }
@@ -384,22 +395,24 @@
         margin: 0 auto;
     }
     .tier {
-        background: var(--surface);
-        border: 1px solid var(--border);
+        background: var(--card-fill);
+        border: 1px solid var(--hair);
+        box-shadow: var(--sheen), var(--lift-md);
         border-radius: var(--radius);
         padding: 32px 28px;
         display: flex;
         flex-direction: column;
     }
     .tier.featured {
-        border: 2px solid var(--accent);
-        background: var(--accent-soft);
+        border: 1px solid rgba(232, 93, 36, 0.35);
+        background: linear-gradient(180deg, #fff6ef 0%, #ffeee2 100%);
+        box-shadow: var(--sheen), 0 0 0 4px rgba(232, 93, 36, 0.06), var(--lift-lg);
     }
     .tier-label {
         font-size: 0.72rem;
-        font-weight: 800;
+        font-weight: 700;
         text-transform: uppercase;
-        letter-spacing: 0.08em;
+        letter-spacing: 0.14em;
         color: var(--text-muted);
         margin-bottom: 10px;
     }
@@ -407,9 +420,10 @@
     /* Three words carry the whole distinction, so they are sized to be the
        first thing read in the card — above the number, not under it. */
     .tier h3 {
+        font-family: var(--display);
         font-size: clamp(1.75rem, 3.6vw, 2.3rem);
-        font-weight: 800;
-        letter-spacing: -0.03em;
+        font-weight: 700;
+        letter-spacing: -0.035em;
         line-height: 1.08;
         margin-bottom: 12px;
         color: var(--text);
@@ -456,16 +470,18 @@
 
     /* FAQ */
     .faq h2 {
+        font-family: var(--display);
         font-size: 2rem;
-        font-weight: 800;
+        font-weight: 700;
         text-align: center;
         margin-bottom: 36px;
         letter-spacing: -0.02em;
     }
     .faq-list { max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; gap: 10px; }
     .faq-list details {
-        background: var(--surface);
-        border: 1px solid var(--border);
+        background: var(--card-fill);
+        border: 1px solid var(--hair);
+        box-shadow: var(--sheen), var(--lift-sm);
         border-radius: 12px;
         padding: 16px 20px;
     }
@@ -535,7 +551,7 @@
 
     /* CTA */
     .cta { text-align: center; }
-    .cta h2 { font-size: 1.8rem; font-weight: 800; margin-bottom: 12px; letter-spacing: -0.02em; }
+    .cta h2 { font-family: var(--display); font-size: 1.8rem; font-weight: 700; margin-bottom: 12px; letter-spacing: -0.03em; text-wrap: balance; }
     .cta p { color: var(--text-mid); max-width: 480px; margin: 0 auto 28px; font-size: 1rem; }
     .cta-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-bottom: 16px; }
     .cta-note { font-size: 0.85rem; color: var(--text-muted); }

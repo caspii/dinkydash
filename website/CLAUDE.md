@@ -38,9 +38,10 @@ who drafts and checks, the checklist, and the tests in `tests/test_site.py` that
   rather than production even though Conductor reads its scripts from the main checkout. Keep
   writing the real address in Markdown — the file is the document a reader sees — and never a
   bare local port. `tests/test_site.py` checks every direction.
-- **Nunito lives here twice on purpose.** `website/static/fonts/` and `web/static/fonts/`
-  are separate deployables, so editing one means editing both. The site's copy carries the
-  italic pair as well; the dashboard's does not, because the dashboard never sets italic.
+- **Nunito and Inter live here twice on purpose.** `website/static/fonts/` and
+  `web/static/fonts/` are separate deployables, so editing one means editing both. The site's
+  copy carries Nunito's italic pair as well; the dashboard's does not, because the dashboard
+  never sets italic. Inter is the headings (`--display` in `base.html`); body copy stays Nunito.
 
 ## The per-provider calendar guides
 
