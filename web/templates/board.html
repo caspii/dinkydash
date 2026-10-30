@@ -40,13 +40,25 @@
     <meta name="apple-mobile-web-app-title" content="{{ view.family_name or 'DinkyDash' }}">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
-    <meta name="theme-color" content="{{ '#17120f' if view.theme == 'dark' else '#ffffff' }}">
+    <meta name="theme-color" content="{{ '#17120f' if view.theme == 'dark' else '#fdf8f2' }}">
     {% include "_fonts.html" %}
     <style>
         /* Light is the default palette; dark redefines the same tokens so every
            rule below is written once. */
         :root {
-            --bg: #ffffff;
+            --bg: #fdf8f2;
+            /* Depth comes from gradients and shadows only. No blur and no
+               filter: a Pi paints each of these once and then leaves it. */
+            --page: radial-gradient(130% 70% at 50% -10%, #fffefb 0%, #fdf8f2 60%, #faf3ea 100%);
+            --card: linear-gradient(180deg, #ffffff 0%, #fffbf7 100%);
+            --card-edge: rgba(74, 48, 28, 0.08);
+            --card-lift: inset 0 1px 0 rgba(255, 255, 255, 0.85),
+                         0 1px 2px rgba(74, 48, 28, 0.05),
+                         0 4px 10px -2px rgba(74, 48, 28, 0.07),
+                         0 14px 32px -10px rgba(74, 48, 28, 0.12);
+            --chore-sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0));
+            --chore-1-edge: inset 0 0 0 1px rgba(180, 67, 20, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 1px 2px rgba(74, 48, 28, 0.06);
+            --chore-2-edge: inset 0 0 0 1px rgba(107, 79, 168, 0.13), inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 1px 2px rgba(74, 48, 28, 0.06);
             --box: #fff5ec;
             --text: #2d2319;
             --text-mid: #5c4a3a;
@@ -68,6 +80,15 @@
 
         [data-theme="dark"] {
             --bg: #17120f;
+            --page: radial-gradient(130% 70% at 50% -10%, #1f1814 0%, #17120f 60%, #130f0c 100%);
+            --card: linear-gradient(180deg, #2a211b 0%, #231b16 100%);
+            --card-edge: rgba(255, 255, 255, 0.06);
+            --card-lift: inset 0 1px 0 rgba(255, 255, 255, 0.05),
+                         0 1px 2px rgba(0, 0, 0, 0.3),
+                         0 14px 32px -10px rgba(0, 0, 0, 0.5);
+            --chore-sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0));
+            --chore-1-edge: inset 0 0 0 1px rgba(255, 122, 69, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            --chore-2-edge: inset 0 0 0 1px rgba(157, 125, 222, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05);
             --box: #241c17;
             --text: #f6efe7;
             --text-mid: #cbb9a7;
@@ -110,12 +131,16 @@
         body {
             font-family: 'Nunito', system-ui, -apple-system, sans-serif;
             background: var(--bg);
+            background-image: var(--page);
             color: var(--text);
             height: 100vh;
             display: flex;
             flex-direction: column;
             overflow: hidden;
             -webkit-font-smoothing: antialiased;
+            /* Never draw a weight or a slant the font files do not have. */
+            font-synthesis: none;
+            font-kerning: normal;
         }
 
         .board {
@@ -157,18 +182,28 @@
         .head > * + * { margin-left: 1rem; }
         .family {
             font-size: 0.95rem;
-            font-weight: 800;
+            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.09em;
+            letter-spacing: 0.14em;
             color: var(--accent);
         }
         .date { font-size: 1.1rem; font-weight: 700; color: var(--text-muted); }
+        /* Numbers are set in the headline's face, Inter, with equal-width
+           digits, so a column of times lines up and a countdown does not
+           shift sideways when its number changes. Words stay in Nunito. */
+        .date, .event-time, .countdown strong {
+            font-family: 'Inter', 'Nunito', system-ui, -apple-system, sans-serif;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: -0.02em;
+        }
 
         .headline {
+            font-family: 'Inter', 'Nunito', system-ui, -apple-system, sans-serif;
             font-size: 2.35rem;
-            font-weight: 800;
-            line-height: 1.14;
-            letter-spacing: -0.02em;
+            font-weight: 700;
+            line-height: 1.12;
+            letter-spacing: -0.03em;
+            text-wrap: balance;
             flex-shrink: 0;
             overflow-wrap: break-word;
         }
@@ -199,8 +234,8 @@
                    so a browser that only has the alias still separates the
                    columns, and a browser that has both does not add them.
                    The stacked margin above would drop the side column. */
-                grid-column-gap: 2.2rem;
-                column-gap: 2.2rem;
+                grid-column-gap: 1.8rem;
+                column-gap: 1.8rem;
                 align-items: stretch;
             }
             .body > * + * { margin-top: 0; }
@@ -211,7 +246,7 @@
                A class, because :has() is not available in the oldest browser
                that still lays this page out. */
             .body.day-empty {
-                grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr);
+                grid-template-columns: minmax(0, 1fr) minmax(0, 1.8fr);
             }
         }
 
@@ -221,9 +256,9 @@
                11px. 12px is the smallest that still reads as a label across
                a room; the rem size wins once the root is large enough. */
             font-size: max(0.82rem, 12px);
-            font-weight: 800;
+            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.1em;
+            letter-spacing: 0.14em;
             color: var(--text-muted);
             margin-bottom: 0.65rem;
             flex-shrink: 0;
@@ -241,7 +276,7 @@
         .event > * + * { margin-left: 0.9rem; }
         .event-time {
             font-size: 1.9rem;
-            font-weight: 800;
+            font-weight: 700;
             line-height: 1.2;
             color: var(--accent);
             width: var(--time-column);
@@ -259,7 +294,7 @@
             min-width: 0;
             overflow-wrap: break-word;
         }
-        .event-where { color: var(--text-muted); font-weight: 600; }
+        .event-where { color: var(--text-muted); font-weight: 500; }
         /* A wrapped address is several lines. On a short panel it goes even
            when the rest of the day fits; the script hides every address, and
            then tomorrow, only once the readable floor still overflows. */
@@ -296,7 +331,9 @@
         .tomorrow .event-title { font-size: 1.28rem; color: var(--text-mid); }
 
         .empty {
-            background: var(--box);
+            background: var(--card);
+            border: 1px solid var(--card-edge);
+            box-shadow: var(--card-lift);
             border-radius: 1rem;
             padding: 1.4rem 1.6rem;
             display: flex;
@@ -310,11 +347,18 @@
         .empty-head { font-size: 1.7rem; font-weight: 800; color: var(--text-mid); overflow-wrap: break-word; }
         .empty-sub { font-size: 1.15rem; color: var(--text-muted); }
 
+        /* The side column is a raised card. Its padding is room the fit
+           script takes into account like any other length. */
         .side {
             display: flex;
             flex-direction: column;
             justify-content: space-between;
             flex: 1 1 auto;
+            background: var(--card);
+            border: 1px solid var(--card-edge);
+            border-radius: 1.25rem;
+            box-shadow: var(--card-lift);
+            padding: 0.95rem 1.05rem;
         }
         .side > * + * { margin-top: 1.35rem; }
 
@@ -330,10 +374,15 @@
             font-weight: 800;
             line-height: 1.25;
             overflow-wrap: break-word;
-            background: var(--chore-1-bg);
+            background: var(--chore-sheen), var(--chore-1-bg);
+            box-shadow: var(--chore-1-edge);
             color: var(--chore-1-fg);
         }
-        .chore:nth-child(even) { background: var(--chore-2-bg); color: var(--chore-2-fg); }
+        .chore:nth-child(even) {
+            background: var(--chore-sheen), var(--chore-2-bg);
+            box-shadow: var(--chore-2-edge);
+            color: var(--chore-2-fg);
+        }
         .chore-emoji { font-size: 1.6rem; flex-shrink: 0; margin-right: 0.6rem; }
 
         .countdowns { display: flex; flex-direction: column; }
@@ -343,7 +392,7 @@
             align-items: flex-start;
             font-size: 1.4rem;
             line-height: 1.25;
-            color: var(--text-mid);
+            color: var(--text-muted);
             min-width: 0;
         }
         .countdown > * + * { margin-left: 0.7rem; }
@@ -355,7 +404,7 @@
                keeps the ordinary wrap. */
             text-wrap: balance;
         }
-        .countdown strong { color: var(--text); font-weight: 800; }
+        .countdown strong { color: var(--text); font-weight: 650; }
         .countdown.today strong { color: var(--accent); }
         .countdown-emoji { font-size: 1.55rem; flex-shrink: 0; line-height: 1.15; }
 
@@ -371,7 +420,7 @@
         }
         .waiting > * + * { margin-top: 1.4rem; }
         .waiting .family { font-size: 1.1rem; }
-        .waiting-head { font-size: 2.4rem; font-weight: 800; letter-spacing: -0.02em; }
+        .waiting-head { font-family: 'Inter', 'Nunito', system-ui, sans-serif; font-size: 2.4rem; font-weight: 700; letter-spacing: -0.03em; }
         .waiting-sub { font-size: 1.05rem; color: var(--text-mid); max-width: 32rem; line-height: 1.6; }
         .bar { width: 20rem; height: 0.4rem; border-radius: 999px; background: var(--box); overflow: hidden; }
         .bar span { display: block; width: 40%; height: 100%; border-radius: 999px; background: var(--accent); }
@@ -437,7 +486,7 @@
             .offline { gap: 0.7rem; }
             .offline::before { margin-right: 0; }
             @media (min-aspect-ratio: 5/4) and (min-width: 640px) {
-                .body { column-gap: 2.2rem; }
+                .body { column-gap: 1.8rem; }
             }
         }
     </style>
@@ -695,7 +744,7 @@
 
     fit();
     window.addEventListener("resize", fit);
-    /* Nunito arrives after the first paint and sets taller lines than the
+    /* Nunito and Inter arrive after the first paint and set taller lines than the
        fallback, so a size measured before it lands can overflow once it swaps
        in — measured at 557px of content in a 480px panel. Re-fit when it does. */
     if (document.fonts && document.fonts.ready) { document.fonts.ready.then(fit); }

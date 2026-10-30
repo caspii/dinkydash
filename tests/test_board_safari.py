@@ -164,8 +164,8 @@ class TestTheDashboard:
         # The landscape switch is the old media feature, and the gutter is
         # named both ways so an alias-only grid still separates the columns.
         assert "@media (min-aspect-ratio: 5/4) and (min-width: 640px)" in css
-        assert "grid-column-gap: 2.2rem;" in css
-        assert "column-gap: 2.2rem;" in css
+        assert "grid-column-gap: 1.8rem;" in css
+        assert "column-gap: 1.8rem;" in css
         # Each flex gap has a margin of the same length outside @supports.
         for fallback in (
             ".board > * + * { margin-top: 1rem; }",

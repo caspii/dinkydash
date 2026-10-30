@@ -281,7 +281,23 @@ the dashboard. The files are byte-for-byte what Google was serving, so the metri
 changed is that a screen at `/s/<token>` no longer tells Google that URL, and a Pi with no internet
 renders the same dashboard rather than falling back to a system font.
 
-It re-fits on `document.fonts.ready` as well as on resize, and that is not optional. Nunito arrives
+**Inter sets the headlines**, from the same folder and preloaded the same way:
+`inter-latin.woff2` and `inter-latin-ext.woff2`, cut down from the published variable font to
+weights 500-800 with the optical-size axis kept, so a large heading draws Inter's tighter display
+cut. It is the dashboard's headline and waiting screen; in settings, the app bar title,
+`.card-title` and dialog headings. Large Inter wants negative tracking (about -0.03em at headline
+sizes, less as it gets smaller). The `DinkyDash` wordmark stays in Nunito (`h1.wordmark`), as the
+site's nav does. Body text, times, chores and countdowns are Nunito. Cutting it again needs
+`fonttools`, which is a tool run once on a laptop, not a dependency:
+`instantiateVariableFont(font, {"wght": (500, 800)})`.
+
+**Depth is gradients and shadows, never blur, on the dashboard.** The page is a faint radial
+gradient, the side column and the empty-day box are raised cards (`--card`, `--card-edge`,
+`--card-lift`), and the chore pills carry a sheen and an inset edge. Every one of them is a token
+with a dark value beside the light one. A Pi paints a gradient or a shadow once and leaves it;
+`backdrop-filter` it repaints, which is why only the settings app bar and the site's nav use it.
+
+It re-fits on `document.fonts.ready` as well as on resize, and that is not optional. Nunito and Inter arrive
 after the first paint and sets taller lines than the system fallback, so a size measured before it
 lands can overflow once it swaps in — measured at 557px of content in a 480px panel. The dashboard only
 looks right because it re-measures when the font arrives.
@@ -327,7 +343,9 @@ height left under the headline. The breakpoint is `min-aspect-ratio: 5/4` and `m
 640px`, so a 4:3 landscape tablet stays in two columns and a portrait tablet stacks the
 side column under the agenda. An empty today puts `day-empty` on `.body` — a class, because
 `:has()` is not in the oldest browser this page still lays out in — and that row gives the
-side column the wider share (`1fr` / `1.35fr`), which is what keeps a countdown on one line.
+side column the wider share (`1fr` / `1.8fr`), which is what keeps a countdown on one line
+inside the side card's padding. The columns are `1.8rem` apart rather than wider because the
+card's own edge separates them.
 The empty box is `flex: 0 0 auto`, the height of its words, so tomorrow sits under it. Stacked, each column's flex basis is its content height and
 leftover space is shared — a zero basis would split that page by ratio and let the side
 column shrink shorter than its text. There is no note on the dashboard. Long event titles,

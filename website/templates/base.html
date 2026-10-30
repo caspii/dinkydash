@@ -40,6 +40,19 @@
             --blue: #3b82f6;
             --green: #16a34a;
             --radius: 16px;
+            /* Depth, shared with the app: warm-brown shadows layered as a tight
+               edge under a soft lift, and a light line along the top edge. */
+            --page: radial-gradient(130% 70% at 50% -10%, #fffefb 0%, #fdf8f2 60%, #faf3ea 100%);
+            --card-fill: linear-gradient(180deg, #ffffff 0%, #fffbf7 100%);
+            --hair: rgba(74, 48, 28, 0.08);
+            --sheen: inset 0 1px 0 rgba(255, 255, 255, 0.85);
+            --lift-sm: 0 1px 1px rgba(74, 48, 28, 0.04), 0 1px 3px rgba(74, 48, 28, 0.06);
+            --lift-md: 0 1px 2px rgba(74, 48, 28, 0.05), 0 4px 10px -2px rgba(74, 48, 28, 0.07), 0 14px 32px -10px rgba(74, 48, 28, 0.12);
+            --lift-lg: 0 2px 4px rgba(74, 48, 28, 0.05), 0 12px 24px -6px rgba(74, 48, 28, 0.10), 0 32px 64px -16px rgba(74, 48, 28, 0.18);
+            --accent-fill: linear-gradient(180deg, #ef6a30 0%, #e0561d 100%);
+            --accent-fill-hover: linear-gradient(180deg, #e45f26 0%, #d04c16 100%);
+            --accent-lift: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 1px 2px rgba(180, 67, 20, 0.2), 0 4px 12px -4px rgba(232, 93, 36, 0.4);
+            --display: 'Inter', 'Nunito', system-ui, -apple-system, sans-serif;
         }
 
         /* Marketing pages read a touch small on a desktop browser, so the
@@ -50,10 +63,19 @@
         body {
             font-family: 'Nunito', system-ui, -apple-system, sans-serif;
             background: var(--bg);
+            background-image: var(--page);
+            background-attachment: fixed;
             color: var(--text);
             line-height: 1.65;
             -webkit-font-smoothing: antialiased;
+            /* Never draw a weight or a slant the font files do not have:
+               Nunito's italic is real, and Inter has none. */
+            font-synthesis: none;
+            font-kerning: normal;
         }
+        /* Headings split into even lines; running text avoids a lone last word. */
+        h1, h2, h3 { text-wrap: balance; }
+        p, li { text-wrap: pretty; }
 
         a { color: var(--accent); text-decoration: none; }
         a:hover { text-decoration: underline; }
@@ -69,10 +91,10 @@
             position: sticky;
             top: 0;
             z-index: 100;
-            background: rgba(255, 250, 245, 0.9);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--border);
+            background: rgba(253, 248, 242, 0.82);
+            backdrop-filter: saturate(1.4) blur(14px);
+            -webkit-backdrop-filter: saturate(1.4) blur(14px);
+            border-bottom: 1px solid var(--hair);
         }
         nav .container {
             display: flex;
@@ -129,7 +151,7 @@
             padding: 8px 16px;
             font-size: 0.85rem;
             border-radius: 10px;
-            box-shadow: none;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22);
             white-space: nowrap;
         }
         .btn.btn-nav:hover { box-shadow: 0 3px 12px rgba(232, 93, 36, 0.28); }
@@ -175,17 +197,20 @@
             margin: 0 auto;
         }
         .page-content h1 {
+            font-family: var(--display);
             font-size: 2.2rem;
-            font-weight: 800;
-            letter-spacing: -0.02em;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            text-wrap: balance;
             margin-bottom: 24px;
             color: var(--text);
             line-height: 1.2;
         }
         .page-content h2 {
+            font-family: var(--display);
             font-size: 1.4rem;
-            font-weight: 800;
-            letter-spacing: -0.01em;
+            font-weight: 700;
+            letter-spacing: -0.022em;
             margin-top: 40px;
             margin-bottom: 12px;
             color: var(--text);
@@ -206,6 +231,8 @@
             margin-bottom: 16px;
         }
         .page-content li { margin-bottom: 8px; }
+        /* A comfortable reading line, whatever the column allows. */
+        .page-content p, .page-content li { max-width: 66ch; }
         .page-content strong { color: var(--text); }
         .page-content code {
             font-size: 0.88em;
@@ -287,7 +314,7 @@
             align-items: center;
             gap: 8px;
             padding: 14px 28px;
-            background: var(--accent);
+            background: var(--accent-fill);
             color: #fff;
             border-radius: 12px;
             font-weight: 700;
@@ -297,16 +324,16 @@
             border: none;
             cursor: pointer;
             transition: transform 0.1s, box-shadow 0.15s;
-            box-shadow: 0 2px 8px rgba(232, 93, 36, 0.25);
+            box-shadow: var(--accent-lift);
         }
-        .btn:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(232, 93, 36, 0.3); text-decoration: none; color: #fff; }
+        .btn:hover { background: var(--accent-fill-hover); transform: translateY(-1px); box-shadow: var(--accent-lift), 0 10px 24px -8px rgba(232, 93, 36, 0.5); text-decoration: none; color: #fff; }
         .btn-outline {
-            background: transparent;
+            background: var(--card-fill);
             color: var(--text);
-            border: 2px solid var(--border);
-            box-shadow: none;
+            border: 1.5px solid rgba(74, 48, 28, 0.14);
+            box-shadow: var(--sheen), var(--lift-sm);
         }
-        .btn-outline:hover { border-color: var(--accent); color: var(--accent); box-shadow: none; }
+        .btn-outline:hover { background: #fff; border-color: var(--accent); color: var(--accent); box-shadow: var(--sheen), var(--lift-md); }
 
         /* MOBILE */
         .mobile-toggle {
