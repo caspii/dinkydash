@@ -69,29 +69,11 @@
        On a phone it shrinks to texture again, which is why the headline and
        the subhead state the mechanism rather than describe the picture. */
     .hero {
-        padding: 56px 0;
+        padding: 40px 0 56px;
         text-align: center;
         background: radial-gradient(55% 60% at 50% 0%, rgba(232, 93, 36, 0.07), transparent 70%);
     }
     .hero-copy { max-width: 720px; margin: 0 auto; }
-    .hero-pill {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 6px 18px;
-        background: var(--accent-soft);
-        color: var(--accent);
-        border-radius: 999px;
-        font-size: 0.82rem;
-        font-weight: 700;
-        margin-bottom: 20px;
-        box-shadow: inset 0 0 0 1px rgba(232, 93, 36, 0.14);
-    }
-    .hero-pill .dot {
-        width: 7px; height: 7px;
-        border-radius: 50%;
-        background: var(--accent);
-    }
     .hero h1 {
         font-family: var(--display);
         font-size: clamp(2.1rem, 4.5vw, 3rem);
@@ -117,9 +99,9 @@
         margin-bottom: 14px;
     }
     .hero-buttons .btn { padding: 16px 32px; font-size: 1rem; }
-    /* The price under the button rather than four sections down. The second
-       sentence is the permanence argument doing its real job: a reason to
-       press the one button, rather than a second button competing with it. */
+    /* The price under the button rather than four sections down, and the
+       self-hoster's way out beside it: one line, so the dashboard below
+       still starts in the first screen. */
     .price-line {
         max-width: 480px;
         margin: 0 auto;
@@ -128,36 +110,11 @@
         line-height: 1.6;
     }
     .price-line strong { color: var(--text); }
-    /* The self-hoster's release, early and small. A reader who wants it goes
-       looking; nobody else is asked to choose anything. */
-    .hero-alt {
-        margin-top: 14px;
-        font-size: 0.85rem;
-        color: var(--text-muted);
-    }
-    /* Small credibility strip. The site is a DR 11 stranger asking for an
-       email, so the few true things we can show are worth showing. */
-    .hero-proof {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 6px 14px;
-        margin-top: 20px;
-        font-size: 0.78rem;
-        color: var(--text-muted);
-        font-weight: 700;
-    }
-    .hero-proof span::after {
-        content: "\00b7";
-        margin-left: 14px;
-        color: var(--border);
-    }
-    .hero-proof span:last-child::after { content: ""; margin: 0; }
     /* The dashboard's own background is white on the site's off-white, so with
        no edge the screenshot dissolves into the page. The bezel is the edge,
        and it says "a screen" without a room around it. */
     .hero-board {
-        margin: 40px auto 0;
+        margin: 32px auto 0;
         border: 10px solid #23201c;
         border-radius: 18px;
         box-shadow: var(--lift-lg);
@@ -568,11 +525,11 @@
         .tiers { grid-template-columns: 1fr; max-width: 440px; }
         .tier.featured { order: -1; }
         .screens-photos { grid-template-columns: 1fr; }
-        .hero { padding: 36px 0 44px; }
+        .hero { padding: 28px 0 44px; }
         .hero h1 { font-size: 1.95rem; margin-bottom: 14px; }
         .hero .subtitle { font-size: 1rem; margin-bottom: 22px; }
         .hero-buttons .btn { width: 100%; justify-content: center; }
-        .hero-board { margin-top: 32px; border-width: 6px; }
+        .hero-board { margin-top: 28px; border-width: 6px; }
     }
     @media (max-width: 480px) {
         .screens-grid { grid-template-columns: 1fr; }
@@ -586,19 +543,12 @@
 <section class="hero">
     <div class="container">
         <div class="hero-copy">
-            <div class="hero-pill"><span class="dot"></span> On kitchen walls since 2021</div>
             <h1>A family calendar for the wall, on a screen you already own</h1>
             <p class="subtitle">Paste one calendar link and open your dashboard on any tablet, TV or spare monitor. It rebuilds itself every day, so there's nothing to keep up to date.</p>
             <div class="hero-buttons">
                 <a href="{{ app_url }}/login" class="btn">Start free &mdash; 14 days, no card</a>
             </div>
-            <p class="price-line"><strong>Then $39 a year</strong> or $6 a month, and nothing is charged unless you choose to subscribe. The code's public too, so you could always run the same dashboard yourself, free.</p>
-            <p class="hero-alt">Would you rather run it on your own machine? <a href="#for-makers">It's free and MIT-licensed &rarr;</a></p>
-            <div class="hero-proof">
-                <span>No card required</span>
-                <span>Any browser is the screen</span>
-                <span>Open source since 2021</span>
-            </div>
+            <p class="price-line"><strong>Then $39 a year</strong> or $6 a month. Or <a href="#for-makers">run it yourself, free &rarr;</a></p>
         </div>
         <figure class="shot hero-board">
             <img src="/images/family-dashboard-board.webp" width="1600" height="960" fetchpriority="high" decoding="async"
@@ -641,7 +591,7 @@
                 <p>Your dashboard has its own link. Open it in any browser &mdash; an old tablet, the TV, a monitor on the counter &mdash; and leave the screen on.</p>
             </li>
         </ol>
-        <p class="lede">It's a link, not a login: nothing to sign in to on the screen, and nothing to install on it. Once a day the dashboard rebuilds itself, at a time you pick. The agenda comes from your calendars. Whose turn it is, and the countdowns, are worked out from the date. The headline is the only part an AI writes.</p>
+        <p class="lede">There's no app to install and nothing to sign in to on the screen. Once a day the dashboard rebuilds itself, at a time you pick. The agenda comes from your calendars. Whose turn it is, and the countdowns, are worked out from the date. The headline is the only part an AI writes.</p>
         <p class="lede">There's no layout to build and no account to link on the wall. <strong>The dashboard has one layout, and it's already right.</strong></p>
     </div>
 </section>
@@ -897,7 +847,7 @@ python sample_board.py &amp;&amp; python app.py</code></pre>
         <div class="cta-buttons">
             <a href="{{ app_url }}/login" class="btn">Start free &mdash; 14 days, no card</a>
         </div>
-        <p class="cta-note">Then $39 a year or $6 a month, and nothing is charged unless you choose to subscribe. Already have an account? <a href="{{ app_url }}/login">Sign in</a>.</p>
+        <p class="cta-note">Then $39 a year or $6 a month. Already have an account? <a href="{{ app_url }}/login">Sign in</a>.</p>
     </div>
 </section>
 
