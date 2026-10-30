@@ -330,6 +330,42 @@ class TestTheme:
         assert view["theme"] == "light"
 
 
+class TestLocations:
+    ADDRESS = "1 High Street, London N1 1AA, UK"
+
+    def events(self):
+        return [
+            dict(event("2026-09-03", "08:20", "Dentist"), location=self.ADDRESS),
+            dict(event("2026-09-03", "10:00", "Parents' evening"),
+                 location="Main hall", calendar="School"),
+            dict(event("2026-09-04", "09:00", "Swimming"), location="Leisure centre"),
+        ]
+
+    def config(self, family_shows):
+        return dict(CONFIG, calendars=[
+            {"label": "Family", "url": "https://example.com/a.ics", "show_locations": family_shows},
+            {"label": "School", "url": "https://example.com/b.ics"},
+        ])
+
+    def test_shown_unless_the_calendar_says_otherwise(self):
+        view = build_view(self.config(True), payload("2026-09-03", self.events()), TODAY)
+        assert view["events"][0]["location"] == self.ADDRESS
+        view = build_view(CONFIG, payload("2026-09-03", self.events()), TODAY)
+        assert view["events"][0]["location"] == self.ADDRESS
+
+    def test_hidden_on_that_calendar_only_today_and_tomorrow(self):
+        view = build_view(self.config(False), payload("2026-09-03", self.events()), TODAY)
+        assert view["events"][0]["location"] is None
+        assert view["events"][0]["title"] == "Dentist"
+        assert view["events"][1]["location"] == "Main hall"
+        assert view["tomorrow"][0]["location"] is None
+
+    def test_the_payload_keeps_them(self):
+        stored = payload("2026-09-03", self.events())
+        build_view(self.config(False), stored, TODAY)
+        assert stored["events"][0]["location"] == self.ADDRESS
+
+
 class TestReloadInterval:
     """The dashboard reloads itself on a timer, derived from `refresh_minutes`.
 

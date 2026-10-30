@@ -896,6 +896,59 @@ class TestANewCalendarComesWithAName:
         assert 'name="label" value="School"' in page
 
 
+class TestAnExistingCalendar:
+    """A saved calendar with a link is edited, not set up, so the page says less."""
+
+    SAVED = ('calendars:\n  - id: sch12345\n    label: "School"\n'
+             '    url: "https://a.example/private-xxxx/a.ics"\n    enabled: true\n')
+
+    @pytest.fixture
+    def calendar_client(self, tmp_path):
+        path = tmp_path / "config.yaml"
+        path.write_text(self.SAVED)
+        return client_for(create_app(FileStore(path))), path
+
+    def test_a_new_calendar_shows_where_to_find_the_link(self, client):
+        page = client.get("/settings/calendars/new").get_data(as_text=True)
+        assert 'class="calendar-providers"' in page
+        assert "Where do I find my calendar link?" in page
+
+    def test_a_saved_one_drops_the_providers_and_the_instructions(self, calendar_client):
+        client, _ = calendar_client
+        page = client.get("/settings/calendars/sch12345").get_data(as_text=True)
+        assert 'class="calendar-providers"' not in page
+        assert "Where do I find my calendar link?" not in page
+        assert 'class="calendar-intro"' not in page
+
+    def test_a_failed_test_brings_the_instructions_back(self, calendar_client, monkeypatch):
+        from test_feed_safety import FakeResponse, resolves_to, serves
+
+        client, _ = calendar_client
+        resolves_to(monkeypatch, "1.1.1.1")
+        serves(monkeypatch, FakeResponse(status=404))
+        page = client.post("/settings/calendars/sch12345", data={
+            "action": "check", "label": "School", "url": "https://a.example/gone.ics",
+        }).get_data(as_text=True)
+        assert "Where do I find my calendar link?" in page
+
+    def test_locations_start_ticked_on_a_calendar_that_never_set_them(self, calendar_client):
+        client, _ = calendar_client
+        page = client.get("/settings/calendars/sch12345").get_data(as_text=True)
+        assert re.search(r'name="show_locations"\s+checked', page)
+
+    def test_unticking_locations_is_saved_on_that_calendar(self, calendar_client):
+        client, path = calendar_client
+        client.post("/settings/calendars/sch12345", data={
+            "label": "School", "url": "https://a.example/private-xxxx/a.ics", "enabled": "on"})
+        [saved] = config_module.load_config(path)["calendars"]
+        assert saved["show_locations"] is False
+        client.post("/settings/calendars/sch12345", data={
+            "label": "School", "url": "https://a.example/private-xxxx/a.ics",
+            "enabled": "on", "show_locations": "on"})
+        [saved] = config_module.load_config(path)["calendars"]
+        assert saved["show_locations"] is True
+
+
 class TestSavingACalendarForgetsWhatItFetched:
     """A guest list added after a fetch was never applied to what is stored.
 

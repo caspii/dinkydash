@@ -32,6 +32,7 @@ theme: light
 # dashboard: add `shared_with` with the other parent's email address, and only the
 # events with them on the guest list (or organised by them) get through. Use
 # the address on the invitation. Leave it out to show everything.
+# `show_locations: false` leaves a calendar's event addresses off the dashboard.
 calendars:
   - label: "Family"
     url: "https://calendar.google.com/calendar/ical/you%40gmail.com/private-xxxx/basic.ics"
