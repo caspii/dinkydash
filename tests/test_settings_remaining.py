@@ -47,7 +47,8 @@ def test_calendar_check_keeps_changed_drafts_protected_without_saving(household,
     config['calendars'] = [calendar]
     store.save_config(config)
     monkeypatch.setattr('web.routes.settings.check_feed', lambda *_: {'ok': True, 'message': 'Connected.'})
-    data = {'label': 'Family', 'url': calendar['url'], 'enabled': 'on', 'action': 'check'}
+    data = {'label': 'Family', 'url': calendar['url'], 'enabled': 'on', 'show_locations': 'on',
+            'action': 'check'}
     html = client.post('/settings/calendars/familyxx', data=data).get_data(as_text=True)
     assert 'data-dirty-guard=""' in html
     data['label'] = 'School'

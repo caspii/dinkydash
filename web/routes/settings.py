@@ -161,6 +161,8 @@ SECTIONS = {
              "calendar stays private. Use the address on the invitation. Leave it empty to "
              "show everything."),
             ("enabled", "Show on the dashboard", "checkbox", False, ""),
+            ("show_locations", "Show where each event is", "checkbox", False,
+             "Turn this off if the addresses take up too much room on the dashboard."),
         ],
     },
 }
@@ -488,12 +490,17 @@ def section_edit(section_name, item_id):
     if is_new:
         item = {}
         if section_name == "calendars":
-            item = {"enabled": True, "label": suggested_calendar_label(config)}
+            item = {"enabled": True, "show_locations": True,
+                    "label": suggested_calendar_label(config)}
         index = None
     else:
         index, item = config_module.find_item(items, item_id)
         if item is None:
             abort(404)
+        if section_name == "calendars" and "show_locations" not in item:
+            # Absent means shown, so the box starts ticked and the copy keeps
+            # the file as it was until somebody saves.
+            item = {**item, "show_locations": True}
 
     saved_item = dict(item)
     problems, checked = {}, None
@@ -563,6 +570,11 @@ def section_edit(section_name, item_id):
         draft_changed=any((item.get(name) or None) != (saved_item.get(name) or None)
                           for name, *_ in section["fields"]),
         removal=removal_prompt(config, section, saved_item) if not is_new else None,
+        # Where to find a link is for somebody who has not pasted one yet, or
+        # whose link has just failed. A working calendar does not need it.
+        link_help=section_name == "calendars" and (
+            is_new or not saved_item.get("url") or "url" in problems
+            or bool(checked and checked.get("link_help"))),
     )
 
 

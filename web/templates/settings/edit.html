@@ -17,7 +17,7 @@
 </div>
 {% endif %}
 
-{% if section_name == 'calendars' %}
+{% if link_help %}
 <p class="calendar-intro">Bring events onto your dashboard. Name the calendar, then copy its sharing link from your calendar provider.</p>
 {% endif %}
 
@@ -127,7 +127,7 @@
 
         {% if problems.get(name) %}<div class="field-error" id="error-{{ name }}">{{ problems[name] }}</div>{% endif %}
         {% if help %}<div class="hint" id="hint-{{ name }}">{{ help }}</div>{% endif %}
-        {% if section_name == 'calendars' and name == 'url' %}
+        {% if link_help and name == 'url' %}
             {% include "settings/_calendar_help.html" %}
         {% endif %}
     </{{ 'fieldset' if grouped else 'div' }}>

@@ -16,7 +16,7 @@ and nothing is wrong.
 
 from datetime import date, datetime, timedelta
 
-from .calendars import events_on
+from .calendars import events_on, feed_label
 from .clock import clock_of, format_time
 from .config import is_set_up
 from .context import build_countdowns, compute_chore_assignments
@@ -41,7 +41,7 @@ MAX_RELOAD_SECONDS = 300
 WAITING_RELOAD_SECONDS = 60
 
 
-def as_shown(events, clock):
+def as_shown(events, clock, hide_locations=()):
     """The same events, each time written the way this family reads it.
 
     Stored events carry `%H:%M` with the full ISO `start` beside it, so the
@@ -49,9 +49,14 @@ def as_shown(events, clock):
     change to the setting then shows on the next redraw instead of waiting for
     the next calendar refresh. Copies rather than mutates: the payload it reads
     from belongs to the caller.
+
+    An event from a calendar named in `hide_locations` loses its location, so
+    a hidden address is not in the page at all rather than in a hidden span.
     """
     shown = []
     for event in events:
+        if event.get("location") and event.get("calendar") in hide_locations:
+            event = {**event, "location": None}
         if event.get("all_day"):
             shown.append(event)
             continue
@@ -165,16 +170,20 @@ def build_view(config, payload, today, now=None):
 
     fetched = payload.get("events") or []
     clock = view["clock"]
+    # Per calendar, keyed on the label the fetch filed each event under. Read
+    # at display time, so the model still knows where things are.
+    hidden = {feed_label(c) for c in config.get("calendars") or []
+              if isinstance(c, dict) and c.get("show_locations") is False}
     # Rewritten before anything reads a time off them, so the computed headline
     # below is on the family's clock too.
-    events = as_shown(events_on(fetched, today)[:MAX_EVENTS], clock)
+    events = as_shown(events_on(fetched, today)[:MAX_EVENTS], clock, hidden)
     view["events"] = events
     # The fetch reaches 14 days ahead, so tomorrow is in the payload even when
     # it is a day old. Slots are what today did not use, which is why a busy
     # day silently drops tomorrow rather than overflowing the panel.
     slots = min(MAX_TOMORROW, MAX_EVENTS - len(events))
     view["tomorrow"] = as_shown(
-        events_on(fetched, today + timedelta(days=1))[:slots], clock) if slots else []
+        events_on(fetched, today + timedelta(days=1))[:slots], clock, hidden) if slots else []
 
     stale = payload.get("generated_for_date") != today.isoformat()
     view["stale"] = stale
