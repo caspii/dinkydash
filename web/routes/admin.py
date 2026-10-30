@@ -118,7 +118,8 @@ def growth_page():
     response = make_response(render_template(
         "admin/growth.html",
         weekly=weekly, latest=weekly[-1], span=weeks, spans=SPANS,
-        totals=total, families_now=families, paying=growth.paying(pool),
+        totals=total, calendars_added=growth.calendars_added(pool),
+        families_now=families, paying=growth.paying(pool),
         # Every signup since the counter began is either a family that still
         # exists or one that was deleted. Clamped, in case a family predates
         # the counter in a way the backfill could not see.

@@ -28,14 +28,21 @@ def status(config, payload):
     about a dashboard that does not exist. `ready` is when the screen step may be
     shown: the household is real and the timezone chosen, so a dashboard written
     now would be theirs.
+
+    `on_screen_first` is whether the screen step leads with the link or with the
+    calendar. A dashboard with no calendar on it is only chores and
+    countdowns, so until a calendar is on, the link sits behind a "no calendar"
+    choice the parent makes on purpose rather than being the obvious next step.
     """
     set_up = config_module.is_set_up(config)
     written = bool((payload or {}).get("generated_for_date"))
+    steps = [household(config), timezone(config), calendar(config)]
     return {
         "in_progress": not (set_up and written),
         "ready": set_up,
         "written": written,
-        "steps": [household(config), timezone(config), calendar(config)],
+        "on_screen_first": steps[2]["done"],
+        "steps": steps,
     }
 
 
@@ -55,13 +62,17 @@ def household(config):
         detail = names(people + pets)
     else:
         detail = "Nobody yet. Add the people whose birthdays and turns go on the dashboard."
+    # People and pets are two lists. When both still hold invented entries the
+    # row opens People, and a second link says where the rest of them are.
+    both = bool(invented_pets and invented_people)
     return {
         "key": "household", "title": "Who lives here", "done": not invented,
         "detail": detail,
         "href": url_for("settings.section_list",
                         section_name="pets" if invented_pets and not invented_people else "people"),
-        "other_href": (url_for("settings.section_list", section_name="pets")
-                       if invented_pets and invented_people else None),
+        "other_href": url_for("settings.section_list", section_name="pets") if both else None,
+        "other_label": (f"{names(invented_pets)} {'is' if len(invented_pets) == 1 else 'are'}"
+                        f" on the Pets page" if both else None),
     }
 
 
@@ -71,22 +82,26 @@ def timezone(config):
     return {
         "key": "timezone", "title": "Time zone", "done": done,
         "detail": config.get("timezone") if done else (
-            "Still UTC. It decides when the day rolls over, when the morning's "
-            "line is written, and what time an appointment shows."),
+            "Still UTC. It decides when the day rolls over, when the daily "
+            "headline is written, and what time an appointment shows."),
         "href": url_for("settings.system"),
     }
 
 
 def calendar(config):
-    """Step three: optional, and said to be — but it is the product."""
+    """Step three: what puts the family's own plans on the dashboard.
+
+    With none yet the row opens the form for one, not the empty list.
+    """
     on = [c.get("label") or "Calendar" for c in config.get("calendars") or []
           if isinstance(c, dict) and c.get("enabled")]
     return {
         "key": "calendar", "title": "A calendar", "done": bool(on),
         "detail": names(on) if on else (
-            "None yet. The dashboard works without one, but this is what puts "
-            "today's plans on it."),
-        "href": url_for("settings.section_list", section_name="calendars"),
+            "None yet. Paste a link from Google, Apple or Outlook and today's "
+            "plans go on the dashboard."),
+        "href": (url_for("settings.section_list", section_name="calendars") if on else
+                 url_for("settings.section_edit", section_name="calendars", item_id="new")),
     }
 
 

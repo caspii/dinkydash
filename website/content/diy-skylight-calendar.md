@@ -18,7 +18,7 @@ Your DIY calendar shows everything on one glanceable screen, refreshed automatic
 - **Today's events** from Google Calendar (or any calendar with an iCal link)
 - **A chore chart** that rotates between kids automatically every day
 - **Countdowns** to birthdays, holidays and the dates everyone keeps asking about
-- **A daily message written by AI** — a fresh headline every day, written around your family
+- **A daily headline written by AI** — fresh every day, and written around your family
 
 That last one is something even the $600 hardware doesn't do.
 
@@ -78,7 +78,7 @@ A cheap tablet wall mount, a picture ledge, or a small easel stand all work. Non
 | Subscription | $79/yr for Plus features | None; about $0.13 a month for the headline |
 | Three-year cost | ~$837 | ~$5–190 |
 | Your data | Their cloud | Your device |
-| AI daily message | No | Yes |
+| AI daily headline | No | Yes |
 | Fixable/customizable | No | It's your code |
 
 *Skylight prices checked 9 October 2026; the Raspberry Pi part prices above are approximate and were last checked August 2026.*

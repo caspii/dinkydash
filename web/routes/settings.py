@@ -64,11 +64,19 @@ MOST_FEEDBACK = 5
 FEEDBACK_SECONDS = 3600
 
 
+# How often one family may email itself the calendar steps. One is the whole
+# use; a few more covers a typo'd spam folder. Past that it is a stuck button.
+MOST_STEPS_EMAILS = 3
+STEPS_EMAIL_SECONDS = 3600
+
+
 @bp.record_once
 def _build_the_feedback_limiter(state):
     """Give each app its own feedback limiter, as `routes/auth.py` does."""
     state.app.config.setdefault(
         "FEEDBACK_LIMITER", ratelimit.Limiter(MOST_FEEDBACK, FEEDBACK_SECONDS))
+    state.app.config.setdefault(
+        "STEPS_LIMITER", ratelimit.Limiter(MOST_STEPS_EMAILS, STEPS_EMAIL_SECONDS))
 
 
 @bp.before_request
@@ -147,7 +155,7 @@ SECTIONS = {
         # link**, not only in a policy nobody opens. It says what leaves and
         # what does not, in the same breath as the field that causes it.
         "blurb": "Every calendar you switch on is merged into one agenda. Titles and times are "
-                 "sent to Anthropic each morning so Claude can write the day's line; an event "
+                 "sent to Anthropic each morning so Claude can write the daily headline; an event "
                  "kept off the dashboard by a guest list is never stored and never sent.",
         "fields": [
             ("label", "Calendar name", "text", True,
@@ -425,7 +433,7 @@ def manifest():
 
 @bp.route("/generate", methods=["POST"])
 def generate_now():
-    """"Rewrite daily message" — a person asking for a dashboard, and paying for it.
+    """"Rewrite daily headline" — a person asking for a dashboard, and paying for it.
 
     **Charged against the same budget as the worker**, because it is the same
     money out of the same account (DIN-43). Without that, a signed-in parent
@@ -445,9 +453,72 @@ def generate_now():
         log.exception("Generation failed")
         flash(f"Generation failed: {exc}", "error")
     else:
-        what = "Your first daily message is written" if first else "Daily message rewritten"
+        what = "Your first daily headline is written" if first else "Daily headline rewritten"
         flash(f"{what} — “{payload['headline']}”", "ok")
     return redirect(url_for("settings.home"))
+
+
+def steps_by_email():
+    """Can this parent email themselves the calendar steps?
+
+    Hosted, with a mail key: there has to be an account address to send to and
+    a way to send. A Pi has neither, and is offered nothing.
+    """
+    return feedback_module.enabled() and current_address() is not None
+
+
+CALENDAR_STEPS_SUBJECT = "Add your calendar to DinkyDash on a computer"
+
+
+def calendar_steps_text(sign_in):
+    """The email: where to go on the computer, and what to copy there.
+
+    Google shows the calendar's secret address only on its website, never in
+    the app, so the parent who started on a phone needs the steps somewhere
+    they will see them at a desk. Nothing of the family goes in it.
+    """
+    return f"""\
+Here's how to add your calendar to DinkyDash from a computer.
+
+1. Open {sign_in} and sign in with this address.
+2. Choose A calendar, or Add a calendar.
+3. Press Google Calendar. In its settings, pick your calendar, open
+   Integrate calendar and copy the "Secret address in iCal format".
+4. Paste it into DinkyDash and press Save calendar.
+
+- DinkyDash
+"""
+
+
+@bp.route("/calendar-steps", methods=["POST"])
+def email_calendar_steps():
+    """Email the signed-in parent the calendar steps, for a computer. Hosted only.
+
+    A 404 where `steps_by_email` says no, like the feedback form, so a route
+    that cannot work is never one somebody is offered. It goes to the
+    account's own address and to nobody else, so it cannot be pointed at a
+    stranger; the limiter is for a stuck button.
+    """
+    if not steps_by_email():
+        abort(404)
+    back = redirect(url_for("settings.section_edit", section_name="calendars", item_id="new"))
+    if not current_app.config["STEPS_LIMITER"].allow(current_family_id()):
+        flash("We've already sent those. Look in your inbox, or the spam folder.", "error")
+        return back
+
+    from dinkydash import mail
+
+    address = current_address()
+    try:
+        mail.send(address, CALENDAR_STEPS_SUBJECT,
+                  calendar_steps_text(absolute_url(url_for("auth.login"))))
+    except mail.MailError as exc:
+        log.warning("The calendar steps did not go out: %s", exc)
+        flash("That didn't send. Try again in a minute.", "error")
+        return back
+    log.info("Sent the calendar steps.")
+    flash(f"Sent to {address}. Open it on your computer.", "ok")
+    return back
 
 
 @bp.route("/<section_name>")
@@ -539,6 +610,13 @@ def section_edit(section_name, item_id):
                 # removed sources and clears them in the same operation.
                 save(config, invalidate_calendars=(feed_label(submitted),)
                      if section_name == "calendars" else ())
+                if section_name == "calendars" and setup_module.status(
+                        config, current_store().load_payload(config))["in_progress"]:
+                    # Setting up there is no Refresh button to point at, and the
+                    # next step is on the checklist, not on this list.
+                    flash(f"Saved {feed_label(submitted)}. Its events reach the dashboard "
+                          f"within a few minutes.", "ok")
+                    return redirect(url_for("settings.home"))
                 if section_name == "calendars":
                     flash(f"Saved {feed_label(submitted)}. The dashboard picks up the change at "
                           f"the next refresh — press Refresh calendars if you don't want to wait.",
@@ -554,6 +632,7 @@ def section_edit(section_name, item_id):
         "settings/edit.html", section=section, section_name=section_name,
         item=item, item_id=item_id, is_new=is_new, problems=problems,
         checked=checked, config=config, months=MONTHS,
+        email_steps=section_name == "calendars" and steps_by_email(),
         date_min=f"{EARLIEST_BIRTH_YEAR}-01-01", date_max=today.isoformat(),
         emoji=EMOJI_SUGGESTIONS.get(section_name, []),
         # The picker's dialog is drawn once, after the form, and only where there is an
@@ -819,12 +898,12 @@ def cadence_values(config):
 
 
 def cadence_summary(config):
-    """The one line the settings home shows: "Calendars every hour · daily message at 06:00"."""
+    """The one line the settings home shows: "Calendars every hour · daily headline at 06:00"."""
     values = cadence_values(config)
     cadence = describe_minutes(values["refresh_minutes"])
     written = format_time(schedule.brief_time(config), clock_of(config))
     return (f"Calendars {cadence[:1].lower()}{cadence[1:]} · "
-            f"daily message at {written}")
+            f"daily headline at {written}")
 
 
 @bp.route("/refresh", methods=["GET", "POST"])
@@ -853,7 +932,7 @@ def refresh():
             # <input type="time"> posts "HH:MM", but "HH:MM:SS" with a step set.
             brief = time.fromisoformat(values["brief_time"]).strftime("%H:%M")
         except ValueError:
-            problems.append("The time the daily message is written should look like 06:00.")
+            problems.append("The time the daily headline is written should look like 06:00.")
 
         if not problems:
             config["refresh_minutes"] = minutes
@@ -870,7 +949,7 @@ def refresh():
 
 @bp.route("/refresh-now", methods=["POST"])
 def refresh_now():
-    """Fetch the calendars and nothing else — the free half of "Rewrite daily message"."""
+    """Fetch the calendars and nothing else — the free half of "Rewrite daily headline"."""
     config = current_config()
     try:
         payload = refresh_calendars(config, current_store(), budget=current_budget())
@@ -1014,7 +1093,8 @@ def _family_facts():
     """The platform's own bookkeeping about a family, for the export."""
     with current_app.config["POOL"].connection() as conn, conn.cursor() as cur:
         cur.execute(
-            """SELECT plan, status, trial_ends_at, created_at, lapsed_at, activated_at,
+            """SELECT plan, status, trial_ends_at, created_at, lapsed_at,
+                      calendar_added_at, activated_at,
                       stripe_customer_id, stripe_subscription_id, subscription_status,
                       subscription_period_end, subscription_cancel_at, billing_access_until
                FROM families WHERE id = %s""",
@@ -1028,7 +1108,7 @@ def _family_facts():
     # should not ride along in one. It is on the screen page, where it can be
     # rotated in the same breath as being read.
     return dict(zip(("plan", "status", "trial_ends_at", "created_at", "lapsed_at",
-                     "activated_at",
+                     "calendar_added_at", "activated_at",
                      "stripe_customer_id", "stripe_subscription_id", "subscription_status",
                      "subscription_period_end", "subscription_cancel_at", "billing_access_until"), row))
 

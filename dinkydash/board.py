@@ -12,13 +12,19 @@ on the wall is not today's", which decides how the words are shown; `overdue`
 is "and this morning's brief was due by now", which is the only thing the amber
 banner may claim. Between local midnight and `brief_time` a dashboard is stale
 and nothing is wrong.
+
+**A dashboard with no brief at all is still a dashboard** (state `first`). The
+turns, countdowns and agenda never needed the model, so a family sees their
+dashboard from the first second, under a headline worked out from the day, and
+the model's line takes its place when the first brief is written. That holds
+while the family is still setting up: the invented household is what the
+settings home previews, and what a screen opened that early shows.
 """
 
 from datetime import date, datetime, timedelta
 
 from .calendars import events_on
 from .clock import clock_of, format_time
-from .config import is_set_up
 from .context import build_countdowns, compute_chore_assignments
 from .schedule import brief_due, refresh_interval
 
@@ -36,9 +42,9 @@ MAX_COUNTDOWNS = 3
 # reloading faster than the calendars are fetched only shows the same thing
 # again, so a shorter `refresh_minutes` is the only thing that lowers it.
 MAX_RELOAD_SECONDS = 300
-# Before the first run there is nothing to show, so ask more often: the screen
-# then fills itself in a minute after the dashboard is written rather than five.
-WAITING_RELOAD_SECONDS = 60
+# Before the first brief the headline is a stand-in, so ask more often: the
+# model's line then reaches the screen a minute after it is written, not five.
+FIRST_RELOAD_SECONDS = 60
 
 
 def as_shown(events, clock):
@@ -119,11 +125,6 @@ def build_view(config, payload, today, now=None):
         limit=MAX_COUNTDOWNS,
     )
 
-    # Whether there is a real family to write for yet. The waiting screen
-    # reads it to say "nearly there" rather than "writing your first dashboard"
-    # while nothing is being written — see `schedule.brief_due`.
-    set_up = is_set_up(config)
-
     view = {
         "family_name": config.get("family_name", ""),
         "theme": theme,
@@ -140,9 +141,8 @@ def build_view(config, payload, today, now=None):
         "note": "",
         "stale": False,
         "overdue": False,
-        "state": "waiting",
-        "set_up": set_up,
-        "reload_seconds": WAITING_RELOAD_SECONDS,
+        "state": "first",
+        "reload_seconds": FIRST_RELOAD_SECONDS,
         # Read by the page's own refresh (board.html): which day the dashboard
         # on screen is for, and the zone its times are in, so a screen that
         # has lost its connection can say "Showing Thursday's dashboard" once
@@ -151,19 +151,7 @@ def build_view(config, payload, today, now=None):
         "timezone": config.get("timezone") or "UTC",
     }
 
-    if not payload:
-        return view
-    if not set_up and not payload.get("generated_for_date"):
-        # The calendars have been fetched but the family is still setting up.
-        # An agenda under an amber "today's note hasn't arrived" banner
-        # would be wrong twice over: no brief was attempted, and the chores
-        # beside it would be the invented household's. The waiting screen
-        # says what is actually going on.
-        return view
-
-    view["reload_seconds"] = reload_seconds(config)
-
-    fetched = payload.get("events") or []
+    fetched = (payload or {}).get("events") or []
     clock = view["clock"]
     # Rewritten before anything reads a time off them, so the computed headline
     # below is on the family's clock too.
@@ -175,6 +163,14 @@ def build_view(config, payload, today, now=None):
     slots = min(MAX_TOMORROW, MAX_EVENTS - len(events))
     view["tomorrow"] = as_shown(
         events_on(fetched, today + timedelta(days=1))[:slots], clock) if slots else []
+
+    if not (payload or {}).get("generated_for_date"):
+        # No brief has been written, so there is no line to be late: no banner,
+        # whether the family is still setting up or the first brief failed.
+        view["headline"] = computed_headline(events)
+        return view
+
+    view["reload_seconds"] = reload_seconds(config)
 
     stale = payload.get("generated_for_date") != today.isoformat()
     view["stale"] = stale

@@ -355,11 +355,11 @@ def is_set_up(config):
     Two things have to be true: the invented household is gone, and the
     timezone has been chosen. Until then a brief would be written about
     children who do not exist, for a day that may not be theirs — so the
-    tick holds the first one back (`schedule.brief_due`), the wall says
-    "nearly there" (`board.build_view`), and the settings home shows the
-    set-up checklist instead of the daily controls (`web/setup.py`).
+    tick holds the first one back (`schedule.brief_due`) and the settings
+    home shows the set-up checklist instead of the daily controls
+    (`web/setup.py`).
 
-    **Pure and config-only**, so all three ask the same question of the same
+    **Pure and config-only**, so both ask the same question of the same
     data. There is no stored "onboarding step" to drift out of line with what
     the config actually holds, and no mode check: a freshly cloned Pi running
     the untouched example file is in the same state as a hosted family five

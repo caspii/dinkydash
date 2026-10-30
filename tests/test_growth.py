@@ -1,16 +1,18 @@
-"""Signups and activations: counted once each, and kept after deletion (DIN-37).
+"""Signups, calendars and activations: counted once each, and kept after deletion (DIN-37).
 
-Four claims:
+Five claims:
 
 * **a signup is a family created**, counted by the row appearing, whatever
   made it — the click on the emailed link in production, plain SQL here;
-* **an activation is the first calendar link saved**, and it counts once.
-  Removing the calendar and adding it back is not a second activation, and a
+* **a calendar is the first calendar link saved**, and it counts once.
+  Removing the calendar and adding it back is not a second one, and a
   calendar with no link in it is not one at all;
-* **deleting the family leaves both counts where they were**, the way the
+* **an activation is the first screen to keep the dashboard up**, reported by
+  its refresh, and it counts once. The parent's phone is not a screen;
+* **deleting the family leaves every count where it was**, the way the
   spend total does (DIN-49), and the row that survives has no family in it;
-* **the migration backfills** what can be known about the families that
-  predate it, and a family created while the old code is still running is
+* **the migrations backfill** what can be known about the families that
+  predate them, and a family created while the old code is still running is
   counted exactly once.
 
 The roll-up is pure and is tested with no database. The rest skips without
@@ -76,10 +78,10 @@ class TestByWeek:
 # -- the counter, in Postgres ------------------------------------------------
 
 def counts(pool):
-    """`{day: (signups, activations)}`, straight from the table."""
+    """`{day: (signups, calendars, activations)}`, straight from the table."""
     with pool.connection() as conn, conn.cursor() as cur:
-        cur.execute("SELECT day, signups, activations FROM growth_by_day")
-        return {day: (s, a) for day, s, a in cur.fetchall()}
+        cur.execute("SELECT day, signups, calendars, activations FROM growth_by_day")
+        return {day: (s, c, a) for day, s, c, a in cur.fetchall()}
 
 
 def today(pool):
@@ -89,10 +91,12 @@ def today(pool):
         return cur.fetchone()[0]
 
 
-def activated_at(pool, family_id):
+def stamps(pool, family_id):
+    """`(calendar_added_at, activated_at)` for one family."""
     with pool.connection() as conn, conn.cursor() as cur:
-        cur.execute("SELECT activated_at FROM families WHERE id = %s", (family_id,))
-        return cur.fetchone()[0]
+        cur.execute("SELECT calendar_added_at, activated_at FROM families WHERE id = %s",
+                    (family_id,))
+        return cur.fetchone()
 
 
 def a_family(pool, config="{}"):
@@ -114,31 +118,43 @@ def store(pg_pool, pg_family):
     return PostgresStore(pg_pool, pg_family)
 
 
+# What a refresh reports: a Pi panel, a TV, and the parent's own phone.
+PANEL = (800, 480, 1)
+TV = (1280, 720, 1)
+PHONE = (390, 844, 3)
+
+
+def a_screen(store, size):
+    store.record_viewport(*size, "Mozilla/5.0 (X11; Linux armv7l) Chromium")
+
+
 class TestTheCounter:
     def test_a_new_family_is_a_signup_today_and_nothing_else(self, pg_pool):
         day = today(pg_pool)
-        before = counts(pg_pool).get(day, (0, 0))
+        before = counts(pg_pool).get(day, (0, 0, 0))
         family_id = a_family(pg_pool)
         try:
-            assert counts(pg_pool)[day] == (before[0] + 1, before[1])
-            assert activated_at(pg_pool, family_id) is None
+            assert counts(pg_pool)[day] == (before[0] + 1, before[1], before[2])
+            assert stamps(pg_pool, family_id) == (None, None)
         finally:
             forget(pg_pool, family_id)
 
-    def test_saving_a_calendar_is_an_activation(self, pg_pool, pg_family, store):
+    def test_saving_a_calendar_is_counted_but_is_not_an_activation(
+            self, pg_pool, pg_family, store):
         day = today(pg_pool)
-        before = counts(pg_pool).get(day, (0, 0))
+        before = counts(pg_pool).get(day, (0, 0, 0))
         config = store.load_config()
         config["calendars"] = [dict(A_CALENDAR)]
         store.save_config(config)
-        assert counts(pg_pool)[day] == (before[0], before[1] + 1)
-        assert activated_at(pg_pool, pg_family) is not None
+        assert counts(pg_pool)[day] == (before[0], before[1] + 1, before[2])
+        calendar_added, activated = stamps(pg_pool, pg_family)
+        assert calendar_added is not None and activated is None
 
-    def test_an_activation_counts_once(self, pg_pool, pg_family, store):
+    def test_a_calendar_counts_once(self, pg_pool, pg_family, store):
         config = store.load_config()
         config["calendars"] = [dict(A_CALENDAR)]
         store.save_config(config)
-        first = activated_at(pg_pool, pg_family)
+        first = stamps(pg_pool, pg_family)
         after_one = counts(pg_pool)
 
         # A second calendar, then none at all, then one again.
@@ -150,15 +166,15 @@ class TestTheCounter:
         store.save_config(config)
 
         assert counts(pg_pool) == after_one
-        assert activated_at(pg_pool, pg_family) == first
+        assert stamps(pg_pool, pg_family) == first
 
-    def test_a_calendar_with_no_link_is_not_an_activation(self, pg_pool, pg_family, store):
+    def test_a_calendar_with_no_link_is_not_counted(self, pg_pool, pg_family, store):
         before = counts(pg_pool)
         config = store.load_config()
         config["calendars"] = [{"id": "cal12345", "label": "School", "url": "", "enabled": True}]
         store.save_config(config)
         assert counts(pg_pool) == before
-        assert activated_at(pg_pool, pg_family) is None
+        assert stamps(pg_pool, pg_family) == (None, None)
 
     def test_an_odd_document_does_not_break_the_save(self, pg_pool, pg_family):
         """A trigger that raised here would be a 500 on somebody's settings page."""
@@ -169,20 +185,57 @@ class TestTheCounter:
                 cur.execute("UPDATE families SET config = %s::jsonb WHERE id = %s",
                             (odd, pg_family))
         assert counts(pg_pool) == before
-        assert activated_at(pg_pool, pg_family) is None
+        assert stamps(pg_pool, pg_family) == (None, None)
 
-    def test_a_family_born_with_a_calendar_is_both_at_once(self, pg_pool):
+    def test_a_family_born_with_a_calendar_is_a_signup_and_a_calendar(self, pg_pool):
         day = today(pg_pool)
-        before = counts(pg_pool).get(day, (0, 0))
+        before = counts(pg_pool).get(day, (0, 0, 0))
         family_id = a_family(pg_pool, '{"calendars": [{"url": "https://example.com/x.ics"}]}')
         try:
-            assert counts(pg_pool)[day] == (before[0] + 1, before[1] + 1)
-            assert activated_at(pg_pool, family_id) is not None
+            assert counts(pg_pool)[day] == (before[0] + 1, before[1] + 1, before[2])
         finally:
             forget(pg_pool, family_id)
 
+    def test_a_screen_keeping_the_dashboard_up_is_an_activation(self, pg_pool, pg_family, store):
+        day = today(pg_pool)
+        before = counts(pg_pool).get(day, (0, 0, 0))
+        a_screen(store, PANEL)
+        assert counts(pg_pool)[day] == (before[0], before[1], before[2] + 1)
+        assert stamps(pg_pool, pg_family)[1] is not None
+
+    def test_with_or_without_a_calendar(self, pg_pool, pg_family, store):
+        # The calendar is the step before, not a condition: a family that
+        # puts chores and countdowns on a wall has the dashboard on a wall.
+        a_screen(store, TV)
+        calendar_added, activated = stamps(pg_pool, pg_family)
+        assert calendar_added is None and activated is not None
+
+    def test_an_activation_counts_once(self, pg_pool, pg_family, store):
+        a_screen(store, PANEL)
+        first = stamps(pg_pool, pg_family)
+        after_one = counts(pg_pool)
+        # A second screen, and the first one again an hour later.
+        a_screen(store, TV)
+        with pg_pool.connection() as conn, conn.transaction(), conn.cursor() as cur:
+            cur.execute("UPDATE screen_sizes SET last_seen_at = now() - interval '2 hours' "
+                        "WHERE family_id = %s", (pg_family,))
+        a_screen(store, PANEL)
+        assert counts(pg_pool) == after_one
+        assert stamps(pg_pool, pg_family) == first
+
+    def test_the_parents_phone_is_not_a_screen(self, pg_pool, pg_family, store):
+        before = counts(pg_pool)
+        a_screen(store, PHONE)
+        a_screen(store, (844, 390, 3))  # the same phone on its side
+        assert counts(pg_pool) == before
+        assert stamps(pg_pool, pg_family)[1] is None
+        # The size is still kept for layout work; it just activates nothing.
+        assert growth.screen_sizes(pg_pool)
+
     def test_deleting_the_family_changes_nothing(self, pg_pool):
+        from dinkydash.pgstore import PostgresStore
         family_id = a_family(pg_pool, '{"calendars": [{"url": "https://example.com/x.ics"}]}')
+        a_screen(PostgresStore(pg_pool, family_id), PANEL)
         after = counts(pg_pool)
         forget(pg_pool, family_id)
         assert counts(pg_pool) == after
@@ -194,14 +247,16 @@ class TestTheCounter:
         config = store.load_config()
         config["calendars"] = [dict(A_CALENDAR)]
         store.save_config(config)
+        a_screen(store, PANEL)
         after = counts(pg_pool)
         assert accounts.delete_family(pg_pool, pg_family)
         assert counts(pg_pool) == after
 
-    def test_the_table_holds_a_date_and_two_counts_and_nothing_else(self, pg_pool):
+    def test_the_table_holds_a_date_and_three_counts_and_nothing_else(self, pg_pool):
         with pg_pool.connection() as conn, conn.cursor() as cur:
             cur.execute("SELECT * FROM growth_by_day LIMIT 0")
-            assert [c.name for c in cur.description] == ["day", "signups", "activations"]
+            assert [c.name for c in cur.description] == \
+                ["day", "signups", "activations", "calendars"]
 
     def test_history_is_the_table_oldest_first(self, pg_pool):
         with pg_pool.connection() as conn, conn.transaction(), conn.cursor() as cur:
@@ -210,11 +265,21 @@ class TestTheCounter:
                             [(date(2026, 9, 9), 2, 1), (date(2026, 9, 1), 1, 0)])
         assert growth.history(pg_pool) == [(date(2026, 9, 1), 1, 0), (date(2026, 9, 9), 2, 1)]
 
+    def test_calendars_added_is_a_sum_of_the_table(self, pg_pool):
+        with pg_pool.connection() as conn, conn.transaction(), conn.cursor() as cur:
+            cur.execute("DELETE FROM growth_by_day")
+        assert growth.calendars_added(pg_pool) == 0
+        with pg_pool.connection() as conn, conn.transaction(), conn.cursor() as cur:
+            cur.executemany("INSERT INTO growth_by_day (day, calendars) VALUES (%s, %s)",
+                            [(date(2026, 9, 1), 2), (date(2026, 9, 9), 3)])
+        assert growth.calendars_added(pg_pool) == 5
+
     def test_the_roster_is_newest_first_and_carries_no_config(self, pg_pool, pg_family, store):
         config = store.load_config()
         config["family_name"] = "The Quiet Ones"
         config["calendars"] = [dict(A_CALENDAR)]
         store.save_config(config)
+        a_screen(store, PANEL)
         with pg_pool.connection() as conn, conn.transaction(), conn.cursor() as cur:
             cur.execute("INSERT INTO users (family_id, email) VALUES (%s, %s)",
                         (pg_family, "quiet@example.com"))
@@ -227,7 +292,7 @@ class TestTheCounter:
             assert mine._fields == ("email", "created_at", "activated_at", "status",
                                     "trial_ends_at", "lapsed_at", "last_login_at",
                                     "screens")
-            assert mine.screens == ()
+            assert mine.screens == (growth.Size(800, 480, 1),)
             assert growth.roster(pg_pool, most=1) == listed[:1]
         finally:
             forget(pg_pool, newer)
@@ -294,3 +359,74 @@ def test_the_migration_backfills_and_then_counts_exactly_once(pg_pool):
             cur.execute("DELETE FROM families")
             cur.execute("SELECT sum(signups), sum(activations) FROM growth_by_day")
             assert cur.fetchone() == (4, 2)
+
+
+def test_011_moves_calendar_counts_aside_and_recounts_activations(pg_pool):
+    """Calendar history is kept under its own name; activations come from screens."""
+    from dinkydash import db
+
+    with pg_pool.connection() as conn, conn.transaction(force_rollback=True):
+        with conn.cursor() as cur:
+            cur.execute("CREATE SCHEMA activation_migration_test")
+            cur.execute("SET LOCAL search_path TO activation_migration_test, public")
+            upgrade = db.MIGRATIONS_DIR / "011_activation_on_screen.sql"
+            for path in db.migrations():
+                if path == upgrade:
+                    break
+                cur.execute(path.read_text())
+
+            # Under 006's rule a calendar was an activation. Three families:
+            # one with a calendar whose panel first reported on the 7th, one
+            # with a calendar and only a phone, one with no calendar and a TV.
+            # And a family deleted on the 3rd, whose calendar survives only in
+            # the daily count.
+            calendar = '{"calendars": [{"url": "https://example.com/a.ics"}]}'
+            ids = []
+            for token, config in (("act-test-one", calendar), ("act-test-two", calendar),
+                                  ("act-test-thr", "{}")):
+                cur.execute("""INSERT INTO families (screen_token, config, created_at)
+                               VALUES (%s, %s::jsonb, '2026-09-01 10:00+00')
+                               RETURNING id""", (token, config))
+                ids.append(cur.fetchone()[0])
+            one, two, three = ids
+            cur.execute("INSERT INTO growth_by_day (day, activations) VALUES ('2026-09-03', 1)")
+            for family, size, seen in ((one, (800, 480), "2026-09-07 08:00+00"),
+                                       (one, (1280, 720), "2026-09-09 08:00+00"),
+                                       (two, (390, 844), "2026-09-08 08:00+00"),
+                                       (three, (1920, 1080), "2026-09-10 08:00+00")):
+                cur.execute("""INSERT INTO screen_sizes
+                                   (family_id, width, height, pixel_ratio, first_seen_at)
+                               VALUES (%s, %s, %s, 1, %s)""", (family, *size, seen))
+            cur.execute("SELECT sum(signups), sum(activations) FROM growth_by_day")
+            assert cur.fetchone() == (3, 3)
+
+            cur.execute(upgrade.read_text())
+
+            cur.execute("SELECT sum(signups), sum(calendars), sum(activations) "
+                        "FROM growth_by_day")
+            assert cur.fetchone() == (3, 3, 2)
+            cur.execute("SELECT day, activations FROM growth_by_day "
+                        "WHERE activations > 0 ORDER BY day")
+            assert cur.fetchall() == [(date(2026, 9, 7), 1), (date(2026, 9, 10), 1)]
+            cur.execute("""SELECT screen_token, calendar_added_at IS NOT NULL,
+                                  activated_at = (SELECT min(first_seen_at)
+                                                  FROM screen_sizes s
+                                                  WHERE s.family_id = f.id
+                                                    AND least(width, height) >= 480)
+                           FROM families f ORDER BY screen_token""")
+            assert cur.fetchall() == [("act-test-one", True, True),
+                                      ("act-test-thr", False, True),
+                                      ("act-test-two", True, None)]
+
+            # From here on the triggers are in charge.
+            cur.execute("SELECT (now() AT TIME ZONE 'UTC')::date")
+            day = cur.fetchone()[0]
+            cur.execute("UPDATE families SET config = %s::jsonb WHERE id = %s",
+                        (calendar, three))
+            cur.execute("""INSERT INTO screen_sizes (family_id, width, height, pixel_ratio)
+                           VALUES (%s, 1024, 768, 2)""", (two,))
+            # Today's row held 006's two calendar activations; it now holds
+            # them as calendars, plus the third family's, plus one screen.
+            cur.execute("SELECT signups, calendars, activations FROM growth_by_day "
+                        "WHERE day = %s", (day,))
+            assert cur.fetchone() == (0, 3, 1)

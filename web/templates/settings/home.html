@@ -19,6 +19,28 @@
     .step .row-sub { white-space: normal; }
     /* The one-tap offer sits under its row, indented to the text. */
     .step-offer { padding: 0 0.875rem 0.875rem 3.5625rem; }
+    /* The dashboard as it is right now, drawn at a TV's size and scaled to the
+       card by preview.js, so its own fit script lays it out the way a wall
+       would rather than as a phone-width page. */
+    .dash-preview { border: 1px solid var(--border); border-radius: 0.625rem; overflow: hidden; }
+    .dash-preview .viewport { position: relative; width: 100%; aspect-ratio: 1280 / 720; overflow: hidden; }
+    .dash-preview iframe {
+        position: absolute; top: 0; left: 0; border: 0; transform-origin: top left;
+        pointer-events: none;
+    }
+    /* "No calendar?" opens the screen link on purpose. */
+    .skip-calendar > summary {
+        cursor: pointer; list-style: none; font-size: 0.875rem; font-weight: 800;
+        color: var(--accent-dark); padding: 0.875rem 0.9375rem; border-radius: var(--radius);
+        transition: background-color 0.12s ease;
+    }
+    .skip-calendar > summary::-webkit-details-marker { display: none; }
+    .skip-calendar > summary:active { background: var(--tint); }
+    .skip-calendar[open] > summary { border-bottom: 1px solid var(--border); border-radius: var(--radius) var(--radius) 0 0; }
+    .skip-calendar > .skip-body { padding: 0.9375rem; display: flex; flex-direction: column; gap: 0.875rem; }
+    @media (hover: hover) {
+        .skip-calendar > summary:hover { background: var(--warm); }
+    }
     .dashboard-actions .btn { height: auto; min-height: 3rem; padding: 0.625rem; }
     .dashboard-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.625rem; }
     @media (max-width: 26rem) {
@@ -79,11 +101,23 @@
    asks the same question (`config.is_set_up`) before writing anything, so
    the page and the tick cannot disagree. Nothing to dismiss and nothing
    remembered: it leaves on its own. #}
-<div class="card pad" style="display:flex;flex-direction:column;gap:0.1875rem;">
-    <div class="card-title">Set up your dashboard</div>
-    <div class="hint">
-        Three steps, then a screen to put it on. The dashboard writes itself as soon as
-        the first two are done.
+<div class="card pad" style="display:flex;flex-direction:column;gap:0.75rem;">
+    <div style="display:flex;flex-direction:column;gap:0.1875rem;">
+        <div class="card-title">Set up your dashboard</div>
+        <div class="hint">
+            Here's how it looks right now. Three steps make it yours, then you put it
+            on a screen.
+        </div>
+    </div>
+    {# The real dashboard, the one the screen link serves, so a new parent
+       sees the product before being asked to do anything to it. Framed, so
+       its refresh reports no screen size and an activation cannot come from
+       here. Not focusable and not clickable: it is a picture of the wall. #}
+    <div class="dash-preview">
+        <div class="viewport">
+            <iframe src="{{ board_link }}" title="Your dashboard as it looks now"
+                    data-width="1280" data-height="720" tabindex="-1"></iframe>
+        </div>
     </div>
 </div>
 
@@ -98,7 +132,7 @@
             </a>{{ icons.chevron() }}
         </div>
         {% if step.other_href %}
-        <div class="step-offer"><a href="{{ step.other_href }}">Review example pets too</a></div>
+        <div class="step-offer"><a href="{{ step.other_href }}">{{ step.other_label }}</a></div>
         {% endif %}
         {% if step.key == 'timezone' and not step.done %}
         {# Hidden until the script below has read the phone's own zone into it.
@@ -117,7 +151,8 @@
             <div class="row-main">
                 <div class="row-title">Put it on the screen</div>
                 <div class="row-sub">
-                    {% if screen %}Open the link below on the TV, tablet or Pi and leave the page up. It redraws itself.
+                    {% if screen and setup.on_screen_first %}Open the link below on the TV, tablet or Pi and leave the page up. It redraws itself.
+                    {% elif screen %}Add a calendar first, so the screen shows today's plans and not just the chores.
                     {% else %}Once the first two steps are done, the link for the screen appears here.{% endif %}
                 </div>
             </div>
@@ -127,8 +162,10 @@
 
 {% if screen %}
 {# Steps one and two are done: a dashboard written now would be theirs. The link,
-   and the button that writes it without waiting for the worker's next pass. #}
-<div class="card pad" style="display:flex;flex-direction:column;gap:0.875rem;">
+   and the button that writes it without waiting for the worker's next pass.
+   With no calendar yet they wait behind a choice the parent makes on purpose,
+   because the calendar is what makes the screen worth leaving up. #}
+{% set screen_card %}
     {% with screen_link = screen.link, screen_qr = screen.qr %}
     {% include "settings/_screen_link.html" %}
     {% endwith %}
@@ -138,16 +175,27 @@
         is what lets a screen show it without signing in. You can change it later under The screen.
     </div>
     {% endif %}
-    <form class="inline-form" method="post" action="{{ url_for('settings.generate_now') }}" data-pending="Writing your daily message…">
+    <form class="inline-form" method="post" action="{{ url_for('settings.generate_now') }}" data-pending="Writing your daily headline…">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        {# Keep this label in sync with the waiting screen in board.html. #}
-        <button class="btn" type="submit">Write first daily message</button>
+        <button class="btn" type="submit">Write first daily headline</button>
     </form>
     <div class="hint">
         It writes itself within a few minutes anyway; this is the shortcut. Everything above can
         still be changed afterwards.
     </div>
+{% endset %}
+{% if setup.on_screen_first %}
+<div class="card pad" style="display:flex;flex-direction:column;gap:0.875rem;">
+    {{ screen_card }}
 </div>
+{% else %}
+<details class="card skip-calendar">
+    <summary>No calendar? Put it on a screen without one</summary>
+    <div class="skip-body">
+        {{ screen_card }}
+    </div>
+</details>
+{% endif %}
 {% endif %}
 
 {% else %}
@@ -161,7 +209,7 @@
     </div>
     <div style="display:flex;flex-direction:column;gap:0.625rem;">
         {# The cheap half first: fetching the calendars costs a few requests,
-           while rewriting the line costs a call to Claude. #}
+           while rewriting the headline costs a call to Claude. #}
         {% if calendars_on %}
         <form class="inline-form" method="post" action="{{ url_for('settings.refresh_now') }}" data-pending="Refreshing your calendars…">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -183,9 +231,9 @@
                a custom tab with an X on Android. The panel never follows this
                link; it opens the screen URL itself. #}
             <a class="btn outline" href="{{ board_link }}" target="_blank" rel="noopener">{{ icons.screen() }} View dashboard</a>
-            <form class="inline-form" method="post" action="{{ url_for('settings.generate_now') }}" data-pending="Writing your daily message…">
+            <form class="inline-form" method="post" action="{{ url_for('settings.generate_now') }}" data-pending="Writing your daily headline…">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <button class="btn outline" type="submit" {{ 'disabled' if status.state == 'lapsed' }}>Rewrite daily message</button>
+                <button class="btn outline" type="submit" {{ 'disabled' if status.state == 'lapsed' }}>Rewrite daily headline</button>
             </form>
         </div>
         {% if cloud %}
@@ -330,6 +378,7 @@
 {% endif %}
 
 {% if setting_up %}
+<script src="{{ static_url('preview.js') }}" defer></script>
 <script>
     // The phone's own clock setting, offered back as one tap. `Intl` is what
     // the browser itself uses for dates, so this is the zone the person is

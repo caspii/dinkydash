@@ -220,7 +220,7 @@ for up to seven days before it ages out.
 Both are buttons, not requests, and both are on your settings page.
 
 - **Export** gives you your family's details, calendar links, stored agenda,
-  all retained daily messages, recent rewrite history, and each recorded
+  all retained daily headlines, recent rewrite history, and each recorded
   screen size and browser as one JSON file.
 - **Delete** removes your family, your account, your calendar links, the stored
   agenda, every written line, every sign-in link, and the record of your

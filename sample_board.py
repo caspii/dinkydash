@@ -3,8 +3,8 @@
 
 `dashboard_data.json` is gitignored, so a new Conductor workspace only gets one
 if Files to copy brought it across from the main checkout. Without it the dashboard
-shows the first-run screen, which is a poor thing to check a layout change
-against — and a payload written before the engine rebuild has none of the keys
+has no headline from the model and no calendar events, which is a poor thing to
+check a layout change against — and a payload written before the engine rebuild has none of the keys
 `board.build_view` reads, so it renders an empty, permanently stale dashboard.
 
 This writes a plausible dashboard for today, using whatever `config.yaml` is

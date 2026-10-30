@@ -40,9 +40,9 @@ A **calendar** is one source of events, not the whole dashboard.
 | Special date / Special dates | A named annual occasion | “Special dates”, “Add a date”, “What is it”, with “Day” and “Month” under “Date”. Lists use named months, such as “1 July”. Invalid stored dates are flagged for repair and omitted from countdowns; 29 February is allowed. |
 | Countdown | Days remaining until a birthday or special date | Appears under “Coming up”. Birthday countdowns come from People and need no duplicate special-date entry. |
 | Refresh calendars | Fetch the latest events from enabled calendars | Updates the agenda; it does not rewrite the headline. “Fetch the calendars” sets this interval under “How often it updates”. |
-| Daily message | The generated headline | “Rewrite daily message” fetches calendars, then generates a fresh headline. Before the first generation the action is “Write first daily message”. “Write the daily message at” sets the schedule. Pending feedback says “Writing your daily message…”. |
+| Daily headline | The headline Claude writes once a day | “Rewrite daily headline” fetches calendars, then writes a fresh one. Before the first one the action is “Write first daily headline”. “Write the daily headline at” sets the schedule. Pending feedback says “Writing your daily headline…”. Not “daily message”, “daily line” or “the day's line”. |
 | Time zone | The household's clock for dates, events and daily generation | “Time zone” under “Family & system”, with a suggested local zone during setup. |
-| Clock | Whether times are written 24-hour or 12-hour | “Clock” under “Family & system”, beside “Time zone”: “24-hour (15:45)” or “12-hour (3:45 pm)”. The time zone decides what a time is; this decides how it is written. Defaults to 24-hour and applies to the agenda, the computed headline and the generated daily message. |
+| Clock | Whether times are written 24-hour or 12-hour | “Clock” under “Family & system”, beside “Time zone”: “24-hour (15:45)” or “12-hour (3:45 pm)”. The time zone decides what a time is; this decides how it is written. Defaults to 24-hour and applies to the agenda, the computed headline and the generated daily headline. |
 | Emoji | The small picture beside a person, pet, chore or special date | “Emoji” on the edit forms: a row of quick picks, “None”, and “More…”, which opens “Choose an emoji” with a search box that also takes an emoji typed on the keyboard. Shown as the avatar in settings lists and beside chores and countdowns on the dashboard. |
 | Colours | The dashboard's light or dark appearance | “Dashboard colours”, choices “Light” and “Dark”. Self-hosted navigation calls the page “Colours”; hosted navigation calls it “The screen” because it also holds the screen link. Changes apply immediately. |
 | Your data | The hosted account's export and deletion page | “Download my data” exports JSON. “Delete my account” removes the household and its saved data after email-address confirmation. |
@@ -52,11 +52,13 @@ A **calendar** is one source of events, not the whole dashboard.
 ## Copy conventions
 
 Use **chore** for the household task and **calendar** for a connected event source in settings.
-**Daily message** names the headline generation. **Daily note** is not a thing the
-dashboard shows; do not use it in new copy. Keep **brief** for implementation details.
-Use **Refresh calendars** for fetching events, which does not generate a new daily message.
-“Feed” is appropriate when explaining iCal/ICS,
-not as a competing settings label for a connected calendar.
+**Daily headline** names the headline Claude writes each day, and it is the only name for it:
+not **daily message**, which sounds like a note somebody sends, and not **daily line** or
+**the day's line**. Plain **headline** is fine where the dashboard's heading is meant, whoever
+wrote it. **Daily note** is not a thing the dashboard shows; do not use it in new copy. Keep
+**brief** for implementation details. Use **Refresh calendars** for fetching events, which does
+not write a new daily headline. “Feed” is appropriate when explaining iCal/ICS, not as a
+competing settings label for a connected calendar.
 
 “Your dashboard” groups settings shared by every screen. A **screen** is the physical device,
 not a separate copy of the household settings. Removal confirmations name the item, and explain

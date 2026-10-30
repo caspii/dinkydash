@@ -26,11 +26,11 @@
     </div>
 
     <div class="field">
-        <label for="brief_time">Write the daily message at</label>
+        <label for="brief_time">Write the daily headline at</label>
         <input type="time" id="brief_time" name="brief_time" value="{{ values.brief_time }}" required>
         <div class="hint">
             Written once a day, on your clock — {{ config.timezone }}. Press
-            <strong>Rewrite daily message</strong> if you want a fresh one sooner.
+            <strong>Rewrite daily headline</strong> if you want a fresh one sooner.
         </div>
     </div>
 
@@ -39,7 +39,7 @@
 
 <div class="note-box">
     Fetching the calendars costs nothing but a few requests, so it can be as often as you like.
-    The daily message is the part that costs money: one call to Claude, once a day.
+    The daily headline is the part that costs money: one call to Claude, once a day.
 </div>
 
 {# Self-hosted only, and not merely irrelevant hosted — false. What drives the

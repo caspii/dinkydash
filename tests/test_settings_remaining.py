@@ -119,7 +119,7 @@ def test_setup_points_at_the_examples_that_need_attention(household, invented_pe
     if invented_people or invented_pets:
         html = client.get('/settings/').get_data(as_text=True)
         if other:
-            assert 'Review example pets too' in html
+            assert 'Biscuit is on the Pets page' in html
         assert 'Who lives here' in html
 
 
@@ -140,9 +140,9 @@ def test_current_user_labels_distinguish_chores_calendars_and_daily_message(hous
     html = client.get('/settings/recurring/new').get_data(as_text=True)
     assert 'New chore' in html and '>Chore</label>' in html
     home = client.get('/settings/').get_data(as_text=True)
-    assert 'Rewrite daily message' in home
-    assert 'daily message at' in home
+    assert 'Rewrite daily headline' in home
+    assert 'daily headline at' in home
     assert 'Rewrite now' not in home and 'brief at' not in home
     refresh = client.get('/settings/refresh').get_data(as_text=True)
-    assert 'Write the daily message at' in refresh
+    assert 'Write the daily headline at' in refresh
     assert 'Fetch the calendars' in refresh

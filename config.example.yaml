@@ -16,7 +16,7 @@ timezone: "Europe/Berlin"
 # decides what a time is; this decides how it is shown.
 clock: "24h"
 
-# Optional. Gives the daily line a bit of local flavour.
+# Optional. Gives the daily headline a bit of local flavour.
 location: "Berlin, Germany"
 
 # light or dark.
@@ -106,7 +106,7 @@ history_days: 30
 refresh_minutes: 60
 
 # When the daily brief is written, on your own clock. Quote it — an unquoted
-# 06:00 is a number in older YAML. One brief a day; "Rewrite daily message" covers the rest.
+# 06:00 is a number in older YAML. One brief a day; "Rewrite daily headline" covers the rest.
 brief_time: "06:00"
 
 # Where the generated dashboard and the record of recent notes are kept. Relative

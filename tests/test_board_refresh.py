@@ -33,7 +33,7 @@ def page_for(directory, payload=None):
     """A single-mode dashboard for a set-up family, with or without a board.
 
     Each caller gets its own directory: a test that asks for both pages must
-    not have the waiting one find the ready one's `dashboard_data.json`.
+    not have the first one find the ready one's `dashboard_data.json`.
     """
     directory.mkdir()
     path = directory / "config.yaml"
@@ -56,8 +56,9 @@ def ready(tmp_path, today):
 
 
 @pytest.fixture
-def waiting(tmp_path):
-    return page_for(tmp_path / "waiting")
+def first(tmp_path):
+    """Before the first brief: a dashboard, with a stand-in headline."""
+    return page_for(tmp_path / "first")
 
 
 def script_of(page):
@@ -76,9 +77,9 @@ class TestOneReloadNotTwo:
             assert before.count("<noscript>") == before.count("</noscript>") + 1, \
                 "a meta refresh outside <noscript> races the script"
 
-    def test_the_body_carries_the_reload_interval(self, ready, waiting):
+    def test_the_body_carries_the_reload_interval(self, ready, first):
         assert 'data-reload="300"' in ready
-        assert 'data-reload="60"' in waiting
+        assert 'data-reload="60"' in first
 
     def test_the_script_fetches_its_own_url_and_nothing_else(self, ready):
         """`location.href`, so the same script serves `/` on a Pi and
@@ -106,8 +107,8 @@ class TestOneReloadNotTwo:
 
 
 class TestWhatTheBadgeCanSay:
-    def test_it_is_in_every_page_and_hidden_until_needed(self, ready, waiting):
-        for page in (ready, waiting):
+    def test_it_is_in_every_page_and_hidden_until_needed(self, ready, first):
+        for page in (ready, first):
             assert '<div class="offline" role="status" hidden></div>' in page
 
     def test_a_dated_dashboard_says_which_day_it_is_for(self, ready, today):
@@ -118,9 +119,11 @@ class TestWhatTheBadgeCanSay:
         assert f'data-today="{today.isoformat()}"' in ready
         assert 'data-timezone="Europe/Berlin"' in ready
 
-    def test_a_waiting_screen_is_for_no_day_and_says_so(self, waiting):
-        assert "data-today=" not in waiting
-        assert 'data-timezone="Europe/Berlin"' in waiting
+    def test_a_first_dashboard_is_for_today_too(self, first, today):
+        # Its turns and countdowns are today's, so a screen that loses its
+        # connection overnight must say it is showing yesterday's.
+        assert f'data-today="{today.isoformat()}"' in first
+        assert 'data-timezone="Europe/Berlin"' in first
 
     def test_the_badge_offers_no_way_out(self, ready):
         """It sits on a wall, in a page that deliberately has no link out
@@ -136,12 +139,12 @@ class TestADeployReachesTheWall:
     a copy whose version differs is a deploy and gets a real reload, at the one
     moment a reload is safe: a copy has just arrived."""
 
-    def test_the_body_carries_the_page_version(self, ready, waiting):
+    def test_the_body_carries_the_page_version(self, ready, first):
         from web import assets
 
         page_version = re.search(r'data-version="([0-9a-f]{12})"', ready)
         assert page_version, "no version on the body"
-        assert page_version.group(1) in waiting
+        assert page_version.group(1) in first
         with create_app(FileStore()).app_context():
             assert page_version.group(1) == assets.board_version()
 

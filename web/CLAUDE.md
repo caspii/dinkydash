@@ -196,7 +196,7 @@ in the way a browser does.
 
 **The settings home has two personalities**, decided by `web/setup.py`. Until the family is set up
 and its first dashboard written, the top of the page is a checklist — who lives here, time zone, a
-calendar, the screen — and the daily controls (Refresh calendars, View dashboard, Rewrite daily message) are not
+calendar, the screen — and the daily controls (Refresh calendars, View dashboard, Rewrite daily headline) are not
 offered at all; after that it is the day's status card. A hosted family is created with an invented
 household in it so the dashboard has something to show (DIN-41), each person and pet marked
 `invented: true`, and step one names what is still marked. Saving the item from the edit form
@@ -331,12 +331,13 @@ single-column layout (an iPad in portrait) has no side column to hide behind and
 full price, around 13-18%. Everything fits at all three sizes in every case. Raising either
 constant spends more type size, so measure at `/preview` before you do.
 
-**The shared waiting screen must work in both modes.** Refer to the settings button, **Write the
-first dashboard**, rather than a shell command. Keep that label in sync with `settings/home.html` and
-see [Two cadences, one tick](../dinkydash/CLAUDE.md#two-cadences-one-tick) for when it is
-written. It has two wordings, chosen by `view.set_up`: "writing your first dashboard" when one
-is on its way, and "nearly there" while the family is still setting up and nothing is being
-written.
+**There is no waiting screen.** Before the first brief the view is in state `first`: the
+dashboard itself, with turns, countdowns and agenda worked out from the config, under a headline
+worked out from the day, and no banner because no line is late. That holds while the family is
+still setting up, which is what lets the settings home preview the dashboard from the first second.
+It refreshes every minute rather than five, so the model's line reaches the wall soon after
+[Two cadences, one tick](../dinkydash/CLAUDE.md#two-cadences-one-tick) writes it. The only
+full-screen message is the ended-access one.
 
 In two-column mode the body is a grid of agenda and side column, and both stretch to the
 height left under the headline. The breakpoint is `min-aspect-ratio: 5/4` and `min-width:
