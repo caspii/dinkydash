@@ -45,7 +45,7 @@ do the looking.
 
 import logging
 import re
-from decimal import Decimal, InvalidOperation
+from decimal import Decimal
 
 from flask import (Blueprint, current_app, make_response, render_template,
                    request, url_for)
@@ -75,60 +75,27 @@ MAX_EDGE = 10000
 MIN_RATIO = Decimal("0.25")
 MAX_RATIO = Decimal("8")
 
-# `[0-9]` rather than `\d`, which would accept digits from other scripts.
+# `[0-9]` rather than `\d`, which would accept digits from other scripts. No
+# leading zeros, so each size has one spelling.
 _VIEWPORT = re.compile(
-    r"\A([0-9]{1,5})x([0-9]{1,5})@([0-9]{1,2}(?:\.[0-9]{1,3})?)\Z")
+    r"\A([1-9][0-9]{0,4})x([1-9][0-9]{0,4})@((?:0|[1-9][0-9]?)(?:\.[0-9]{1,3})?)\Z")
 
 
 def parse_viewport(header):
     """The screen's CSS size, or None when the header is not one.
 
-    `1280x800@2` is width, height and devicePixelRatio. A missing header, a
-    size outside the bounds, a ratio with more than three decimal places, and
-    anything else are ignored, so the table only ever holds a size.
+    `1280x800@2` is width, height and devicePixelRatio. Anything else, or a
+    value outside the bounds, is ignored, so the table only ever holds a size.
     """
-    if not isinstance(header, str):
-        return None
-    header = header.strip()
-    # The longest accepted value is `10000x10000@8.000`.
-    if not header or len(header) > 24:
-        return None
-    match = _VIEWPORT.fullmatch(header)
+    match = _VIEWPORT.match(header.strip()) if isinstance(header, str) else None
     if match is None:
         return None
-    width = _edge(match.group(1))
-    height = _edge(match.group(2))
-    ratio = _ratio(match.group(3))
-    if width is None or height is None or ratio is None:
+    width, height = int(match.group(1)), int(match.group(2))
+    ratio = Decimal(match.group(3))
+    if not (MIN_EDGE <= width <= MAX_EDGE and MIN_EDGE <= height <= MAX_EDGE
+            and MIN_RATIO <= ratio <= MAX_RATIO):
         return None
     return width, height, ratio
-
-
-def _edge(text):
-    """A CSS edge length, or None. A leading zero is a second spelling of the
-    same size, and the row is keyed on the number, so it is refused."""
-    if text.startswith("0"):
-        return None
-    value = int(text)
-    if MIN_EDGE <= value <= MAX_EDGE:
-        return value
-    return None
-
-
-def _ratio(text):
-    """A device pixel ratio inside the bounds, or None."""
-    whole, dot, _frac = text.partition(".")
-    if whole.startswith("0") and (not dot or whole != "0"):
-        return None
-    try:
-        ratio = Decimal(text)
-    except InvalidOperation:
-        return None
-    if ratio != ratio.quantize(Decimal("0.001")):
-        return None
-    if MIN_RATIO <= ratio <= MAX_RATIO:
-        return ratio
-    return None
 
 
 # What a screen response always carries, whatever it is.

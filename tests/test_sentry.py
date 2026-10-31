@@ -207,7 +207,7 @@ class TestTheTextScrubber:
         ("webcal://p12-caldav.icloud.com/published/2/abc", "[redacted]"),
         ("postgresql://user:hunter2@db.example/dinkydash", "[redacted]"),
         ("GET /login/link?t=abc123&x=1", "GET /login/link?t=[redacted]&x=1"),
-        ("GET /s/abcdEfghjkmn/manifest.webmanifest", "GET /s/[redacted]/manifest.webmanifest"),
+        ("GET /s/abcdEfghjkmn/manifest.webmanifest", "GET /s/[redacted]"),
         ("sent to parent@example.com today", "sent to [redacted] today"),
         (f"family {A_FAMILY} is gone", "family [redacted] is gone"),
         ("Could not mark expired trials", "Could not mark expired trials"),

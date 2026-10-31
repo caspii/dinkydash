@@ -26,8 +26,8 @@ draft. Only Save persists it. Keep an initial hidden Save button so Enter still 
 
 **`date` means a date of birth, and it is bounded.** The input carries `min` and `max` of
 1900-01-01 and today, and `validate` refuses anything outside them, naming the year it received.
-Both halves are needed: a phone's year wheel scrolls down to the year 1, and a mistyped year
-used to be saved silently and show up on the People page as somebody 2,009 years old. A `date`
+Both halves are needed: a phone's year wheel scrolls down to the year 1, and without the server
+check a mistyped year would show up on the People page as somebody 2,009 years old. A `date`
 field that is not a birthday needs a kind of its own rather than a looser bound on this one.
 
 **The `emoji` kind is a row of quick picks, None, and a dialog with the rest.** The row is
@@ -137,7 +137,7 @@ and never should be. What replaces the session is the token, resolved by `family
 what replaces the guard is that the two routes there are GETs that reach a dashboard. The board
 GET also records a screen size when a refresh sends `X-Viewport` (DIN-149); the manifest stays a read.
 Registered only in cloud mode, like `auth`. **In cloud mode `/` is a redirect**, so anything that
-used to link to `url_for('board.index')` for a dashboard — the "View dashboard" button, `/preview`'s
+links to a dashboard — the "View dashboard" button, `/preview`'s
 iframes — uses `web.urls.board_path()`. Build absolute credential URLs with
 `web.urls.absolute_url(path)`: it uses HTTPS and the configured `DINKYDASH_APP_HOST`, with the
 request host as a development fallback. The login-link CLI shares the origin policy and accepts
