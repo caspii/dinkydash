@@ -73,8 +73,8 @@ def _why(exc):
     An iCal "secret address" is a password in a URL: whoever holds it reads that
     family's whole calendar, indefinitely, and there is no way to see who has.
     `requests` puts the full URL into the message of both `raise_for_status()`
-    and every connection error, so wrapping `{exc}` — which this used to do —
-    published it to generate.log and to the settings page.
+    and every connection error, so wrapping `{exc}` would publish it to
+    generate.log and to the settings page.
 
     The label already says *which* calendar, so the URL adds nothing a person
     needs. The host is left out too: `calendar.google.com` is harmless, but a

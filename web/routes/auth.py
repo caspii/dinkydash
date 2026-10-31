@@ -31,6 +31,7 @@ from flask import (Blueprint, current_app, redirect, render_template, request,
                    session, url_for)
 
 from dinkydash import accounts, ads, mail
+from dinkydash.sentry import A_SCREEN, A_TOKEN, SCREEN_PREFIX
 from web import attribution, fathom, ratelimit, session as user_session, turnstile
 from web.urls import absolute_url
 
@@ -38,15 +39,11 @@ log = logging.getLogger(__name__)
 
 bp = Blueprint("auth", __name__)
 
-A_TOKEN = re.compile(r"([?&]t=)[^&\s\"']+")
 REDACTED = r"\1[redacted]"
 
-# Validation belongs to the route. A typo still reveals a recoverable credential;
-# encoded separators/letters can also reach these paths through a server's decoder.
-SCREEN_PREFIX = r"((?:/|%2f)(?:s|%73|%53)(?:/|%2f))"
-A_SCREEN = re.compile(SCREEN_PREFIX + r"\S*", re.IGNORECASE)
+# A request target is redacted to its end, spaces included: a typo in a screen
+# path is still a recoverable credential.
 A_SCREEN_TARGET = re.compile(SCREEN_PREFIX + r".*", re.IGNORECASE | re.DOTALL)
-SCREEN_REDACTED = r"\1[redacted]"
 
 SAME_ANSWER = ("A link is on its way. Open it and press the button on it — that "
                "works once, and the link goes stale after fifteen minutes. "
@@ -89,18 +86,18 @@ class NoTokens(logging.Filter):
         if record.name == "gunicorn.access" and isinstance(record.args, dict):
             path = record.args.get("U")
             if isinstance(path, str):
-                record.args["U"] = A_SCREEN_TARGET.sub(SCREEN_REDACTED, path)
+                record.args["U"] = A_SCREEN_TARGET.sub(REDACTED, path)
         elif (record.name == "werkzeug" and isinstance(record.args, tuple)
               and record.args and isinstance(record.args[0], str)):
             request_line = record.args[0]
             target, separator, protocol = request_line.rpartition(" HTTP/")
             if not separator:
                 target, protocol = request_line, ""
-            redacted = A_SCREEN_TARGET.sub(SCREEN_REDACTED, target)
+            redacted = A_SCREEN_TARGET.sub(REDACTED, target)
             record.args = (redacted + separator + protocol, *record.args[1:])
 
         message = record.getMessage()
-        redacted = A_SCREEN.sub(SCREEN_REDACTED, A_TOKEN.sub(REDACTED, message))
+        redacted = A_SCREEN.sub(REDACTED, A_TOKEN.sub(REDACTED, message))
         if redacted != message:
             record.msg = redacted
             record.args = ()

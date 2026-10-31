@@ -110,216 +110,89 @@ Relative links like `[CLAUDE.md](CLAUDE.md)` break once a document is in Linear.
 
 ### Handling other people's data
 
-- **Calendar feeds are untrusted remote input.** Event titles are written by third parties, arrive
-  over the network, and land in two places: the rendered page and the model prompt. Autoescaping
-  protects the first — the single `|safe` in `web/` is on the QR code `segno` draws from our own
-  screen URL, and none should ever appear on feed or user content. For the second, treat the text as data: an event titled "ignore your instructions
-  and ..." must not change what the model does.
-- **The server fetches URLs the user typed, and `fetch_feed` is what keeps that safe.** On a Pi the
-  typist owns the network; hosted it is our infrastructure dialling whatever a stranger pasted, and
-  everything worth reaching is inside. Four rules, all in `calendars.py` and all tested in
-  `tests/test_feed_safety.py`: **https only** (`webcal://` is normalised, plain `http` is refused
-  because it puts the secret address on the wire); **every resolved address checked** against
-  private, loopback, link-local, reserved and multicast, before any request is made; **redirects
-  followed by hand** with the scheme and address re-checked at each hop, because a public URL that
-  302s to `169.254.169.254` is the whole attack; and a **10 MB body cap** enforced on
-  `Content-Length` *and* on the read, since a server can omit or lie in that header.
-  `FeedRefused` subclasses `FeedError` on purpose, so one bad URL in a config is a failed feed
-  rather than a failed tick. **Connect to the checked IP**, preserving the original hostname for
-  TLS SNI, certificate verification and the `Host` header. The per-request Requests adapter uses
-  only validated numeric addresses, including IPv6/IPv4 fallback; every redirect resolves and
-  validates again. Calendar fetches use direct connections because an environment proxy could
-  resolve the hostname elsewhere. `tests/test_feed_transport.py` exercises this with changing DNS
-  answers and real TLS on an isolated local server.
-- **Calendar contents leave the machine.** They go to Anthropic to write the daily headline. A fair
-  trade, and it *is* said now (DIN-44): in `website/content/privacy.md`, in the sub-processor list
-  on it, on `/settings/account`, and — the one that matters — in the blurb beside the field where
-  somebody pastes a calendar link. **Those pages are claims about what this code does.** A retention
-  period is a promise that a `DELETE` exists; a sub-processor list is a promise that nothing else is
-  called. Change what the app stores, sends, or sends it to, and the policy changes in the same
-  commit.
-- **Log the label, not the URL.** `fetch_events` logs `entry["label"]` on purpose. The exception
-  text does not follow that rule by itself — see the gotcha below.
-- **Service ticks log metadata, never generated family text.** `runner.write_brief` logs the
-  date and token usage. Headline/note output belongs to an explicit CLI run, outside `--tick`.
-  Access-log redaction covers malformed and encoded screen URLs as well as valid credentials;
-  the route's token alphabet must not limit the log filter (`tests/test_private_logs.py`).
+- **Calendar feeds are untrusted remote input.** Event titles land in the rendered page and in the
+  model prompt. Autoescaping covers the page: the single `|safe` in `web/` is on the QR code
+  `segno` draws from our own screen URL, and none goes on feed or user content. In the prompt the
+  text is data: an event titled "ignore your instructions and ..." must not change what the model does.
+- **`fetch_feed` fetches URLs a stranger typed, from our infrastructure.** `calendars.py` allows
+  https only (`webcal://` is normalised, plain `http` refused); refuses private, loopback,
+  link-local, reserved and multicast addresses; follows redirects by hand and re-checks each hop;
+  connects to the address it checked, keeping the hostname for TLS and `Host`; ignores environment
+  proxies; and caps the body at 10 MB. `FeedRefused` subclasses `FeedError`, so one bad URL is a
+  failed feed, not a failed tick. Tests: `test_feed_safety.py`, `test_feed_transport.py`.
+- **Calendar contents go to Anthropic** for the headline, and the privacy page, the sub-processor
+  list, `/settings/account` and the blurb beside the calendar field say so. **Those pages are
+  claims about this code**: change what the app stores, sends, or sends it to, and change the
+  policy in the same commit.
+- **Log the label, never the URL** (`fetch_events` logs `entry["label"]`; see the `FeedError`
+  gotcha below). **Ticks log metadata, never generated family text.** Access-log redaction covers
+  malformed and encoded screen URLs too (`tests/test_private_logs.py`).
 
 ### Hosted mode raises the stakes
 
-Self-hosted is one family on their own network and has **no authentication by design**: anyone who
-reaches the port can edit the config, which is the same trust model as the file it writes. Cloud
-mode is a different product on the same code.
+Self-hosted is one family on their own network and has **no authentication by design**. Cloud mode
+is a different product on the same code. The rules, each enforced in the named file and its test:
 
-- **Every read and write is scoped to a `family_id`, and that id comes from the session.**
-  `web/family.py` builds one `PostgresStore` per request out of it, over a pool built once per
-  process — never one pool per request, because the cluster has 22 connections and a PgBouncer in
-  front. Nothing a caller can send names a family: no path segment, no query parameter, no form
-  field, no header. That is stronger than checking an id, and it is why there is no "the" family
-  anywhere. When a route does one day take a family id — the admin view is the likely first — the
-  check goes in `family.py`, before the store is built, and **a mismatch is a 404 and never a 403**:
-  "forbidden" confirms the row exists, which tells one family that another one does.
-- **The operator's page is behind a list of addresses, and a miss is a 404.** `/admin` (DIN-37)
-  shows signups and activations by week and the newest accounts, and only to a signed-in account
-  whose address is in `DINKYDASH_ADMIN_EMAILS`. Anybody else gets the same answer as a URL that does
-  not exist, and an unset list means nobody. The counts read `growth_by_day` — a date and three
-  counts (signups, calendars, activations), kept by triggers on `families` and `screen_sizes` and
-  surviving deletion the way `global_model_spend` does. **An activation is a screen keeping the
-  dashboard up long enough to refresh it**, on something bigger than a phone, not a saved calendar
-  link (migration 011) —
-  one bare `count(*)`, and a count of paying families: lifecycle `status` and Stripe
-  `subscription_status` both `active`, split by the stored plan interval. That paying count is
-  still an aggregate. It reads no address and no config, and the page does not call Stripe. The
-  roster reads each family's address, the platform's bookkeeping
-  (created, activated, status, deadlines, last sign-in) and the sizes its screens have reported,
-  and **never the config**: no name, no
-  calendar, no child's date of birth. The size table is a count per size and when one was last
-  seen, with no family id. No family id is rendered or taken from anywhere, so nothing
-  on the page reaches one family. `tests/test_admin.py` asserts each of those, including that a
-  family's name and calendar label do not appear.
-- **`web/__init__.py` falls back to a hardcoded `app.secret_key`.** Harmless with no auth; in cloud
-  mode the session *is* the authentication, so cloud mode must refuse to start without a real
-  `DINKYDASH_SECRET_KEY`.
-- **A magic link is a bearer credential, and so is everything it touches.** `dinkydash/accounts.py`
-  holds the lifecycle — 32 bytes from `secrets`, only the SHA-256 stored, fifteen minutes, spent by
-  a single `UPDATE ... WHERE used_at IS NULL RETURNING`. **A login link in a log is a login in a
-  log**, which is why the token rides in the query string, `.do/app.yaml` sets a gunicorn access
-  log format built from `%(U)s` (path, no query) rather than the default `%(r)s`, and
-  `auth.NoTokens` scrubs `?t=` from both request loggers regardless. All three are asserted in
-  `tests/test_auth.py`; none of them is a preference.
-- **A login request answers identically whether or not the address has an account**, including when
-  it is rate-limited and when the send fails. Anything else enumerates accounts, and the accounts
-  are families. **`/login` is the sign-up form too** (DIN-41), which is why there is no "create an
-  account" route: a second page, or a second button, would say which addresses already have one.
-- **Nothing a stranger can POST creates a row that costs money.** A sign-up creates the family when
-  the emailed link is *spent*, so an unverified one costs a token row and an email rather than a
-  trial and a daily Anthropic call. That is the rate limit; the cap is the spend breaker below.
-- **Opening the emailed link must not spend it — pressing the button on it does.** A link in a
-  mailbox is fetched by more than its recipient: mail security gateways at businesses, schools and
-  government departments follow every URL in every message first. So `GET /login/link` renders a
-  page with a button and reads nothing, and only its `POST` calls `consume_link`. Scanners follow
-  links; they do not fill in forms. `consume_link` is unchanged by this and stays that way — single
-  use is still one `UPDATE ... WHERE used_at IS NULL RETURNING` — and the landing page carries no
-  meta refresh and nothing that presses the button for a caller, because automating the press
-  restores the bug in a form that is harder to see. With `FATHOM_SITE_ID` unset it carries no
-  script at all. With it set, the only script is the cookieless counter, which does not read the
-  form. `tests/test_auth.py` asserts a bare `GET` spends nothing, signs nobody in, creates no
-  family and leaves the link working.
-- **The sign-in form has a bot check in front of it, and it is off unless both keys are set.**
-  `web/turnstile.py`, over Cloudflare Turnstile, because everything past that button costs
-  money — an email on a shared SendGrid reputation, then a family and a trial — and neither rate
-  limit can tell a person from a script working slowly through a list of harvested addresses, one
-  address at a time, under both. `TURNSTILE_SITE_KEY` and `TURNSTILE_SECRET_KEY` together switch
-  it on; either alone is treated as off, because a widget nobody verifies looks like a control and
-  is not one. A refusal is answered before the address is looked up and says the same thing
-  whatever was typed, or it enumerates accounts like anything else here. A Cloudflare that
-  *refused* is refused; a Cloudflare we could not *reach* is allowed through, the trade
-  `ratelimit.client_ip` already makes — a bot check that stops every family signing in is an
-  outage wearing a control's clothes. The privacy page and `/settings/account` name it.
-- **Fathom counts the public sign-in pages, and a new account, and nothing else.**
-  `web/fathom.py`. `FATHOM_SITE_ID` unset — a self-hosted dashboard, the test suite, a deploy
-  that has not set it — loads no script. Set, the same cookieless script the marketing site
-  uses is on `/login`, the "check your email" page and the magic-link confirmation, and the
-  pageview URL is the path alone so the token in the query string is not the URL that is sent.
-  A new account is counted once, on a page that shows no family and then opens settings. A
-  returning sign-in is not counted. The dashboard, the settings, billing and `/s/<token>` do
-  not load it. No cookie, and no address or name in the event. The privacy page and
-  `/settings/account` name Fathom, because a sub-processor list is a promise about who is called.
-- **Every form that writes carries a CSRF token**, in *both* modes — `web/session.py`, with no
-  switch to turn it off. A test walks the templates and fails on a form without one.
-- **Screen tokens are bearer credentials**, and unlike a magic link they never expire — a wall panel
-  holds one for months. So `/s/<token>` is `noindex`, `no-store`, makes no third-party request,
-  never echoes the token back on a miss, and is rotatable, which is the only revocation there is.
-  **A wrong token is a 404 and never a 403**: "forbidden" would confirm it exists.
-- **A token in a *path* is in the access log; a token in a query string is not.** `%(U)s` is what
-  keeps `?t=` out, and it is exactly what would write `/s/<token>` down thousands of times from one
-  panel. `auth.NoTokens` scrubs both, on both request loggers, and `tests/test_screen.py` fails if
-  it stops.
-- **Rate-limit the misses, not the requests.** A real screen asks for its dashboard every few minutes
-  for years; counting that would put a rate limit on somebody's kitchen wall. Only wrong tokens are
-  counted, which is also the only thing worth counting.
-- **The sign-in rate limits are ours, not an edge rule, so that a refusal is a line somebody can
-  read.** That is the trade being made — a Cloudflare rule would be sturdier and invisible. What
-  goes in the line is chosen: the caller's address in full, the *domain* of the address asked about
-  and never the address, and nothing at all for an address with no account. `tests/test_auth.py`
-  asserts each of those, because a log policy nobody tests is a log policy that drifts.
-- **Spend caps are a security control, and they exist now** (DIN-43). `dinkydash/budget.py` counts
-  **calls, not money** — a price table goes stale silently and in the wrong direction — per family
-  and globally, in one statement that decides and records before the call. Three rules to keep:
-  **charge on the attempt**, because a revoked key that fails every time reports no usage and would
-  otherwise retry for ever; **a refusal is an `OverBudget`, which is a `GenerationError`**, so every
-  caller's existing keep-last-good path handles it and no second such path gets written; and
-  **anything new that calls Anthropic takes a budget**, the way it takes a store. "Rewrite now" was
-  the one path with no limit on it at all, and it is charged now too.
-  The budget also applies the platform's model and output-token ceiling before hosted generation.
-  Its global daily aggregate has no family identifiers and survives account deletion (DIN-49/51).
-- **Error reports leave the machine, and `dinkydash/sentry.py` decides what they may hold** (DIN-35).
-  With `SENTRY_DSN` set — cloud mode, and only there — an unhandled exception in a request or a
-  log record at ERROR becomes a Sentry event. What goes: the exception, where in *our* code it was
-  raised, the log line's **template**, the request's **method**, the release, the component. What
-  is stripped in `scrub`, whatever the SDK's PII switch says: the URL and query string (a screen
-  token, a login token), the Referer, headers, cookies and body, local variables, breadcrumbs, and
-  the log line's **arguments** — "Tick failed for family %s" is about our code and the `%s` is
-  which family. Free text is regex-scrubbed of URLs, tokens, addresses and UUIDs as well.
-  `tests/test_sentry.py` captures real events through an in-process transport and asserts each
-  absence; **a new `log.error` is an event, so keep the data in the arguments, never the
-  template**, and anything that adds a report path takes the same `scrub`. The privacy page and
-  `/settings/account` name Sentry as a sub-processor, and say what it never sees.
+- **Every read and write is scoped to a `family_id` from the session** (`web/family.py`), one
+  `PostgresStore` per request over one pool per process. Nothing a caller sends names a family.
+  When a route does take a family id, check it in `family.py`, and **a mismatch is a 404, never a
+  403** — "forbidden" confirms the row exists.
+- **`/admin` is gated by `DINKYDASH_ADMIN_EMAILS`; a miss is a 404 and an unset list is nobody.**
+  It shows aggregates (`growth_by_day`, paying count) and a roster of addresses and bookkeeping
+  columns — never a config, a name, a calendar or a family id (`tests/test_admin.py`).
+- **Cloud mode refuses to start without `DINKYDASH_SECRET_KEY`**; the session is the authentication.
+- **Magic links** (`dinkydash/accounts.py`): 32 random bytes, only the SHA-256 stored, fifteen
+  minutes, spent by one `UPDATE ... WHERE used_at IS NULL RETURNING`. **`GET /login/link` only
+  renders a button; its `POST` spends the link**, because mail scanners follow links but do not
+  submit forms. Do not auto-submit that page.
+- **`/login` answers identically whether or not the address has an account**, including when
+  rate-limited, refused by the bot check, or when the send fails — it is also the sign-up form, so
+  there is no second route to give the game away. The family is created when the link is spent,
+  not when the form is posted, so a stranger's POST costs an email and not a trial.
+- **Tokens stay out of logs.** Login tokens ride in `?t=`; screen tokens are in `/s/<token>`.
+  The gunicorn access format uses `%(U)s`, and `auth.NoTokens` scrubs both from both request
+  loggers (`tests/test_auth.py`, `tests/test_screen.py`).
+- **Screen tokens never expire**, so `/s/<token>` is `noindex`, `no-store`, makes no third-party
+  request, never echoes the token, and is rotatable. A wrong token is a 404. Only misses are
+  rate-limited.
+- **Rate limits are ours** (`web/ratelimit.py`, per IP, in process; per address in Postgres), so a
+  refusal is a log line: the caller's IP, the domain of the address asked about, never the address.
+- **Turnstile** (`web/turnstile.py`) is on only when both keys are set. A refusal is answered
+  before the address is looked up; an unreachable Cloudflare lets the request through.
+- **CSRF on every writing form, in both modes** (`web/session.py`); a test walks the templates.
+- **Fathom** (`web/fathom.py`) loads only with `FATHOM_SITE_ID`, only on the public sign-in pages
+  and the one new-account page, and sends the path without the query string.
+- **Spend caps** (`dinkydash/budget.py`) count calls, not money, per family and globally, charged
+  on the attempt. A refusal is an `OverBudget`, a `GenerationError`, so the existing keep-last-good
+  path handles it. **Anything new that calls Anthropic takes a budget**, the way it takes a store.
+- **Sentry** (`dinkydash/sentry.py`, cloud only) receives the exception, our frames, the log
+  template and the request method. `scrub` strips URLs, headers, bodies, locals, breadcrumbs and
+  log arguments. **Keep data in a `log.error`'s arguments, never its template** (`tests/test_sentry.py`).
+- **Anything new that sends data to a third party is named on the privacy page and
+  `/settings/account`** in the same commit.
 
 ### The safety net, and what it does not cover
 
-`.github/workflows/test.yml` runs on every push and pull request, as two independent jobs so a
-secret and a broken test are separate red X's: **pytest** on Python 3.11, and **gitleaks** over the
-full history — `fetch-depth: 0`, because gitleaks scans commits rather than the working tree.
-GitHub's own secret scanning is switched on as a second layer, but **gitleaks is the layer that was
-observed to work** — see [doc/operations.md](doc/operations.md) for what happened when the other
-one was tested.
+`.github/workflows/test.yml` runs two jobs on every push and pull request: **pytest** (Python 3.11,
+with and without Postgres) and **gitleaks** over the full history (`fetch-depth: 0`), using the
+pinned MIT binary rather than the upstream action. `.gitleaks.toml` adds rules for iCal secret
+addresses (Google `private-` + 32 hex, iCloud `/published/2/`). Its one allowlist entry is the
+public Ahrefs site key. **Allowlist only values that are public by design**; a real secret that
+reached a commit is fixed by rotating it. GitHub secret scanning is on as a second layer.
 
-The gitleaks job runs the MIT-licensed binary directly, pinned, rather than the upstream
-`gitleaks-action` — that action is a bundled JavaScript blob under a commercial licence, and this is
-one fewer thing holding a token in our CI. Rules live in `.gitleaks.toml`, which extends the default
-set with the one shape the defaults do not know: **an iCal secret address**. Google
-(`private-` + 32 hex) and iCloud (`/published/2/` + a long token) both have a rule; the visibly fake
-examples in the docs (`private-xxxx`, `private-8f3c1a`) are too short to match, so keep new ones
-that way. The single allowlist entry is the Ahrefs Web Analytics site key, which is served in the
-`<head>` of every page on dinkydash.co. It used to trip `generic-api-key` 4,000+ times across the
-committed `docs/`; with the site rendered on request there is one copy of it, in a template.
-**Allowlisting is for values that are public by design.** A real secret that reached a commit is
-fixed by rotating it.
+Deploys: App Platform probes `/healthz` on the marketing app, which reads nothing. `create_app`
+calls `db.ready` and refuses to start if the database does not answer in ten seconds, so a wrong
+`DATABASE_URL` fails the deploy and fires the `DEPLOYMENT_FAILED` alert in `.do/app.yaml`. The
+worker sends a Sentry cron check-in after each completed pass, and a Sentry uptime monitor fetches
+`app.dinkydash.co/login`. `tests/test_deploy_spec.py` pins the probe, the alert and the DSN shape.
 
-**What decides whether a deploy goes live, and what watches it afterwards** (DIN-54). App
-Platform probes `/healthz` on the platform's own hostname, so it is the marketing app that answers
-it; the probe reads nothing on purpose, because three failed probes restart the container and a
-probe that depended on the database would turn a slow query into a rolled-back deploy. So it only
-proves that the process came up — which is why `create_app` calls `db.ready` and refuses to start
-when the pooled database does not answer within ten seconds, turning a wrong `DATABASE_URL` into
-a deploy that never goes live, and App Platform's own `DEPLOYMENT_FAILED` alert (in `.do/app.yaml`)
-into the message. The two things a probe cannot see are Sentry's, with no code of ours beyond one
-call: **the worker checks in with a cron monitor after every completed pass** (`worker.run_pass` →
-`sentry.check_in`; a stop request or a pass that could not list the families sends nothing, and a
-missed check-in is the alert), and **an uptime monitor fetches `app.dinkydash.co/login`** from
-outside, which proves DNS, TLS, the container, the host routing and a rendered page with no
-database in the path. Nothing here polls, stores a heartbeat or runs a workflow; an in-house
-version of all this was built and dropped as 1,300 lines for what a monitoring service does with
-configuration. `tests/test_deploy_spec.py` pins the probe path, the alert and the DSN's shape.
+Not covered: anything password-shaped in a URL other than the two calendar shapes needs its own
+gitleaks rule. `config.yaml` is in early history with two children's first names and no
+credential; that is public and permanent, and the reason the rules above exist.
 
-Two things the net does not catch, both worth knowing before trusting it:
-
-- **The defaults have no rule for a calendar URL**, which is why we wrote our own. Anything else
-  shaped like a password in a URL needs the same treatment.
-- **`config.yaml` is in the history**, nine commits from before it was gitignored. It holds two
-  children's first names; it holds no credential, no calendar URL and no key, so there is nothing to
-  rotate — but it is public and permanent, and rewriting a published history is not a fix worth the
-  breakage. It is the reason the rules above exist.
-
-**`requirements.txt` and `requirements-dev.txt` are pinned with `==`** to the versions CI passes on,
-so a clean venv gets what was tested. Bump deliberately, and check the release notes: `anthropic`
-must stay at 1.x or later, because `claude_client.py` calls `output_config` structured outputs.
-
-**`requirements.txt` is runtime only** — it is what a self-hosted dashboard installs. The site
-generator's dependencies (`jinja2`, `markdown`, `pyyaml`) and the favicon script's (`Pillow`) live
-in `requirements-dev.txt`, because `website/` never runs on the dashboard. A new import in `website/`
-goes there, not in `requirements.txt`.
+**Requirements are pinned with `==`** to what CI passes. Bump deliberately; `anthropic` must stay
+at 1.x or later for `output_config`. **`requirements.txt` is runtime only** — what a Pi installs.
+`website/` and tooling dependencies go in `requirements-dev.txt`.
 
 ## Architecture
 
@@ -516,7 +389,7 @@ GitHub OAuth session), though it can update an app that already has one.
 ## Working on it
 
 **What the tests cover**, and why they exist: leap years, timezone conversion, event ordering,
-rotation, staleness, and the config round-trip — the things that used to break silently. They run
+rotation, staleness, and the config round-trip — the things that break silently. They run
 in under a second, so there is no excuse for skipping them.
 
 **Testing without spending money.** `generate.py --date 2026-12-24` generates for any date, which is
@@ -601,15 +474,12 @@ to tell you.
 - **Structured outputs** (`output_config.format`) guarantee the response matches the schema, so
   there is no JSON-repair retry loop. Do not add one back.
 - Self-hosted mode has **no authentication**. Anyone who can reach the port can edit the config.
-  That is the same trust model as the file it writes, but keep the port off the public internet.
-  The README now says so too, in a callout under **Quickstart** — it used to be written down only
-  here and in the `app.py` docstring, neither of which a user reads. Cloud mode cannot inherit
-  this — see [Hosted mode raises the stakes](#hosted-mode-raises-the-stakes).
+  That is the same trust model as the file it writes, but keep the port off the public internet;
+  the README says so in a callout under **Quickstart**. Cloud mode cannot inherit this — see [Hosted mode raises the stakes](#hosted-mode-raises-the-stakes).
 - **A `FeedError` message must never carry the URL, and `calendars._why` is what keeps it out.**
   `requests` formats both `raise_for_status()` and connection errors with the full URL (`404 Client
-  Error: ... for url: https://.../private-REALSECRET/basic.ics`), and `fetch_feed` used to wrap
-  `{exc}` straight in — publishing it to `generate.log` and to the feed status on the settings page.
-  `_why` reduces it to a category and a status code, and the host is left out too: it is not
+  Error: ... for url: https://.../private-REALSECRET/basic.ics`), and that message reaches
+  `generate.log` and the feed status on the settings page. `_why` reduces it to a category and a status code, and the host is left out too: it is not
   possible to tell `calendar.google.com` from `calendar.the-smiths.example` in code. The parse error
   is scrubbed for the same reason — a parser quotes the line it choked on, which is an appointment.
   `tests/test_secrets_and_headers.py` fails if any of that regresses.

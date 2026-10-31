@@ -294,8 +294,8 @@ The payload carries two stamps, **both in UTC**: `generated_at` (when the brief 
 `calendars_fetched_at` (when the feeds were last fetched, and what `schedule.due` reads). UTC
 because the server is routinely not on the family's clock — a Pi is often left on UTC, and hosted
 the server is nowhere near them. They are rendered in the family's timezone at the point of display,
-which on the settings home is `_clock(stamp, tzinfo)`. It used to slice the characters out of the
-ISO string, which showed the server's hour.
+which on the settings home is `_clock(stamp, tzinfo)`. Slicing the characters out of the ISO
+string would show the server's hour.
 
 ## Two cadences, one tick
 

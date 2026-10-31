@@ -63,9 +63,14 @@ KEEP = frozenset({
 # scheme, because a calendar address is `https://` or `webcal://` and a
 # connection string is `postgresql://`; a magic-link token; a screen token;
 # an email address; a family id, which is a UUID.
+#
+# `A_TOKEN` and `A_SCREEN` are shared with the request-log filter in
+# `web/routes/auth.py`. A screen path is matched encoded as well, because a
+# server's decoder can hand either spelling to a logger.
 _A_URL = re.compile(r"[a-z][a-z0-9+.-]*://\S+", re.IGNORECASE)
-_A_TOKEN = re.compile(r"([?&]t=)[^&\s\"']+")
-_A_SCREEN = re.compile(r"(/s/)[^/\s\"']+")
+A_TOKEN = re.compile(r"([?&]t=)[^&\s\"']+")
+SCREEN_PREFIX = r"((?:/|%2f)(?:s|%73|%53)(?:/|%2f))"
+A_SCREEN = re.compile(SCREEN_PREFIX + r"\S*", re.IGNORECASE)
 _AN_ADDRESS = re.compile(r"[^\s@\"'<>/]+@[^\s@\"'<>/]+")
 _AN_ID = re.compile(
     r"\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b", re.IGNORECASE)
@@ -217,7 +222,7 @@ def scrub_text(text):
     if not isinstance(text, str):
         return text
     text = _A_URL.sub(REDACTED, text)
-    text = _A_TOKEN.sub(r"\g<1>" + REDACTED, text)
-    text = _A_SCREEN.sub(r"\g<1>" + REDACTED, text)
+    text = A_TOKEN.sub(r"\g<1>" + REDACTED, text)
+    text = A_SCREEN.sub(r"\g<1>" + REDACTED, text)
     text = _AN_ADDRESS.sub(REDACTED, text)
     return _AN_ID.sub(REDACTED, text)
