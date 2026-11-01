@@ -706,3 +706,13 @@ Mac on 1 November 2026: 32 URLs fetched, every one 200, no content failures. The
 Cloudflare's email obfuscation on `/privacy/` and `/terms/`, which the check now ignores. The first
 scheduled run is the Monday after the merge; its result is in the Actions tab.
 
+## The first quarterly content review, 1 November 2026 (DIN-133)
+
+Every page in `website/content/`, the site templates and the README, read against the code. About
+forty corrections went in: "line" and "each morning" for the daily headline, which is written at a
+time the family picks; calendar refresh stated as hourly when it is a default; American spellings;
+two pages understating what goes to Anthropic (it is events, first names, ages and interests, not
+"the agenda"); a leap-day legal claim nobody could source; and the self-hosting guide not saying the
+example family holds the first headline back. `privacy.md` and `terms.md` were checked but not
+edited; their findings went to Caspar. Next review due 1 February 2027.
+

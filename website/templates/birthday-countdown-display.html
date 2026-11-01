@@ -265,7 +265,7 @@
         var d = C.describe(C.bySoonest(people, C.todayMidnight())[0], C.todayMidnight());
         return d.days === 0
             ? 'Today! · Birthday countdown'
-            : d.days + ' days until ' + d.possessive + ' birthday';
+            : d.days + (d.days === 1 ? ' day' : ' days') + ' until ' + d.possessive + ' birthday';
     })();
 
     // Tick the clock without rebuilding the DOM.

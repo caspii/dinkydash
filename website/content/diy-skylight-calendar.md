@@ -79,7 +79,7 @@ A cheap tablet wall mount, a picture ledge, or a small easel stand all work. Non
 | Three-year cost | ~$837 | ~$5–190 |
 | Your data | Their cloud | Your device |
 | AI daily headline | No | Yes |
-| Fixable/customizable | No | It's your code |
+| Fixable/customisable | No | It's your code |
 
 *Skylight prices checked 9 October 2026; the Raspberry Pi part prices above are approximate and were last checked August 2026.*
 

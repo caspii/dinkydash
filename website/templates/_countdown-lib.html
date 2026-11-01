@@ -91,7 +91,7 @@ window.DDCountdown = (function () {
             days: daysUntil(target, now),
             possessive: p.name ? (p.name + "'s") : 'your',
             weekday: WEEKDAYS[target.getDay()],
-            dateText: MONTHS[target.getMonth()] + ' ' + target.getDate(),
+            dateText: target.getDate() + ' ' + MONTHS[target.getMonth()],
             year: target.getFullYear(),
             turning: p.year ? ageOn(p.year, p.month, p.day, target) : null,
             observedLeap: p.month === 2 && p.day === 29 && target.getDate() === 28

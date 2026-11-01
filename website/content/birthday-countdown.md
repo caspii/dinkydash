@@ -36,7 +36,7 @@ There's no sign-up and nothing gets uploaded — the countdown lives in the link
 
 ## How many days until my birthday?
 
-Count from today to your next birthday. If it's already been this year, you're counting to next year's — which is why the number can jump from 1 to 364 overnight.
+Count from today to your next birthday. If it's already been this year, you're counting to next year's — which is why the number goes from 1, to the birthday itself, to 364 the day after.
 
 The counter above does this for you, but the arithmetic that trips people up is the year boundary: from 20 August to 15 March is 207 days, not the 158 you'd get by subtracting the dates and ignoring the year change.
 
@@ -66,7 +66,7 @@ If you'd rather not put a birth year in a shared link, leave the year blank. You
 
 Leap-day birthdays get counted properly here, which is more than a lot of countdown tools manage — plenty of them either crash or quietly skip to 1 March.
 
-In a leap year the countdown runs to 29 February. In every other year it runs to **28 February**, so the number hits zero in the month the family actually celebrates. That's also the convention most countries use for legal purposes.
+In a leap year the countdown runs to 29 February. In every other year it runs to **28 February**, so the number hits zero in the month the family actually celebrates.
 
 ## Questions
 

@@ -36,7 +36,7 @@ the same file, and the UI keeps your comments.
 ## How it works
 
 ```
-[cron every 5m] → generate.py --tick → every hour: re-fetches every iCal feed, in time order
+[cron every 5m] → generate.py --tick → every hour by default: re-fetches every iCal feed
                                      → once a day at a time you set, 06:00 by default
                                        (and at once on the first run): calls Claude
                                      → saves dashboard_data.json
@@ -127,7 +127,7 @@ rotation, the stale-dashboard logic, the config round-trip, and the settings rou
 
 GitHub Actions runs the same command on every push and pull request, on Python 3.11
 (`.github/workflows/test.yml`), alongside a [gitleaks](https://github.com/gitleaks/gitleaks) scan of
-the full history. Both dependency files are pinned with `==`, so a clean `pip install` gets the
+the full history. Every requirements file is pinned with `==`, so a clean `pip install` gets the
 versions CI passed on. A pull request that fails either check shows a red X.
 
 ## Key files
@@ -148,7 +148,7 @@ versions CI passed on. A pull request that fails either check shows a red X.
 | `app.py` | Flask entry point |
 | `config.yaml` | All configuration. The settings UI writes this same file |
 | `config.example.yaml` | Template config, documenting every key |
-| `tests/` | 368 tests. Run them before committing |
+| `tests/` | The test suite. Run it before committing |
 | `doc/` | Running it day to day, and upgrading from an older version |
 | `design/` | Mockups for the dashboard and settings UI, with the reasoning |
 | `.env` | `ANTHROPIC_API_KEY` (not in git) |

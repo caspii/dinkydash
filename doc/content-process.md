@@ -79,8 +79,8 @@ won't render, a link to a page that's gone. It ignores Cloudflare's email obfusc
 **Quarterly, by hand.** Somebody reads every public page, start to finish, against the product
 and the prices as they are that day. This is checklist items 1 to 4 for the whole site at once:
 British English, the display called a dashboard (terminology.md), and every claim about a
-feature traced to code that still exists. Each fix is its own Linear issue. The next review is
-due **6 January 2027**, then every three months; whoever does it sets the next date here.
+feature traced to code that still exists. Each fix is its own Linear issue. The last review was on
+1 November 2026, and the next is due **1 February 2027**; whoever does it sets the next date here.
 
 ## What a test can't catch
 

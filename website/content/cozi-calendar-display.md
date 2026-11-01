@@ -53,7 +53,7 @@ chats.
 
 [DinkyDash](/) is open-source software that does exactly that. We can host it for you ($39 a year after a 14-day free trial), or you can run it yourself for free. It turns a screen you already own into a family
 dashboard: today's events, a chore chart that rotates between people by itself, countdowns to
-birthdays and holidays, and a short line written fresh each day by AI. It runs in a
+birthdays and holidays, and a headline written fresh each day by AI. It runs in a
 browser, so an old tablet, a spare monitor, a TV or a Raspberry Pi will all do.
 
 Which screen? An [old iPad](/ipad-calendar-display/) or an [Android
@@ -106,8 +106,8 @@ Nothing, if you have a spare screen. DinkyDash is MIT-licensed and free to run y
 - **A Raspberry Pi and a small touchscreen** — about $150 in parts, and the tidiest wall
   panel. The [Raspberry Pi build guide](/raspberry-pi-family-calendar/) has the parts list.
 
-There's no subscription for the self-hosted version. The one running cost is the AI daily
-line, which is a Claude API call once a day — roughly $0.13 a month — and the dashboard works
+There's no subscription for the self-hosted version. The one running cost is the daily
+headline, which is a Claude API call once a day — roughly $0.13 a month — and the dashboard works
 without it.
 
 Compare that with a dedicated display: a Skylight Calendar is $299.99 to $599.99 plus an

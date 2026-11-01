@@ -86,8 +86,8 @@ a television.
 - **A headline, written fresh each day** by Claude, around your family's actual day.
 
 The dashboard refreshes itself every five minutes, and if the Wi-Fi drops it keeps the last
-dashboard on screen with a small "Reconnecting" note rather than an error page. The script that
-does it's written for old browsers, and one too old for it, or with JavaScript switched off,
+dashboard on screen with a small "Reconnecting" note rather than an error page. The script behind it
+is written for old browsers, and one too old for it, or with JavaScript switched off,
 falls back to a plain HTML refresh — which matters here more than anywhere: TV browsers are the
 oldest browsers in the house, and this one keeps working in them.
 
