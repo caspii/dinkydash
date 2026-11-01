@@ -40,8 +40,8 @@ The Echo Show then shows those events on its home screen, answers "what's on tod
 events by voice. On an **Echo Show 15** or **21**, the calendar widget on the larger screen is
 genuinely a decent kitchen display.
 
-What it won't do is rotate a chore chart, count down to birthdays, or write you a line each
-morning. It shows a calendar, competently.
+What it won't do is rotate a chore chart, count down to birthdays, or write you a headline each
+day. It shows a calendar, competently.
 
 ## The route that doesn't: a web dashboard in Silk
 

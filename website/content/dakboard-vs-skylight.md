@@ -111,7 +111,7 @@ Nobody puts this in a comparison table, and it's the difference that lasts longe
 
 **DinkyDash.** You're the support queue. Self-hosting is community-supported — issues are welcome on GitHub, and nobody is on call. Against that, three things are true and are the reason some people choose it anyway:
 
-- **A failed run doesn't blank the wall.** If the daily job fails, the dashboard still shows *today's* times, chores and countdowns, because those are recalculated from your config every time the page renders. The headline is one worked out from the day, and the dashboard says so rather than leaving yesterday's line up. Yesterday's calendar fetch reached 14 days ahead, so today's agenda is still in it.
+- **A failed run doesn't blank the wall.** If the daily job fails, the dashboard still shows *today's* times, chores and countdowns, because those are recalculated from your config every time the page renders. The headline is one worked out from the day, and the dashboard says so rather than leaving yesterday's headline up. Yesterday's calendar fetch reached 14 days ahead, so today's agenda is still in it.
 - **The company can't take it away.** It's MIT-licensed and installed on your machine. A copy you already have keeps working regardless of what happens to us.
 - **The failure modes are yours to fix.** SD card, Wi-Fi, a Python version — annoying, but visible, and you own them.
 

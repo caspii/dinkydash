@@ -10,7 +10,7 @@ DinkyDash helps by putting what your family needs to know on a single screen, al
 
 ## The dashboard is ready before you are
 
-DinkyDash writes the day's headline at 06:00, or whenever you'd rather have it, and your calendars refresh every hour. By the time your family walks into the kitchen, today's dashboard is already on the screen:
+DinkyDash writes the day's headline at 06:00, or whenever you'd rather have it, and your calendars refresh every hour by default. By the time your family walks into the kitchen, today's dashboard is already on the screen:
 
 - **What's happening today** — all calendar events at a glance, so everyone knows the plan
 - **Whose turn for chores** — no arguments, the dashboard says so

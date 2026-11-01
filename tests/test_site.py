@@ -18,7 +18,7 @@ import re
 
 import pytest
 
-from website import render
+from website import content_checks as checks, render
 from website.site import create_site_app
 
 
@@ -551,105 +551,72 @@ class TestThePrivacyPageNamesEverySubProcessor:
 class TestNothingUnfinishedShips:
     """The publishing gate in doc/content-process.md, as far as a test can hold it.
 
-    Every check here reads what a visitor sees: the rendered page with its
-    `<script>`, `<style>`, code blocks and tag attributes stripped, so an
-    `<input placeholder=...>` or a shell command cannot trip it. The README is
-    read as written, because GitHub shows it as it is.
+    The rules live in `website/content_checks.py`, which `website/check_live.py`
+    also runs against production every week. Every check reads what a visitor
+    sees: the rendered page with its `<script>`, `<style>`, code blocks and tag
+    attributes stripped. The README is read as written, because GitHub shows it
+    as it is.
     """
-
-    # Draft text that has reached a public page at least once on a sister
-    # product. Case-sensitive for the shouted markers, so "todo list" is fine.
-    DRAFT = re.compile(r"\bTBD\b|\bTODO\b|\bFIXME\b|\bXXX\b|\bTKTK\b")
-    DRAFT_ANY_CASE = re.compile(
-        r"lorem ipsum|internal note|note to self|\[insert|\[placeholder|"
-        r"citation needed|as an ai language model|\bplaceholder\b",
-        re.I)
-    # Markdown that failed to render: a bare `[text](url)` or `[text]` left in
-    # the visible text.
-    UNRENDERED = re.compile(r"\]\(|\[[^\]\n]{1,60}\](?!\()")
-    # The contraction pass in #157 turned "where it is." into "where it's." —
-    # a contraction can't end a clause.
-    CLAUSE_FINAL_CONTRACTION = re.compile(
-        r"\b(?:there|it|that|here|what|where|who)'s[ \t]*[.,;:!?)]", re.I)
-
-    def _visible(self, html_text):
-        text = re.sub(r"<(script|style|pre|code)\b.*?</\1>", " ", html_text, flags=re.S | re.I)
-        text = re.sub(r"<[^>]+>", " ", text)
-        return html.unescape(text).replace("\u2019", "'")
 
     def _pages(self, client):
         for page in render.pages():
-            yield page["url"], self._visible(client.get(page["url"]).get_data(as_text=True))
+            yield page["url"], checks.visible(client.get(page["url"]).get_data(as_text=True))
 
     def _readme(self):
         readme = (Path(__file__).resolve().parents[1] / "README.md").read_text()
         return re.sub(r"```.*?```", " ", readme, flags=re.S)
 
     def test_no_draft_markers_on_any_page(self, client):
-        found = []
-        for url, text in self._pages(client):
-            for pattern in (self.DRAFT, self.DRAFT_ANY_CASE):
-                found += [f"{url}: {m.group(0)!r}" for m in pattern.finditer(text)]
-        for pattern in (self.DRAFT, self.DRAFT_ANY_CASE):
-            found += [f"README: {m.group(0)!r}" for m in pattern.finditer(self._readme())]
+        found = [f"{url}: {m!r}" for url, text in self._pages(client)
+                 for m in checks.draft_markers(text)]
+        found += [f"README: {m!r}" for m in checks.draft_markers(self._readme())]
         assert not found, found
 
     def test_no_unrendered_markdown(self, client):
-        found = [f"{url}: {m.group(0)!r}" for url, text in self._pages(client)
-                 for m in self.UNRENDERED.finditer(text)]
+        found = [f"{url}: {m!r}" for url, text in self._pages(client)
+                 for m in checks.unrendered_markdown(text)]
         assert not found, found
 
     def test_no_contraction_ends_a_clause(self, client):
-        found = [f"{url}: {text[max(0, m.start() - 30):m.end()]!r}"
-                 for url, text in self._pages(client)
-                 for m in self.CLAUSE_FINAL_CONTRACTION.finditer(text)]
+        found = [f"{url}: {m!r}" for url, text in self._pages(client)
+                 for m in checks.clause_final_contractions(text)]
         assert not found, found
+
+    @pytest.mark.parametrize("draft", ["TODO: add the price", "Lorem ipsum dolor",
+                                       "[insert screenshot]"])
+    def test_the_rules_catch_what_they_are_for(self, draft):
+        assert checks.problems(f"<p>{draft}</p>")
 
 
 class TestOurPriceIsTheSameEverywhere:
     """DinkyDash costs $39 a year or $6 a month hosted, and $0 to self-host.
 
     Any other figure in a sentence or table row that names DinkyDash or the
-    hosted plan is either a stale price or a typo, and both have shipped before
-    (a $29 launch offer outlived its decision). Competitor prices on the same
-    pages are deliberately not pinned here: they're checked by hand against the
-    competitor's own site, and the page says when (doc/content-process.md).
+    hosted plan is either a stale price or a typo, and both have shipped before.
+    Competitor prices on the same pages are deliberately not pinned here:
+    they're checked by hand against the competitor's own site, and the page
+    says when (doc/content-process.md).
     """
 
-    OURS = re.compile(r"DinkyDash|hosted|we host|Start free|free trial|14-day|fourteen days", re.I)
-    PRICE = re.compile(r"\$(\d+(?:\.\d+)?)\s*(?:a|per|/)\s*(year|yr|month|mo)\b", re.I)
-    ALLOWED = {("39", "year"), ("6", "month")}
-
-    def _chunks(self, text):
-        # A sentence, or a table row: the unit a reader takes a price from.
-        return re.split(r"(?<=[.!?])\s+|\n", text)
-
     def test_every_dinkydash_price_is_39_or_6(self, client):
-        visible = TestNothingUnfinishedShips()._visible
-        sources = [(page["url"], visible(client.get(page["url"]).get_data(as_text=True)))
+        sources = [(page["url"], checks.visible(client.get(page["url"]).get_data(as_text=True)))
                    for page in render.pages()]
         sources.append(("README", (Path(__file__).resolve().parents[1] / "README.md").read_text()))
-        wrong = []
-        for url, text in sources:
-            for chunk in self._chunks(text):
-                if not self.OURS.search(chunk):
-                    continue
-                for amount, period in self.PRICE.findall(chunk):
-                    period = "year" if period.lower() in ("year", "yr") else "month"
-                    if (amount, period) in self.ALLOWED:
-                        continue
-                    # A competitor's price in the same sentence is fine as long
-                    # as the sentence doesn't attach it to us.
-                    if re.search(r"Skylight|Hearth|DAKboard|Mango|Cozyla|Cozi|D\u00e6ly|Plus|"
-                                 r"Essential|Pro\b|membership|Anthropic|AI key|API", chunk):
-                        continue
-                    wrong.append(f"{url}: ${amount}/{period} in {chunk.strip()[:120]!r}")
+        wrong = [f"{url}: {m}" for url, text in sources for m in checks.wrong_prices(text)]
         assert not wrong, wrong
 
     def test_no_retired_launch_price(self, client):
         for page in render.pages():
-            body = client.get(page["url"]).get_data(as_text=True)
-            assert not re.search(r"\$29(?![\d.])", body), page["url"]
+            assert not checks.retired_price(client.get(page["url"]).get_data(as_text=True)), \
+                page["url"]
+
+    @pytest.mark.parametrize("sentence", ["DinkyDash hosted costs $29 a year.",
+                                          "The hosted plan is $5/month."])
+    def test_the_rules_catch_a_wrong_price(self, sentence):
+        assert checks.problems(f"<p>{sentence}</p>")
+
+    def test_and_pass_the_right_one(self):
+        assert not checks.problems("<p>DinkyDash hosted is $39 a year or $6 a month.</p>")
 
 
 class TestChoreChartGenerator:

@@ -103,7 +103,7 @@ doesn't work on, and [the Echo Show page](/echo-show-calendar-display/) says why
 
 [DinkyDash](/) is open-source software that does exactly that. We can host it for you ($39 a year after a 14-day free trial), or you can run it yourself for free. Paste the ICS link and today's events
 appear on a wall screen, beside a chore chart that rotates by itself, countdowns to birthdays
-and holidays, and a short line written fresh each day. There's no Microsoft sign-in in
+and holidays, and a headline written fresh each day. There's no Microsoft sign-in in
 it — the published link is the whole connection, and it can only read.
 
 To add it:

@@ -49,6 +49,6 @@ Same code either way. The only difference is who keeps it running.
 
 There's no camera and no microphone, because it's a web page.
 
-Run it yourself and your family's details stay on your machine. The one thing that leaves is the day's agenda, which goes to Anthropic under your own key so Claude can write the line. Let us host it and we store your settings so we can build the dashboard each day, and that same agenda goes to Anthropic under ours.
+Run it yourself and your family's details stay on your machine. The one thing that leaves is what Claude needs for the headline: the day's events, with first names, ages and interests. That goes to Anthropic under your own key. Let us host it and we store your settings so we can build the dashboard each day, and that same agenda goes to Anthropic under ours.
 
 Nothing is sold, there are no adverts, and [the privacy policy](/privacy/) names every company involved. It's a short list.

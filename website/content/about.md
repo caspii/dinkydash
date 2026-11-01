@@ -18,7 +18,7 @@ It was built by [Caspar](https://casparwre.de), an indie developer in Berlin, fo
 
 ## How it runs
 
-Once a day, at a time you pick, Claude reads the day ahead and writes the headline. Your calendars are fetched every hour on their own schedule. Whose turn it is and the countdowns are worked out from the date each time the page loads, so they're right even if nobody has touched anything for months.
+Once a day, at a time you pick, Claude reads the day ahead and writes the headline. Your calendars are fetched on their own schedule, every hour unless you choose otherwise. Whose turn it is and the countdowns are worked out from the date each time the page loads, so they're right even if nobody has touched anything for months.
 
 ## The principles
 

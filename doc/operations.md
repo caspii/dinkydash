@@ -697,3 +697,22 @@ or a Unix socket before anything connects, parsed by libpq so a host cannot hide
 comma list, `hostaddr` or `PGHOST`, with no override; its check is one transaction with `SET LOCAL`,
 asserted in `tests/test_dev.py` to leave the session as it found it; and the rule — never a
 session-level `SET` through `DATABASE_URL` — is written where the pool is built, in `dinkydash/db.py`.
+
+## The weekly live-site check, 1 November 2026 (DIN-133)
+
+`.github/workflows/live-check.yml` crawls dinkydash.co and `app.dinkydash.co/login` every Monday at
+06:00 UTC with `website/check_live.py`, and is silent unless something fails. First run, from this
+Mac on 1 November 2026: 32 URLs fetched, every one 200, no content failures. The only finding was
+Cloudflare's email obfuscation on `/privacy/` and `/terms/`, which the check now ignores. The first
+scheduled run is the Monday after the merge; its result is in the Actions tab.
+
+## The first quarterly content review, 1 November 2026 (DIN-133)
+
+Every page in `website/content/`, the site templates and the README, read against the code. About
+forty corrections went in: "line" and "each morning" for the daily headline, which is written at a
+time the family picks; calendar refresh stated as hourly when it is a default; American spellings;
+two pages understating what goes to Anthropic (it is events, first names, ages and interests, not
+"the agenda"); a leap-day legal claim nobody could source; and the self-hosting guide not saying the
+example family holds the first headline back. `privacy.md` and `terms.md` were checked but not
+edited; their findings went to Caspar. Next review due 1 February 2027.
+

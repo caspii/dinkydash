@@ -41,7 +41,7 @@ Mango Display is a commercial take on the same idea: install their app on a smar
 
 **Best for:** families who want bring-your-own-screen without any DIY at all.
 
-## 3. DAKboard — the customizable wall display veteran
+## 3. DAKboard — the customisable wall display veteran
 
 DAKboard has been the DIY wall-display favourite for years — calendars, photos, weather, and news on any screen, with deep layout customisation. Free for one predefined screen with two calendars; $6/month (or $5 billed annually) unlocks custom layouts, and $10/month adds unlimited calendars. It leans "information display" rather than "family organiser", though it now markets a chore chart with points and rewards on the paid plans. If it's the one you're weighing up, we compared it properly on the [DAKboard alternatives page](/dakboard-alternatives/), and put it directly against Skylight in [DAKboard vs Skylight vs DinkyDash](/dakboard-vs-skylight/).
 

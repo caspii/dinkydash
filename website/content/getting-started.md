@@ -159,7 +159,7 @@ claude_model: "claude-haiku-4-5"
 max_tokens: 1024
 ```
 
-The example URL above is deliberately fake. Paste your own iCal address in its place — [find your calendar link](#find-your-calendar-link) has the steps for Google, Apple and Outlook. Add one calendar entry per person, and they all merge into a single agenda.
+The example URL above is deliberately fake. Paste your own iCal address in its place — [find your calendar link](#find-your-calendar-link) has the steps for Google, Apple, Outlook and Cozi. Add one calendar entry per person, and they all merge into a single agenda.
 
 ### Step 3: See the dashboard with no API key
 
@@ -219,7 +219,7 @@ The settings page adds a short `id` to each person, pet, chore, date and calenda
 
 #### Editing from your phone
 
-Everything on the dashboard is editable at `/settings`. Two things worth knowing:
+Everything on the dashboard is editable at `/settings`. Three things worth knowing:
 
 - **A saved dashboard is from the last run.** Editing a chore or a person shows up on the next page load, but the headline is only rewritten once a day. Press **Rewrite daily headline** on the settings home page to get fresh copy immediately. Each press is one API call.
 - **Adding a calendar checks the link.** Paste an iCal address and press **Test calendar link**. It tells you how many events it found and what the next one is, so you are not left guessing whether the URL works.
@@ -316,8 +316,12 @@ sudo systemctl start dinkydash.service
 
 A cron job ticks every five minutes, and each tick does only what your settings say is owed —
 nothing at all, most of the time. Calendars are re-fetched every hour, so an appointment added at
-09:00 for 15:00 reaches the dashboard the same afternoon. The headline is written once, at 6am. Both
+09:00 for 15:00 reaches the dashboard the same afternoon. The headline is written once a day, at 06:00. Both
 are yours to change under **Settings → How often it updates**.
+
+The tick writes no headline while the example family (Mia, Theo and Biscuit) is still in
+`config.yaml`. Replace them, by hand or on the settings page, and the first headline follows on
+the next tick.
 
 ```bash
 crontab -e
@@ -330,10 +334,10 @@ Add this line:
 ```
 
 Runs never pile up: if one is still going when the next is due, the next skips itself. If a run
-fails, the previous dashboard stays up and labels itself stale — the screen never goes blank, and the
-next tick tries again.
+fails, the dashboard keeps today's agenda, turns and countdowns, shows a headline worked out from the
+day and says so — the screen never goes blank, and the next tick tries again.
 
-The old once-a-day cron entry still works, and does the fetch and the line together:
+A once-a-day cron entry also works, and does the fetch and the headline together:
 
 ```cron
 0 6 * * * cd /home/pi/dinkydash && venv/bin/python generate.py >> generate.log 2>&1
@@ -463,7 +467,7 @@ The old `lcd_rotate` and `display_rotate` lines in `config.txt` no longer apply 
 
 **"localhost refused to connect" at boot.** Chromium started before the dashboard was ready. The `run.sh` above waits up to 60 seconds; make sure your autostart calls it rather than launching Chromium directly.
 
-**The dashboard is a day behind.** A generation run failed. Look at `generate.log` in the project folder. The usual causes are an expired API key, no network at 6am, or a calendar link that stopped working. Fix it, then press **Rewrite daily headline** on the settings page.
+**The dashboard says today's headline hasn't arrived.** A generation run failed. Look at `generate.log` in the project folder. The usual causes are an expired API key, no network when the headline was due, or a calendar link that stopped working. Fix it, then press **Rewrite daily headline** on the settings page.
 
 **Times are off by an hour.** The timezone under Settings → Family & system is what the engine uses, not the machine clock. Set it even if the clock is already local.
 
@@ -506,7 +510,7 @@ python app.py                         # dashboard at /, settings at /settings
 sudo systemctl status dinkydash       # is it running
 sudo systemctl restart dinkydash      # restart after a change
 journalctl -u dinkydash -f            # the app's log
-tail -f /home/pi/dinkydash/generate.log   # last night's generation
+tail -f /home/pi/dinkydash/generate.log   # calendar fetches and headlines
 /home/pi/screen_control.sh off        # screen off
 /home/pi/screen_control.sh on         # screen on
 ```

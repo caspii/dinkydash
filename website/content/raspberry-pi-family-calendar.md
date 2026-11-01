@@ -44,7 +44,7 @@ A Pi isn't the only screen this runs on, and it's not the cheapest. The same das
 The software targets **800×480**, which is the resolution of the official Raspberry Pi 7″ Touch Display. That's the path of least resistance.
 
 - **Official 7″ Touch Display** — connects over DSI (one ribbon cable, no HDMI), powered from the Pi itself. Around $60–80.
-- **Any HDMI monitor** — works, and a bigger screen reads better from across a room. You'll want to adjust the layout, and you're now managing two power supplies.
+- **Any HDMI monitor** — works, and a bigger screen reads better from across a room. The layout scales itself to fit; the catch is that you're now managing two power supplies.
 - **An old monitor you already own** — free, and honestly the best way to test whether your family will actually look at it before you spend anything.
 
 Touch is optional. The dashboard is read-only by design; you edit events in Google Calendar on your phone, the way you already do.
@@ -68,7 +68,7 @@ Second-hand Pis are abundant and this workload will never stress one, so the use
 
 The architecture is deliberately boring, which is why it keeps running:
 
-1. **A cron job ticks every five minutes** and does only what's due: it re-fetches your calendars every hour, and once a day, at a time you pick (06:00 by default), it sends the day's agenda to the Claude API for the headline. Both are saved to a JSON file.
+1. **A cron job ticks every five minutes** and does only what's due: it re-fetches your calendars every hour by default, and once a day, at a time you pick (06:00 by default), it sends the day's agenda to the Claude API for the headline. Both are saved to a JSON file.
 2. **A small Flask server** reads that file and renders the page, working out ages, countdowns and whose turn each chore is from the date as it goes.
 3. **Chromium launches fullscreen at boot** in kiosk mode and refreshes every five minutes.
 
@@ -104,7 +104,7 @@ Both are covered, with fixes, in the [troubleshooting section](/getting-started/
 
 A Skylight Calendar Max is $599.99, plus $79 a year for the Plus features. A Hearth Display is $699 plus $9 a month. They're nicely made, and if you want something that works out of the box with a support line, they're reasonable purchases. Prices checked 9 October 2026.
 
-But a digital family calendar is fundamentally a screen showing a web page. If you're comfortable with a terminal, the Pi version costs about a quarter as much, has no subscription, keeps your family's data on your own device, and does one thing the $600 hardware doesn't: writes you a fresh daily headline every day.
+But a digital family calendar is fundamentally a screen showing a web page. If you're comfortable with a terminal, the Pi version costs about a quarter as much, has no subscription, keeps your family's data on your own device (apart from what Anthropic sees to write the headline), and does one thing the $600 hardware doesn't: writes you a fresh daily headline every day.
 
 The full cost comparison is on the [DIY Skylight calendar page](/diy-skylight-calendar/).
 

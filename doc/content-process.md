@@ -62,8 +62,25 @@ A PR doesn't merge while any of these is true:
 - **The checklist isn't in the PR description**, with what was verified against what.
 - **Caspar hasn't merged it.**
 
-After a merge, the CEO agent crawls the live site (every sitemap page and every link on it) and
-records any non-200 status in Linear.
+## After publishing
+
+**Weekly, automated.** `.github/workflows/live-check.yml` runs `python -m website.check_live`
+every Monday at 06:00 UTC, and can be run by hand from the Actions tab after a content deploy. It
+reads the sitemap, follows every internal link on every page, and fetches the app's public pages
+(`/login`). Each page must answer 200 and pass the same rules as `tests/test_site.py`, which live
+in `website/content_checks.py` so the two can't disagree. It prints nothing when everything
+passes. When something fails it lists each page and the problem, and the run goes red, which
+GitHub emails to whoever last edited the schedule. Each failure becomes a Content issue in Linear.
+
+It reads pages as served, so it catches what a merge can't: a deploy that didn't land, a page that
+won't render, a link to a page that's gone. It ignores Cloudflare's email obfuscation
+(`[email protected]` and its `/cdn-cgi/` link), which the edge adds and the browser undoes.
+
+**Quarterly, by hand.** Somebody reads every public page, start to finish, against the product
+and the prices as they are that day. This is checklist items 1 to 4 for the whole site at once:
+British English, the display called a dashboard (terminology.md), and every claim about a
+feature traced to code that still exists. Each fix is its own Linear issue. The last review was on
+1 November 2026, and the next is due **1 February 2027**; whoever does it sets the next date here.
 
 ## What a test can't catch
 

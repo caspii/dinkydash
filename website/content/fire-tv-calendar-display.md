@@ -87,8 +87,8 @@ calendar display](/smart-tv-calendar-display/) for Samsung and LG.
 - **A headline, written fresh each day** by Claude, around your family's actual day.
 
 The dashboard refreshes itself every five minutes, and if the Wi-Fi drops it keeps the last
-dashboard on screen with a small "Reconnecting" note rather than an error page. The script that
-does it's written for old browsers, and one too old for it, or with JavaScript switched off,
+dashboard on screen with a small "Reconnecting" note rather than an error page. The script behind it
+is written for old browsers, and one too old for it, or with JavaScript switched off,
 falls back to a plain HTML refresh. That matters on a TV stick, where the browser is the least
 capable one in the house.
 
@@ -96,7 +96,7 @@ capable one in the house.
 
 Nothing beyond the Fire TV you already own. Silk is free, DinkyDash is free and MIT licensed
 with no subscription for the self-hosted version, and the only running cost is the daily
-line — a Claude API call once a day, roughly $0.13 a month, and the dashboard works without it.
+headline — a Claude API call once a day, roughly $0.13 a month, and the dashboard works without it.
 
 ## Other screens
 
