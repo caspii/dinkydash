@@ -697,3 +697,12 @@ or a Unix socket before anything connects, parsed by libpq so a host cannot hide
 comma list, `hostaddr` or `PGHOST`, with no override; its check is one transaction with `SET LOCAL`,
 asserted in `tests/test_dev.py` to leave the session as it found it; and the rule — never a
 session-level `SET` through `DATABASE_URL` — is written where the pool is built, in `dinkydash/db.py`.
+
+## The weekly live-site check, 1 November 2026 (DIN-133)
+
+`.github/workflows/live-check.yml` crawls dinkydash.co and `app.dinkydash.co/login` every Monday at
+06:00 UTC with `website/check_live.py`, and is silent unless something fails. First run, from this
+Mac on 1 November 2026: 32 URLs fetched, every one 200, no content failures. The only finding was
+Cloudflare's email obfuscation on `/privacy/` and `/terms/`, which the check now ignores. The first
+scheduled run is the Monday after the merge; its result is in the Actions tab.
+

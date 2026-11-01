@@ -1,0 +1,33 @@
+# Crawls dinkydash.co and the hosted app's public pages once a week, with the
+# same content rules tests/test_site.py holds a merge to (website/check_live.py).
+#
+# Failures only. A clean run prints nothing and passes; a failing one lists each
+# page and what is wrong, and goes red. GitHub emails a failed scheduled run to
+# whoever last edited the `cron` line below, so that line decides who hears.
+# Fixes go in Linear as doc/content-process.md says.
+name: Live site check
+
+on:
+  schedule:
+    # Mondays, 06:00 UTC.
+    - cron: "0 6 * * 1"
+  # Run it by hand after a content deploy: Actions -> Live site check -> Run.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: crawl the live site
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+
+      # Standard library only, so no install step.
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+
+      - run: python -m website.check_live
