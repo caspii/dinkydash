@@ -303,7 +303,7 @@
         }
         .tight .event-where { display: none; }
         .drop-tomorrow .tomorrow { display: none; }
-        .event.shed { display: none; }
+        .event.shed, .countdown.shed { display: none; }
         .more {
             margin-left: calc(var(--time-column) + 0.9rem);
             font-size: 0.95rem;
@@ -607,8 +607,10 @@
    height:100vh;overflow:hidden, so nothing ever reports an overflow. To find
    the content's natural height we let it lay out freely for one measurement,
    then put it back. A day that still overflows at the readable floor drops
-   locations, then tomorrow, then the tail of today — today's rows are never
-   cut in half, and a "+N more" line counts the ones that would not fit.
+   locations, then tomorrow, then the furthest countdowns, then the tail of
+   today — but only what makes the page shorter, so a row that is not in the
+   way stays. Today's rows are never cut in half, and a "+N more" line counts
+   the ones that would not fit.
 
    2. Refreshing. The page fetches its next copy and swaps the body in, rather
    than reloading. A reload that fails — the Wi-Fi dropped, the hosted app is
@@ -666,25 +668,67 @@
         if (more) { more.hidden = true; more.textContent = ""; }
     }
 
-    // Hide today's events from the bottom until the page fits at the floor.
-    // The first event stays: a day with one thing still shows that thing.
-    // Each hidden event is counted on the "+N more" line, so a row is never
-    // left cut in half.
-    function trimToday(room) {
-        var list = document.querySelector(".agenda > .events");
-        if (!list) return;
-        var events = list.querySelectorAll(".event");
-        var more = list.querySelector(".more");
+    // The last row of a list still on screen, never its first: a day with one
+    // thing still shows that thing, and the countdowns keep the nearest.
+    function lastShown(rows) {
+        for (var i = rows.length - 1; i > 0; i--) {
+            if (!rows[i].classList.contains("shed")) return rows[i];
+        }
+        return null;
+    }
+
+    // What can go, in the order it goes: locations (they wrap), tomorrow, the
+    // furthest countdown, then the tail of today. Each is a pair of functions,
+    // one to hide it and one to put it back.
+    function candidates(board) {
+        var list = [];
+        if (!board.classList.contains("tight")) {
+            list.push([function () { board.classList.add("tight"); },
+                       function () { board.classList.remove("tight"); }]);
+        }
+        if (board.querySelector(".tomorrow") && !board.classList.contains("drop-tomorrow")) {
+            list.push([function () { board.classList.add("drop-tomorrow"); },
+                       function () { board.classList.remove("drop-tomorrow"); }]);
+        }
+        var countdown = lastShown(board.querySelectorAll(".countdown"));
+        if (countdown) {
+            list.push([function () { countdown.classList.add("shed"); },
+                       function () { countdown.classList.remove("shed"); }]);
+        }
+        var event = lastShown(board.querySelectorAll(".agenda > .events > .event"));
+        if (event) {
+            list.push([function () { event.classList.add("shed"); countMore(); },
+                       function () { event.classList.remove("shed"); countMore(); }]);
+        }
+        return list;
+    }
+
+    // Each of today's hidden rows is counted on the "+N more" line, so a row
+    // is never left cut in half and never silently missing.
+    function countMore() {
+        var more = document.querySelector(".agenda > .events > .more");
+        if (!more) return;
+        var n = document.querySelectorAll(".agenda > .events > .event.shed").length;
+        more.hidden = n === 0;
+        more.textContent = n ? "+" + n + " more" : "";
+    }
+
+    // At the floor, hide one thing at a time until the page fits. A step is
+    // kept only if the page comes out shorter: in two columns the taller
+    // column sets the height, and a row taken from the shorter one frees
+    // nothing and leaves a gap where it was. When nothing left would help,
+    // the page stops shedding and the type gives way instead.
+    function shed(board, room) {
         root.style.fontSize = FLOOR + "px";
-        var hidden = 0;
-        var last = events.length - 1;
-        while (hidden < last && naturalHeight() > room) {
-            events[last - hidden].classList.add("shed");
-            hidden = hidden + 1;
-            if (more) {
-                more.hidden = false;
-                more.textContent = "+" + hidden + " more";
+        var height = naturalHeight();
+        while (height > room) {
+            var list = candidates(board), kept = false;
+            for (var i = 0; i < list.length && !kept; i++) {
+                list[i][0]();
+                var after = naturalHeight();
+                if (after < height) { height = after; kept = true; } else { list[i][1](); }
             }
+            if (!kept) return;
         }
     }
 
@@ -701,15 +745,9 @@
         }
         var board = document.querySelector(".board");
         if (!board) return;
-        // Still over, or only by going below the floor. Locations go first
-        // (they wrap), then the whole of tomorrow, and the search runs again
-        // after each so the type can grow back. Today is never the thing that
-        // is removed as a block.
-        board.classList.add("tight");
-        if (fitSize(room, FLOOR)) return;
-        board.classList.add("drop-tomorrow");
-        if (fitSize(room, FLOOR)) return;
-        trimToday(room);
+        // Still over, or only by going below the floor. Shed what is in the
+        // way, then search again so the type can grow back into what was freed.
+        shed(board, room);
         if (!fitSize(room, FLOOR)) fitSize(room, 11);
     }
 
