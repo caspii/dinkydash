@@ -2,9 +2,10 @@
 
 Body is `height: 100vh; overflow: hidden`, so a day that does not fit at the
 readable floor would otherwise be cut off with no sign that anything was
-missing. The script in `board.html` hides locations, then tomorrow, and only
-then the tail of today — and a `+N more` line counts those, so a row is never
-left half on screen.
+missing. The script in `board.html` hides locations, then tomorrow, then the
+furthest countdowns, and only then the tail of today — and a `+N more` line
+counts those, so a row is never left half on screen. A step is kept only if
+the page comes out shorter, so a row that is not what overflows stays put.
 
 The three larger sizes are a light day that already fits. They must not gain
 `.tight` or lose tomorrow: the floor and the label minimum only apply once
@@ -103,6 +104,23 @@ EMPTY = view(
     "Nothing booked in all day.",
     clock="12h",
     countdowns=LONG_COUNTS,
+)
+# Two columns where the side card is the taller one: four short events and a
+# headline on two lines, against two chores and four countdowns that each
+# wrap. Today is not what overflows, so none of it may go.
+SIDE_HEAVY = view(
+    [("17:00", "Krav Maga", None), ("17:00", "Riding", None),
+     ("18:00", "Theatre parents' evening", "Small hall, the school on Hill Road"),
+     ("19:30", "Choir", None)],
+    [("15:00", "Birthday party after school, then a lift home with Sam's mum", None),
+     ("17:00", "Basketball training", None)],
+    "A busy Wednesday: riding, Krav Maga and a theatre chat tonight!",
+    countdowns=[
+        {"days": 52, "emoji": "🎄", "title": "Christmas"},
+        {"days": 89, "emoji": "🎂", "title": "Theo's birthday"},
+        {"days": 121, "emoji": "🎂", "title": "Mia's birthday"},
+        {"days": 140, "emoji": "☀️", "title": "the summer holidays"},
+    ],
 )
 TWELVE = view(
     [("12:00 pm", "Swimming lesson", "Stadtbad"), ("8:00 am", "School run", None)],
@@ -275,7 +293,7 @@ def origin(tmp_path_factory):
     config = folder / "config.yaml"
     config.write_text('family_name: "The Wilsons"\ntimezone: "Europe/Berlin"\ntheme: light\n')
     app = create_app(FileStore(config))
-    pages = {"busy": BUSY, "packed": PACKED, "light": LIGHT, "empty": EMPTY, "twelve": TWELVE}
+    pages = {"side": SIDE_HEAVY, "busy": BUSY, "packed": PACKED, "light": LIGHT, "empty": EMPTY, "twelve": TWELVE}
 
     @app.route("/fixture/<name>")
     def fixture(name):
@@ -322,9 +340,13 @@ class TestTheSource:
         assert "@media (max-height: 520px)" in css
         assert ".tomorrow .event-where { display: none; }" in css
         script = css.split("<script>", 1)[1]
-        # Locations go before tomorrow, and tomorrow before any of today.
-        assert script.index('classList.add("tight")') < script.index('classList.add("drop-tomorrow")')
-        assert script.index('classList.add("drop-tomorrow")') < script.index("trimToday(room);")
+        # Locations go before tomorrow, tomorrow before a countdown, and a
+        # countdown before any of today.
+        order = [script.index('classList.add("tight")'),
+                 script.index('classList.add("drop-tomorrow")'),
+                 script.index('countdown.classList.add("shed")'),
+                 script.index('event.classList.add("shed")')]
+        assert order == sorted(order)
         assert "var FLOOR = 13;" in script
 
 
@@ -357,6 +379,21 @@ class TestABusyPanel:
         assert int(re.search(r"\d+", data["more"]).group()) == data["hidden"]
         assert "drop-tomorrow" in data["boardClass"]
         assert data["labelSize"] >= 12
+
+
+class TestATallSideColumn:
+    """800×480 with the side card taller than the agenda. Hiding today's rows
+    would free nothing, so they stay and the side card gives way instead."""
+
+    def test_todays_events_are_never_shed_for_the_other_column(self, browser, origin):
+        data = open_at(browser, origin, "side", 800, 480, 1)
+        assert data["width"] == 800 and data["height"] == 480
+        assert data["over"] == []
+        assert data["twoColumn"] is True
+        assert data["today"] == 4
+        assert data["hidden"] == 0
+        assert data["moreHidden"] is True
+        assert data["fontSize"] >= 13
 
 
 class TestALightDayIsUnchanged:
