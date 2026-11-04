@@ -2,7 +2,7 @@
 title: "DAKboard Alternatives in 2026: 6 Options, Including a Free Open-Source One"
 seo_title: "DAKboard Alternatives (2026): Free and Open-Source Picks"
 template: page.html
-description: Looking for a DAKboard alternative? Here are 6 options compared on price, screens, and whether you can self-host — including a free, MIT-licensed one that runs on a screen you already own.
+description: Looking for a DAKboard alternative? Six options compared on price, screens and self-hosting, including a free, MIT-licensed one for a screen you already own.
 faq:
   - q: "Is there a free alternative to DAKboard?"
     a: "Yes. DinkyDash is free and open source under the MIT license, with no paid tier for the self-hosted version and no screen limit. MagicMirror² and a Home Assistant dashboard are also free and self-hosted. DAKboard's own free tier exists but is capped at one predefined screen and two calendars."

@@ -1,7 +1,7 @@
 ---
 title: Transform Your Family's Morning Routine
 template: page.html
-description: How DinkyDash helps families start the day organised, with a dashboard that writes itself.
+description: "How a family dashboard calms the school-morning rush: today's plan, whose turn it is for chores and the countdowns, on one screen before anyone's awake."
 ---
 
 Mornings with kids are chaos. Between getting dressed, making breakfast, remembering school bags, and getting out the door on time, the last thing you need is to be everyone's personal assistant answering questions about the day ahead.

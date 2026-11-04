@@ -2,7 +2,7 @@
 title: "DIY Skylight Calendar: Build a Digital Family Calendar for $120–185"
 seo_title: "DIY Skylight Calendar: Build a Family Calendar for $120–185"
 template: page.html
-description: How to build your own Skylight-style digital family calendar with a Raspberry Pi or an old tablet — open-source software, about $120–185 in new parts (or $0 if you have a spare screen), plus about $0.13 a month for the headline.
+description: Build your own Skylight-style family calendar with a Raspberry Pi or an old tablet. Open-source software, about $120–185 in parts, or $0 with a spare screen.
 ---
 
 A Skylight Calendar Max costs $599.99, plus $79 a year if you want the Plus features. The thing is, a digital family calendar is fundamentally *a screen showing a web page* — and that's something you can build yourself for about $120–185 with a Raspberry Pi, or for **$0** with a tablet you already own.

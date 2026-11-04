@@ -2,7 +2,7 @@
 title: Privacy policy
 seo_title: "Privacy Policy — DinkyDash"
 template: page.html
-description: What DinkyDash stores, who it is sent to, how long it is kept, and how to get it back or delete it.
+description: What DinkyDash stores about your family, who it's sent to, how long it's kept, and how to get a copy or delete it, for the hosted version of DinkyDash.
 ---
 
 *Last updated: 22 October 2026.*

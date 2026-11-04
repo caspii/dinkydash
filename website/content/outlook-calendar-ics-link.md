@@ -2,7 +2,7 @@
 title: "How to Publish an Outlook Calendar and Get the ICS Link"
 seo_title: "Publish an Outlook Calendar: Get the ICS Link"
 template: page.html
-description: How to publish a calendar in Outlook on the web and copy its ICS link — which permission level to pick, why the HTML link is the wrong one, and what to do when your work account has publishing switched off.
+description: How to publish a calendar in Outlook on the web and copy its ICS link, which permission level to pick, and what to do when your work account blocks it.
 faq:
   - q: "How do I get an ICS link from Outlook?"
     a: "Open Outlook on the web, go to Settings, then Calendar, then Shared calendars. Under 'Publish a calendar', pick the calendar, set the permission to 'Can view all details', and press Publish. Two links appear — copy the ICS one."

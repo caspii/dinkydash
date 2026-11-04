@@ -2,7 +2,7 @@
 title: "How to Get Your iCloud Calendar Link (Apple Calendar)"
 seo_title: "iCloud Calendar URL: Get the Link to Your Apple Calendar"
 template: page.html
-description: Where to find the sharing URL for an Apple iCloud calendar, step by step on iCloud.com — what "Public Calendar" really means, why the link starts with webcal, and what to do when an old link stops working.
+description: "Where to find the sharing link for an iCloud calendar on iCloud.com, what \"Public Calendar\" really means, and what to do when an old link stops working."
 faq:
   - q: "How do I get the URL of my iCloud calendar?"
     a: "Sign in at icloud.com/calendar, hover over the calendar in the sidebar and open the information icon next to its name, switch on 'Public Calendar', then press Copy. That copies the calendar's sharing URL to your clipboard."

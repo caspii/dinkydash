@@ -2,7 +2,7 @@
 title: "Put a Family Calendar on Your Smart TV (Samsung, LG and the rest)"
 seo_title: "Smart TV Calendar Display: Samsung, LG and Android TV"
 template: page.html
-description: Samsung and LG TVs have a web browser, so they can show a family calendar with no app to install. Here's how — and the honest limit, which is that a TV is built to stop showing a still image.
+description: Samsung and LG TVs have a web browser, so they can show a family calendar with no app to install. Here's how, and the honest limit of using a TV for it.
 faq:
   - q: "Can I display a calendar on my smart TV?"
     a: "Yes, if the TV has a web browser — Samsung's Tizen sets and LG's webOS sets both do. Open the browser, type the address of a calendar page, and it fills the screen. There is no app to install."

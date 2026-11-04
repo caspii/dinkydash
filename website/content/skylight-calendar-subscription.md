@@ -2,7 +2,7 @@
 title: Does the Skylight Calendar Require a Subscription? (2026)
 seo_title: "Does the Skylight Calendar Require a Subscription? (2026)"
 template: page.html
-description: "Short answer: no for the basics, but the good stuff costs $79/year. Here's exactly what Skylight Plus covers in 2026, the real first-year math, and the subscription-free alternatives."
+description: "Short answer: no for the basics, but the good stuff costs $79/year. What Skylight Plus covers in 2026, the real first-year cost, and the alternatives."
 faq:
   - q: "Does the Skylight Calendar require a subscription?"
     a: "No. Calendar syncing, the shared family view, basic chore charts and lists all work on the device you bought, with no subscription. The extras — meal planning, Magic Import, chore rewards and the photo screensaver — need Skylight Plus at $79 per year."

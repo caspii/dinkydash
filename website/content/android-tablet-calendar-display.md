@@ -2,7 +2,7 @@
 title: "Turn an Android Tablet Into a Family Calendar Display"
 seo_title: "Android Tablet Calendar Display: An Old Tablet as a Wall Calendar"
 template: page.html
-description: A cheap or old Android tablet makes a proper wall-mounted family calendar — today's events, rotating chores and countdowns. Free to run yourself, or $39 a year if we host it.
+description: A cheap or old Android tablet makes a proper wall-mounted family calendar, with chores and countdowns. Free to run yourself, or $39 a year if we host it.
 faq:
   - q: "Can I use an Android tablet as a wall calendar?"
     a: "Yes. Any Android tablet with a working screen and Chrome can show a family calendar full screen, permanently. You need the screen timeout set as long as it goes, or a kiosk browser app that overrides it, and the charger left plugged in."

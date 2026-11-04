@@ -1,7 +1,7 @@
 ---
 title: The 8 Best Skylight Calendar Alternatives in 2026
 template: page.html
-description: Looking for a Skylight Calendar alternative without the $299.99–$599.99 price tag or the $79/year subscription? Here are 8 options — including free ones that run on screens you already own.
+description: Looking for a Skylight Calendar alternative without the $299.99+ price tag or the $79/year subscription? Eight options, including free ones for screens you own.
 ---
 
 The Skylight Calendar is a lovely idea: your family's schedule, big and glanceable, on the kitchen wall. But between the hardware ($299.99 for the 15″ Calendar 2, $599.99 for the 27″ Calendar Max) and the optional $79/year Plus subscription for features like meal planning and chore rewards, plenty of families go looking for alternatives before checking out.
