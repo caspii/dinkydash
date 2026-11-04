@@ -2,7 +2,7 @@
 title: "Hearth vs Skylight (2026): Prices, Subscriptions, and Which to Buy"
 seo_title: "Hearth vs Skylight 2026: Prices, Subscriptions, Which to Buy"
 template: page.html
-description: Hearth Display ($699 + $9/mo) vs Skylight Calendar ($299.99–$599.99 + optional $79/yr) compared honestly, plus a third option that runs on a screen you already own.
+description: Hearth Display ($699 + $9/mo) vs Skylight Calendar ($299.99–$599.99) compared honestly, plus a third option that runs on a screen you already own.
 ---
 
 Comparing the two big family-calendar displays? Here's the short version: **Skylight** is the calendar-first option with a lower entry price and an optional subscription. **Hearth** is the routines-first option — beloved by families managing ADHD and complex mornings — with a higher price and a required membership. And there's a third path that costs almost nothing, which we'll get to.

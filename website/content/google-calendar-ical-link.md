@@ -2,7 +2,7 @@
 title: "How to Get Your Google Calendar iCal Link (the Secret Address)"
 seo_title: "Google Calendar iCal Link: Find the Secret Address"
 template: page.html
-description: Where to find the private iCal URL for a Google Calendar, in four steps on a computer — plus what the link is, why it has to stay private, and how to reset it if it leaks.
+description: Where to find the private iCal URL for a Google Calendar in four steps, why the link has to stay private, and how to reset it if it leaks.
 faq:
   - q: "Where is the iCal link in Google Calendar?"
     a: "Open Google Calendar in a browser on a computer, go to Settings, pick the calendar under 'Settings for my calendars', open 'Integrate calendar', and copy the address under 'Secret address in iCal format'. The phone apps do not show it."

@@ -195,25 +195,21 @@ def faq_schema(faq):
     return json.dumps(data, indent=2)
 
 
-@lru_cache(maxsize=1)
 def without_email_obfuscation(html):
-    """Keep Cloudflare's hands off code blocks.
+    """Keep Cloudflare's Email Address Obfuscation off the page body.
 
-    App Platform serves through Cloudflare, whose Email Address Obfuscation
-    rewrites anything shaped like an address into a JavaScript-decoded link —
-    including `ssh pi@raspberrypi.local` in the setup guide, which is a command
-    people are meant to copy. It also injects a script into the page to decode
-    it again.
+    App Platform serves through Cloudflare, which rewrites anything shaped like
+    an address into a link to `/cdn-cgi/l/email-protection` that only a script
+    can decode. That mangles shell commands such as `ssh pi@raspberrypi.local`,
+    which people are meant to copy, and leaves crawlers a link that answers 404.
+    The one real address on the site is the public contact one, and it is
+    already the `Reply-To` of every email the app sends, so hiding it buys
+    nothing.
 
-    `<!--email_off-->` is Cloudflare's documented opt-out for a region of a
-    page. Applied to `<pre>` blocks only: a real address in prose should still
-    be protected from scrapers, but a shell command is not an address.
-
-    Discovered by deploying, not by reading: it does not happen on GitHub Pages,
-    so it appeared the moment the apex moved.
+    `<!--email_off-->` ... `<!--/email_off-->` is Cloudflare's documented
+    opt-out for a region of a page.
     """
-    return re.sub(r"(<pre\b.*?</pre>)",
-                  r"<!--email_off-->\1<!--email_on-->", html, flags=re.S)
+    return f"<!--email_off-->{html}<!--/email_off-->"
 
 
 def pages():

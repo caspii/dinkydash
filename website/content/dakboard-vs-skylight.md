@@ -2,7 +2,7 @@
 title: "DAKboard vs Skylight vs DinkyDash (2026): Prices, Setup, and Which to Pick"
 seo_title: "DAKboard vs Skylight vs DinkyDash (2026) Compared"
 template: page.html
-description: DAKboard ($0–10/mo, bring your own screen) vs Skylight ($299.99–$599.99 plus optional $79/yr) vs DinkyDash (free to self-host, or $39 a year hosted) — compared on hardware, subscription, setup effort, and what happens when it breaks.
+description: DAKboard vs Skylight vs DinkyDash, compared on hardware, subscription, setup effort and what happens when it breaks. One of them is free to self-host.
 faq:
   - q: "What is the difference between DAKboard and Skylight?"
     a: "DAKboard is software you point at a screen you already own; Skylight is a screen you buy with the software built in. DAKboard costs $0–10 per month and nothing up front. Skylight costs $299.99 for the 15-inch Calendar 2 or $599.99 for the 27-inch Calendar Max, with an optional Plus subscription at $79 per year. Checked 9 October 2026."

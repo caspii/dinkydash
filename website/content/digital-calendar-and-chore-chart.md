@@ -1,7 +1,7 @@
 ---
 title: A Digital Calendar and Chore Chart in One Screen
 template: page.html
-description: Combine the family calendar and the kids' chore chart on one wall screen — with chores that rotate automatically every day. No hardware to buy, and free if you run it yourself.
+description: Put the family calendar and the kids' chore chart on one wall screen, with chores that rotate every day. No hardware to buy, and free if you run it yourself.
 ---
 
 Every family runs the same two systems: a calendar (who needs to be where) and a chore chart (who's doing what). And in most kitchens they live in different places — the calendar on someone's phone, the chore chart on paper that stops being true by Wednesday.

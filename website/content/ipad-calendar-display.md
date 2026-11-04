@@ -2,7 +2,7 @@
 title: "Turn an Old iPad Into a Family Calendar Display"
 seo_title: "iPad Calendar Display: Use an Old iPad as a Wall Calendar"
 template: page.html
-description: "An old iPad makes the best cheap family calendar display there is — always on, always charged, wall-mounted. The software's open source: free to run yourself, or $39 a year if we host it. No App Store account."
+description: "An old iPad makes the best cheap family calendar display there is: always on, always charged, on the wall. Free to run yourself, or $39 a year if we host it."
 faq:
   - q: "Can I use an old iPad as a family calendar display?"
     a: "Yes, and it is the best cheap option there is. Any iPad that still runs Safari can show a wall calendar full screen. You need three settings: Auto-Lock set to Never, Guided Access to stop anyone leaving the page, and the charger left plugged in."

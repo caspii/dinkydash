@@ -2,7 +2,7 @@
 title: "A Family Calendar on Fire TV (No App to Install)"
 seo_title: "Fire TV Calendar Display: Put Your Family Calendar on a TV"
 template: page.html
-description: There's no good family calendar app for Fire TV, but there's a browser — and a web-based calendar dashboard works in it. Here's the setup, and the honest limit of using a TV stick for this.
+description: There's no good family calendar app for Fire TV, but there's a browser, and a web calendar dashboard works in it. Here's the setup, and the honest limit.
 faq:
   - q: "Is there a family calendar app for Fire TV?"
     a: "Not a good one. The Fire TV app store is built around streaming, and the calendar apps in it are thin. The better route is Amazon's own Silk Browser, which is free in the same store — any web-based calendar dashboard opens in it with nothing else to install."

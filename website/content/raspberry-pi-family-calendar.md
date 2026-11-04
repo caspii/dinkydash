@@ -2,7 +2,7 @@
 title: "Raspberry Pi Family Calendar: Build a Wall Dashboard That Updates Itself"
 seo_title: "Raspberry Pi Family Calendar: Build a Wall Dashboard"
 template: page.html
-description: How to turn a Raspberry Pi into a wall-mounted family calendar and dashboard — today's events, rotating chores, birthday countdowns and an AI daily headline, for about $120–185 in new parts and about $0.13 a month.
+description: Turn a Raspberry Pi into a wall-mounted family calendar with today's events, rotating chores and birthday countdowns, for about $120–185 in new parts.
 ---
 
 A Raspberry Pi, a small touchscreen and some open-source software make a genuinely good family calendar: it hangs on the kitchen wall, shows today's schedule at a glance, keeps itself up to date, and costs about **$120–185 in new parts, and about $0.13 a month** for the headline.

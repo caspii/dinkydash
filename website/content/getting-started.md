@@ -15,7 +15,7 @@ This is the self-hosting guide, and it uses a terminal. If you'd rather skip all
 
 - **Python 3.11 or newer.**
 - **One or more calendar links** in iCal format. Google Calendar, Apple iCloud Calendar, Outlook and Cozi all give you one — see [find your calendar link](#find-your-calendar-link) below for the steps. Treat that link like a password: anyone who has it can read that calendar.
-- **An Anthropic API key** ([get one here](https://console.anthropic.com/settings/keys)) — only for the daily headline. You can run the whole dashboard without it first.
+- **An Anthropic API key** ([get one here](https://platform.claude.com/settings/keys)) — only for the daily headline. You can run the whole dashboard without it first.
 - **A Raspberry Pi** with a small screen, for the permanent version. A Pi 4 with 2GB of RAM and the official 7-inch display (800×480) is the easy path. Hardware details are on the [Raspberry Pi build guide](/raspberry-pi-family-calendar/). A Pi is not the only option — the dashboard is a web page, so an [old iPad](/ipad-calendar-display/), an [Android tablet](/android-tablet-calendar-display/), a [smart TV](/smart-tv-calendar-display/) or a [Fire TV](/fire-tv-calendar-display/) will show it too.
 
 ---

@@ -351,6 +351,18 @@ class TestWhatSearchEnginesRead:
             assert client.get(page["url"]).status_code == 200
             assert f"<loc>https://dinkydash.co{page['url']}</loc>" not in sitemap
 
+    def test_every_indexed_page_has_a_description_search_shows_whole(self, client):
+        """Ahrefs flags a description under 110 or over 160 characters: too
+        short says little in a result, and Google cuts off one that is too long."""
+        for page in render.pages():
+            if page["front_matter"].get("noindex"):
+                continue
+            body = client.get(page["url"]).get_data(as_text=True)
+            found = re.search(r'<meta name="description" content="([^"]*)">', body)
+            assert found, page["url"]
+            text = html.unescape(found.group(1))
+            assert 110 <= len(text) <= 160, f'{page["url"]}: {len(text)} characters'
+
     def test_robots_points_at_the_sitemap(self, client):
         assert "Sitemap: https://dinkydash.co/sitemap.xml" in \
             client.get("/robots.txt").get_data(as_text=True)
@@ -509,20 +521,21 @@ class TestExampleCalendarUrlsAreVisiblyFake:
                 assert "xxxx" in url.lower(), f"{path.name}: {url}"
 
 
-class TestCloudflareDoesNotEatShellCommands:
+class TestCloudflareDoesNotObfuscateAddresses:
     """App Platform serves through Cloudflare, whose Email Address Obfuscation
-    rewrote `ssh pi@raspberrypi.local` in the setup guide into a JavaScript
-    link. Found on the live site, not in review."""
+    turns anything shaped like an address into a script-decoded link. That
+    breaks shell commands people copy, and gives crawlers a link that 404s."""
 
     def test_code_blocks_opt_out_of_obfuscation(self, client):
         page = client.get("/getting-started/").get_data(as_text=True)
         assert "<!--email_off-->" in page
         assert "ssh pi@raspberrypi.local" in page
 
-    def test_the_marker_wraps_the_block_rather_than_the_page(self, client):
-        page = client.get("/getting-started/").get_data(as_text=True)
-        assert page.count("<!--email_off-->") == page.count("<!--email_on-->")
-        assert page.count("<!--email_off-->") > 1, "one pair per code block"
+    def test_the_contact_address_opts_out_too(self, client):
+        for path in ("/privacy/", "/terms/"):
+            page = client.get(path).get_data(as_text=True)
+            body = page.split("<!--email_off-->", 1)[1].split("<!--/email_off-->", 1)[0]
+            assert "hi@keepthescore.com" in body, path
 
 
 class TestThePrivacyPageNamesEverySubProcessor:

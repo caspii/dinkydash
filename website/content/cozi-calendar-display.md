@@ -2,7 +2,7 @@
 title: "Cozi Calendar Display: Put Your Cozi Calendar on a Wall Screen"
 seo_title: "Cozi Calendar Display: Put Cozi on a Wall Screen"
 template: page.html
-description: Cozi has no wall display of its own, but it does hand out a shareable calendar URL. Here's how to find it and put your family's Cozi calendar on a screen in the kitchen — on a screen you already own.
+description: Cozi has no wall display of its own, but it gives you a shareable calendar link. Here's how to find it and show your Cozi calendar on a screen you already own.
 faq:
   - q: "Does Cozi have a wall display?"
     a: "No. Cozi is a phone and web app — there is no Cozi hardware and no TV or tablet display mode. What Cozi does give you is a shareable calendar URL, which any display that reads iCal feeds can subscribe to."

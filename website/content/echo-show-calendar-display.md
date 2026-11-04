@@ -2,7 +2,7 @@
 title: "Echo Show as a Family Calendar Display: What Works, and What Doesn't"
 seo_title: "Echo Show Calendar Display: The Honest Guide"
 template: page.html
-description: An Echo Show can show your calendar — through Alexa's own calendar linking. What it can't do is stay on a web dashboard, because the browser closes itself after about fifteen minutes. Here's the honest version of both.
+description: An Echo Show can show your calendar through Alexa's own calendar linking. What it can't do is stay on a web dashboard, because its browser closes itself.
 faq:
   - q: "Can an Echo Show display my family calendar?"
     a: "Yes, through Alexa's own calendar feature. Link a Google, Microsoft or iCloud calendar in the Alexa app under Settings, Calendar, and the Echo Show displays it and answers questions about it. This is the route that works."
